@@ -56,4 +56,13 @@ RSpec.configure do |config|
   # config.filter_gems_from_backtrace("gem name")
   config.include Devise::Test::IntegrationHelpers, type: :feature
   config.include FactoryBot::Syntax::Methods
+
+  OmniAuth.config.test_mode = true
+  OmniAuth.config.mock_auth[:strava] = OmniAuth::AuthHash.new({
+    :provider => 'strava',
+    :uid => '123545',
+    info: {
+      email: "example@example.com"
+    }
+  })
 end

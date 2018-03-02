@@ -3,7 +3,7 @@ class ActivitiesController < ApplicationController
   before_action :initialize_strava
 
   def index
-    activities = @strava.get_logged_in_athlete_activites(params)
+    activities = @strava.get_logged_in_athlete_activities({before: params['before'].to_i})
     # TODO: error handling
     render json: activities
   end

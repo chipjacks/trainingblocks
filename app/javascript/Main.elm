@@ -3,7 +3,7 @@ module Main exposing (..)
 import Html exposing (Html, div, span, button)
 import Html.Attributes exposing (style)
 import Html.Events exposing (onClick)
-import HumanAPI exposing (..)
+import StravaAPI exposing (..)
 import Msgs exposing (..)
 import Models exposing (..)
 import Date exposing (Date, Month(..))
@@ -106,7 +106,7 @@ viewLoadMoreButton model =
     button [ onClick ((AActivitiesMsg << FetchActivities) (prevMonthStart model)) ] [ Html.text "Load More" ]
 
 
-viewRow : ( RataDie, WebData (List HumanAPIActivity) ) -> Html Msg
+viewRow : ( RataDie, WebData (List StravaAPIActivity) ) -> Html Msg
 viewRow weeksActivities =
     let
         startDate =

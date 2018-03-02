@@ -1,3 +1,11 @@
+GIT
+  remote: https://github.com/chipjacks/strava-client
+  revision: 976f2e6b72a99be61ac2f02369deff1acb98e9f7
+  specs:
+    strava-client (1.0.0)
+      json (~> 2.1, >= 2.1.0)
+      typhoeus (~> 1.0, >= 1.0.1)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -63,6 +71,8 @@ GEM
       warden (~> 1.2.3)
     diff-lcs (1.3)
     erubi (1.7.0)
+    ethon (0.11.0)
+      ffi (>= 1.3.0)
     execjs (2.7.0)
     factory_bot (4.8.2)
       activesupport (>= 3.0.0)
@@ -80,6 +90,7 @@ GEM
     jbuilder (2.7.0)
       activesupport (>= 4.2.0)
       multi_json (>= 1.2)
+    json (2.1.0)
     jwt (1.5.6)
     listen (3.1.5)
       rb-fsevent (~> 0.9, >= 0.9.4)
@@ -201,6 +212,8 @@ GEM
     turbolinks (5.1.0)
       turbolinks-source (~> 5.1)
     turbolinks-source (5.1.0)
+    typhoeus (1.3.0)
+      ethon (>= 0.9.0)
     tzinfo (1.2.5)
       thread_safe (~> 0.1)
     uglifier (4.1.6)
@@ -239,8 +252,8 @@ DEPENDENCIES
   rails (~> 5.1.5)
   rspec-rails (~> 3.7.0)
   sass-rails (~> 5.0)
+  strava-client (~> 1.0.0)!
   turbolinks (~> 5)
-  tzinfo-data
   uglifier (>= 1.3.0)
   web-console (>= 3.3.0)
   webpacker

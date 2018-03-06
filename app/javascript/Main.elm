@@ -1,16 +1,14 @@
 module Main exposing (..)
 
-import Html exposing (Html, div, span, button)
-import Html.Attributes exposing (style)
+import Html exposing (Html, div, span, button, text)
+import Html.Attributes exposing (class, style)
 import Html.Events exposing (onClick)
-import StravaAPI exposing (..)
-import Msgs exposing (..)
-import Models exposing (..)
 import Date exposing (Date, Month(..))
-import Date.Extra as Date
-import Dict exposing (Dict)
-import RemoteData exposing (RemoteData, WebData)
-import Task exposing (Task)
+import Date.Extra as Date exposing (Interval(..))
+import Updater exposing (Updater, Converter, converter, noReaction, toCmd)
+import Updater.Many as Many
+
+import Container exposing (BlockId)
 
 
 main : Program Never Model Msg
@@ -22,61 +20,62 @@ main =
         , subscriptions = subscriptions
         }
 
+type alias ContainersModel = Many.Model Container.Model Container.Msg
+type alias ContainersMsg = Many.Msg Container.Model Container.Msg
+
+type alias Model = {
+    containers: ContainersModel,
+    loadOlderDate: Date
+}
+
+type Msg =
+    UpdaterMsg (Updater Model Msg)
+    | LoadOlderContainerMsg
+
+containersC : Converter Msg ContainersMsg
+containersC = converter
+           UpdaterMsg
+           { get = Just << .containers
+           , set = (\ cm model -> { model | containers = cm } )
+           , update = Many.update
+           , react = noReaction }
+
+-- INIT
+
+init : (Model, Cmd Msg)
+init = { containers = Many.initModel Container.update Container.subscriptions,
+    loadOlderDate =  Date.fromCalendarDate 2018 Feb 1 }
+    ! [ ]
 
 
--- MODEL
+-- loadMonthsBlocks : Date -> List Container.Model
+-- loadMonthsBlocks date =
+    -- Date.range Date.Week 1 (Date.floor Date.Month date) (Date.add Date.Month 1 date)
+        -- |> List.map (\d -> Container.Model "1" RemoteData.NotAsked d)
 
-
-init : ( Model, Cmd Msg )
-init =
-    ( Model Dict.empty [] Nothing, (Task.attempt getLatestActivities Date.now) )
-
-
-prevMonthStart : Model -> Date
-prevMonthStart model =
-    Dict.keys model.activities
-        |> List.sort
-        |> List.head
-        |> Maybe.map Date.fromRataDie
-        -- TODO: better error handling
-        |> Maybe.withDefault (Date.fromCalendarDate 2018 Jan 1)
-        |> Date.add Date.Month -1
-
-
-getLatestActivities : Result String Date -> Msg
-getLatestActivities result =
-    case result of
-        Ok date ->
-            (AActivitiesMsg << FetchActivities) (Date.floor Date.Month date)
-
-        Err _ ->
-            -- TODO: better error handling
-            (AActivitiesMsg << FetchActivities) (Date.fromCalendarDate 2018 Jan 1)
-
+-- prevMonthStart : Model -> Date
+-- prevMonthStart model =
+--     Dict.keys model.activities
+--         |> List.sort
+--         |> List.head
+--         |> Maybe.map Date.fromRataDie
+--         -- TODO: better error handling
+--         |> Maybe.withDefault (Date.fromCalendarDate 2018 Jan 1)
+--         |> Date.add Date.Month -1
 
 
 -- UPDATE
 
-
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case msg of
-        AActivitiesMsg activitiesMsg ->
-            updateActivitiesMsg activitiesMsg model
-
-
-updateActivitiesMsg : ActivitiesMsg -> Model -> ( Model, Cmd Msg )
-updateActivitiesMsg msg model =
-    case msg of
-        FetchActivities date ->
-            ( model, (loadMonthsActivities date) )
-
-        GotActivities rataDie activities ->
-            let
-                newActivities =
-                    Dict.insert rataDie activities model.activities
-            in
-                ( { model | activities = newActivities }, Cmd.none )
+  case msg of
+      UpdaterMsg u -> u model
+      LoadOlderContainerMsg ->
+        let
+            olderDate = Date.add Week -1 model.loadOlderDate
+        in
+            ({model | loadOlderDate = olderDate}, toCmd <| containersC <| Many.Add <| Container.init model.loadOlderDate)
+            
 
 
 
@@ -94,64 +93,24 @@ subscriptions model =
 
 view : Model -> Html Msg
 view model =
-    let
-        weeks =
-            Dict.toList model.activities |> List.sortBy Tuple.first |> List.reverse
-    in
-        div [] ((List.map viewRow weeks) ++ [ (viewLoadMoreButton model) ])
+    div [] [(div [] [ button [ onClick LoadOlderContainerMsg] [ text "Add Container" ]]),
+        (Html.map containersC <| viewContainers model.containers)]
+        
+
+viewContainers : ContainersModel -> Html ContainersMsg
+viewContainers containers =
+   div [ class "timers" ]
+        [ div [ style [("height", "420px")]] <|
+
+              containers.viewAll
+              (\ id container conv -> Just <|
+                   div [ style [ ("width", "215px")
+                               , ("float", "left")
+                               , ("height", "320px") ] ]
+                   [ conv <| Container.view container
+                   , button [ onClick <| Many.Delete id ] [ text "Delete" ] ])]
 
 
-viewLoadMoreButton : Model -> Html Msg
-viewLoadMoreButton model =
-    button [ onClick ((AActivitiesMsg << FetchActivities) (prevMonthStart model)) ] [ Html.text "Load More" ]
-
-
-viewRow : ( RataDie, WebData (List StravaAPIActivity) ) -> Html Msg
-viewRow weeksActivities =
-    let
-        startDate =
-            Date.fromRataDie (Tuple.first weeksActivities)
-
-        endDate =
-            Date.add Date.Week 1 startDate
-    in
-        case weeksActivities of
-            ( rataDie, RemoteData.Success loadedActivities ) ->
-                div [ style [ ( "height", "120px" ) ] ]
-                    ((span [] [ Html.text ((Date.toFormattedString "MMM d" startDate) ++ " - " ++ (Date.toFormattedString "MMM d" endDate)) ])
-                        :: ((Date.range Date.Day 1 startDate endDate)
-                                |> List.map (\d -> ( d, List.filter (\r -> (Date.toRataDie r.date) == (Date.toRataDie d)) loadedActivities ))
-                                |> List.map (\( d, rs ) -> Day d (List.map toActivity rs))
-                                |> List.map (\b -> viewDay b)
-                           )
-                    )
-
-            _ ->
-                Html.text ""
-
-
-viewDay : Day -> Html Msg
-viewDay day =
-    div [ style [ ( "display", "inline-block" ) ] ]
-        [ viewAnnotations day
-        , div [] (List.map viewActivity day.blocks)
-        ]
-
-
-viewActivity : Activity -> Html Msg
-viewActivity block =
-    div
-        [ style
-            [ ( "display", "inline-block" )
-            , ( "margin-right", "10px" )
-            , ( "background", "skyblue" )
-            , ( "width", (toString block.durationMinutes) ++ "px" )
-            , ( "height", (toString (block.intensity * 10)) ++ "px" )
-            ]
-        ]
-        []
-
-
-viewAnnotations : Day -> Html Msg
-viewAnnotations day =
-    div [ style [ ( "height", "20px" ) ] ] [ Html.text "" ]
+-- viewLoadMoreButton : Model -> Html Msg
+-- viewLoadMoreButton model =
+    -- button [ onClick ((ActivitiesMsg << FetchActivities) (prevMonthStart model)) ] [ Html.text "Load More" ]

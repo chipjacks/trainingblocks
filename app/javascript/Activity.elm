@@ -3,6 +3,7 @@ module Activity exposing (..)
 import StravaAPI exposing (StravaAPIActivity)
 import Html exposing (Html, div)
 import Html.Attributes exposing (style)
+import Date exposing (Date)
 
 
 -- MODEL
@@ -12,6 +13,7 @@ type alias Model =
     { -- id : BlockId
       --    , containerId: BlockId
       type_ : ActivityType
+    , date : Date
     , intensity : Int -- 1 to 5, either inferred from pace or user defined
     , durationMinutes : Int -- in minutes... TODO: change it to seconds.
 
@@ -31,7 +33,7 @@ type ActivityType
 
 fromStravaAPIActivity : StravaAPIActivity -> Model
 fromStravaAPIActivity activity =
-    Model (toType activity.type_) (toIntensity activity) (activity.duration // 60)
+    Model (toType activity.type_) activity.date (toIntensity activity) (activity.duration // 60)
 
 
 toIntensity : StravaAPIActivity -> Int

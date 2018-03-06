@@ -75,7 +75,7 @@ update msg model =
         LoadOlderContainerMsg ->
             let
                 olderDate =
-                    Date.add Week -1 model.loadOlderDate
+                    Date.add Month -1 model.loadOlderDate
             in
                 ( { model | loadOlderDate = olderDate }, toCmd <| containersC <| Many.Add <| Container.init model.loadOlderDate )
 
@@ -110,7 +110,7 @@ viewContainers containers =
                     Just <|
                         div
                             [ style
-                                [ ( "width", "215px" )
+                                [ ( "width", "33%" )
                                 , ( "float", "left" )
                                 , ( "height", "320px" )
                                 ]

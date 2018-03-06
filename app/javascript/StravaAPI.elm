@@ -9,7 +9,8 @@ import Date.Extra as Date
 
 type alias StravaAPIActivity =
     { -- id : String,
-      date : Date
+      type_ : String
+    , date : Date
     , duration : Int
     , distance : Float
     }
@@ -28,20 +29,21 @@ listActivities startDate endDate =
 activityDecoder : Decoder StravaAPIActivity
 activityDecoder =
     let
-        toDecoder : String -> Int -> Float -> Decoder StravaAPIActivity
-        toDecoder startDate duration distance =
+        toDecoder : String -> String -> Int -> Float -> Decoder StravaAPIActivity
+        toDecoder type_ startDate duration distance =
             let
                 date =
                     Date.fromIsoString startDate
             in
                 case date of
                     Just date ->
-                        succeed (StravaAPIActivity date duration distance)
+                        succeed (StravaAPIActivity type_ date duration distance)
 
                     Nothing ->
                         fail "This JSON is invalid"
     in
         decode toDecoder
+            |> required "type" string
             |> required "start_date" string
             |> required "elapsed_time" int
             |> required "distance" float

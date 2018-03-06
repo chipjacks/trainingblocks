@@ -57,25 +57,12 @@ containersC =
 init : ( Model, Cmd Msg )
 init =
     { containers = Many.initModel Container.update Container.subscriptions
-    , loadOlderDate = Date.fromCalendarDate 2018 Feb 1
+    , loadOlderDate = Date.fromCalendarDate 2018 Mar 1
     }
         ! []
 
 
 
--- loadMonthsBlocks : Date -> List Container.Model
--- loadMonthsBlocks date =
--- Date.range Date.Week 1 (Date.floor Date.Month date) (Date.add Date.Month 1 date)
--- |> List.map (\d -> Container.Model "1" RemoteData.NotAsked d)
--- prevMonthStart : Model -> Date
--- prevMonthStart model =
---     Dict.keys model.activities
---         |> List.sort
---         |> List.head
---         |> Maybe.map Date.fromRataDie
---         -- TODO: better error handling
---         |> Maybe.withDefault (Date.fromCalendarDate 2018 Jan 1)
---         |> Date.add Date.Month -1
 -- UPDATE
 
 

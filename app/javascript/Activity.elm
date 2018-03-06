@@ -7,6 +7,7 @@ import Html.Attributes exposing (style)
 
 -- MODEL
 
+
 type alias Model =
     { -- id : BlockId
       --    , containerId: BlockId
@@ -25,8 +26,6 @@ type ActivityType
     | Ride
     | Weights
     | Swim
-
-
 
 
 fromStravaAPIActivity : StravaAPIActivity -> Model
@@ -57,7 +56,9 @@ toMiles meters =
     meters / 1609.34
 
 
+
 -- VIEW
+
 
 view : Model -> Html msg
 view block =

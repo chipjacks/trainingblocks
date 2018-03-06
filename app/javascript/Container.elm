@@ -8,12 +8,15 @@ import Activity exposing (fromStravaAPIActivity)
 import Html exposing (Html, div, span)
 import Html.Attributes exposing (style)
 
+
 type alias Model =
     { -- id: BlockId
       --   , userId: UserId,
-     blocks : WebData (List Block)
+      blocks : WebData (List Block)
+
     -- , scale: Date.Interval
     , date : Date
+
     -- Maybe add some aggregated metrics here so recursive load can happen lazily
     }
 
@@ -22,17 +25,23 @@ type Block
     = ActivityBlock Activity.Model
     | ContainerBlock Model
 
+
 type alias BlockId =
     String
 
-init : Date -> (Model, Cmd Msg)
-init date = 
+
+init : Date -> ( Model, Cmd Msg )
+init date =
     let
-        model = { blocks = NotAsked, date = date}
+        model =
+            { blocks = NotAsked, date = date }
     in
-        (model, loadBlocks model)
+        ( model, loadBlocks model )
+
+
 
 -- UPDATE
+
 
 type Msg
     = GotStravaActivities (WebData (List StravaAPIActivity))
@@ -49,18 +58,19 @@ update msg model =
             case webdata of
                 Success activities ->
                     let
-                        blocks = List.map fromStravaAPIActivity activities |> List.map ActivityBlock
+                        blocks =
+                            List.map fromStravaAPIActivity activities |> List.map ActivityBlock
                     in
-                        ({model | blocks = Success blocks}, Cmd.none)
-                        
+                        ( { model | blocks = Success blocks }, Cmd.none )
+
                 Failure msg ->
-                    (model, Cmd.none)
-                
+                    ( model, Cmd.none )
+
                 Loading ->
-                    ({ model | blocks = Loading}, Cmd.none)
+                    ( { model | blocks = Loading }, Cmd.none )
 
                 NotAsked ->
-                    ({ model | blocks = NotAsked}, Cmd.none)
+                    ( { model | blocks = NotAsked }, Cmd.none )
 
 
 loadBlocks : Model -> Cmd Msg
@@ -76,18 +86,25 @@ loadBlocks model =
             |> RemoteData.sendRequest
             |> Cmd.map GotStravaActivities
 
+
+
 -- SUBSCRIPTIONS
+
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.none
 
+
+
 -- VIEW
+
 
 view : Model -> Html Msg
 view model =
     let
-        startDate = model.date
+        startDate =
+            model.date
 
         endDate =
             Date.add Date.Week 1 startDate
@@ -102,13 +119,12 @@ view model =
             _ ->
                 Html.text ""
 
+
 viewBlock : Block -> Html Msg
 viewBlock block =
     case block of
         ActivityBlock activity ->
             Activity.view activity
-            
-    
+
         ContainerBlock block ->
             Html.text ""
-            

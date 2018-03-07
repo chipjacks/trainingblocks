@@ -7,6 +7,7 @@ import StravaAPI exposing (StravaAPIActivity)
 import Activity exposing (fromStravaAPIActivity)
 import Html exposing (Html, div, span)
 import Html.Attributes exposing (style, class)
+import Html.Events exposing (onClick)
 import Updater exposing (Updater, Converter, converter, noReaction, toCmd)
 import Updater.Many as Many
 import Week
@@ -24,6 +25,7 @@ type alias Model =
     { activities : WebData (List Activity.Model)
     , weeks : WeeksModel
     , date : Date
+    , expanded : Bool
     }
 
 weeksC : Converter Msg WeeksMsg
@@ -42,7 +44,7 @@ init : Date -> ( Model, Cmd Msg )
 init date =
     let
         model =
-            { activities = NotAsked, weeks = Many.initModel Week.update Week.subscriptions, date = date }
+            { activities = NotAsked, weeks = Many.initModel Week.update Week.subscriptions, date = date, expanded = False }
     in
         ( model, loadActivities model )
 
@@ -69,6 +71,7 @@ endDate model =
 type Msg
     = GotStravaActivities (WebData (List StravaAPIActivity))
     | FetchActivities
+    | ToggleExpanded
     | UpdaterMsg (Updater Model Msg)
 
 
@@ -77,6 +80,9 @@ update msg model =
     case msg of
         UpdaterMsg u ->
                 u model
+
+        ToggleExpanded ->
+            ({model | expanded = not model.expanded}, Cmd.none)
 
         FetchActivities ->
             ( model, (loadActivities model) )
@@ -127,7 +133,16 @@ subscriptions model =
 
 view : Model -> Html Msg
 view model = 
-    div [ class "month" ]
+    div [ cssClass model, onClick ToggleExpanded ]
         [ span [] [ Html.text (Date.toFormattedString "MMMM" model.date) ]
         , model.weeks.viewAll (\ id week conv -> Week.view week |> conv |> Just) |> div [ class "weeks" ] |> Html.map weeksC
         ]
+
+cssClass : Model -> Html.Attribute Msg
+cssClass model =
+    case model.expanded of
+        True ->
+            class "month open"
+    
+        False ->
+            class "month"

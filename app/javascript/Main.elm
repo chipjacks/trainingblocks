@@ -65,7 +65,7 @@ loadMonths : Date -> List (Cmd Msg)
 loadMonths date =
         let
             maxMonth = Date.floor Date.Month date
-            minMonth = Date.add Date.Year -1 maxMonth
+            minMonth = Date.add Date.Month -6 maxMonth
         in
             Date.range Date.Month 1 minMonth maxMonth
                 |> List.map (\d -> toCmd <| monthsC <| Many.Add <| Month.init d)

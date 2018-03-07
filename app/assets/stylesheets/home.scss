@@ -1,3 +1,21 @@
 // Place all the styles related to the home controller here.
 // They will automatically be included in application.css.
 // You can use Sass (SCSS) here: http://sass-lang.com/
+
+
+.month {
+  display: inline-block;
+  width: 33%;
+  height: 300px;
+}
+
+.month.open {
+  display: block;
+}
+
+.month.open .week {
+  display: flex;
+  align-items: flex-end;
+  height: 60px;
+  width: 100%;
+}

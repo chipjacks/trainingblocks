@@ -103,28 +103,7 @@ subscriptions model =
 
 view : Model -> Html Msg
 view model =
-    div []
-        [ (div [] [ button [ onClick LoadOlderMonthMsg ] [ text "Add Month" ] ])
-        , (Html.map monthsC <| viewMonths model.months)
-        ]
-
-
-viewMonths : MonthsModel -> Html MonthsMsg
-viewMonths months =
-    div [ class "timers" ]
-        [ div [ style [ ( "height", "420px" ) ] ] <|
-            months.viewAll
-                (\id month conv ->
-                    Just <|
-                        div
-                            [ style
-                                [ ( "width", "33%" )
-                                , ( "float", "left" )
-                                , ( "height", "320px" )
-                                ]
-                            ]
-                            [ conv <| Month.view month
-                            , button [ onClick <| Many.Delete id ] [ text "Delete" ]
-                            ]
-                )
+    div [ class "main" ] 
+        [ (model.months.viewAll (\id month conv -> Month.view month |> conv |> Just)) |> div [ class "months" ] |> Html.map monthsC
+        , div [] [ button [ onClick LoadOlderMonthMsg ] [ text "Add Month" ] ]
         ]

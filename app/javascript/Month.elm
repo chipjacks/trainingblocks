@@ -6,7 +6,7 @@ import Date.Extra as Date exposing (Interval(..), isBetween)
 import StravaAPI exposing (StravaAPIActivity)
 import Activity exposing (fromStravaAPIActivity)
 import Html exposing (Html, div, span)
-import Html.Attributes exposing (style)
+import Html.Attributes exposing (style, class)
 import Updater exposing (Updater, Converter, converter, noReaction, toCmd)
 import Updater.Many as Many
 import Week
@@ -126,16 +126,8 @@ subscriptions model =
 
 
 view : Model -> Html Msg
-view model =
-    div [ style [ ( "height", "100px" ) ] ]
-        ((span [] [ Html.text ((Date.toFormattedString "MMM d" model.date) ++ " - " ++ (Date.toFormattedString "MMM d" <| endDate model)) ])
-            :: [(Html.map weeksC <| viewWeeks model.weeks)]
-        )
-
-viewWeeks : WeeksModel -> Html WeeksMsg
-viewWeeks weeks = 
-    div [ ]
-        [ div [ style [] ] <|
-              weeks.viewAll
-              (\ id week conv -> Just <| conv <| Week.view week)
+view model = 
+    div [ class "month" ]
+        [ span [] [ Html.text (Date.toFormattedString "MMMM" model.date) ]
+        , model.weeks.viewAll (\ id week conv -> Week.view week |> conv |> Just) |> div [ class "weeks" ] |> Html.map weeksC
         ]

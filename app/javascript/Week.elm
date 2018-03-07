@@ -6,7 +6,7 @@ import Activity
 import Date exposing (Date)
 import Date.Extra as Date exposing (toFormattedString, Interval(..), isBetween)
 import Html exposing (Html, div, span, text, button)
-import Html.Attributes exposing (style)
+import Html.Attributes exposing (class)
 
 type alias ActivitiesModel =
     Many.Model Activity.Model Activity.Msg
@@ -76,16 +76,6 @@ subscriptions model =
 
 view : Model -> Html Msg
 view model =
-    div [ style [ ( "height", "25%" ) ] ] [(Html.map activitiesC <| viewActivities model.activities)]
+    div [ class "week" ] (model.activities.viewAll (\ id activity conv -> Activity.view activity |> conv |> Just))
+        |> Html.map activitiesC
 
-viewCompact : Model -> Html Msg
-viewCompact model =
-    div [ style [ ( "height", "30px" ) ] ] [(Html.map activitiesC <| viewActivities model.activities)]
-
-viewActivities : ActivitiesModel -> Html ActivitiesMsg
-viewActivities activities = 
-    div [ ]
-        [ div [ style [] ] <|
-              activities.viewAll
-              (\ id activity conv -> Just <| conv <| Activity.view activity)
-        ]

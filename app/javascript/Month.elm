@@ -1,4 +1,4 @@
-module Container exposing (..)
+module Month exposing (..)
 
 import RemoteData exposing (WebData, RemoteData(..))
 import Date exposing (Date)
@@ -21,13 +21,9 @@ type alias WeeksMsg =
 
 
 type alias Model =
-    { -- id: BlockId
-      --   , userId: UserId,
-      activities : WebData (List Activity.Model)
+    { activities : WebData (List Activity.Model)
     , weeks : WeeksModel
-    , scale: Date.Interval
     , date : Date
-    -- Maybe add some aggregated metrics here so recursive load can happen lazily
     }
 
 weeksC : Converter Msg WeeksMsg
@@ -42,11 +38,11 @@ weeksC =
 
 
 
-init : Date.Interval -> Date -> ( Model, Cmd Msg )
-init scale date =
+init : Date -> ( Model, Cmd Msg )
+init date =
     let
         model =
-            { activities = NotAsked, weeks = Many.initModel Week.update Week.subscriptions, scale = scale, date = date }
+            { activities = NotAsked, weeks = Many.initModel Week.update Week.subscriptions, date = date }
     in
         ( model, loadActivities model )
 
@@ -64,7 +60,7 @@ loadActivities model =
 
 endDate : Model -> Date
 endDate model =
-    Date.add model.scale 1 model.date
+    Date.add Month 1 model.date
 
 
 -- UPDATE

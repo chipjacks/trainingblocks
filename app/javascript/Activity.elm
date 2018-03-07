@@ -10,13 +10,10 @@ import Date exposing (Date)
 
 
 type alias Model =
-    { -- id : BlockId
-      --    , containerId: BlockId
-      type_ : ActivityType
+    { type_ : ActivityType
     , date : Date
     , intensity : Int -- 1 to 5, either inferred from pace or user defined
     , durationMinutes : Int -- in minutes... TODO: change it to seconds.
-
     --    , externalId: Maybe String -- if user attaches an activity
     --    , completed: Bool -- could be completed without necessarily having an external activity
     --    , notes: List Note

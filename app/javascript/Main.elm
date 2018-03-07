@@ -7,7 +7,7 @@ import Date exposing (Date, Month(..))
 import Date.Extra as Date exposing (Interval(..))
 import Updater exposing (Updater, Converter, converter, noReaction, toCmd)
 import Updater.Many as Many
-import Container
+import Month
 
 
 main : Program Never Model Msg
@@ -20,31 +20,31 @@ main =
         }
 
 
-type alias ContainersModel =
-    Many.Model Container.Model Container.Msg
+type alias MonthsModel =
+    Many.Model Month.Model Month.Msg
 
 
-type alias ContainersMsg =
-    Many.Msg Container.Model Container.Msg
+type alias MonthsMsg =
+    Many.Msg Month.Model Month.Msg
 
 
 type alias Model =
-    { containers : ContainersModel
+    { months : MonthsModel
     , loadOlderDate : Date
     }
 
 
 type Msg
     = UpdaterMsg (Updater Model Msg)
-    | LoadOlderContainerMsg
+    | LoadOlderMonthMsg
 
 
-containersC : Converter Msg ContainersMsg
-containersC =
+monthsC : Converter Msg MonthsMsg
+monthsC =
     converter
         UpdaterMsg
-        { get = Just << .containers
-        , set = (\cm model -> { model | containers = cm })
+        { get = Just << .months
+        , set = (\cm model -> { model | months = cm })
         , update = Many.update
         , react = noReaction
         }
@@ -56,19 +56,19 @@ containersC =
 
 init : ( Model, Cmd Msg )
 init =
-    { containers = Many.initModel Container.update Container.subscriptions
+    { months = Many.initModel Month.update Month.subscriptions
     , loadOlderDate = Date.fromCalendarDate 2017 Mar 1
-    } ! (loadContainers <| Date.fromCalendarDate 2018 Apr 1)
+    } ! (loadMonths <| Date.fromCalendarDate 2018 Apr 1)
 
 
-loadContainers : Date -> List (Cmd Msg)
-loadContainers date =
+loadMonths : Date -> List (Cmd Msg)
+loadMonths date =
         let
             maxMonth = Date.floor Date.Month date
             minMonth = Date.add Date.Year -1 maxMonth
         in
             Date.range Date.Month 1 minMonth maxMonth
-                |> List.map (\d -> toCmd <| containersC <| Many.Add <| Container.init Month d)
+                |> List.map (\d -> toCmd <| monthsC <| Many.Add <| Month.init d)
 
 
 -- UPDATE
@@ -80,12 +80,12 @@ update msg model =
         UpdaterMsg u ->
             u model
 
-        LoadOlderContainerMsg ->
+        LoadOlderMonthMsg ->
             let
                 olderDate =
                     Date.add Month -1 model.loadOlderDate
             in
-                ( { model | loadOlderDate = olderDate }, toCmd <| containersC <| Many.Add <| Container.init Month model.loadOlderDate )
+                ( { model | loadOlderDate = olderDate }, toCmd <| monthsC <| Many.Add <| Month.init model.loadOlderDate )
 
 
 
@@ -104,17 +104,17 @@ subscriptions model =
 view : Model -> Html Msg
 view model =
     div []
-        [ (div [] [ button [ onClick LoadOlderContainerMsg ] [ text "Add Container" ] ])
-        , (Html.map containersC <| viewContainers model.containers)
+        [ (div [] [ button [ onClick LoadOlderMonthMsg ] [ text "Add Month" ] ])
+        , (Html.map monthsC <| viewMonths model.months)
         ]
 
 
-viewContainers : ContainersModel -> Html ContainersMsg
-viewContainers containers =
+viewMonths : MonthsModel -> Html MonthsMsg
+viewMonths months =
     div [ class "timers" ]
         [ div [ style [ ( "height", "420px" ) ] ] <|
-            containers.viewAll
-                (\id container conv ->
+            months.viewAll
+                (\id month conv ->
                     Just <|
                         div
                             [ style
@@ -123,14 +123,8 @@ viewContainers containers =
                                 , ( "height", "320px" )
                                 ]
                             ]
-                            [ conv <| Container.view container
+                            [ conv <| Month.view month
                             , button [ onClick <| Many.Delete id ] [ text "Delete" ]
                             ]
                 )
         ]
-
-
-
--- viewLoadMoreButton : Model -> Html Msg
--- viewLoadMoreButton model =
--- button [ onClick ((ActivitiesMsg << FetchActivities) (prevMonthStart model)) ] [ Html.text "Load More" ]

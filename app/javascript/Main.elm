@@ -7,7 +7,7 @@ import Date exposing (Date, Month(..))
 import Date.Extra as Date exposing (Interval(..))
 import Updater exposing (Updater, Converter, converter, noReaction, toCmd)
 import Updater.Many as Many
-import Container exposing (BlockId)
+import Container
 
 
 main : Program Never Model Msg
@@ -57,10 +57,18 @@ containersC =
 init : ( Model, Cmd Msg )
 init =
     { containers = Many.initModel Container.update Container.subscriptions
-    , loadOlderDate = Date.fromCalendarDate 2018 Mar 1
-    }
-        ! []
+    , loadOlderDate = Date.fromCalendarDate 2017 Mar 1
+    } ! (loadContainers <| Date.fromCalendarDate 2018 Apr 1)
 
+
+loadContainers : Date -> List (Cmd Msg)
+loadContainers date =
+        let
+            maxMonth = Date.floor Date.Month date
+            minMonth = Date.add Date.Year -1 maxMonth
+        in
+            Date.range Date.Month 1 minMonth maxMonth
+                |> List.map (\d -> toCmd <| containersC <| Many.Add <| Container.init Month d)
 
 
 -- UPDATE
@@ -77,7 +85,7 @@ update msg model =
                 olderDate =
                     Date.add Month -1 model.loadOlderDate
             in
-                ( { model | loadOlderDate = olderDate }, toCmd <| containersC <| Many.Add <| Container.init model.loadOlderDate )
+                ( { model | loadOlderDate = olderDate }, toCmd <| containersC <| Many.Add <| Container.init Month model.loadOlderDate )
 
 
 

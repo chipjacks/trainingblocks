@@ -7,77 +7,52 @@ import StravaAPI exposing (StravaAPIActivity)
 import Activity exposing (fromStravaAPIActivity)
 import Html exposing (Html, div, span)
 import Html.Attributes exposing (style)
+import Updater exposing (Updater, Converter, converter, noReaction, toCmd)
+import Updater.Many as Many
+import Week
+
+
+type alias WeeksModel =
+    Many.Model Week.Model Week.Msg
+
+
+type alias WeeksMsg =
+    Many.Msg Week.Model Week.Msg
 
 
 type alias Model =
     { -- id: BlockId
       --   , userId: UserId,
-      blocks : WebData (List Block)
-
-    -- , scale: Date.Interval
+      activities : WebData (List Activity.Model)
+    , weeks : WeeksModel
+    , scale: Date.Interval
     , date : Date
-
     -- Maybe add some aggregated metrics here so recursive load can happen lazily
     }
 
+weeksC : Converter Msg WeeksMsg
+weeksC =
+    converter
+        UpdaterMsg
+        { get = Just << .weeks
+        , set = (\cm model -> { model | weeks = cm })
+        , update = Many.update
+        , react = noReaction
+        }
 
-type Block
-    = ActivityBlock Activity.Model
-    | ContainerBlock Model
 
 
-type alias BlockId =
-    String
-
-
-init : Date -> ( Model, Cmd Msg )
-init date =
+init : Date.Interval -> Date -> ( Model, Cmd Msg )
+init scale date =
     let
         model =
-            { blocks = NotAsked, date = date }
+            { activities = NotAsked, weeks = Many.initModel Week.update Week.subscriptions, scale = scale, date = date }
     in
-        ( model, loadBlocks model )
+        ( model, loadActivities model )
 
 
-
--- UPDATE
-
-
-type Msg
-    = GotStravaActivities (WebData (List StravaAPIActivity))
-    | FetchBlocks
-
-
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
-    case msg of
-        FetchBlocks ->
-            ( model, (loadBlocks model) )
-
-        GotStravaActivities webdata ->
-            case webdata of
-                Success activities ->
-                    let
-                        blocks =
-                            List.map fromStravaAPIActivity activities
-                              -- TODO: the API should do this filtering
-                              |> List.filter (\a -> isBetween model.date (endDate model) a.date)
-                              |> List.map ActivityBlock
-                    in
-                        ( { model | blocks = Success blocks }, Cmd.none )
-
-                Failure msg ->
-                    ( model, Cmd.none )
-
-                Loading ->
-                    ( { model | blocks = Loading }, Cmd.none )
-
-                NotAsked ->
-                    ( { model | blocks = NotAsked }, Cmd.none )
-
-
-loadBlocks : Model -> Cmd Msg
-loadBlocks model =
+loadActivities : Model -> Cmd Msg
+loadActivities model =
     let
         startDate =
             model.date
@@ -89,7 +64,58 @@ loadBlocks model =
 
 endDate : Model -> Date
 endDate model =
-    Date.add Month 1 model.date
+    Date.add model.scale 1 model.date
+
+
+-- UPDATE
+
+
+type Msg
+    = GotStravaActivities (WebData (List StravaAPIActivity))
+    | FetchActivities
+    | UpdaterMsg (Updater Model Msg)
+
+
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg model =
+    case msg of
+        UpdaterMsg u ->
+                u model
+
+        FetchActivities ->
+            ( model, (loadActivities model) )
+
+        GotStravaActivities webdata ->
+            case webdata of
+                Success stravaActivities ->
+                    let
+                        activities =
+                            List.map fromStravaAPIActivity stravaActivities
+                              -- TODO: the API should do this filtering
+                              |> List.filter (\a -> isBetween model.date (endDate model) a.date)
+                    in
+                        ( { model | activities = Success activities }, updateWeeksActivities activities model)
+
+                Failure msg ->
+                    ( model, Cmd.none )
+
+                Loading ->
+                    ( { model | activities = Loading }, Cmd.none )
+
+                NotAsked ->
+                    ( { model | activities = NotAsked }, Cmd.none )
+
+
+updateWeeksActivities : List Activity.Model -> Model -> Cmd Msg
+updateWeeksActivities activities model =
+    let
+        minWeek = Date.floor Date.Week model.date
+        maxWeek = Date.add Date.Month 1 minWeek
+    in
+        Date.range Date.Week 1 minWeek maxWeek
+            |> List.map (\d -> toCmd <| weeksC <| Many.Add <| Week.init activities d)
+            |> Cmd.batch
+
 
 -- SUBSCRIPTIONS
 
@@ -105,22 +131,15 @@ subscriptions model =
 
 view : Model -> Html Msg
 view model =
-    case model.blocks of
-        RemoteData.Success loadedBlocks ->
-            div [ style [ ( "height", "120px" ) ] ]
-                ((span [] [ Html.text ((Date.toFormattedString "MMM d" model.date) ++ " - " ++ (Date.toFormattedString "MMM d" <| endDate model)) ])
-                    :: (List.map viewBlock loadedBlocks)
-                )
+    div [ style [ ( "height", "100px" ) ] ]
+        ((span [] [ Html.text ((Date.toFormattedString "MMM d" model.date) ++ " - " ++ (Date.toFormattedString "MMM d" <| endDate model)) ])
+            :: [(Html.map weeksC <| viewWeeks model.weeks)]
+        )
 
-        _ ->
-            Html.text ""
-
-
-viewBlock : Block -> Html Msg
-viewBlock block =
-    case block of
-        ActivityBlock activity ->
-            Activity.view activity
-
-        ContainerBlock block ->
-            Html.text ""
+viewWeeks : WeeksModel -> Html WeeksMsg
+viewWeeks weeks = 
+    div [ ]
+        [ div [ style [] ] <|
+              weeks.viewAll
+              (\ id week conv -> Just <| conv <| Week.view week)
+        ]

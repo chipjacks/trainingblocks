@@ -1,14 +1,8 @@
 module Main exposing (..)
 
-import Html exposing (Html, div, span, button, text)
-import Html.Attributes exposing (class, style)
-import Html.Events exposing (onClick)
-import Date exposing (Date, Month(..))
-import Date.Extra as Date exposing (Interval(..))
-import Updater exposing (Updater, Converter, converter, noReaction, toCmd)
-import Updater.Many as Many
-import Month
-import Treemap
+import Html exposing (Html, div)
+import Html.Attributes exposing (class)
+import Months
 
 
 main : Program Never Model Msg
@@ -21,35 +15,17 @@ main =
         }
 
 
-type alias MonthsModel =
-    Many.Model Month.Model Month.Msg
-
-
-type alias MonthsMsg =
-    Many.Msg Month.Model Month.Msg
+type Page
+    = Months Months.Model
 
 
 type alias Model =
-    { months : MonthsModel
-    , loadOlderDate : Date
+    { page : Page
     }
 
 
 type Msg
-    = UpdaterMsg (Updater Model Msg)
-    | LoadOlderMonthMsg
-
-
-monthsC : Converter Msg MonthsMsg
-monthsC =
-    converter
-        UpdaterMsg
-        { get = Just << .months
-        , set = (\cm model -> { model | months = cm })
-        , update = Many.update
-        , react = noReaction
-        }
-
+    = MonthsMsg Months.Msg
 
 
 -- INIT
@@ -57,19 +33,11 @@ monthsC =
 
 init : ( Model, Cmd Msg )
 init =
-    { months = Many.initModel Month.update Month.subscriptions
-    , loadOlderDate = Date.fromCalendarDate 2017 Sep 1
-    } ! (loadMonths <| Date.fromCalendarDate 2018 Apr 1)
-
-
-loadMonths : Date -> List (Cmd Msg)
-loadMonths date =
-        let
-            maxMonth = Date.floor Date.Month date
-            minMonth = Date.add Date.Month -6 maxMonth
-        in
-            Date.range Date.Month 1 minMonth maxMonth
-                |> List.map (\d -> toCmd <| monthsC <| Many.Add <| Month.init d)
+    let
+        (subModel, subCmd) = Months.init
+    in
+        { page = Months subModel
+        } ! [subCmd |> Cmd.map MonthsMsg]
 
 
 -- UPDATE
@@ -77,16 +45,14 @@ loadMonths date =
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case msg of
-        UpdaterMsg u ->
-            u model
-
-        LoadOlderMonthMsg ->
-            let
-                olderDate =
-                    Date.add Month -1 model.loadOlderDate
-            in
-                ( { model | loadOlderDate = olderDate }, toCmd <| monthsC <| Many.Add <| Month.init model.loadOlderDate )
+    case model.page of
+        Months page ->
+            case msg of
+                MonthsMsg msg ->
+                    let
+                        (newMonths, newCmd) = Months.update msg page
+                    in
+                        ({ model | page = Months newMonths}, newCmd |> Cmd.map MonthsMsg)
 
 
 
@@ -104,7 +70,6 @@ subscriptions model =
 
 view : Model -> Html Msg
 view model =
-    div [ class "main" ] 
-        [ (model.months.viewAll (\id month conv -> Month.view month |> conv |> Just)) |> div [ class "months" ] |> Html.map monthsC
-        , div [] [ button [ onClick LoadOlderMonthMsg ] [ text "Add Month" ] ]
-        ]
+    case model.page of
+        Months months ->
+            div [ class "main" ] [ Months.view months |> Html.map MonthsMsg ]

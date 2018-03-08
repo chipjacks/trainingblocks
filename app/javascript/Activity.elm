@@ -4,6 +4,9 @@ import StravaAPI exposing (StravaAPIActivity)
 import Html exposing (Html, div)
 import Html.Attributes exposing (style)
 import Date exposing (Date)
+import Svg exposing (Svg, svg, rect)
+import Svg.Attributes exposing (width, height, x, y, stroke, strokeWidth)
+import Treemap exposing (Coordinate, Container)
 
 
 -- MODEL
@@ -97,20 +100,10 @@ toType str =
             Other
             
 
--- VIEW
+volume : Model -> Float
+volume model =
+    model.durationMinutes * model.intensity |> toFloat
 
-view : Model -> Html msg
-view block =
-    div
-        [ style
-            [ ( "display", "inline-block" )
-            , ( "margin-right", "10px" )
-            , ( "background", color block.type_ )
-            , ( "width", (toString block.durationMinutes) ++ "px" )
-            , ( "height", (toString (block.intensity * 10)) ++ "px" )
-            ]
-        ]
-        []
 
 color : ActivityType -> String
 color type_ =
@@ -129,3 +122,63 @@ color type_ =
         
         Other ->
             "grey"
+
+-- VIEW
+
+view : Model -> Html msg
+view block =
+    div
+        [ style
+            [ ( "display", "inline-block" )
+            , ( "margin-right", "10px" )
+            , ( "background", color block.type_ )
+            , ( "width", (toString block.durationMinutes) ++ "px" )
+            , ( "height", (toString (block.intensity * 10)) ++ "px" )
+            ]
+        ]
+        []
+
+
+viewTreemap : List Model -> Svg msg
+viewTreemap activities = 
+    let
+        totalWidth =
+            List.map .durationMinutes activities
+            |> List.sum
+            |> toFloat
+            |> logBase 10
+            |> (*) 50
+
+        totalHeight =
+            List.map .intensity activities
+            |> List.sum
+            |> toFloat
+            |> logBase 10
+            |> (*) 100
+    in
+        svg
+            [ width <| toString totalWidth, height <| toString totalHeight ]
+            (treemapCoordinates totalWidth totalHeight activities
+                |> List.map (\(t, (x_, y_, width_, height_)) -> 
+                    rect 
+                        [ x_ |> toString |> x
+                        , y_ |> toString |> y
+                        , width_ |> toString |> width
+                        , height_ |> toString |> height
+                        , t |> color |> Svg.Attributes.fill
+                        , stroke "white"
+                        , strokeWidth "2"
+                        ]
+                        []
+                ))
+
+
+treemapCoordinates : Float -> Float -> List Model -> List (ActivityType, Coordinate)
+treemapCoordinates w h activities =
+    let
+        coordinates = List.map volume activities
+            |> Treemap.treemapSingledimensional (Treemap.Container (Treemap.Offset 0 0) w h)
+        types = List.map .type_ activities
+    in
+        List.map2 (,) types coordinates
+

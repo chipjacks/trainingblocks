@@ -22,11 +22,13 @@ type alias WeeksMsg =
 
 
 type alias Model =
-    { activities : WebData (List Activity.Model)
+    { status : RemoteData String ()
+    , activities : List Activity.Model
     , weeks : WeeksModel
     , date : Date
     , expanded : Bool
     }
+
 
 weeksC : Converter Msg WeeksMsg
 weeksC =
@@ -39,12 +41,11 @@ weeksC =
         }
 
 
-
 init : Date -> ( Model, Cmd Msg )
 init date =
     let
         model =
-            { activities = NotAsked, weeks = Many.initModel Week.update Week.subscriptions, date = date, expanded = False }
+            { status = NotAsked, activities = [], weeks = Many.initModel Week.update Week.subscriptions, date = date, expanded = False }
     in
         ( model, loadActivities model )
 
@@ -96,16 +97,16 @@ update msg model =
                               -- TODO: the API should do this filtering
                               |> List.filter (\a -> isBetween model.date (endDate model) a.date)
                     in
-                        ( { model | activities = Success activities }, updateWeeksActivities activities model)
+                        ( { model | activities = activities, status = Success () }, updateWeeksActivities activities model)
 
                 Failure msg ->
                     ( model, Cmd.none )
 
                 Loading ->
-                    ( { model | activities = Loading }, Cmd.none )
+                    ( { model | status = Loading }, Cmd.none )
 
                 NotAsked ->
-                    ( { model | activities = NotAsked }, Cmd.none )
+                    ( { model | status = NotAsked }, Cmd.none )
 
 
 updateWeeksActivities : List Activity.Model -> Model -> Cmd Msg
@@ -135,8 +136,18 @@ view : Model -> Html Msg
 view model = 
     div [ cssClass model, onClick ToggleExpanded ]
         [ span [] [ Html.text (Date.toFormattedString "MMMM" model.date) ]
-        , model.weeks.viewAll (\ id week conv -> Week.viewAggregate week |> conv |> Just) |> div [ class "weeks" ] |> Html.map weeksC
+        , viewActivities model
         ]
+
+
+viewActivities : Model -> Html Msg
+viewActivities model =
+    case model.expanded of
+        True ->
+            model.weeks.viewAll (\ id week conv -> Week.viewCompact week |> conv |> Just) |> div [ class "weeks" ] |> Html.map weeksC
+        False ->
+            Activity.viewTreemap model.activities
+
 
 cssClass : Model -> Html.Attribute Msg
 cssClass model =

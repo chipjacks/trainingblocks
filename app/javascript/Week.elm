@@ -90,22 +90,3 @@ viewCompact model =
             [ span [] [ Html.text (Date.toFormattedString "MMMM" model.date) ]
             , Activity.viewTreemap activities
             ]
-
-
-activitiesVolume : Model -> List (ActivityType, Float)
-activitiesVolume model =
-   List.map (\t -> (t, (activitiesWidth model t) * (activitiesHeight model t) |> toFloat))  activityTypes
-
-
-activitiesWidth : Model -> ActivityType -> Int
-activitiesWidth model activityType =
-    List.filter (\a -> a.type_ == activityType) (Dict.values model.activities.objects)
-        |> List.map (\a -> a.durationMinutes)
-        |> List.sum
-
-
-activitiesHeight : Model -> ActivityType -> Int
-activitiesHeight model activityType = 
-    List.filter (\a -> a.type_ == activityType) (Dict.values model.activities.objects)
-        |> List.map (\a -> a.intensity)
-        |> List.sum

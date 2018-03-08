@@ -8,6 +8,7 @@ import Date.Extra as Date exposing (Interval(..))
 import Updater exposing (Updater, Converter, converter, noReaction, toCmd)
 import Updater.Many as Many
 import Month
+import Treemap
 
 
 main : Program Never Model Msg
@@ -57,7 +58,7 @@ monthsC =
 init : ( Model, Cmd Msg )
 init =
     { months = Many.initModel Month.update Month.subscriptions
-    , loadOlderDate = Date.fromCalendarDate 2017 Mar 1
+    , loadOlderDate = Date.fromCalendarDate 2017 Sep 1
     } ! (loadMonths <| Date.fromCalendarDate 2018 Apr 1)
 
 

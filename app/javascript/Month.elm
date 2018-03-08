@@ -135,7 +135,7 @@ view : Model -> Html Msg
 view model = 
     div [ cssClass model, onClick ToggleExpanded ]
         [ span [] [ Html.text (Date.toFormattedString "MMMM" model.date) ]
-        , model.weeks.viewAll (\ id week conv -> Week.view week |> conv |> Just) |> div [ class "weeks" ] |> Html.map weeksC
+        , model.weeks.viewAll (\ id week conv -> Week.viewAggregate week |> conv |> Just) |> div [ class "weeks" ] |> Html.map weeksC
         ]
 
 cssClass : Model -> Html.Attribute Msg

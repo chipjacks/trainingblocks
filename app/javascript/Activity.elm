@@ -27,6 +27,10 @@ type ActivityType
     | Swim
     | Other
 
+activityTypes : List ActivityType
+activityTypes =
+    [Run, Ride, Weights, Swim, Other]
+
 type Msg
     = NoOp
 

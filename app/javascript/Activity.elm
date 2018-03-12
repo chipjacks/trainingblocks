@@ -17,6 +17,7 @@ type alias Model =
     , date : Date
     , intensity : Int -- 1 to 5, either inferred from pace or user defined
     , durationMinutes : Int -- in minutes... TODO: change it to seconds.
+
     --    , externalId: Maybe String -- if user attaches an activity
     --    , completed: Bool -- could be completed without necessarily having an external activity
     --    , notes: List Note
@@ -30,28 +31,32 @@ type ActivityType
     | Swim
     | Other
 
+
 activityTypes : List ActivityType
 activityTypes =
-    [Run, Ride, Weights, Swim, Other]
+    [ Run, Ride, Weights, Swim, Other ]
+
 
 type Msg
     = NoOp
 
+
 init : Model -> ( Model, Cmd Msg )
 init activity =
-    (activity, Cmd.none)
+    ( activity, Cmd.none )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case msg of 
+    case msg of
         NoOp ->
-            (model, Cmd.none)
+            ( model, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.none
+
 
 fromStravaAPIActivity : StravaAPIActivity -> Model
 fromStravaAPIActivity activity =
@@ -82,23 +87,23 @@ toMiles meters =
 
 
 toType : String -> ActivityType
-toType str = 
+toType str =
     case str of
         "Run" ->
             Run
-            
+
         "Ride" ->
             Ride
-            
+
         "WeightTraining" ->
             Weights
-        
+
         "Swim" ->
             Swim
 
         _ ->
             Other
-            
+
 
 volume : Model -> Float
 volume model =
@@ -110,20 +115,23 @@ color type_ =
     case type_ of
         Run ->
             "skyblue"
-            
+
         Weights ->
             "red"
-        
+
         Ride ->
             "green"
-        
+
         Swim ->
             "orange"
-        
+
         Other ->
             "grey"
 
+
+
 -- VIEW
+
 
 view : Model -> Html msg
 view block =
@@ -140,45 +148,49 @@ view block =
 
 
 viewTreemap : List Model -> Svg msg
-viewTreemap activities = 
+viewTreemap activities =
     let
         totalWidth =
             List.map .durationMinutes activities
-            |> List.sum
-            |> toFloat
-            |> logBase 10
-            |> (*) 50
+                |> List.sum
+                |> toFloat
+                |> logBase 10
+                |> (*) 50
 
         totalHeight =
             List.map .intensity activities
-            |> List.sum
-            |> toFloat
-            |> logBase 10
-            |> (*) 100
+                |> List.sum
+                |> toFloat
+                |> logBase 10
+                |> (*) 100
     in
         svg
             [ width <| toString totalWidth, height <| toString totalHeight ]
             (treemapCoordinates totalWidth totalHeight activities
-                |> List.map (\(t, (x_, y_, width_, height_)) -> 
-                    rect 
-                        [ x_ |> toString |> x
-                        , y_ |> toString |> y
-                        , width_ |> toString |> width
-                        , height_ |> toString |> height
-                        , t |> color |> Svg.Attributes.fill
-                        , stroke "white"
-                        , strokeWidth "2"
-                        ]
-                        []
-                ))
+                |> List.map
+                    (\( t, ( x_, y_, width_, height_ ) ) ->
+                        rect
+                            [ x_ |> toString |> x
+                            , y_ |> toString |> y
+                            , width_ |> toString |> width
+                            , height_ |> toString |> height
+                            , t |> color |> Svg.Attributes.fill
+                            , stroke "white"
+                            , strokeWidth "2"
+                            ]
+                            []
+                    )
+            )
 
 
-treemapCoordinates : Float -> Float -> List Model -> List (ActivityType, Coordinate)
+treemapCoordinates : Float -> Float -> List Model -> List ( ActivityType, Coordinate )
 treemapCoordinates w h activities =
     let
-        coordinates = List.map volume activities
-            |> Treemap.treemapSingledimensional (Treemap.Container (Treemap.Offset 0 0) w h)
-        types = List.map .type_ activities
+        coordinates =
+            List.map volume activities
+                |> Treemap.treemapSingledimensional (Treemap.Container (Treemap.Offset 0 0) w h)
+
+        types =
+            List.map .type_ activities
     in
         List.map2 (,) types coordinates
-

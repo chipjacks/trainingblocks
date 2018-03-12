@@ -66,6 +66,7 @@ endDate model =
     Date.add Month 1 model.date
 
 
+
 -- UPDATE
 
 
@@ -80,10 +81,10 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         UpdaterMsg u ->
-                u model
+            u model
 
         ToggleExpanded ->
-            ({model | expanded = not model.expanded}, Cmd.none)
+            ( { model | expanded = not model.expanded }, Cmd.none )
 
         FetchActivities ->
             ( model, (loadActivities model) )
@@ -94,10 +95,10 @@ update msg model =
                     let
                         activities =
                             List.map fromStravaAPIActivity stravaActivities
-                              -- TODO: the API should do this filtering
-                              |> List.filter (\a -> isBetween model.date (endDate model) a.date)
+                                -- TODO: the API should do this filtering
+                                |> List.filter (\a -> isBetween model.date (endDate model) a.date)
                     in
-                        ( { model | activities = activities, status = Success () }, updateWeeksActivities activities model)
+                        ( { model | activities = activities, status = Success () }, updateWeeksActivities activities model )
 
                 Failure msg ->
                     ( model, Cmd.none )
@@ -112,12 +113,16 @@ update msg model =
 updateWeeksActivities : List Activity.Model -> Model -> Cmd Msg
 updateWeeksActivities activities model =
     let
-        minWeek = Date.floor Date.Week model.date
-        maxWeek = Date.add Date.Month 1 minWeek
+        minWeek =
+            Date.floor Date.Week model.date
+
+        maxWeek =
+            Date.add Date.Month 1 minWeek
     in
         Date.range Date.Week 1 minWeek maxWeek
             |> List.map (\d -> toCmd <| weeksC <| Many.Add <| Week.init activities d)
             |> Cmd.batch
+
 
 
 -- SUBSCRIPTIONS
@@ -135,24 +140,24 @@ subscriptions model =
 view : Date -> (Date -> Date -> WebData (List Activity.Model)) -> (Date -> Msg) -> (Activity.Model -> Msg) -> Html Msg
 view date activityAccess zoomInMsg openActivityMsg =
     let
-        activities = activityAccess date (Date.add Date.Month 1 date)
+        activities =
+            activityAccess date (Date.add Date.Month 1 date)
     in
         case activities of
             Success activities ->
                 Activity.viewTreemap activities
-        
+
             _ ->
-                div [] [Html.text "Loading"]
-                
+                div [] [ Html.text "Loading" ]
+
+
 
 -- view : Model -> Html Msg
--- view model = 
+-- view model =
 --     div [ cssClass model, onClick ToggleExpanded ]
 --         [ span [] [ Html.text (Date.toFormattedString "MMMM" model.date) ]
 --         , viewActivities model
 --         ]
-
-
 -- viewActivities : Model -> Html Msg
 -- viewActivities model =
 --     case model.expanded of
@@ -160,13 +165,10 @@ view date activityAccess zoomInMsg openActivityMsg =
 --             model.weeks.viewAll (\ id week conv -> Week.viewCompact week |> conv |> Just) |> div [ class "weeks" ] |> Html.map weeksC
 --         False ->
 --             Activity.viewTreemap model.activities
-
-
 -- cssClass : Model -> Html.Attribute Msg
 -- cssClass model =
 --     case model.expanded of
 --         True ->
 --             class "month open"
-    
 --         False ->
 --             class "month"

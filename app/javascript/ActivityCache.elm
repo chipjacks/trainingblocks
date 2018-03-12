@@ -12,6 +12,7 @@ type alias Model =
     { cache : Dict Int (WebData (List Activity.Model))
     }
 
+
 initModel : Model
 initModel =
     Model Dict.empty
@@ -39,8 +40,8 @@ update msg model =
                     model
 
 
-fetchActivities : Model -> (Date, Date) -> ( Model, Cmd Msg )
-fetchActivities model (startDate, endDate) =
+fetchActivities : Model -> ( Date, Date ) -> ( Model, Cmd Msg )
+fetchActivities model ( startDate, endDate ) =
     Date.range Date.Month 1 startDate endDate
         |> List.foldr fetchIfMissing ( model, [] )
         |> (\( m, cs ) -> ( m, Cmd.batch cs ))
@@ -48,14 +49,16 @@ fetchActivities model (startDate, endDate) =
 
 accessActivities : Model -> Date -> Date -> WebData (List Activity.Model)
 accessActivities model startDate endDate =
-    RemoteData.map2 
+    RemoteData.map2
         (\a b -> a ++ b)
         (Dict.get (startDate |> keyFor) model.cache |> Maybe.withDefault NotAsked)
         (Dict.get (endDate |> keyFor) model.cache |> Maybe.withDefault NotAsked)
         |> RemoteData.map (\l -> List.filter (\a -> Date.isBetween startDate endDate a.date) l)
 
 
+
 --- INTERNAL
+
 
 keyFor : Date -> Int
 keyFor date =
@@ -65,7 +68,8 @@ keyFor date =
 fetchIfMissing : Date -> ( Model, List (Cmd Msg) ) -> ( Model, List (Cmd Msg) )
 fetchIfMissing date result =
     let
-        key = keyFor date
+        key =
+            keyFor date
 
         value =
             Dict.get key model.cache

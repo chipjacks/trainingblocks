@@ -2,6 +2,7 @@ module Treemap exposing (..)
 
 -- FROM https://github.com/folkertdev/elm-treemap
 
+
 type TreeMap
     = TreeMap
 
@@ -73,8 +74,8 @@ getCoordinates row ({ width, height } as container) =
 
 
 {-| Once we've placed some boxes into an row we then need to identify the remaining area,
-               this function takes the area of the boxes we've placed and calculates the location and
-               dimensions of the remaining space and returns a container box defined by the remaining area
+this function takes the area of the boxes we've placed and calculates the location and
+dimensions of the remaining space and returns a container box defined by the remaining area
 -}
 cutArea : Float -> Container -> Container
 cutArea area ({ width, height } as container) =
@@ -127,7 +128,7 @@ normalize area data =
 
 
 {-| calculates the maximum width to height ratio of the
-   boxes in this row
+boxes in this row
 -}
 calculateRatio : List Float -> Float -> Float
 calculateRatio row length =
@@ -152,7 +153,7 @@ calculateRatio row length =
 
 
 {-| implements the worse calculation and comparision as given in Bruls
-                           (note the error in the original paper; fixed here)
+(note the error in the original paper; fixed here)
 -}
 improvesRatio : List Float -> Float -> Float -> Bool
 improvesRatio currentRow nextnode length =
@@ -175,8 +176,8 @@ improvesRatio currentRow nextnode length =
 
 
 {-| as per the Bruls paper
-           plus coordinates stack and containers so we get
-           usable data out of it
+plus coordinates stack and containers so we get
+usable data out of it
 -}
 squarify : List Float -> List Float -> Container -> List (List Coordinate) -> List (List Coordinate)
 squarify data currentRow container stack =
@@ -206,4 +207,3 @@ treemapSingledimensional : Container -> List Float -> List Coordinate
 treemapSingledimensional container data =
     squarify (normalize (container.width * container.height) data) [] container []
         |> List.foldl (++) []
-

@@ -32,7 +32,7 @@ update msg model =
                         activities =
                             List.map Activity.fromStravaAPIActivity stravaActivities
                                 -- TODO: the API should do this filtering
-                                |> List.filter (\a -> Date.isBetween date (Date.add Month 1 date) a.date)
+                                |> filterActivities date (Date.add Month 1 date)
                     in
                         { model | cache = Dict.insert (date |> keyFor) (Success activities) model.cache }
 
@@ -49,21 +49,23 @@ fetchActivities model ( startDate, endDate ) =
 
 accessActivities : Model -> Date -> Date -> WebData (List Activity.Model)
 accessActivities model startDate endDate =
-    RemoteData.map2
-        (\a b -> a ++ b)
-        (Dict.get (startDate |> keyFor) model.cache |> Maybe.withDefault NotAsked)
-        (Dict.get (endDate |> keyFor) model.cache |> Maybe.withDefault NotAsked)
-        |> RemoteData.map (\l -> List.filter (\a -> Date.isBetween startDate endDate a.date) l)
+    Date.range Date.Month 1 startDate endDate
+        |> List.map keyFor
+        |> List.map (\k -> Dict.get k model.cache |> Maybe.withDefault NotAsked)
+        |> List.foldl (\r s -> RemoteData.map2 (++) s r) (RemoteData.succeed [])
+        |> RemoteData.map (filterActivities startDate endDate)
 
 
 
 --- INTERNAL
 
-
 keyFor : Date -> Int
 keyFor date =
     Date.floor Date.Month date |> toRataDie
 
+filterActivities : Date -> Date -> (List Activity.Model -> List Activity.Model)
+filterActivities a b =
+    List.filter (\activity -> Date.isBetween a b activity.date)
 
 fetchIfMissing : Date -> ( Model, List (Cmd Msg) ) -> ( Model, List (Cmd Msg) )
 fetchIfMissing date result =

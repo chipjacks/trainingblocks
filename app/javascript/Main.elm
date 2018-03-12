@@ -1,6 +1,6 @@
 module Main exposing (..)
 
-import Html exposing (Html, div)
+import Html exposing (Html, div, span, a)
 import Html.Events exposing (onClick)
 import Date exposing (Date, Month(..))
 import Date.Extra as Date
@@ -64,17 +64,17 @@ init =
         model ! [ Task.perform (Zoom Year) Date.now ]
 
 
-dateLimits : Model -> ( Date, Date )
-dateLimits model =
-    case model.zoomLevel of
+dateLimits : ZoomLevel -> Date -> ( Date, Date )
+dateLimits zoomLevel zoomDate =
+    case zoomLevel of
         Year ->
-            ( Date.add Date.Year -1 model.zoomDate, model.zoomDate )
+            ( Date.add Date.Month -12 zoomDate, Date.add Date.Month 3 zoomDate )
 
         Month ->
-            ( Date.add Date.Month -1 model.zoomDate, model.zoomDate )
+            ( Date.add Date.Month -1 zoomDate, zoomDate )
 
         Week ->
-            ( Date.add Date.Week -1 model.zoomDate, model.zoomDate )
+            ( Date.add Date.Week -1 zoomDate, zoomDate )
 
 
 
@@ -87,7 +87,7 @@ update msg model =
         Zoom level date ->
             let
                 ( acModel, acMsg ) =
-                    fetchActivities model.activityCache (dateLimits model)
+                    fetchActivities model.activityCache (dateLimits level date)
             in
                 { model | zoomLevel = level, zoomDate = date, activityCache = acModel }
                     ! [ acMsg |> Cmd.map UpdateActivityCache ]
@@ -124,16 +124,18 @@ view model =
         Nothing ->
             let
                 ( startDate, endDate ) =
-                    dateLimits model
+                    dateLimits model.zoomLevel model.zoomDate
             in
                 case model.zoomLevel of
                     Year ->
-                        div [ onClick (Zoom Month endDate) ]
+                        div [ ]
                             (Date.range Date.Month 1 startDate endDate |> List.map (\date -> viewMonth date (accessActivities model.activityCache) (Zoom Month) OpenActivity))
 
                     Month ->
-                        div [ onClick (Zoom Week endDate) ]
-                            (Date.range Date.Week 1 startDate endDate |> List.map (\date -> viewMonth date (accessActivities model.activityCache) (Zoom Week) OpenActivity))
+                        div [ ]
+                            ( (a [onClick (Zoom Year model.zoomDate)] [ Html.text "Zoom out" ])
+                            :: (Date.range Date.Week 1 startDate endDate |> List.map (\date -> viewMonth date (accessActivities model.activityCache) (Zoom Week) OpenActivity))
+                            )
 
                     Week ->
                         div []
@@ -148,13 +150,16 @@ viewMonth date activityAccess zoomInMsg openActivityMsg =
     in
         case activities of
             Success activities ->
-                Activity.viewTreemap activities
+                div [onClick (zoomInMsg date)]
+                    [ span [] [ Html.text (date |> toString) ]
+                    , Activity.viewTreemap activities
+                    ]
 
             Loading ->
-                div [] [ Html.text "Loading" ]
+                div [] [ Html.text ((date |> toString) ++ "Loading") ]
 
             NotAsked ->
-                div [] [ Html.text "NotAsked" ]
+                div [] [ Html.text ((date |> toString) ++ "NotAsked") ]
 
             Failure e ->
                 div [] [ Html.text (e |> toString) ]

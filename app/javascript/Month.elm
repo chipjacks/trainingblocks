@@ -132,28 +132,41 @@ subscriptions model =
 -- VIEW
 
 
-view : Model -> Html Msg
-view model = 
-    div [ cssClass model, onClick ToggleExpanded ]
-        [ span [] [ Html.text (Date.toFormattedString "MMMM" model.date) ]
-        , viewActivities model
-        ]
+view : Date -> (Date -> Date -> WebData (List Activity.Model)) -> (Date -> Msg) -> (Activity.Model -> Msg) -> Html Msg
+view date activityAccess zoomInMsg openActivityMsg =
+    let
+        activities = activityAccess date (Date.add Date.Month 1 date)
+    in
+        case activities of
+            Success activities ->
+                Activity.viewTreemap activities
+        
+            _ ->
+                div [] [Html.text "Loading"]
+                
+
+-- view : Model -> Html Msg
+-- view model = 
+--     div [ cssClass model, onClick ToggleExpanded ]
+--         [ span [] [ Html.text (Date.toFormattedString "MMMM" model.date) ]
+--         , viewActivities model
+--         ]
 
 
-viewActivities : Model -> Html Msg
-viewActivities model =
-    case model.expanded of
-        True ->
-            model.weeks.viewAll (\ id week conv -> Week.viewCompact week |> conv |> Just) |> div [ class "weeks" ] |> Html.map weeksC
-        False ->
-            Activity.viewTreemap model.activities
+-- viewActivities : Model -> Html Msg
+-- viewActivities model =
+--     case model.expanded of
+--         True ->
+--             model.weeks.viewAll (\ id week conv -> Week.viewCompact week |> conv |> Just) |> div [ class "weeks" ] |> Html.map weeksC
+--         False ->
+--             Activity.viewTreemap model.activities
 
 
-cssClass : Model -> Html.Attribute Msg
-cssClass model =
-    case model.expanded of
-        True ->
-            class "month open"
+-- cssClass : Model -> Html.Attribute Msg
+-- cssClass model =
+--     case model.expanded of
+--         True ->
+--             class "month open"
     
-        False ->
-            class "month"
+--         False ->
+--             class "month"

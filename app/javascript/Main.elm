@@ -1,9 +1,13 @@
 module Main exposing (..)
 
 import Html exposing (Html, div)
-import Html.Attributes exposing (class)
-import Months
-
+import Html.Events exposing (onClick)
+import Date exposing (Date, Month(..))
+import Date.Extra as Date
+import Task
+import Activity
+import ActivityCache exposing (fetchActivities, accessActivities)
+import RemoteData exposing (WebData, RemoteData(..))
 
 main : Program Never Model Msg
 main =
@@ -15,44 +19,70 @@ main =
         }
 
 
-type Page
-    = Months Months.Model
-
+-- MODEL
 
 type alias Model =
-    { page : Page
-    }
+  { activityCache: ActivityCache.Model
+  , zoomDate: Date
+  , zoomLevel: ZoomLevel
+  , zoomActivity : Maybe Activity.Model
+  }
 
+type ZoomLevel = Year | Month | Week
 
 type Msg
-    = MonthsMsg Months.Msg
-
-
--- INIT
+  = Zoom ZoomLevel Date
+  | OpenActivity Activity.Model
+  | CloseActivity
+  | UpdateActivityCache ActivityCache.Msg
 
 
 init : ( Model, Cmd Msg )
 init =
     let
-        (subModel, subCmd) = Months.init
+        date = Date.fromCalendarDate 2018 Mar 1
+        ac = ActivityCache.initModel
+        model = 
+            { activityCache = ac
+            , zoomDate = date
+            , zoomLevel = Year
+            , zoomActivity = Nothing
+            }
     in
-        { page = Months subModel
-        } ! [subCmd |> Cmd.map MonthsMsg]
+        model ! [ Task.perform (Zoom Year) Date.now ]
+
+
+dateLimits : Model -> (Date, Date)
+dateLimits model =
+    case model.zoomLevel of
+        Year ->
+            (Date.add Date.Year -1 model.zoomDate, model.zoomDate)
+        Month ->
+            (Date.add Date.Month -1 model.zoomDate, model.zoomDate)
+        Week ->
+            (Date.add Date.Week -1 model.zoomDate, model.zoomDate)
 
 
 -- UPDATE
 
-
-update : Msg -> Model -> ( Model, Cmd Msg )
+update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
-    case model.page of
-        Months page ->
-            case msg of
-                MonthsMsg msg ->
-                    let
-                        (newMonths, newCmd) = Months.update msg page
-                    in
-                        ({ model | page = Months newMonths}, newCmd |> Cmd.map MonthsMsg)
+  case msg of
+    Zoom level date ->
+        let
+            (acModel, acMsg) = fetchActivities model.activityCache (dateLimits model)
+        in
+            { model | zoomLevel = level, zoomDate = date, activityCache = acModel }
+            ! [ acMsg |> Cmd.map UpdateActivityCache ]
+    
+    OpenActivity activity ->
+      { model | zoomActivity = Just activity } ! []
+    
+    CloseActivity ->
+      { model | zoomActivity = Nothing } ! []
+
+    UpdateActivityCache subMsg ->
+      { model | activityCache = ActivityCache.update subMsg model.activityCache } ! []
 
 
 
@@ -64,12 +94,48 @@ subscriptions model =
     Sub.none
 
 
-
 -- VIEW
 
 
 view : Model -> Html Msg
 view model =
-    case model.page of
-        Months months ->
-            div [ class "main" ] [ Months.view months |> Html.map MonthsMsg ]
+  case model.zoomActivity of
+    Just activity ->
+      Activity.view activity
+
+    Nothing ->
+        let
+            (startDate, endDate) = dateLimits model
+        in
+            case model.zoomLevel of
+                Year ->
+                    div [onClick (Zoom Month endDate)]
+                        (Date.range Date.Month 1 startDate endDate |> List.map (\date -> viewMonth date (accessActivities model.activityCache) (Zoom Month) OpenActivity))
+                
+                Month ->
+                    div [onClick (Zoom Week endDate)]
+                        (Date.range Date.Week 1 startDate endDate |> List.map (\date -> viewMonth date (accessActivities model.activityCache) (Zoom Week) OpenActivity))
+
+                Week ->
+                    div []
+                        (Date.range Date.Day 1 startDate endDate |> List.map (\date -> viewMonth date (accessActivities model.activityCache) (Zoom Week) OpenActivity))
+
+
+
+viewMonth : Date -> (Date -> Date -> WebData (List Activity.Model)) -> (Date -> Msg) -> (Activity.Model -> Msg) -> Html Msg
+viewMonth date activityAccess zoomInMsg openActivityMsg =
+    let
+        activities = activityAccess date (Date.add Date.Month 1 date)
+    in
+        case activities of
+            Success activities ->
+                Activity.viewTreemap activities
+        
+            Loading ->
+                div [] [Html.text "Loading"]
+
+            NotAsked ->
+                div [] [Html.text "NotAsked"]
+                
+            Failure e ->
+                div [] [Html.text (e |> toString) ]

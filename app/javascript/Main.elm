@@ -11,6 +11,7 @@ import Route exposing (Route, parseLocation, ZoomLevel(..))
 import Navigation exposing (Location)
 import Msg exposing (Msg(..))
 import OnClickPage exposing (onClickPage)
+import Task
 
 
 main : Program Never Model Msg
@@ -39,24 +40,23 @@ type alias Model =
 init : Location -> ( Model, Cmd Msg )
 init location =
     let
-        currentRoute =
-            parseLocation location
-
-        date =
-            Date.fromCalendarDate 2018 Mar 1
-
-        ac =
-            ActivityCache.initModel
-
         model =
-            { activityCache = ac
-            , zoomDate = date
+            { activityCache = ActivityCache.initModel
+            , zoomDate = Date.fromCalendarDate 2018 Jan 1
             , zoomLevel = Year
             , zoomActivity = Nothing
-            , route = currentRoute
+            , route = parseLocation location
             }
     in
-        model ! [ Navigation.newUrl "#year/736754" ]
+        case model.route of
+            Route.NotFound ->
+                model ! []
+
+            Route.Blank ->
+                model ! [ Task.perform (\date -> NewPage (Route.Zoom Year date)) Date.now ]
+
+            Route.Zoom _ _ ->
+                update (OnLocationChange location) model
 
 
 dateLimits : ZoomLevel -> Date -> ( Date, Date )
@@ -94,6 +94,9 @@ update msg model =
                                 ! [ acMsg |> Cmd.map UpdateActivityCache ]
 
                     Route.NotFound ->
+                        ( { model | route = newRoute }, Cmd.none )
+
+                    Route.Blank ->
                         ( { model | route = newRoute }, Cmd.none )
 
         NewPage page ->
@@ -149,6 +152,9 @@ page model =
                     Week ->
                         div [ class "days" ]
                             (Date.range Date.Day 1 startDate endDate |> List.map (\date -> viewDay date (accessActivities model.activityCache) OpenActivity))
+
+            Route.Blank ->
+                div [] [ Html.text "Blank" ]
 
             Route.NotFound ->
                 div [] [ Html.text "Not found" ]

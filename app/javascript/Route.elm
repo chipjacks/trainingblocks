@@ -10,6 +10,7 @@ import Date.Extra exposing (fromRataDie, toRataDie)
 
 type Route
     = Zoom ZoomLevel Date
+    | Blank
     | NotFound
 
 
@@ -22,7 +23,8 @@ type ZoomLevel
 matchers : Parser (Route -> a) a
 matchers =
     oneOf
-        [ Url.map Zoom (zoomLevel </> zoomDate)
+        [ Url.map Blank Url.top
+        , Url.map Zoom (zoomLevel </> zoomDate)
         ]
 
 
@@ -67,6 +69,9 @@ toString route =
 
                 NotFound ->
                     [ "notfound" ]
+
+                Blank ->
+                    [ "" ]
     in
         "#/" ++ String.join "/" pieces
 

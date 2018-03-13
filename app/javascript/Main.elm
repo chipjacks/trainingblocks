@@ -1,6 +1,7 @@
 module Main exposing (..)
 
 import Html exposing (Html, div, span, a)
+import Html.Attributes exposing (class)
 import Html.Events exposing (onClick)
 import Date exposing (Date, Month(..))
 import Date.Extra as Date
@@ -68,7 +69,7 @@ dateLimits : ZoomLevel -> Date -> ( Date, Date )
 dateLimits zoomLevel zoomDate =
     case zoomLevel of
         Year ->
-            ( Date.add Date.Month -12 zoomDate, Date.add Date.Month 3 zoomDate )
+            ( Date.add Date.Month -12 zoomDate, zoomDate )
 
         Month ->
             ( Date.add Date.Month -1 zoomDate, zoomDate )
@@ -128,32 +129,79 @@ view model =
             in
                 case model.zoomLevel of
                     Year ->
-                        div [ ]
+                        div [ class "months" ]
                             (Date.range Date.Month 1 startDate endDate |> List.map (\date -> viewMonth date (accessActivities model.activityCache) (Zoom Month) OpenActivity))
 
                     Month ->
-                        div [ ]
+                        div [ class "weeks" ]
                             ( (a [onClick (Zoom Year model.zoomDate)] [ Html.text "Zoom out" ])
-                            :: (Date.range Date.Week 1 startDate endDate |> List.map (\date -> viewMonth date (accessActivities model.activityCache) (Zoom Week) OpenActivity))
+                            :: (Date.range Date.Week 1 startDate endDate |> List.map (\date -> viewWeek date (accessActivities model.activityCache) (Zoom Week) OpenActivity))
                             )
 
                     Week ->
-                        div []
-                            (Date.range Date.Day 1 startDate endDate |> List.map (\date -> viewMonth date (accessActivities model.activityCache) (Zoom Week) OpenActivity))
+                        div [ class "days" ]
+                            (Date.range Date.Day 1 startDate endDate |> List.map (\date -> viewDay date (accessActivities model.activityCache) (Zoom Week) OpenActivity))
 
 
 viewMonth : Date -> (Date -> Date -> WebData (List Activity.Model)) -> (Date -> Msg) -> (Activity.Model -> Msg) -> Html Msg
 viewMonth date activityAccess zoomInMsg openActivityMsg =
     let
+        endDate = (Date.add Date.Month 1 date)
         activities =
-            activityAccess date (Date.add Date.Month 1 date)
+            activityAccess date endDate
     in
         case activities of
             Success activities ->
-                div [onClick (zoomInMsg date)]
+                div [ class "month", onClick (zoomInMsg endDate) ]
                     [ span [] [ Html.text (date |> toString) ]
                     , Activity.viewTreemap activities
                     ]
+
+            Loading ->
+                div [] [ Html.text ((date |> toString) ++ "Loading") ]
+
+            NotAsked ->
+                div [] [ Html.text ((date |> toString) ++ "NotAsked") ]
+
+            Failure e ->
+                div [] [ Html.text (e |> toString) ]
+
+
+viewWeek : Date -> (Date -> Date -> WebData (List Activity.Model)) -> (Date -> Msg) -> (Activity.Model -> Msg) -> Html Msg
+viewWeek date activityAccess zoomInMsg openActivityMsg =
+    let
+        endDate = (Date.add Date.Week 1 date)
+        activities =
+            activityAccess date endDate
+    in
+        case activities of
+            Success activities ->
+                div [ class "week" , onClick (zoomInMsg endDate) ] 
+                    ((span [] [ Html.text (date |> toString) ])
+                    :: (List.map Activity.view activities))
+
+            Loading ->
+                div [] [ Html.text ((date |> toString) ++ "Loading") ]
+
+            NotAsked ->
+                div [] [ Html.text ((date |> toString) ++ "NotAsked") ]
+
+            Failure e ->
+                div [] [ Html.text (e |> toString) ]
+
+
+viewDay : Date -> (Date -> Date -> WebData (List Activity.Model)) -> (Date -> Msg) -> (Activity.Model -> Msg) -> Html Msg
+viewDay date activityAccess zoomInMsg openActivityMsg =
+    let
+        endDate = (Date.add Date.Day 1 date)
+        activities =
+            activityAccess date endDate
+    in
+        case activities of
+            Success activities ->
+                div [ class "day" ] 
+                    ((span [] [ Html.text (date |> toString) ])
+                    :: (List.map Activity.view activities))
 
             Loading ->
                 div [] [ Html.text ((date |> toString) ++ "Loading") ]

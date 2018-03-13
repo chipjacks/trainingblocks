@@ -49,12 +49,11 @@ fetchActivities model ( startDate, endDate ) =
 
 accessActivities : Model -> Date -> Date -> WebData (List Activity.Model)
 accessActivities model startDate endDate =
-    Date.range Date.Month 1 startDate endDate
+    Date.range Date.Month 1 (Date.floor Date.Month startDate) endDate
         |> List.map keyFor
         |> List.map (\k -> Dict.get k model.cache |> Maybe.withDefault NotAsked)
         |> List.foldl (\r s -> RemoteData.map2 (++) s r) (RemoteData.succeed [])
         |> RemoteData.map (filterActivities startDate endDate)
-
 
 
 --- INTERNAL
@@ -65,7 +64,7 @@ keyFor date =
 
 filterActivities : Date -> Date -> (List Activity.Model -> List Activity.Model)
 filterActivities a b =
-    List.filter (\activity -> Date.isBetween a b activity.date)
+    List.filter (\activity -> Date.isBetween a (Date.add Date.Second -1 b) activity.date)
 
 fetchIfMissing : Date -> ( Model, List (Cmd Msg) ) -> ( Model, List (Cmd Msg) )
 fetchIfMissing date result =

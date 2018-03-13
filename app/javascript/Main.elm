@@ -1,25 +1,26 @@
 module Main exposing (..)
 
 import Html exposing (Html, div, span, a)
-import Html.Attributes exposing (class)
-import Html.Events exposing (onClick)
+import Html.Attributes exposing (class, href)
 import Date exposing (Date, Month(..))
 import Date.Extra as Date
-import Task
 import Activity
 import ActivityCache exposing (fetchActivities, accessActivities)
 import RemoteData exposing (WebData, RemoteData(..))
+import Route exposing (Route, parseLocation, ZoomLevel(..))
+import Navigation exposing (Location)
+import Msg exposing (Msg(..))
+import OnClickPage exposing (onClickPage)
 
 
 main : Program Never Model Msg
 main =
-    Html.program
+    Navigation.program OnLocationChange
         { init = init
         , view = view
         , update = update
         , subscriptions = subscriptions
         }
-
 
 
 -- MODEL
@@ -30,25 +31,18 @@ type alias Model =
     , zoomDate : Date
     , zoomLevel : ZoomLevel
     , zoomActivity : Maybe Activity.Model
+    , route : Route
     }
 
 
-type ZoomLevel
-    = Year
-    | Month
-    | Week
 
 
-type Msg
-    = Zoom ZoomLevel Date
-    | OpenActivity Activity.Model
-    | CloseActivity
-    | UpdateActivityCache ActivityCache.Msg
-
-
-init : ( Model, Cmd Msg )
-init =
+init : Location -> ( Model, Cmd Msg )
+init location =
     let
+        currentRoute =
+            parseLocation location
+
         date =
             Date.fromCalendarDate 2018 Mar 1
 
@@ -60,9 +54,10 @@ init =
             , zoomDate = date
             , zoomLevel = Year
             , zoomActivity = Nothing
+            , route = currentRoute
             }
     in
-        model ! [ Task.perform (Zoom Year) Date.now ]
+        model ! [ Navigation.newUrl "#year/736754" ]
 
 
 dateLimits : ZoomLevel -> Date -> ( Date, Date )
@@ -85,13 +80,23 @@ dateLimits zoomLevel zoomDate =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        Zoom level date ->
+        OnLocationChange location ->
             let
-                ( acModel, acMsg ) =
-                    fetchActivities model.activityCache (dateLimits level date)
+                newRoute = parseLocation location
             in
-                { model | zoomLevel = level, zoomDate = date, activityCache = acModel }
-                    ! [ acMsg |> Cmd.map UpdateActivityCache ]
+                case newRoute of
+                    Route.Zoom level date ->
+                        let
+                            ( acModel, acMsg ) =
+                                fetchActivities model.activityCache (dateLimits level date)
+                        in
+                            { model | zoomLevel = level, zoomDate = date, activityCache = acModel, route = newRoute }
+                                ! [ acMsg |> Cmd.map UpdateActivityCache ]
+                    Route.NotFound ->
+                        ( {model | route = newRoute}, Cmd.none)
+
+        NewPage page ->
+            model ! [ Navigation.newUrl (Route.toString page) ]
 
         OpenActivity activity ->
             { model | zoomActivity = Just activity } ! []
@@ -102,7 +107,7 @@ update msg model =
         UpdateActivityCache subMsg ->
             { model | activityCache = ActivityCache.update subMsg model.activityCache } ! []
 
-
+            
 
 -- SUBSCRIPTIONS
 
@@ -118,33 +123,38 @@ subscriptions model =
 
 view : Model -> Html Msg
 view model =
-    case model.zoomActivity of
-        Just activity ->
-            Activity.view activity
+    page model
 
-        Nothing ->
-            let
-                ( startDate, endDate ) =
-                    dateLimits model.zoomLevel model.zoomDate
-            in
-                case model.zoomLevel of
+
+page : Model -> Html Msg
+page model =
+    let
+        ( startDate, endDate ) =
+            dateLimits model.zoomLevel model.zoomDate
+    in
+        case model.route of
+            Route.Zoom level date ->
+                case level of
                     Year ->
                         div [ class "months" ]
-                            (Date.range Date.Month 1 startDate endDate |> List.map (\date -> viewMonth date (accessActivities model.activityCache) (Zoom Month) OpenActivity))
+                            (Date.range Date.Month 1 startDate endDate |> List.map (\date -> viewMonth date (accessActivities model.activityCache) OpenActivity))
 
                     Month ->
                         div [ class "weeks" ]
-                            ( (a [onClick (Zoom Year model.zoomDate)] [ Html.text "Zoom out" ])
-                            :: (Date.range Date.Week 1 startDate endDate |> List.map (\date -> viewWeek date (accessActivities model.activityCache) (Zoom Week) OpenActivity))
+                            ( (a (onClickPage (Route.Zoom Year model.zoomDate)) [ Html.text "Zoom out" ])
+                            :: (Date.range Date.Week 1 startDate endDate |> List.map (\date -> viewWeek date (accessActivities model.activityCache) OpenActivity))
                             )
 
                     Week ->
                         div [ class "days" ]
-                            (Date.range Date.Day 1 startDate endDate |> List.map (\date -> viewDay date (accessActivities model.activityCache) (Zoom Week) OpenActivity))
+                            (Date.range Date.Day 1 startDate endDate |> List.map (\date -> viewDay date (accessActivities model.activityCache) OpenActivity))
+            
+            Route.NotFound ->
+                div [] [Html.text "Not found"]
 
 
-viewMonth : Date -> (Date -> Date -> WebData (List Activity.Model)) -> (Date -> Msg) -> (Activity.Model -> Msg) -> Html Msg
-viewMonth date activityAccess zoomInMsg openActivityMsg =
+viewMonth : Date -> (Date -> Date -> WebData (List Activity.Model)) -> (Activity.Model -> Msg) -> Html Msg
+viewMonth date activityAccess openActivityMsg =
     let
         endDate = (Date.add Date.Month 1 date)
         activities =
@@ -152,8 +162,8 @@ viewMonth date activityAccess zoomInMsg openActivityMsg =
     in
         case activities of
             Success activities ->
-                div [ class "month", onClick (zoomInMsg endDate) ]
-                    [ span [] [ Html.text (date |> toString) ]
+                div [ class "month" ]
+                    [ a ( onClickPage (Route.Zoom Month endDate) ) [ Html.text (date |> toString) ]
                     , Activity.viewTreemap activities
                     ]
 
@@ -167,8 +177,8 @@ viewMonth date activityAccess zoomInMsg openActivityMsg =
                 div [] [ Html.text (e |> toString) ]
 
 
-viewWeek : Date -> (Date -> Date -> WebData (List Activity.Model)) -> (Date -> Msg) -> (Activity.Model -> Msg) -> Html Msg
-viewWeek date activityAccess zoomInMsg openActivityMsg =
+viewWeek : Date -> (Date -> Date -> WebData (List Activity.Model)) -> (Activity.Model -> Msg) -> Html Msg
+viewWeek date activityAccess openActivityMsg =
     let
         endDate = (Date.add Date.Week 1 date)
         activities =
@@ -176,8 +186,8 @@ viewWeek date activityAccess zoomInMsg openActivityMsg =
     in
         case activities of
             Success activities ->
-                div [ class "week" , onClick (zoomInMsg endDate) ] 
-                    ((span [] [ Html.text (date |> toString) ])
+                div [ class "week" ]
+                    ((a (onClickPage (Route.Zoom Week endDate) ) [ Html.text (date |> toString) ])
                     :: (List.map Activity.view activities))
 
             Loading ->
@@ -190,8 +200,8 @@ viewWeek date activityAccess zoomInMsg openActivityMsg =
                 div [] [ Html.text (e |> toString) ]
 
 
-viewDay : Date -> (Date -> Date -> WebData (List Activity.Model)) -> (Date -> Msg) -> (Activity.Model -> Msg) -> Html Msg
-viewDay date activityAccess zoomInMsg openActivityMsg =
+viewDay : Date -> (Date -> Date -> WebData (List Activity.Model)) -> (Activity.Model -> Msg) -> Html Msg
+viewDay date activityAccess openActivityMsg =
     let
         endDate = (Date.add Date.Day 1 date)
         activities =

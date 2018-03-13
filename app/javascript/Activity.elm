@@ -154,15 +154,13 @@ viewTreemap activities =
             List.map .durationMinutes activities
                 |> List.sum
                 |> toFloat
-                |> logBase 10
-                |> (*) 50
+                |> (\n -> n / 10)
 
         totalHeight =
             List.map .intensity activities
                 |> List.sum
                 |> toFloat
-                |> logBase 10
-                |> (*) 100
+                |> (*) 5
     in
         svg
             [ width <| toString totalWidth, height <| toString totalHeight ]

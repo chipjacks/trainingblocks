@@ -4,9 +4,13 @@
 
 import Elm from '../Main'
 
-document.addEventListener('DOMContentLoaded', () => {
-  const target = document.createElement('div')
+document.addEventListener('turbolinks:load', () => {
+  const target = document.getElementById('elm-main')
+  const existing = document.getElementById('elm-overlay')
 
-  document.body.appendChild(target)
-  Elm.Main.embed(target)
+  if (existing) {
+    null
+  } else {
+    Elm.Main.embed(target)
+  }
 })

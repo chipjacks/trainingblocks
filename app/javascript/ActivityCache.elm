@@ -42,7 +42,7 @@ update msg model =
 
 fetchActivities : Model -> ( Date, Date ) -> ( Model, Cmd Msg )
 fetchActivities model ( startDate, endDate ) =
-    Date.range Date.Month 1 startDate endDate
+    Date.range Date.Month 1 (Date.floor Date.Month startDate) endDate
         |> List.foldr fetchIfMissing ( model, [] )
         |> (\( m, cs ) -> ( m, Cmd.batch cs ))
 

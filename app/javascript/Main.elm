@@ -53,7 +53,7 @@ init location =
                 model ! []
 
             Route.Blank ->
-                model ! [ Task.perform (\date -> NewPage (Route.Zoom Year date)) Date.now ]
+                model ! [ Task.perform (\date -> NewPage (Route.Zoom Month date)) Date.now ]
 
             Route.Zoom _ _ ->
                 update (OnLocationChange location) model
@@ -63,13 +63,13 @@ dateLimits : ZoomLevel -> Date -> ( Date, Date )
 dateLimits zoomLevel zoomDate =
     case zoomLevel of
         Year ->
-            ( Date.add Date.Month -12 zoomDate, zoomDate )
+            ( Date.add Date.Year -1 (Date.floor Date.Month zoomDate), Date.ceiling Date.Month zoomDate )
 
         Month ->
-            ( Date.add Date.Month -1 zoomDate, zoomDate )
+            ( Date.add Date.Month -1 (Date.floor Date.Week zoomDate), Date.ceiling Date.Week zoomDate )
 
         Week ->
-            ( Date.add Date.Week -1 zoomDate, zoomDate )
+            ( Date.add Date.Week -1 (Date.floor Date.Day zoomDate), Date.ceiling Date.Day zoomDate )
 
 
 

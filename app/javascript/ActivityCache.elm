@@ -56,15 +56,19 @@ accessActivities model startDate endDate =
         |> RemoteData.map (filterActivities startDate endDate)
 
 
+
 --- INTERNAL
+
 
 keyFor : Date -> Int
 keyFor date =
     Date.floor Date.Month date |> toRataDie
 
+
 filterActivities : Date -> Date -> (List Activity.Model -> List Activity.Model)
 filterActivities a b =
     List.filter (\activity -> Date.isBetween a (Date.add Date.Second -1 b) activity.date)
+
 
 fetchIfMissing : Date -> ( Model, List (Cmd Msg) ) -> ( Model, List (Cmd Msg) )
 fetchIfMissing date result =

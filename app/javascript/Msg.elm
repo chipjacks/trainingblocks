@@ -5,6 +5,7 @@ import ActivityCache
 import Navigation exposing (Location)
 import Route exposing (Route)
 
+
 type Msg
     = OpenActivity Activity.Model
     | CloseActivity

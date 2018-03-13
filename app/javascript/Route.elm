@@ -7,9 +7,11 @@ import Html.Attributes as Attr
 import Date exposing (Date)
 import Date.Extra exposing (fromRataDie, toRataDie)
 
+
 type Route
     = Zoom ZoomLevel Date
     | NotFound
+
 
 type ZoomLevel
     = Year
@@ -20,31 +22,33 @@ type ZoomLevel
 matchers : Parser (Route -> a) a
 matchers =
     oneOf
-         [ Url.map Zoom (zoomLevel </> zoomDate)
-         ]
+        [ Url.map Zoom (zoomLevel </> zoomDate)
+        ]
 
 
 zoomLevel : Parser (ZoomLevel -> a) a
 zoomLevel =
-  custom "LEVEL" <| \segment ->
-    case segment of
-        "year" ->
-            Ok Year
-        
-        "month" ->
-            Ok Month
-        
-        "week" ->
-            Ok Week
-    
-        _ ->
-            Err "Invalid zoom level"
+    custom "LEVEL" <|
+        \segment ->
+            case segment of
+                "year" ->
+                    Ok Year
+
+                "month" ->
+                    Ok Month
+
+                "week" ->
+                    Ok Week
+
+                _ ->
+                    Err "Invalid zoom level"
 
 
 zoomDate : Parser (Date -> a) a
-zoomDate = 
-  custom "DATE" <| \segment ->
-    String.toInt segment |> Result.map fromRataDie
+zoomDate =
+    custom "DATE" <|
+        \segment ->
+            String.toInt segment |> Result.map fromRataDie
 
 
 toString : Route -> String
@@ -54,15 +58,17 @@ toString route =
             case route of
                 Zoom Year date ->
                     [ "year", date |> toRataDie |> Basics.toString ]
+
                 Zoom Month date ->
                     [ "month", date |> toRataDie |> Basics.toString ]
+
                 Zoom Week date ->
                     [ "week", date |> toRataDie |> Basics.toString ]
+
                 NotFound ->
                     [ "notfound" ]
     in
-    "#/" ++ String.join "/" pieces
-
+        "#/" ++ String.join "/" pieces
 
 
 parseLocation : Location -> Route

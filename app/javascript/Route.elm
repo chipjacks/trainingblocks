@@ -1,34 +1,27 @@
-module Route exposing (Route(..), ZoomLevel(..), parseLocation, toString)
+module Route exposing (Route(..), parseLocation, toString)
 
 import Navigation exposing (Location)
 import UrlParser as Url exposing ((</>), Parser, oneOf, parseHash, s, int, custom)
-import Html exposing (Attribute)
-import Html.Attributes as Attr
 import Date exposing (Date)
-import Date.Extra exposing (fromRataDie, toRataDie)
+import Date.Extra exposing (fromRataDie, toRataDie, Interval(..))
+import Zoom
 
 
 type Route
-    = Zoom ZoomLevel Date
+    = Zoom Zoom.Model
     | Blank
     | NotFound
-
-
-type ZoomLevel
-    = Year
-    | Month
-    | Week
 
 
 matchers : Parser (Route -> a) a
 matchers =
     oneOf
         [ Url.map Blank Url.top
-        , Url.map Zoom (zoomLevel </> zoomDate)
+        , Url.map Zoom <| Url.map Zoom.initModel (zoomLevel </> zoomDate)
         ]
 
 
-zoomLevel : Parser (ZoomLevel -> a) a
+zoomLevel : Parser (Interval -> a) a
 zoomLevel =
     custom "LEVEL" <|
         \segment ->
@@ -58,14 +51,8 @@ toString route =
     let
         pieces =
             case route of
-                Zoom Year date ->
-                    [ "year", date |> toRataDie |> Basics.toString ]
-
-                Zoom Month date ->
-                    [ "month", date |> toRataDie |> Basics.toString ]
-
-                Zoom Week date ->
-                    [ "week", date |> toRataDie |> Basics.toString ]
+                Zoom model ->
+                    [ model.level |> Basics.toString |> String.toLower, model.end |> toRataDie |> Basics.toString ]
 
                 NotFound ->
                     [ "notfound" ]

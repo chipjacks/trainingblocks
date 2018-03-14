@@ -25,7 +25,7 @@ suite =
         describe "ActivityCache"
             [ describe "#fetchActivities"
                 [ test "sets all cached months to loading" <|
-                    \_ -> fetchActivities ActivityCache.initModel (startDate, endDate)
+                    \_ -> fetchActivities ActivityCache.initModel startDate endDate
                         |> Tuple.first
                         |> .cache
                         |> Dict.values

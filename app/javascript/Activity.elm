@@ -134,14 +134,14 @@ color type_ =
 
 
 view : Model -> Html msg
-view block =
+view activity =
     div
         [ style
             [ ( "display", "inline-block" )
             , ( "margin-right", "10px" )
-            , ( "background", color block.type_ )
-            , ( "width", (toString block.durationMinutes) ++ "px" )
-            , ( "height", (toString (block.intensity * 10)) ++ "px" )
+            , ( "background", color activity.type_ )
+            , ( "width", (toString activity.durationMinutes) ++ "px" )
+            , ( "height", (toString (activity.intensity * 10)) ++ "px" )
             ]
         ]
         []
@@ -161,6 +161,7 @@ viewTreemap activities =
                 |> List.sum
                 |> toFloat
                 |> (*) 5
+                --TODO: Clamp?
     in
         svg
             [ width <| toString totalWidth, height <| toString totalHeight ]
@@ -179,6 +180,34 @@ viewTreemap activities =
                             []
                     )
             )
+
+viewStack : List Model -> Svg msg
+viewStack activities =
+    svg [ width "300", height "100" ]
+        (List.map splitActivity activities
+        |> List.concat
+        |> List.indexedMap (\i a -> viewActivity a (i * 5, i * 5))
+        )
+
+splitActivity : Model -> List Model
+splitActivity a = 
+    if a.durationMinutes > 120 then
+        {a | durationMinutes = 120} :: (splitActivity { a | durationMinutes = a.durationMinutes - 120})
+    else
+        [a]
+
+
+viewActivity : Model -> (Int, Int) -> Svg msg
+viewActivity activity (x_, y_) = 
+    rect
+        [ x <| toString <| x_
+        , y <| toString <| y_
+        , width <| toString <| activity.durationMinutes
+        , height (activity.intensity * 10 |> toString)
+        , Svg.Attributes.fill (color activity.type_)
+        , stroke "white"
+        ]
+        []
 
 
 treemapCoordinates : Float -> Float -> List Model -> List ( ActivityType, Coordinate )

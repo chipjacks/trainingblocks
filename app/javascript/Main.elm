@@ -198,9 +198,9 @@ viewWeek date activityAccess openActivityMsg =
         case activities of
             Success activities ->
                 div [ class "week" ]
-                    ((a (onClickPage (Route.Zoom Week endDate)) [ Html.text (date |> toString) ])
-                        :: (List.map Activity.view activities)
-                    )
+                    [a (onClickPage (Route.Zoom Week endDate)) [ Html.text (date |> toString) ]
+                    , Activity.viewStack activities
+                    ]
 
             Loading ->
                 div [] [ Html.text ((date |> toString) ++ "Loading") ]

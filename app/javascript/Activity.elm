@@ -183,17 +183,19 @@ viewTreemap activities =
 
 viewStack : List Model -> Svg msg
 viewStack activities =
-    svg [ width "300", height "100" ]
+    svg [ width "100%", height "100%" ]
         (List.map splitActivity activities
             |> List.concat
             |> List.indexedMap (\i a -> viewActivity a ( i * 5, i * 5 ))
         )
 
+splitDuration : number
+splitDuration = 120
 
 splitActivity : Model -> List Model
 splitActivity a =
-    if a.durationMinutes > 120 then
-        { a | durationMinutes = 120 } :: (splitActivity { a | durationMinutes = a.durationMinutes - 120 })
+    if a.durationMinutes > splitDuration then
+        { a | durationMinutes = splitDuration } :: (splitActivity { a | durationMinutes = a.durationMinutes - splitDuration })
     else
         [ a ]
 
@@ -203,7 +205,7 @@ viewActivity activity ( x_, y_ ) =
     rect
         [ x <| toString <| x_
         , y <| toString <| y_
-        , width <| toString <| activity.durationMinutes
+        , width <| (toString (((activity.durationMinutes |> toFloat) / (splitDuration + 20)) * 100)) ++ "%"
         , height (activity.intensity * 10 |> toString)
         , Svg.Attributes.fill (color activity.type_)
         , stroke "white"

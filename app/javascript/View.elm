@@ -4,6 +4,7 @@ import Html exposing (Html, div, a)
 import Html.Attributes exposing (class)
 import OnClickPage exposing (onClickPage)
 import Date exposing (Month(..), Date)
+import Date.Extra as Date exposing (Interval(..))
 import RemoteData exposing (WebData, RemoteData(..))
 import Msg exposing (Msg(..))
 import Route
@@ -13,25 +14,27 @@ import Zoom exposing (zoomIn)
 
 year : Zoom.Model -> (Date -> Date -> WebData (List Activity.Model)) -> Html Msg
 year zoom activityAccess =
-    div [ class "months" ]
+    div [ class "year" ]
         (Zoom.range zoom
-            |> List.map (\subZoom -> monthOfYear subZoom (activityAccess subZoom.start subZoom.end))
+            |> List.map (\subZoom -> monthOfYear subZoom (activityAccess))
         )
 
 
 month : Zoom.Model -> (Date -> Date -> WebData (List Activity.Model)) -> Html Msg
 month zoom activityAccess =
-    div [ class "weeks" ]
-        (Zoom.range zoom
-            |> List.map (\subZoom -> weekOfMonth subZoom (activityAccess subZoom.start subZoom.end))
+    div [ class "month" ]
+        (  (headerOfMonth zoom)
+        :: (Zoom.range zoom
+                |> List.map (\subZoom -> weekOfMonth subZoom (activityAccess))
+           )
         )
 
 
 week : Zoom.Model -> (Date -> Date -> WebData (List Activity.Model)) -> Html Msg
 week zoom activityAccess =
-    div [ class "days" ]
+    div [ class "week" ]
         (Zoom.range zoom
-            |> List.map (\subZoom -> dayOfWeek subZoom (activityAccess subZoom.start subZoom.end))
+            |> List.map (\subZoom -> dayOfWeek subZoom (activityAccess))
         )
 
 
@@ -39,27 +42,43 @@ week zoom activityAccess =
 -- INTERNAL
 
 
-monthOfYear : Zoom.Model -> WebData (List Activity.Model) -> Html Msg
+monthOfYear : Zoom.Model -> (Date -> Date -> WebData (List Activity.Model)) -> Html Msg
 monthOfYear zoom activities =
     div [ class "month" ]
         [ a (onClickPage (Route.Zoom zoom)) [ Html.text (zoom.start |> toString) ]
-        , viewIfSuccess activities Activity.viewTreemap
+        , viewIfSuccess (activities zoom.start zoom.end) Activity.viewTreemap
         ]
 
 
-weekOfMonth : Zoom.Model -> WebData (List Activity.Model) -> Html Msg
+headerOfMonth : Zoom.Model -> Html Msg
+headerOfMonth zoom =
+    div [ class "week header" ] 
+        ( (div [ class "summary" ] [ ])
+        ::(Zoom.range (Zoom.initModel Week zoom.end) |> List.map (\z -> div [ class "day" ] [Html.text (Date.dayOfWeek z.start |> toString)]))
+        )
+
+
+weekOfMonth : Zoom.Model -> (Date -> Date -> WebData (List Activity.Model)) -> Html Msg
 weekOfMonth zoom activities =
     div [ class "week" ]
-        [ a (onClickPage (Route.Zoom zoom)) [ Html.text (zoom.start |> toString) ]
-        , viewIfSuccess activities Activity.viewStack
+        ((a ((class "summary") :: (onClickPage (Route.Zoom zoom))) [ Html.text <| (zoom.start |> Date.toFormattedString "MMM ddd") ++ (zoom.end |> Date.toFormattedString " - ddd") ])
+        :: (Zoom.range zoom
+            |> List.map (\subZoom -> dayOfWeekOfMonth subZoom activities)
+            )
+        )
+
+dayOfWeekOfMonth : Zoom.Model -> (Date -> Date -> WebData (List Activity.Model)) -> Html Msg
+dayOfWeekOfMonth zoom activities =
+        div [ class "day" ]
+        [ viewIfSuccess (activities zoom.start zoom.end) Activity.viewStack
         ]
 
 
-dayOfWeek : Zoom.Model -> WebData (List Activity.Model) -> Html Msg
+dayOfWeek : Zoom.Model -> (Date -> Date -> WebData (List Activity.Model)) -> Html Msg
 dayOfWeek zoom activities =
     div [ class "day" ]
         [ Html.text (zoom.start |> toString)
-        , viewIfSuccess activities
+        , viewIfSuccess (activities zoom.start zoom.end)
             (\list ->
                 div [] (List.map Activity.view list)
             )

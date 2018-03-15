@@ -3,19 +3,15 @@
 // You can use Sass (SCSS) here: http://sass-lang.com/
 
 
-.month {
-  display: inline-block;
-  width: 33%;
-  height: 300px;
-}
-
-.month.open {
-  display: block;
-}
-
-.month.open .week {
+.month .week {
   display: flex;
-  align-items: flex-end;
-  height: 60px;
-  width: 100%;
+
+  .summary {
+    width: 120px;
+    font-size: small;
+  }
+
+  .day {
+    flex: 1 1 0;
+  }
 }

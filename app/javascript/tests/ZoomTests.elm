@@ -35,5 +35,10 @@ suite =
                         |> Zoom.range
                         |> List.map (\z -> z.start)
                         |> Expect.equal ([1, 8,15,22,29] |> List.map (Date.fromCalendarDate 2018 Jan))
+                , test "should always include 5 weeks" <|
+                    \_ -> initModel Month (Date.fromRataDie 736450)
+                        |> Zoom.range
+                        |> List.length
+                        |> Expect.equal 5
                 ]
             ]

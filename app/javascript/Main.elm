@@ -77,10 +77,7 @@ update msg model =
                             { model | zoom = zoom, activityCache = acModel, route = newRoute }
                                 ! [ acMsg |> Cmd.map UpdateActivityCache ]
 
-                    Route.NotFound ->
-                        ( { model | route = newRoute }, Cmd.none )
-
-                    Route.Blank ->
+                    _ ->
                         ( { model | route = newRoute }, Cmd.none )
 
         NewPage page ->

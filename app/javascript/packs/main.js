@@ -4,7 +4,7 @@
 
 import Elm from '../Main'
 
-document.addEventListener('turbolinks:load', () => {
+document.addEventListener('DOMContentLoaded', () => {
   const target = document.getElementById('elm-main')
   const existing = document.getElementById('elm-overlay')
 

@@ -6,6 +6,15 @@
   min-width: 970px;
 }
 
+.year {
+  display: flex;
+  flex-wrap: wrap-reverse;
+
+  .month {
+    flex-basis: 33%;
+  }
+}
+
 .month .week {
   display: flex;
 

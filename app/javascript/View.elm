@@ -14,10 +14,19 @@ import Zoom exposing (zoomIn)
 
 year : Zoom.Model -> (Date -> Date -> WebData (List Activity.Model)) -> Html Msg
 year zoom activityAccess =
-    div [ class "year" ]
-        (Zoom.range zoom
-            |> List.map (\subZoom -> monthOfYear subZoom (activityAccess))
-        )
+    let
+        normalizer = (Zoom.range zoom
+            |> List.concatMap (\subZoom ->
+                activityAccess subZoom.start subZoom.end
+                    |> RemoteData.withDefault []
+                    |> Activity.aggregateByType
+                )
+            ) |> Activity.durationNormalizer
+    in
+        div [ class "year" ]
+            (Zoom.range zoom
+                |> List.map (\subZoom -> monthOfYear subZoom activityAccess normalizer)
+            )
 
 
 month : Zoom.Model -> (Date -> Date -> WebData (List Activity.Model)) -> Html Msg
@@ -25,7 +34,7 @@ month zoom activityAccess =
     div [ class "month" ]
         (  (headerOfMonth zoom)
         :: (Zoom.range zoom
-                |> List.map (\subZoom -> weekOfMonth subZoom (activityAccess))
+                |> List.map (\subZoom -> weekOfMonth subZoom activityAccess)
            )
         )
 
@@ -42,11 +51,11 @@ week zoom activityAccess =
 -- INTERNAL
 
 
-monthOfYear : Zoom.Model -> (Date -> Date -> WebData (List Activity.Model)) -> Html Msg
-monthOfYear zoom activities =
+monthOfYear : Zoom.Model -> (Date -> Date -> WebData (List Activity.Model)) -> (List Activity.Model -> List Activity.Model) -> Html Msg
+monthOfYear zoom activities normalizer =
     div [ class "month" ]
-        [ a (onClickPage (Route.Zoom zoom)) [ Html.text (zoom.start |> toString) ]
-        , viewIfSuccess (activities zoom.start zoom.end) Activity.viewTreemap
+        [ a (onClickPage (Route.Zoom zoom)) [ Html.text (zoom.start |> Date.month |> toString) ]
+        , viewIfSuccess (activities zoom.start zoom.end) (Activity.aggregateByType >> normalizer >> Activity.viewStack)
         ]
 
 

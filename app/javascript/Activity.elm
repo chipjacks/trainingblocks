@@ -4,6 +4,7 @@ import StravaAPI exposing (StravaAPIActivity)
 import Html exposing (Html, div)
 import Html.Attributes exposing (style)
 import Date exposing (Date)
+import Date.Extra as Date
 import Svg exposing (Svg, svg, rect)
 import Svg.Attributes exposing (width, height, x, y, stroke, strokeWidth)
 import Treemap exposing (Coordinate, Container)
@@ -128,6 +129,34 @@ color type_ =
         Other ->
             "grey"
 
+
+aggregateByType : List Model -> List Model
+aggregateByType activities =
+    activityTypes
+        |> List.map (\t -> List.filter (\a -> a.type_ == t) activities)
+        |> List.filterMap (\l ->
+            case (List.sortBy (.date >> Date.toRataDie) l |> List.head) of
+                Just a ->
+                    Just { a 
+                    | intensity = (List.map .intensity l |> List.sum |> toFloat) / (List.length l |> toFloat) |> round
+                    -- , durationMinutes = (List.map .durationMinutes l |> List.sum |> toFloat) / (List.length l |> toFloat) |> round
+                    , durationMinutes = List.map .durationMinutes l |> List.sum
+                    }
+                Nothing ->
+                    Nothing
+            )
+
+
+durationNormalizer : List Model -> (List Model -> List Model)
+durationNormalizer l =
+    case (List.map .durationMinutes l |> List.maximum) of
+        Just maxDuration ->
+            List.map (\a ->
+                { a | durationMinutes = (round (((toFloat a.durationMinutes) / (toFloat maxDuration)) * splitDuration)) }
+                )
+
+        Nothing ->
+            List.map (\a -> a)
 
 
 -- VIEW

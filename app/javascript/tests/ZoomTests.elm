@@ -16,15 +16,15 @@ suite =
     in
         describe "Zoom"
             [ describe "#initModel"
-                [ test "sets correct date range for a year" <|
+                [ test "rounds year date range to past 4 quarters" <|
                     \_ -> year
                         |> (\z -> (z.start, z.end))
-                        |> Expect.equal (Date.fromCalendarDate 2017 Feb 1, Date.fromCalendarDate 2018 Mar 1)
-                , test "sets correct date range for a month" <|
+                        |> Expect.equal (Date.fromCalendarDate 2017 Apr 1, Date.fromCalendarDate 2018 Apr 1)
+                , test "rounds month date range to past 5 weeks" <|
                     \_ -> month
                         |> (\z -> (z.start, z.end))
                         |> Expect.equal (Date.fromCalendarDate 2018 Jan 15, Date.fromCalendarDate 2018 Feb 19)
-                , test "sets correct date range for a week" <|
+                , test "rounds week date range to past 7 days" <|
                     \_ -> week
                         |> (\z -> (z.start, z.end))
                         |> Expect.equal (Date.fromCalendarDate 2018 Feb 12, Date.fromCalendarDate 2018 Feb 19)

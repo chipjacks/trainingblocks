@@ -3,12 +3,13 @@
 // You can use Sass (SCSS) here: http://sass-lang.com/
 
 #elm-main {
-  min-width: 970px;
+  width: 970px;
 }
 
 .year {
   display: flex;
-  flex-wrap: wrap-reverse;
+  flex-wrap: wrap;
+  flex-direction: row-reverse;
 
   .month {
     flex-basis: 33%;

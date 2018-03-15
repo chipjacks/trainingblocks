@@ -43,6 +43,11 @@ dateLimits level date =
             , Date.ceiling Week date
             )
 
+        Year ->
+            ( Date.add Quarter -3 (Date.floor Quarter date)
+            , Date.ceiling Quarter date
+            )
+
         _ ->
             ( Date.add level -1 (Date.floor (zoomIn level) date)
             , Date.ceiling (zoomIn level) date

@@ -25,6 +25,7 @@ year zoom activityAccess =
     in
         div [ class "year" ]
             (Zoom.range zoom
+                |> List.reverse
                 |> List.map (\subZoom -> monthOfYear subZoom activityAccess normalizer)
             )
 

@@ -87,7 +87,7 @@ dayOfWeekOfMonth zoom activities =
 dayOfWeek : Zoom.Model -> (Date -> Date -> WebData (List Activity.Model)) -> Html Msg
 dayOfWeek zoom activities =
     div [ class "day" ]
-        [ Html.text (zoom.start |> toString)
+        [ Html.text (zoom.start |> Date.dayOfWeek |> toString)
         , viewIfSuccess (activities zoom.start zoom.end)
             (\list ->
                 div [] (List.map Activity.view list)

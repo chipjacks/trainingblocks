@@ -130,21 +130,22 @@ color type_ =
             "grey"
 
 
-aggregateByType : List Model -> List Model
-aggregateByType activities =
+groupByType : List Model -> List (List Model)
+groupByType activities =
     activityTypes
         |> List.map (\t -> List.filter (\a -> a.type_ == t) activities)
-        |> List.filterMap (\l ->
-            case (List.sortBy (.date >> Date.toRataDie) l |> List.head) of
-                Just a ->
-                    Just { a 
-                    | intensity = (List.map .intensity l |> List.sum |> toFloat) / (List.length l |> toFloat) |> round
-                    -- , durationMinutes = (List.map .durationMinutes l |> List.sum |> toFloat) / (List.length l |> toFloat) |> round
-                    , durationMinutes = List.map .durationMinutes l |> List.sum
-                    }
-                Nothing ->
-                    Nothing
-            )
+        |> List.filter (\l -> List.length l > 0)
+        -- |> List.filterMap (\l ->
+        --     case (List.sortBy (.date >> Date.toRataDie) l |> List.head) of
+        --         Just a ->
+        --             Just { a 
+        --             | intensity = (List.map .intensity l |> List.sum |> toFloat) / (List.length l |> toFloat) |> round
+        --             -- , durationMinutes = (List.map .durationMinutes l |> List.sum |> toFloat) / (List.length l |> toFloat) |> round
+        --             , durationMinutes = List.map .durationMinutes l |> List.sum
+        --             }
+        --         Nothing ->
+        --             Nothing
+        --     )
 
 
 durationNormalizer : List Model -> (List Model -> List Model)
@@ -217,6 +218,8 @@ viewStack activities =
             |> List.concat
             |> List.indexedMap (\i a -> viewActivity a ( i * 5, i * 5 ))
         )
+
+
 
 splitDuration : number
 splitDuration = 120

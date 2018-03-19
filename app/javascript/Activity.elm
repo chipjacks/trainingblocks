@@ -135,46 +135,10 @@ groupByType activities =
     activityTypes
         |> List.map (\t -> List.filter (\a -> a.type_ == t) activities)
         |> List.filter (\l -> List.length l > 0)
-        -- |> List.filterMap (\l ->
-        --     case (List.sortBy (.date >> Date.toRataDie) l |> List.head) of
-        --         Just a ->
-        --             Just { a 
-        --             | intensity = (List.map .intensity l |> List.sum |> toFloat) / (List.length l |> toFloat) |> round
-        --             -- , durationMinutes = (List.map .durationMinutes l |> List.sum |> toFloat) / (List.length l |> toFloat) |> round
-        --             , durationMinutes = List.map .durationMinutes l |> List.sum
-        --             }
-        --         Nothing ->
-        --             Nothing
-        --     )
 
-
-durationNormalizer : List Model -> (List Model -> List Model)
-durationNormalizer l =
-    case (List.map .durationMinutes l |> List.maximum) of
-        Just maxDuration ->
-            List.map (\a ->
-                { a | durationMinutes = (round (((toFloat a.durationMinutes) / (toFloat maxDuration)) * splitDuration)) }
-                )
-
-        Nothing ->
-            List.map (\a -> a)
 
 
 -- VIEW
-
-
-view : Model -> Html msg
-view activity =
-    div
-        [ style
-            [ ( "display", "inline-block" )
-            , ( "margin-right", "10px" )
-            , ( "background", color activity.type_ )
-            , ( "width", (toString activity.durationMinutes) ++ "px" )
-            , ( "height", (toString (activity.intensity * 10)) ++ "px" )
-            ]
-        ]
-        []
 
 
 viewTreemap : List Model -> Svg msg
@@ -209,40 +173,6 @@ viewTreemap activities =
                             []
                     )
             )
-
-
-viewStack : List Model -> Svg msg
-viewStack activities =
-    svg [ width "100%", height "100%" ]
-        (List.map splitActivity activities
-            |> List.concat
-            |> List.indexedMap (\i a -> viewActivity a ( i * 5, i * 5 ))
-        )
-
-
-
-splitDuration : number
-splitDuration = 120
-
-splitActivity : Model -> List Model
-splitActivity a =
-    if a.durationMinutes > splitDuration then
-        { a | durationMinutes = splitDuration } :: (splitActivity { a | durationMinutes = a.durationMinutes - splitDuration })
-    else
-        [ a ]
-
-
-viewActivity : Model -> ( Int, Int ) -> Svg msg
-viewActivity activity ( x_, y_ ) =
-    rect
-        [ x <| toString <| x_
-        , y <| toString <| y_
-        , width <| (toString (((activity.durationMinutes |> toFloat) / (splitDuration + 20)) * 100)) ++ "%"
-        , height (activity.intensity * 10 |> toString)
-        , Svg.Attributes.fill (color activity.type_)
-        , stroke "white"
-        ]
-        []
 
 
 treemapCoordinates : Float -> Float -> List Model -> List ( ActivityType, Coordinate )

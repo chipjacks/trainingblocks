@@ -10,7 +10,7 @@ import Navigation exposing (Location)
 import Msg exposing (Msg(..))
 import Task
 import Zoom
-import View
+import View.Zoom
 
 
 main : Program Never Model Msg
@@ -112,13 +112,13 @@ view model =
         Route.Zoom zoom ->
             case zoom.level of
                 Year ->
-                    View.year zoom (accessActivities model.activityCache)
+                    View.Zoom.year zoom (accessActivities model.activityCache)
 
                 Month ->
-                    View.month zoom (accessActivities model.activityCache)
+                    View.Zoom.month zoom (accessActivities model.activityCache)
 
                 Week ->
-                    View.week zoom (accessActivities model.activityCache)
+                    View.Zoom.week zoom (accessActivities model.activityCache)
 
                 _ ->
                     div [] [ Html.text "Invalid interval" ]

@@ -1,4 +1,4 @@
-module View exposing (year, month, week)
+module View.Zoom exposing (month, week, year)
 
 import Html exposing (Html, div, a)
 import Html.Attributes exposing (class)
@@ -9,7 +9,11 @@ import RemoteData exposing (WebData, RemoteData(..))
 import Msg exposing (Msg(..))
 import Route
 import Activity
+import Block
 import Zoom exposing (zoomIn)
+import View.Block
+import Svg exposing (Svg, svg)
+import Svg.Attributes exposing (width, height)
 
 
 year : Zoom.Model -> (Date -> Date -> WebData (List Activity.Model)) -> Html Msg
@@ -19,9 +23,11 @@ year zoom activityAccess =
             |> List.concatMap (\subZoom ->
                 activityAccess subZoom.start subZoom.end
                     |> RemoteData.withDefault []
-                    |> Activity.aggregateByType
+                    |> Activity.groupByType
+                    |> List.map (List.map (Block.initModel << Block.Activity))
+                    |> List.map Block.sum
                 )
-            ) |> Activity.durationNormalizer
+            ) |> Block.normalizer
     in
         div [ class "year" ]
             (Zoom.range zoom
@@ -52,12 +58,20 @@ week zoom activityAccess =
 -- INTERNAL
 
 
-monthOfYear : Zoom.Model -> (Date -> Date -> WebData (List Activity.Model)) -> (List Activity.Model -> List Activity.Model) -> Html Msg
+monthOfYear : Zoom.Model -> (Date -> Date -> WebData (List Activity.Model)) -> (Block.Model -> Block.Model) -> Html Msg
 monthOfYear zoom activities normalizer =
-    div [ class "month" ]
-        [ a (onClickPage (Route.Zoom zoom)) [ Html.text (zoom.start |> Date.month |> toString) ]
-        , viewIfSuccess (activities zoom.start zoom.end) (Activity.aggregateByType >> normalizer >> Activity.viewStack)
-        ]
+    div [ class "month" ] [ a (onClickPage (Route.Zoom zoom)) [ Html.text (zoom.start |> Date.month |> toString) ]
+        , svg [ width "100%", height "100%" ]
+            [ RemoteData.withDefault [] (activities zoom.start zoom.end)
+                |> Activity.groupByType
+                |> List.map (List.map (Block.initModel << Block.Activity))
+                |> List.map Block.sum
+                |> List.map (Block.scale 3 10)
+                |> List.map normalizer
+                |> Block.stack
+                |> View.Block.view
+            ]
+    ]
 
 
 headerOfMonth : Zoom.Model -> Html Msg
@@ -77,35 +91,29 @@ weekOfMonth zoom activities =
             )
         )
 
-dayOfWeekOfMonth : Zoom.Model -> (Date -> Date -> WebData (List Activity.Model)) -> Html Msg
+dayOfWeekOfMonth : Zoom.Model -> (Date -> Date -> WebData (List Activity.Model)) -> Svg Msg
 dayOfWeekOfMonth zoom activities =
-        div [ class "day" ]
-        [ viewIfSuccess (activities zoom.start zoom.end) Activity.viewStack
-        ]
+    div [ class "day" ] [
+        svg [ width "100%", height "100%" ]
+            [ RemoteData.withDefault [] (activities zoom.start zoom.end)
+                |> List.map (Block.initModel << Block.Activity)
+                |> List.map (Block.scale 1 10)
+                |> List.map (Block.stack << Block.split 120)
+                |> Block.stack
+                |> View.Block.view
+            ]
+    ]
 
 
 dayOfWeek : Zoom.Model -> (Date -> Date -> WebData (List Activity.Model)) -> Html Msg
 dayOfWeek zoom activities =
-    div [ class "day" ]
-        [ Html.text (zoom.start |> Date.dayOfWeek |> toString)
-        , viewIfSuccess (activities zoom.start zoom.end)
-            (\list ->
-                div [] (List.map Activity.view list)
-            )
-        ]
+    div [ class "day" ] [ Html.text (zoom.start |> Date.dayOfWeek |> toString)
 
-
-viewIfSuccess : WebData (List Activity.Model) -> (List Activity.Model -> Html Msg) -> Html Msg
-viewIfSuccess webdata html =
-    case webdata of
-        Success activities ->
-            html activities
-
-        Loading ->
-            div [] [ Html.text "Loading" ]
-
-        NotAsked ->
-            div [] [ Html.text "NotAsked" ]
-
-        Failure e ->
-            div [] [ Html.text (e |> toString) ]
+        , svg [ width "100%", height "100%" ]
+            [RemoteData.withDefault [] (activities zoom.start zoom.end)
+                |> List.map (Block.initModel << Block.Activity)
+                |> List.map (Block.scale 1 10)
+                |> Block.stack -- TODO: plot on timeline instead of stacking
+                |> View.Block.view
+            ]
+    ]

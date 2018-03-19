@@ -1,125 +1,189 @@
-module Block exposing (initModel, Data(..), sum, scale, split, stack, decompose)
+module Block exposing (Model, initModel, Data(..), View(..), sum, scale, split, stack, decompose, normalize, normalizer)
 
 import Activity
+
+
 {-
-- containers (combine several blocks/containers into one)
-    - session (laps w/ different intensities)
-    x sum (average intensity)
-    - treemap
-    x stack
-- scalers (change block width, height)
-    - normalize
-    - timeline
-    x split
-- shifters (change block x, y)
-    - plot
-- events (block events, msgs)
-    - mouseover tooltip
-    - mouseover unstack
-    - click
-    - drag/drop
-    - stretch
-- labels (extras positioned relative to block)
-    - distance
-    - intensity
-    - time
-    - notes
-    - tooltip
+   - containers (combine several blocks/containers into one)
+       - session (laps w/ different intensities)
+       x sum (average intensity)
+       - treemap
+       x stack
+   - scalers (change block width, height)
+       - normalize
+       - timeline
+       x split
+   - shifters (change block x, y)
+       - plot
+   - events (block events, msgs)
+       - mouseover tooltip
+       - mouseover unstack
+       - click
+       - drag/drop
+       - stretch
+   - labels (extras positioned relative to block)
+       - distance
+       - intensity
+       - time
+       - notes
+       - tooltip
 -}
 
-type alias Model = 
-    { x: Int
-    , y: Int
-    , w: Int
-    , h: Int
-    , split: Bool
-    , data: Data
+
+type alias Model =
+    { x : Int
+    , y : Int
+    , w : Int
+    , h : Int
+    , color : String
+    , data : Data
+    , view : View
     }
 
 
+type View
+    = Children
+    | Split
+    | Normal
+
+
 type Data
-    = Activity (Activity.Model)
+    = Activity Activity.Model
     | Blocks Blocks
 
-type alias Blocks = List Model
+
+type alias Blocks =
+    List Model
 
 
-initModel : Data -> Model 
+initModel : Data -> Model
 initModel data =
     case data of
         Blocks blocks ->
-            Model 0 0 0 0 False data
+            Model 0 0 0 0 "" data Children
 
         Activity activity ->
-            Model 0 0 activity.durationMinutes activity.intensity False data
+            Model 0 0 activity.durationMinutes activity.intensity (Activity.color activity.type_) data Normal
+
 
 
 -- TRANSFORMERS
+
 
 shift : Int -> Int -> Model -> Model
 shift xOffset yOffset model =
     { model | x = model.x + xOffset, y = model.y + yOffset }
 
 
-scale : Int -> Int -> Model -> Model
+scale : Float -> Float -> Model -> Model
 scale xFactor yFactor model =
-    case model.data of
-        Blocks blocks -> 
-            { model 
-                | w = List.sum (blocks |> List.map (scale xFactor yFactor) |> List.map .w)
-                , h = List.sum (blocks |> List.map (scale xFactor yFactor) |> List.map .h)
-            }
+    case ( model.view, model.data ) of
+        ( Children, Blocks blocks ) ->
+            { model | data = Blocks (List.map (scale xFactor yFactor) blocks) }
 
-        Activity activity ->
-            { model | w = model.w * xFactor, h = model.h * yFactor }
+        _ ->
+            { model | w = ((toFloat model.w) * xFactor) |> round, h = ((toFloat model.h) * yFactor) |> round }
+
+
+normalize : Blocks -> Blocks
+normalize blocks =
+    List.map (normalizer blocks) blocks
+
+
+normalizer : Blocks -> (Model -> Model)
+normalizer blocks =
+    case (List.map .w blocks |> List.maximum) of
+        Just maxDuration ->
+            scale (1 / (toFloat maxDuration) * 100) 1
+
+        Nothing ->
+            scale 1 1
+
 
 
 -- DECOMPOSERS
 
+
 decompose : Model -> Blocks
-decompose model = 
+decompose model =
     case model.data of
         Blocks blocks ->
-           blocks 
-    
+            blocks
+
         Activity activity ->
             []
+
 
 split : Int -> Model -> Blocks
 split maxWidth model =
     if model.w > maxWidth then
-        { model | w = maxWidth, split = True} :: (split maxWidth { model | w = model.w - maxWidth })
+        { model | w = maxWidth, view = Split } :: (split maxWidth { model | w = model.w - maxWidth })
     else
-        [model]
+        [ model ]
+
 
 
 -- COMPOSERS
 
+
 sum : Blocks -> Model
 sum blocks =
     let
-        model = initModel (Blocks blocks)
+        model =
+            initModel (Blocks blocks)
     in
         { model
             | w = blocks |> List.map .w |> List.sum
             , h = (activities model |> List.map .intensity |> List.sum) // (activities model |> List.length)
+            , color = (blocks |> List.map .color |> List.head |> Maybe.withDefault "")
+            , view = Normal
         }
 
 
 stack : Blocks -> Model
 stack blocks =
     blocks
-        |> List.indexedMap (\i b -> shift (i * 5) (i * 5) b)
-        |> initModel << Blocks
+        |> List.foldl stackOnParent (initModel (Blocks []))
+
 
 
 -- INTERNAL
 
+
 activities : Model -> List Activity.Model
 activities model =
     case model.data of
-        Blocks blocks -> 
+        Blocks blocks ->
             List.concatMap activities blocks
 
         Activity activity ->
-            [activity]
+            [ activity ]
+
+
+stackOnParent : Model -> Model -> Model
+stackOnParent block parent =
+    appendBlock
+        (case (lastBlock parent) of
+            Just lastBlock ->
+                if lastBlock.view == Split then
+                    { block | x = lastBlock.x + 2, y = lastBlock.y + 3 }
+                else
+                    { block | x = lastBlock.x + 5, y = lastBlock.y + 5 }
+
+            Nothing ->
+                block
+        )
+        parent
+
+
+appendBlock : Model -> Model -> Model
+appendBlock model parent =
+    (decompose parent)
+        ++ [ model ]
+        |> initModel
+        << Blocks
+
+
+lastBlock : Model -> Maybe Model
+lastBlock model =
+    decompose model |> List.reverse |> List.head

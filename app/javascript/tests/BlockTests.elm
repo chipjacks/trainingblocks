@@ -27,10 +27,18 @@ suite =
                 ]
             , describe "#scale"
                 [ test "scales width and height" <|
-                    \_ -> ams
-                        |> scale 2 2
+                    \_ -> am
+                        |> scale 2 3
                         |> (\b -> (b.w, b.h))
-                        |> Expect.equal (210, 18)
+                        |> Expect.equal (40, 3)
+                , test "works on nested blocks" <|
+                    \_ -> activities
+                        |> Activity.groupByType
+                        |> List.map (List.map (initModel << Activity))
+                        |> List.map sum
+                        |> List.map (scale 2 3)
+                        |> List.map .h
+                        |> Expect.equal [6, 9]
                 ]
             , describe "#sum"
                 [ test "sums activity durations" <|
@@ -47,6 +55,13 @@ suite =
                         |> List.map sum
                         |> List.map .h
                         |> Expect.equal [2, 3]
+                , test "sets view to normal" <|
+                    \_ -> activities
+                        |> Activity.groupByType
+                        |> List.map (List.map (initModel << Activity))
+                        |> List.map sum
+                        |> List.map .view
+                        |> Expect.equal [Normal, Normal]
                 ]
             , describe "#split"
                 [ test "splits blocks that are too wide" <|
@@ -57,16 +72,31 @@ suite =
                 , test "sets split to true" <|
                     \_ -> am
                         |> split 10
-                        |> List.map .split
-                        |> Expect.equal [True, False]
+                        |> List.map .view
+                        |> Expect.equal [Split, Normal]
                 ]
             , describe "#stack"
                 [ test "shifts blocks on top of each other" <|
+                    \_ -> ams
+                        |> decompose
+                        |> stack
+                        |> decompose
+                        |> List.map .x
+                        |> Expect.equal [0, 5, 10, 15]
+                , test "puts split blocks closer together" <|
                     \_ -> am
                         |> split 10
                         |> stack
                         |> decompose
                         |> List.map .x
-                        |> Expect.equal [0, 5]
+                        |> Expect.equal [0, 2]
+                ]
+            , describe "#normalize"
+                [ test "scales all blocks between 1 and 100" <|
+                    \_ -> ams
+                        |> decompose
+                        |> normalize
+                        |> List.map .w
+                        |> Expect.equal [67, 44, 100, 22]
                 ]
             ]

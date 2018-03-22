@@ -28,3 +28,28 @@
     flex: 1 1 0;
   }
 }
+
+#week-plot {
+  width: 100%;
+  overflow-x: scroll;
+  .hours {
+     width: 2400px;
+    .hour {
+      display: inline-block;
+      width: 100px;
+      margin-right: -4px;
+    }
+  }
+  .days {
+    position: absolute;
+    left: 0;
+    .day {
+      display: block;
+      height: 100px;
+    }
+  }
+  svg {
+    width: 2400px;
+    height: 700px;
+  }
+}

@@ -36,10 +36,10 @@ activityDecoder =
                     Date.fromIsoString startDate
             in
                 case date of
-                    Just date ->
+                    Ok date ->
                         succeed (StravaAPIActivity type_ date duration distance)
 
-                    Nothing ->
+                    Err _ ->
                         fail "This JSON is invalid"
     in
         decode toDecoder

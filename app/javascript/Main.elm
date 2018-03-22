@@ -11,6 +11,8 @@ import Msg exposing (Msg(..))
 import Task
 import Zoom
 import View.Zoom
+import Dom.Scroll
+import Update.Extra exposing (filter, addCmd)
 
 
 main : Program Never Model Msg
@@ -76,6 +78,8 @@ update msg model =
                         in
                             { model | zoom = zoom, activityCache = acModel, route = newRoute }
                                 ! [ acMsg |> Cmd.map UpdateActivityCache ]
+                                |> filter (zoom.level == Week)
+                                    (addCmd (Task.attempt (\r -> NoOp) (Dom.Scroll.toX "week-plot" 600)))
 
                     _ ->
                         ( { model | route = newRoute }, Cmd.none )
@@ -91,6 +95,9 @@ update msg model =
 
         UpdateActivityCache subMsg ->
             { model | activityCache = ActivityCache.update subMsg model.activityCache } ! []
+
+        NoOp ->
+            model ! []
 
 
 

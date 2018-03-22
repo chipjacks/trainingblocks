@@ -12,3 +12,4 @@ type Msg
     | UpdateActivityCache ActivityCache.Msg
     | OnLocationChange Location
     | NewPage Route
+    | NoOp

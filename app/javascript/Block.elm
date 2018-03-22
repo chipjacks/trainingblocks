@@ -1,6 +1,8 @@
-module Block exposing (Model, initModel, Data(..), View(..), sum, scale, split, stack, decompose, normalize, normalizer)
+module Block exposing (Model, initModel, Data(..), View(..), sum, scale, split, stack, decompose, normalize, normalizer, plot)
 
 import Activity
+import Date
+import Date.Extra
 
 
 {-
@@ -73,6 +75,16 @@ initModel data =
 shift : Int -> Int -> Model -> Model
 shift xOffset yOffset model =
     { model | x = model.x + xOffset, y = model.y + yOffset }
+
+
+plot : Model -> Model
+plot model =
+    case model.data of
+        Activity activity ->
+            shift (activity.date |> Date.hour |> (*) 100) (activity.date |> Date.dayOfWeek |> Date.Extra.weekdayToNumber |> (+) -1 |> (*) 100) model
+
+        Blocks blocks ->
+            model
 
 
 scale : Float -> Float -> Model -> Model

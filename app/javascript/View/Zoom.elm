@@ -1,7 +1,7 @@
 module View.Zoom exposing (month, week, year)
 
 import Html exposing (Html, div, a)
-import Html.Attributes exposing (class)
+import Html.Attributes exposing (class, id)
 import OnClickPage exposing (onClickPage)
 import Date exposing (Month(..), Date)
 import Date.Extra as Date exposing (Interval(..))
@@ -47,12 +47,18 @@ month zoom activityAccess =
 
 
 week : Zoom.Model -> (Date -> Date -> WebData (List Activity.Model)) -> Html Msg
-week zoom activityAccess =
-    div [ class "week" ]
-        (Zoom.range zoom
-            |> List.map (\subZoom -> dayOfWeek subZoom (activityAccess))
-        )
-
+week weekZoom activityAccess =
+    div [ class "week", id "week-plot" ]
+        [ div [ class "hours" ]
+            (Date.range Hour 1 (Date.floor Day weekZoom.start) (Date.add Day 1 (Date.floor Day weekZoom.start))
+                |> List.indexedMap (\i hr -> div [ class "hour" ] [ hr |> Date.toFormattedString "h" |> Html.text ])
+            )
+        , div [ class "days" ]
+            (Zoom.range weekZoom
+                |> List.indexedMap (\i dayZoom -> div [ class "day" ] [ dayZoom.start |> Date.toFormattedString "E" |> Html.text ])
+            )
+        , svg [ ] (plotBlocks weekZoom activityAccess)
+    ]
 
 
 -- INTERNAL
@@ -105,15 +111,10 @@ dayOfWeekOfMonth zoom activities =
     ]
 
 
-dayOfWeek : Zoom.Model -> (Date -> Date -> WebData (List Activity.Model)) -> Html Msg
-dayOfWeek zoom activities =
-    div [ class "day" ] [ Html.text (zoom.start |> Date.dayOfWeek |> toString)
-
-        , svg [ width "100%", height "100%" ]
-            [RemoteData.withDefault [] (activities zoom.start zoom.end)
-                |> List.map (Block.initModel << Block.Activity)
-                |> List.map (Block.scale 1 10)
-                |> Block.stack -- TODO: plot on timeline instead of stacking
-                |> View.Block.view
-            ]
-    ]
+plotBlocks : Zoom.Model -> (Date -> Date -> WebData (List Activity.Model)) -> List (Svg Msg)
+plotBlocks zoom activities =
+    RemoteData.withDefault [] (activities zoom.start zoom.end)
+        |> List.map (Block.initModel << Block.Activity)
+        |> List.map (Block.scale (10 / 6) 10)
+        |> List.map Block.plot
+        |> List.map View.Block.view

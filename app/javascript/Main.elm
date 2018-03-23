@@ -13,6 +13,7 @@ import Zoom
 import View.Zoom
 import Dom.Scroll
 import Update.Extra exposing (filter, addCmd)
+import Block
 
 
 main : Program Never Model Msg
@@ -32,6 +33,7 @@ main =
 type alias Model =
     { activityCache : ActivityCache.Model
     , zoom : Zoom.Model
+    , blockEvent : Maybe ( Block.Event, Block.Model )
     , zoomActivity : Maybe Activity.Model
     , route : Route
     }
@@ -44,6 +46,7 @@ init location =
             { activityCache = ActivityCache.initModel
             , zoom = Zoom.initModel Year (Date.fromCalendarDate 2018 Jan 1)
             , zoomActivity = Nothing
+            , blockEvent = Nothing
             , route = parseLocation location
             }
     in
@@ -99,6 +102,9 @@ update msg model =
         NoOp ->
             model ! []
 
+        BlockEvent event ->
+            { model | blockEvent = event } ! []
+
 
 
 -- SUBSCRIPTIONS
@@ -119,13 +125,13 @@ view model =
         Route.Zoom zoom ->
             case zoom.level of
                 Year ->
-                    View.Zoom.year zoom (accessActivities model.activityCache)
+                    View.Zoom.year zoom model.blockEvent (accessActivities model.activityCache)
 
                 Month ->
-                    View.Zoom.month zoom (accessActivities model.activityCache)
+                    View.Zoom.month zoom model.blockEvent (accessActivities model.activityCache)
 
                 Week ->
-                    View.Zoom.week zoom (accessActivities model.activityCache)
+                    View.Zoom.week zoom model.blockEvent (accessActivities model.activityCache)
 
                 _ ->
                     div [] [ Html.text "Invalid interval" ]

@@ -1,4 +1,4 @@
-module Block exposing (Model, initModel, Data(..), View(..), sum, scale, split, stack, decompose, normalize, normalizer, plot)
+module Block exposing (Model, initModel, Data(..), View(..), sum, scale, split, stack, decompose, normalize, normalizer, plot, Event(..))
 
 import Activity
 import Date
@@ -52,6 +52,11 @@ type View
 type Data
     = Activity Activity.Model
     | Blocks Blocks
+
+
+type Event
+    = MouseOver
+    | Drag Int Int
 
 
 type alias Blocks =

@@ -4,6 +4,10 @@
 
 #elm-main {
   width: 970px;
+
+  svg {
+    overflow: visible;
+  }
 }
 
 .year {

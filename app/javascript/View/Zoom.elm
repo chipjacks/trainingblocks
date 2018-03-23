@@ -26,6 +26,7 @@ year zoom event activityAccess =
                     |> Activity.groupByType
                     |> List.map (List.map (Block.initModel << Block.Activity))
                     |> List.map Block.sum
+                    |> List.map (Block.scale 3 10)
                 )
             ) |> Block.normalizer
     in
@@ -71,7 +72,7 @@ monthOfYear zoom event activities normalizer =
             [ RemoteData.withDefault [] (activities zoom.start zoom.end)
                 |> Activity.groupByType
                 |> List.map (List.map (Block.initModel << Block.Activity))
-                |> List.map Block.sum
+                |> List.map Block.treemap
                 |> List.map (Block.scale 3 10)
                 |> List.map normalizer
                 |> Block.stack

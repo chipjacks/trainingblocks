@@ -39,6 +39,14 @@ suite =
                         |> List.map (scale 2 3)
                         |> List.map .h
                         |> Expect.equal [6, 9]
+                , test "works on nested block x and y" <|
+                    \_ -> ams
+                        |> decompose
+                        |> treemap
+                        |> scale 2 2
+                        |> decompose
+                        |> List.map .x
+                        |> Expect.equal [0, 26, 78, 192]
                 ]
             , describe "#sum"
                 [ test "sums activity durations" <|
@@ -98,5 +106,20 @@ suite =
                         |> normalize
                         |> List.map .w
                         |> Expect.equal [67, 44, 100, 22]
+                ]
+            , describe "#treemap"
+                [ test "sums block width" <|
+                    \_ -> ams
+                        |> decompose
+                        |> treemap
+                        |> .w
+                        |> Expect.equal 105
+                , test "adjusts x and y" <|
+                    \_ -> ams
+                        |> decompose
+                        |> treemap
+                        |> decompose
+                        |> List.map .x
+                        |> Expect.equal [0, 13, 39, 96]
                 ]
             ]

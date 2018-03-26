@@ -1,9 +1,8 @@
-module Block exposing (Model, initModel, Data(..), View(..), sum, scale, split, stack, decompose, normalize, normalizer, plot, Event(..), treemap)
+module Block exposing (Model, initModel, Data(..), View(..), sum, scale, split, stack, decompose, normalize, normalizer, plot, Event(..), shift)
 
 import Activity
 import Date
 import Date.Extra
-import Treemap exposing (Coordinate, Container)
 
 
 {-
@@ -95,9 +94,15 @@ plot model =
 
 scale : Float -> Float -> Model -> Model
 scale xFactor yFactor model =
-    case ( model.view, model.data ) of
-        ( Children, Blocks blocks ) ->
-            { model | data = Blocks (List.map (scale xFactor yFactor) blocks) }
+    case model.data of
+        Blocks blocks ->
+            { model
+                | w = ((toFloat model.w) * xFactor) |> round
+                , h = ((toFloat model.h) * yFactor) |> round
+                , x = ((toFloat model.x) * xFactor) |> round
+                , y = ((toFloat model.y) * yFactor) |> round
+                , data = Blocks (List.map (scale xFactor yFactor) blocks)
+            }
 
         _ ->
             { model
@@ -154,28 +159,14 @@ sum blocks =
     let
         model =
             initModel (Blocks blocks)
-        w = blocks |> List.map .w |> List.sum
-        h = (activities model |> List.map .intensity |> List.sum) // (activities model |> List.length)
+        w_ = blocks |> List.map .w |> List.sum
+        h_ = (activities model |> List.map .intensity |> List.sum) // (activities model |> List.length)
     in
         { model
-            | w = w
-            , h = h
+            | w = w_
+            , h = h_
             , color = (blocks |> List.map .color |> List.head |> Maybe.withDefault "")
             , view = Normal
-            -- , data = Blocks (treemap (toFloat w) (toFloat h) blocks)
-        }
-
-
-treemap : Blocks -> Model
-treemap blocks =
-    let
-        model = sum blocks
-        coordinates = List.map volume blocks
-                |> Treemap.treemapSingledimensional (Treemap.Container (Treemap.Offset 0 0) (toFloat model.w) (toFloat model.h))
-    in
-        { model 
-            | view = Children
-            , data = Blocks <| List.map2 (\( x_, y_, w_, h_ ) b -> { b | x = x_ |> round, y = y_ |> round, w = w_ |> round, h = h_ |> round, view = Normal }) coordinates blocks
         }
 
 

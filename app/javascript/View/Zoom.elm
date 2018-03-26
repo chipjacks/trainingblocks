@@ -26,7 +26,6 @@ year zoom event activityAccess =
                     |> Activity.groupByType
                     |> List.map (List.map (Block.initModel << Block.Activity))
                     |> List.map Block.sum
-                    |> List.map (Block.scale 3 10)
                 )
             ) |> Block.normalizer
     in
@@ -69,15 +68,24 @@ monthOfYear : Zoom.Model -> Maybe (Block.Event, Block.Model) -> (Date -> Date ->
 monthOfYear zoom event activities normalizer =
     div [ class "month" ] [ a (onClickPage (Route.Zoom zoom)) [ Html.text (zoom.start |> Date.month |> toString) ]
         , svg [ width "100%", height "100%" ]
-            [ RemoteData.withDefault [] (activities zoom.start zoom.end)
-                |> Activity.groupByType
-                |> List.map (List.map (Block.initModel << Block.Activity))
-                |> List.map Block.treemap
-                |> List.map (Block.scale 3 10)
-                |> List.map normalizer
-                |> Block.stack
-                |> View.Block.view event
-            ]
+            (List.concat
+                (Zoom.range zoom 
+                    |> List.indexedMap (\i z ->
+                        (Zoom.range z
+                            |> List.indexedMap (\j z2 ->
+                                RemoteData.withDefault [] (activities z2.start z2.end)
+                                    |> Activity.groupByType
+                                    |> List.map (List.map (Block.initModel << Block.Activity))
+                                    |> List.map Block.sum
+                                    |> List.map (Block.scale (1/5) 5)
+                                    |> List.map (Block.shift (j * 35) (i * 30))
+                                    |> Block.stack
+                                    |> View.Block.view event
+                                )
+                        )
+                    )
+                )
+            )
     ]
 
 

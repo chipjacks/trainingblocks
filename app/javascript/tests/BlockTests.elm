@@ -4,7 +4,6 @@ import Expect exposing (Expectation)
 import Test exposing (..)
 import Block exposing (..)
 import TestHelpers exposing (activity, activities, date)
-import Activity exposing (..)
 
 
 suite : Test
@@ -26,50 +25,46 @@ suite =
                         |> Expect.equal (Blocks [am])
                 ]
             , describe "#scale"
-                [ test "scales width and height" <|
+                [ test "scales width, height, x, and y" <|
                     \_ -> am
                         |> scale 2 3
-                        |> (\b -> (b.w, b.h))
-                        |> Expect.equal (40, 3)
+                        |> (\b -> (b.w, b.h, b.x, b.y))
+                        |> Expect.equal (am.w * 2, am.h * 3, am.x * 2, am.y * 3)
                 , test "works on nested blocks" <|
-                    \_ -> activities
-                        |> Activity.groupByType
-                        |> List.map (List.map (initModel << Activity))
-                        |> List.map sum
-                        |> List.map (scale 2 3)
-                        |> List.map .h
-                        |> Expect.equal [6, 9]
-                , test "works on nested block x and y" <|
                     \_ -> ams
                         |> decompose
-                        |> treemap
-                        |> scale 2 2
+                        |> List.indexedMap (\i b -> shift (i*5) (i*5) b)
+                        |> sum
+                        |> scale 2 3
                         |> decompose
-                        |> List.map .x
-                        |> Expect.equal [0, 26, 78, 192]
+                        |> List.map (\b -> (b.w, b.h, b.x, b.y))
+                        |> Expect.equal (ams
+                            |> decompose
+                            |> List.indexedMap (\i b -> shift (i*5) (i*5) b)
+                            |> List.map (\b -> (b.w * 2, b.h * 3, b.x * 2, b.y * 3))
+                        )
                 ]
             , describe "#sum"
-                [ test "sums activity durations" <|
-                    \_ -> activities
-                        |> Activity.groupByType
-                        |> List.map (List.map (initModel << Activity))
-                        |> List.map sum
-                        |> List.map .w
-                        |> Expect.equal [60, 45]
-                , test "averages activity intensities" <|
-                    \_ -> activities
-                        |> Activity.groupByType
-                        |> List.map (List.map (initModel << Activity))
-                        |> List.map sum
-                        |> List.map .h
-                        |> Expect.equal [2, 3]
+                [ test "sums block widths" <|
+                    \_ -> ams
+                        |> decompose
+                        |> sum
+                        |> .w
+                        |> Expect.equal (ams |> decompose |> List.map .w |> List.sum)
+                , test "averages block heights" <|
+                    \_ -> ams
+                        |> decompose
+                        |> sum
+                        |> .h
+                        |> Expect.equal (ams |> decompose |> 
+                            (\bs -> (bs |> List.map .h |> List.sum) // (List.length bs))
+                        )
                 , test "sets view to normal" <|
-                    \_ -> activities
-                        |> Activity.groupByType
-                        |> List.map (List.map (initModel << Activity))
-                        |> List.map sum
-                        |> List.map .view
-                        |> Expect.equal [Normal, Normal]
+                    \_ -> ams
+                        |> decompose
+                        |> sum
+                        |> .view
+                        |> Expect.equal Normal
                 ]
             , describe "#split"
                 [ test "splits blocks that are too wide" <|
@@ -106,20 +101,5 @@ suite =
                         |> normalize
                         |> List.map .w
                         |> Expect.equal [67, 44, 100, 22]
-                ]
-            , describe "#treemap"
-                [ test "sums block width" <|
-                    \_ -> ams
-                        |> decompose
-                        |> treemap
-                        |> .w
-                        |> Expect.equal 105
-                , test "adjusts x and y" <|
-                    \_ -> ams
-                        |> decompose
-                        |> treemap
-                        |> decompose
-                        |> List.map .x
-                        |> Expect.equal [0, 13, 39, 96]
                 ]
             ]

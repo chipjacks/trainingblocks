@@ -3,13 +3,13 @@ module BlockTests exposing (suite)
 import Expect exposing (Expectation)
 import Test exposing (..)
 import Block exposing (..)
-import TestHelpers exposing (activity, activities, date)
+import TestHelpers exposing (activity, activities)
 
 
 suite : Test
 suite =
     let
-        am = initModel (Activity activity)
+        am = initModel (Activity (activity 1 3 20 ))
         ams = activities |> List.map (initModel << Activity) |> initModel << Blocks
         bm = initModel (Blocks [am])
     in
@@ -18,7 +18,7 @@ suite =
                 [ test "saves the activity" <|
                     \_ -> am
                         |> .data
-                        |> Expect.equal (Activity activity)
+                        |> Expect.equal (Activity (activity 1 3 20))
                 , test "saves nested blocks" <|
                     \_ -> bm
                         |> .data
@@ -85,7 +85,7 @@ suite =
                         |> stack
                         |> decompose
                         |> List.map .x
-                        |> Expect.equal [0, 5, 10, 15]
+                        |> Expect.equal [0, 5, 10]
                 , test "puts split blocks closer together" <|
                     \_ -> am
                         |> split 10
@@ -100,6 +100,6 @@ suite =
                         |> decompose
                         |> normalize
                         |> List.map .w
-                        |> Expect.equal [67, 44, 100, 22]
+                        |> Expect.equal [67, 44, 100]
                 ]
             ]

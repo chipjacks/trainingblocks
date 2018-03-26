@@ -7,7 +7,7 @@ import Test exposing (..)
 import Dict
 import RemoteData exposing (RemoteData(..))
 import ActivityCache exposing (fetchActivities, accessActivities)
-import Activity exposing (ActivityType(..))
+import TestHelpers exposing (activity)
 
 
 suite : Test
@@ -16,9 +16,13 @@ suite =
         startDate = (Date.fromCalendarDate 2018 Jan 1)
         endDate = Date.add Date.Month 3 startDate
         jan15 = (Date.fromCalendarDate 2018 Jan 15)
-        activity = (\d -> Activity.Model Run d 1 40)
         loadedModel = Date.range Date.Month 1 startDate endDate
-            |> List.map (\d -> (d |> Date.toRataDie, Success (Date.range Date.Day 1 d (Date.add Date.Month 1 d) |> List.map activity) ) )
+            |> List.map (\d -> 
+                ( Date.toRataDie d
+                , Success (Date.range Date.Day 1 d (Date.add Date.Month 1 d)
+                        |> List.map (\d -> activity (Date.day d) 4 30) )
+                )
+            )
             |> Dict.fromList
             |> ActivityCache.Model
     in
@@ -34,6 +38,10 @@ suite =
             , describe "#accessActivities"
                 [ test "returns activites if they have all been loaded" <|
                     \_ -> accessActivities loadedModel jan15 (Date.add Date.Week 1 jan15)
-                        |> Expect.equal (Date.range Date.Day 1 jan15 (Date.add Date.Week 1 jan15) |> List.map activity |> RemoteData.succeed)
+                        |> Expect.equal (
+                            Date.range Date.Day 1 jan15 (Date.add Date.Week 1 jan15)
+                                |> List.map (\d -> activity (Date.day d) 4 30)
+                                |> RemoteData.succeed
+                             )
                 ]
             ]

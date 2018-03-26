@@ -1,6 +1,6 @@
 module Block exposing (Model, initModel, Data(..), View(..), sum, scale, split, stack, decompose, normalize, normalizer, plot, Event(..), shift)
 
-import Activity
+import Activity exposing (Activity, ActivityType(..))
 import Date
 import Date.Extra
 
@@ -50,7 +50,7 @@ type View
 
 
 type Data
-    = Activity Activity.Model
+    = Activity Activity
     | Blocks Blocks
 
 
@@ -70,7 +70,7 @@ initModel data =
             Model 0 0 0 0 "" data Children
 
         Activity activity ->
-            Model 0 0 activity.durationMinutes activity.intensity (Activity.color activity.type_) data Normal
+            Model 0 0 (activity.movingTime // 60) (toIntensity activity) (color activity.type_) data Normal
 
 
 
@@ -86,7 +86,7 @@ plot : Model -> Model
 plot model =
     case model.data of
         Activity activity ->
-            shift (activity.date |> Date.hour |> (*) 100) (activity.date |> Date.dayOfWeek |> Date.Extra.weekdayToNumber |> (+) -1 |> (*) 100) model
+            shift (activity.startDate |> Date.hour |> (*) 100) (activity.startDate |> Date.dayOfWeek |> Date.Extra.weekdayToNumber |> (+) -1 |> (*) 100) model
 
         Blocks blocks ->
             model
@@ -160,7 +160,7 @@ sum blocks =
         model =
             initModel (Blocks blocks)
         w_ = blocks |> List.map .w |> List.sum
-        h_ = (activities model |> List.map .intensity |> List.sum) // (activities model |> List.length)
+        h_ = (activities model |> List.map toIntensity |> List.sum) // (activities model |> List.length)
     in
         { model
             | w = w_
@@ -180,7 +180,7 @@ stack blocks =
 -- INTERNAL
 
 
-activities : Model -> List Activity.Model
+activities : Model -> List Activity
 activities model =
     case model.data of
         Blocks blocks ->
@@ -222,3 +222,40 @@ lastBlock model =
 volume : Model -> Float
 volume model =
     (model.w * model.h) |> toFloat
+
+
+color : ActivityType -> String
+color type_ =
+    case type_ of
+        Run ->
+            "skyblue"
+
+        Weights ->
+            "red"
+
+        Ride ->
+            "green"
+
+        Swim ->
+            "orange"
+
+        Other ->
+            "grey"
+
+
+toIntensity : Activity -> Int
+toIntensity activity =
+    let
+        -- TODO: what about activites that aren't runs?
+        minPerMile =
+            (((toFloat activity.movingTime) / 60) / (activity.distance / 1609.34))
+
+        estimatedIntensity =
+            (9 - Basics.floor minPerMile)
+    in
+        if estimatedIntensity < 1 then
+            1
+        else if estimatedIntensity > 5 then
+            5
+        else
+            estimatedIntensity

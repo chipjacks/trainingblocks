@@ -8,7 +8,7 @@ import Date.Extra as Date exposing (Interval(..))
 import RemoteData exposing (WebData, RemoteData(..))
 import Msg exposing (Msg(..))
 import Route
-import Activity
+import Activity exposing (Activity)
 import Block
 import Zoom exposing (zoomIn)
 import View.Block
@@ -16,7 +16,7 @@ import Svg exposing (Svg, svg)
 import Svg.Attributes exposing (width, height)
 
 
-year : Zoom.Model -> Maybe (Block.Event, Block.Model) -> (Date -> Date -> WebData (List Activity.Model)) -> Html Msg
+year : Zoom.Model -> Maybe (Block.Event, Block.Model) -> (Date -> Date -> WebData (List Activity)) -> Html Msg
 year zoom event activityAccess =
     let
         normalizer = (Zoom.range zoom
@@ -36,7 +36,7 @@ year zoom event activityAccess =
             )
 
 
-month : Zoom.Model -> Maybe (Block.Event, Block.Model) -> (Date -> Date -> WebData (List Activity.Model)) -> Html Msg
+month : Zoom.Model -> Maybe (Block.Event, Block.Model) -> (Date -> Date -> WebData (List Activity)) -> Html Msg
 month zoom event activityAccess =
     div [ class "month" ]
         (  (headerOfMonth zoom)
@@ -46,7 +46,7 @@ month zoom event activityAccess =
         )
 
 
-week : Zoom.Model -> Maybe (Block.Event, Block.Model) -> (Date -> Date -> WebData (List Activity.Model)) -> Html Msg
+week : Zoom.Model -> Maybe (Block.Event, Block.Model) -> (Date -> Date -> WebData (List Activity)) -> Html Msg
 week zoom event activityAccess =
     div [ class "week", id "week-plot" ]
         [ div [ class "hours" ]
@@ -64,7 +64,7 @@ week zoom event activityAccess =
 -- INTERNAL
 
 
-monthOfYear : Zoom.Model -> Maybe (Block.Event, Block.Model) -> (Date -> Date -> WebData (List Activity.Model)) -> (Block.Model -> Block.Model) -> Html Msg
+monthOfYear : Zoom.Model -> Maybe (Block.Event, Block.Model) -> (Date -> Date -> WebData (List Activity)) -> (Block.Model -> Block.Model) -> Html Msg
 monthOfYear zoom event activities normalizer =
     div [ class "month" ] [ a (onClickPage (Route.Zoom zoom)) [ Html.text (zoom.start |> Date.month |> toString) ]
         , svg [ width "100%", height "100%" ]
@@ -97,7 +97,7 @@ headerOfMonth zoom =
         )
 
 
-weekOfMonth : Zoom.Model -> Maybe (Block.Event, Block.Model) -> (Date -> Date -> WebData (List Activity.Model)) -> Html Msg
+weekOfMonth : Zoom.Model -> Maybe (Block.Event, Block.Model) -> (Date -> Date -> WebData (List Activity)) -> Html Msg
 weekOfMonth zoom event activities =
     div [ class "week" ]
         ((a ((class "summary") :: (onClickPage (Route.Zoom zoom))) [ Html.text <| (zoom.start |> Date.toFormattedString "MMM ddd") ++ (zoom.end |> Date.toFormattedString " - ddd") ])
@@ -107,7 +107,7 @@ weekOfMonth zoom event activities =
         )
 
 
-dayOfWeekOfMonth : Zoom.Model -> Maybe (Block.Event, Block.Model) -> (Date -> Date -> WebData (List Activity.Model)) -> Html Msg
+dayOfWeekOfMonth : Zoom.Model -> Maybe (Block.Event, Block.Model) -> (Date -> Date -> WebData (List Activity)) -> Html Msg
 dayOfWeekOfMonth zoom event activities =
     div [ class "day" ] [
         svg [ width "100%", height "100%" ]
@@ -121,7 +121,7 @@ dayOfWeekOfMonth zoom event activities =
     ]
 
 
-plotBlocks : Zoom.Model -> Maybe (Block.Event, Block.Model) -> (Date -> Date -> WebData (List Activity.Model)) -> List (Svg Msg)
+plotBlocks : Zoom.Model -> Maybe (Block.Event, Block.Model) -> (Date -> Date -> WebData (List Activity)) -> List (Svg Msg)
 plotBlocks zoom event activities =
     RemoteData.withDefault [] (activities zoom.start zoom.end)
         |> List.map (Block.initModel << Block.Activity)

@@ -74,7 +74,7 @@ viewTooltip data =
                 , Html.text <| toString <| activity.type_
                 , Html.br [] []
                 , Html.text "duration:"
-                , Html.text <| toString <| activity.durationMinutes
+                , Html.text <| toString <| activity.movingTime
                 ]
             
     

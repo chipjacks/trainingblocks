@@ -1,20 +1,23 @@
-module Activity exposing (..)
+module Activity exposing (Activity, list, decoder, ActivityType(..), groupByType)
 
-import StravaAPI exposing (StravaAPIActivity)
+import Http exposing (..)
+import Json.Decode as JD exposing (Decoder)
+import Json.Decode.Pipeline exposing (decode, required, optional, custom)
 import Date exposing (Date)
 
--- MODEL
 
-
-type alias Model =
-    { type_ : ActivityType
-    , date : Date
-    , intensity : Int -- 1 to 5, either inferred from pace or user defined
-    , durationMinutes : Int -- in minutes... TODO: change it to seconds.
-
-    --    , externalId: Maybe String -- if user attaches an activity
-    --    , completed: Bool -- could be completed without necessarily having an external activity
-    --    , notes: List Note
+type alias Activity =
+    { id : String
+    , name : String
+    , distance : Float
+    , movingTime : Int
+    , elapsedTime : Int
+    , totalElevationGain : Float
+    , type_ : ActivityType
+    , startDate : Date
+    , startDateLocal : Date
+    , averageSpeed : Float
+    , maxSpeed : Float
     }
 
 
@@ -26,62 +29,63 @@ type ActivityType
     | Other
 
 
+list : Date -> Date -> Request (List Activity)
+list startDate endDate =
+    let
+        request_url =
+            url "/activities"
+                [ ( "before", ((Date.toTime endDate / 1000) |> toString) ) ]
+    in
+        Http.get request_url (JD.list decoder)
+
+
+decoder : Decoder Activity
+decoder =
+    decode Activity
+        |> required "id" (JD.int |> JD.andThen (JD.succeed << toString))
+        |> required "name" JD.string
+        |> required "distance" JD.float
+        |> required "moving_time" JD.int
+        |> required "elapsed_time" JD.int
+        |> required "total_elevation_gain" JD.float
+        |> custom (JD.field "type" JD.string |> JD.andThen (JD.succeed << typeFromString))
+        |> custom (JD.field "start_date" JD.string |> JD.andThen (fromResult << Date.fromString))
+        |> custom (JD.field "start_date_local" JD.string |> JD.andThen (fromResult << Date.fromString))
+        |> custom (JD.field "average_speed" JD.float)
+        |> custom (JD.field "max_speed" JD.float)
+
+
+groupByType : List Activity -> List (List Activity)
+groupByType activities =
+    activityTypes
+        |> List.map (\t -> List.filter (\a -> a.type_ == t) activities)
+        |> List.filter (\l -> List.length l > 0)
+
+
 activityTypes : List ActivityType
 activityTypes =
     [ Run, Ride, Weights, Swim, Other ]
 
 
-type Msg
-    = NoOp
+-- INTERNAL 
+
+url : String -> List ( String, String ) -> String
+url baseUrl args =
+    case args of
+        [] ->
+            baseUrl
+
+        _ ->
+            baseUrl ++ "?" ++ String.join "&" (List.map queryPair args)
 
 
-init : Model -> ( Model, Cmd Msg )
-init activity =
-    ( activity, Cmd.none )
+queryPair : ( String, String ) -> String
+queryPair ( key, value ) =
+    Http.encodeUri key ++ "=" ++ Http.encodeUri value
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
-    case msg of
-        NoOp ->
-            ( model, Cmd.none )
-
-
-subscriptions : Model -> Sub Msg
-subscriptions model =
-    Sub.none
-
-
-fromStravaAPIActivity : StravaAPIActivity -> Model
-fromStravaAPIActivity activity =
-    Model (toType activity.type_) activity.date (toIntensity activity) (activity.duration // 60)
-
-
-toIntensity : StravaAPIActivity -> Int
-toIntensity activity =
-    let
-        -- TODO: what about activites that aren't runs?
-        minPerMile =
-            (((toFloat activity.duration) / 60) / (toMiles activity.distance))
-
-        estimatedIntensity =
-            (9 - Basics.floor minPerMile)
-    in
-        if estimatedIntensity < 1 then
-            1
-        else if estimatedIntensity > 5 then
-            5
-        else
-            estimatedIntensity
-
-
-toMiles : Float -> Float
-toMiles meters =
-    meters / 1609.34
-
-
-toType : String -> ActivityType
-toType str =
+typeFromString : String -> ActivityType
+typeFromString str =
     case str of
         "Run" ->
             Run
@@ -99,28 +103,8 @@ toType str =
             Other
 
 
-color : ActivityType -> String
-color type_ =
-    case type_ of
-        Run ->
-            "skyblue"
-
-        Weights ->
-            "red"
-
-        Ride ->
-            "green"
-
-        Swim ->
-            "orange"
-
-        Other ->
-            "grey"
-
-
-groupByType : List Model -> List (List Model)
-groupByType activities =
-    activityTypes
-        |> List.map (\t -> List.filter (\a -> a.type_ == t) activities)
-        |> List.filter (\l -> List.length l > 0)
-
+fromResult : Result String a -> Decoder a
+fromResult result =
+  case result of
+    Ok a -> JD.succeed a
+    Err errorMessage -> JD.fail errorMessage

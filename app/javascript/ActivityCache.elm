@@ -4,12 +4,11 @@ import Dict exposing (Dict)
 import Date exposing (Date)
 import Date.Extra as Date exposing (toRataDie, Interval(..))
 import RemoteData exposing (WebData, RemoteData(..))
-import StravaAPI exposing (StravaAPIActivity)
-import Activity
+import Activity exposing (Activity)
 
 
 type alias Model =
-    { cache : Dict Int (WebData (List Activity.Model))
+    { cache : Dict Int (WebData (List Activity))
     }
 
 
@@ -19,20 +18,18 @@ initModel =
 
 
 type Msg
-    = GotStravaActivities Date (WebData (List StravaAPIActivity))
+    = GotActivities Date (WebData (List Activity))
 
 
 update : Msg -> Model -> Model
 update msg model =
     case msg of
-        GotStravaActivities date webdata ->
+        GotActivities date webdata ->
             case webdata of
-                Success stravaActivities ->
+                Success allActivities ->
                     let
                         activities =
-                            List.map Activity.fromStravaAPIActivity stravaActivities
-                                -- TODO: the API should do this filtering
-                                |> filterActivities date (Date.add Month 1 date)
+                                filterActivities date (Date.add Month 1 date) allActivities
                     in
                         { model | cache = Dict.insert (date |> keyFor) (Success activities) model.cache }
 
@@ -47,7 +44,7 @@ fetchActivities model startDate endDate =
         |> (\( m, cs ) -> ( m, Cmd.batch cs ))
 
 
-accessActivities : Model -> Date -> Date -> WebData (List Activity.Model)
+accessActivities : Model -> Date -> Date -> WebData (List Activity)
 accessActivities model startDate endDate =
     Date.range Date.Month 1 (Date.floor Date.Month startDate) endDate
         |> List.map keyFor
@@ -65,9 +62,9 @@ keyFor date =
     Date.floor Date.Month date |> toRataDie
 
 
-filterActivities : Date -> Date -> (List Activity.Model -> List Activity.Model)
+filterActivities : Date -> Date -> (List Activity -> List Activity)
 filterActivities a b =
-    List.filter (\activity -> Date.isBetween a (Date.add Date.Second -1 b) activity.date)
+    List.filter (\activity -> Date.isBetween a (Date.add Date.Second -1 b) activity.startDate)
 
 
 fetchIfMissing : Date -> ( Model, List (Cmd Msg) ) -> ( Model, List (Cmd Msg) )
@@ -96,6 +93,6 @@ stravaRequestCmd date =
         endDate =
             Date.add Month 1 date
     in
-        StravaAPI.listActivities date endDate
+        Activity.list date endDate
             |> RemoteData.sendRequest
-            |> Cmd.map (GotStravaActivities date)
+            |> Cmd.map (GotActivities date)

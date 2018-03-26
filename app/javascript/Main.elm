@@ -3,7 +3,6 @@ module Main exposing (..)
 import Html exposing (Html, div)
 import Date exposing (Date, Month(..))
 import Date.Extra as Date exposing (Interval(..))
-import Activity
 import ActivityCache exposing (fetchActivities, accessActivities)
 import Route exposing (Route, parseLocation)
 import Navigation exposing (Location)
@@ -34,7 +33,6 @@ type alias Model =
     { activityCache : ActivityCache.Model
     , zoom : Zoom.Model
     , blockEvent : Maybe ( Block.Event, Block.Model )
-    , zoomActivity : Maybe Activity.Model
     , route : Route
     }
 
@@ -45,7 +43,6 @@ init location =
         model =
             { activityCache = ActivityCache.initModel
             , zoom = Zoom.initModel Year (Date.fromCalendarDate 2018 Jan 1)
-            , zoomActivity = Nothing
             , blockEvent = Nothing
             , route = parseLocation location
             }
@@ -89,12 +86,6 @@ update msg model =
 
         NewPage page ->
             model ! [ Navigation.newUrl (Route.toString page) ]
-
-        OpenActivity activity ->
-            { model | zoomActivity = Just activity } ! []
-
-        CloseActivity ->
-            { model | zoomActivity = Nothing } ! []
 
         UpdateActivityCache subMsg ->
             { model | activityCache = ActivityCache.update subMsg model.activityCache } ! []

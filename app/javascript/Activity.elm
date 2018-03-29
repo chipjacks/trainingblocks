@@ -1,4 +1,4 @@
-module Activity exposing (Activity, list, decoder, ActivityType(..), groupByType)
+module Activity exposing (Activity, list, decoder, ActivityType(..), groupByType, pace, miles)
 
 import Http exposing (..)
 import Json.Decode as JD exposing (Decoder)
@@ -65,6 +65,41 @@ groupByType activities =
 activityTypes : List ActivityType
 activityTypes =
     [ Run, Ride, Weights, Swim, Other ]
+
+
+pace : Activity -> String
+pace activity =
+    let
+        minPerMile =
+            (1 / (activity.averageSpeed / 1609 * 60))
+        mins = floor minPerMile
+        secs = round ((minPerMile - (toFloat mins)) * 60)
+        strSecs =
+            if secs < 10 then
+                "0" ++ (toString secs)
+            else if secs == 60 then
+                "00"
+            else
+                toString secs
+        strMins =
+            if secs == 60 then
+                toString (mins + 1)
+            else
+                toString mins
+    in
+        if activity.averageSpeed == 0 then
+            "unknown pace"
+        else
+            strMins ++ ":" ++ strSecs ++ " pace"
+
+
+miles : Activity -> String
+miles activity =
+    (activity.distance / 1609 * 10)
+        |> round
+        |> toFloat
+        |> (\n -> n / 10)
+        |> (\n -> toString n ++ " miles")
 
 
 

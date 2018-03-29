@@ -29,7 +29,7 @@ update msg model =
                 Success allActivities ->
                     let
                         activities =
-                                filterActivities date (Date.add Month 1 date) allActivities
+                            filterActivities date (Date.add Month 1 date) allActivities
                     in
                         { model | cache = Dict.insert (date |> keyFor) (Success activities) model.cache }
 

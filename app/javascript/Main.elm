@@ -13,6 +13,8 @@ import View.Zoom
 import Dom.Scroll
 import Update.Extra exposing (filter, addCmd)
 import Block
+import View.Block
+import Mouse exposing (Position)
 
 
 main : Program Never Model Msg
@@ -34,6 +36,7 @@ type alias Model =
     , zoom : Zoom.Model
     , blockEvent : Maybe ( Block.Event, Block.Model )
     , route : Route
+    , mousePos : Position
     }
 
 
@@ -45,6 +48,7 @@ init location =
             , zoom = Zoom.initModel Year (Date.fromCalendarDate 2018 Jan 1)
             , blockEvent = Nothing
             , route = parseLocation location
+            , mousePos = Position 0 0
             }
     in
         case model.route of
@@ -96,6 +100,9 @@ update msg model =
         BlockEvent event ->
             { model | blockEvent = event } ! []
 
+        MouseMsg position ->
+            { model | mousePos = position } ! []
+
 
 
 -- SUBSCRIPTIONS
@@ -103,7 +110,8 @@ update msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.none
+    Sub.batch
+        [ Mouse.moves MouseMsg ]
 
 
 
@@ -114,18 +122,10 @@ view : Model -> Html Msg
 view model =
     case model.route of
         Route.Zoom zoom ->
-            case zoom.level of
-                Year ->
-                    View.Zoom.year zoom model.blockEvent (accessActivities model.activityCache)
-
-                Month ->
-                    View.Zoom.month zoom model.blockEvent (accessActivities model.activityCache)
-
-                Week ->
-                    View.Zoom.week zoom model.blockEvent (accessActivities model.activityCache)
-
-                _ ->
-                    div [] [ Html.text "Invalid interval" ]
+            div []
+                [ View.Zoom.view zoom (accessActivities model.activityCache)
+                , View.Block.viewEvent model.mousePos model.blockEvent
+                ]
 
         Route.Blank ->
             div [] [ Html.text "Blank" ]

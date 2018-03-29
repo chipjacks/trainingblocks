@@ -68,8 +68,11 @@ initModel data =
     case data of
         Blocks blocks ->
             let
-                maxX = blocks |> List.map (\b -> b.x + b.w) |> List.maximum |> Maybe.withDefault 0
-                maxY = blocks |> List.map (\b -> b.y + b.h) |> List.maximum |> Maybe.withDefault 0
+                maxX =
+                    blocks |> List.map (\b -> b.x + b.w) |> List.maximum |> Maybe.withDefault 0
+
+                maxY =
+                    blocks |> List.map (\b -> b.y + b.h) |> List.maximum |> Maybe.withDefault 0
             in
                 Model 0 0 maxX maxY "" data Children
 
@@ -135,10 +138,14 @@ normalizer blocks =
 crop : Int -> Int -> Model -> Model
 crop maxW maxH model =
     let
-        newW = List.minimum [maxW, model.w] |> Maybe.withDefault model.w
-        newH = List.minimum [maxH, model.h] |> Maybe.withDefault model.h
+        newW =
+            List.minimum [ maxW, model.w ] |> Maybe.withDefault model.w
+
+        newH =
+            List.minimum [ maxH, model.h ] |> Maybe.withDefault model.h
     in
         { model | w = newW, h = newH }
+
 
 
 -- DECOMPOSERS
@@ -171,8 +178,12 @@ sum blocks =
     let
         model =
             initModel (Blocks blocks)
-        w_ = blocks |> List.map .w |> List.sum
-        h_ = (activities model |> List.map toIntensity |> List.sum) // (activities model |> List.length)
+
+        w_ =
+            blocks |> List.map .w |> List.sum
+
+        h_ =
+            (activities model |> List.map toIntensity |> List.sum) // (activities model |> List.length)
     in
         { model
             | w = w_
@@ -192,6 +203,7 @@ list : Blocks -> Model
 list blocks =
     blocks
         |> List.foldl listOnParent (initModel (Blocks []))
+
 
 
 -- INTERNAL
@@ -226,7 +238,7 @@ stackOnParent block parent =
 listOnParent : Model -> Model -> Model
 listOnParent block parent =
     let
-        newBlock = 
+        newBlock =
             case (lastBlock parent) of
                 Just lastBlock ->
                     { block | y = (lastBlock.y + lastBlock.h + 5) }

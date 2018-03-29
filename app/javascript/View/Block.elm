@@ -1,16 +1,18 @@
-module View.Block exposing (view)
+module View.Block exposing (view, viewEvent)
 
 import Block exposing (..)
 import Svg exposing (Svg, rect, svg, g)
 import Svg.Attributes exposing (x, y, width, height, fill, stroke, transform)
 import Html exposing (Html, div)
+import Html.Attributes exposing (class)
 import Svg.Events exposing (onMouseOver, onMouseOut)
 import Msg exposing (Msg(..))
+import Mouse exposing (Position)
 
 -- VIEW
 
-view : Maybe (Block.Event, Block.Model) -> Block.Model -> Svg Msg
-view event model =
+view : Block.Model -> Svg Msg
+view model =
     case (model.data, model.view) of
         (Activity activity, _) ->
             g 
@@ -18,8 +20,7 @@ view event model =
                 , onMouseOver (BlockEvent (Just (MouseOver, model)))
                 , onMouseOut (BlockEvent Nothing)
                 ]
-                [ viewBlock event model
-                , viewEvent event model
+                [ viewBlock model
                 ]
 
         (_, Normal) ->
@@ -28,34 +29,30 @@ view event model =
                 , onMouseOver (BlockEvent (Just (MouseOver, model)))
                 , onMouseOut (BlockEvent Nothing)
                 ]
-                [ viewBlock event model
-                , viewEvent event model
+                [ viewBlock model
                 ]
 
 
         (Blocks blocks, Children) ->
-            g [ transform <| String.join " " ["translate(", (toString model.x), " ", (toString model.y), ")"] ] (List.map (view event) blocks)
+            g [ transform <| String.join " " ["translate(", (toString model.x), " ", (toString model.y), ")"] ] (List.map view blocks)
 
 
         (_, _) ->
             g [] []
 
 
-viewEvent : Maybe (Block.Event, Block.Model) -> Block.Model -> Svg Msg
-viewEvent event model =
+viewEvent : Position -> Maybe (Block.Event, Block.Model) -> Html Msg
+viewEvent mousePos event =
     case event of
         Nothing ->
-            Svg.text_ [] [ ]
+            div [] [ ]
     
         Just (event, eventModel) ->
-            if (model == eventModel) then
-                Svg.foreignObject [ width "100", height "100", y "-40" ] [ viewTooltip model.data ]
-            else
-                Svg.text_ [] [ ]
+            div [ class "block-tooltip", Html.Attributes.style [("top", toString (mousePos.y + 5) ++ "px"), ("left", toString (mousePos.x + 5) ++ "px")] ] [ viewTooltip eventModel.data ]
 
 
-viewBlock : Maybe (Block.Event, Block.Model) -> Block.Model -> Svg Msg
-viewBlock event model =
+viewBlock : Block.Model -> Svg Msg
+viewBlock model =
     rect
         [ width <| toString <| model.w
         , height <| toString <| model.h

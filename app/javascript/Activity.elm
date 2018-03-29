@@ -67,7 +67,9 @@ activityTypes =
     [ Run, Ride, Weights, Swim, Other ]
 
 
--- INTERNAL 
+
+-- INTERNAL
+
 
 url : String -> List ( String, String ) -> String
 url baseUrl args =
@@ -105,6 +107,9 @@ typeFromString str =
 
 fromResult : Result String a -> Decoder a
 fromResult result =
-  case result of
-    Ok a -> JD.succeed a
-    Err errorMessage -> JD.fail errorMessage
+    case result of
+        Ok a ->
+            JD.succeed a
+
+        Err errorMessage ->
+            JD.fail errorMessage

@@ -4,6 +4,7 @@ import ActivityCache
 import Block
 import Navigation exposing (Location)
 import Route exposing (Route)
+import Mouse
 
 
 type Msg
@@ -11,4 +12,5 @@ type Msg
     | OnLocationChange Location
     | NewPage Route
     | BlockEvent (Maybe ( Block.Event, Block.Model ))
+    | MouseMsg Mouse.Position
     | NoOp

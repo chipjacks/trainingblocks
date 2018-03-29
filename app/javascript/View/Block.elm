@@ -69,12 +69,14 @@ viewTooltip : Block.Data -> Html Msg
 viewTooltip data =
     case data of
         Activity activity ->
-            div [ ]
-                [ Html.text "type:"
-                , Html.text <| toString <| activity.type_
-                , Html.br [] []
-                , Html.text "duration:"
-                , Html.text <| toString <| activity.movingTime
+            div [ class "ui card block-tooltip" ]
+                [ div [ class "content" ]
+                    [ div [ class "header" ] [ Html.text activity.name ]
+                    , div [ class "ui list" ]
+                        [ div [ class "item" ] [ Html.text <| (toString activity.startDate) ]
+                        , div [ class "item" ] [ Html.text <| ((toString (activity.movingTime // 60)) ++ " minutes") ]
+                        ]
+                    ]
                 ]
             
     

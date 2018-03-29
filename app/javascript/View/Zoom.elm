@@ -74,12 +74,11 @@ monthOfYear zoom event activities normalizer =
                         (Zoom.range z
                             |> List.indexedMap (\j z2 ->
                                 RemoteData.withDefault [] (activities z2.start z2.end)
-                                    |> Activity.groupByType
-                                    |> List.map (List.map (Block.initModel << Block.Activity))
-                                    |> List.map Block.sum
+                                    |> List.map (Block.initModel << Block.Activity)
                                     |> List.map (Block.scale (1/5) 5)
+                                    |> List.map (Block.crop 30 25)
                                     |> List.map (Block.shift (j * 35) (i * 30))
-                                    |> Block.stack
+                                    |> Block.list
                                     |> View.Block.view event
                                 )
                         )
@@ -111,11 +110,11 @@ dayOfWeekOfMonth : Zoom.Model -> Maybe (Block.Event, Block.Model) -> (Date -> Da
 dayOfWeekOfMonth zoom event activities =
     div [ class "day" ] [
         svg [ width "100%", height "100%" ]
-            [ RemoteData.withDefault [] (activities zoom.start zoom.end)
+            [RemoteData.withDefault [] (activities zoom.start zoom.end)
                 |> List.map (Block.initModel << Block.Activity)
-                |> List.map (Block.scale 1 10)
-                |> List.map (Block.stack << Block.split 120)
-                |> Block.stack
+                |> List.map (Block.scale 0.5 10)
+                |> List.map (Block.stack << Block.split 100)
+                |> Block.list
                 |> View.Block.view event
             ]
     ]

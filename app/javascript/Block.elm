@@ -1,4 +1,4 @@
-module Block exposing (Model, initModel, Data(..), View(..), sum, scale, split, stack, decompose, normalize, normalizer, plot, Event(..), shift)
+module Block exposing (Model, initModel, Data(..), View(..), sum, scale, split, stack, decompose, normalize, normalizer, plot, Event(..), shift, crop, list)
 
 import Activity exposing (Activity, ActivityType(..))
 import Date
@@ -67,7 +67,11 @@ initModel : Data -> Model
 initModel data =
     case data of
         Blocks blocks ->
-            Model 0 0 0 0 "" data Children
+            let
+                maxX = blocks |> List.map (\b -> b.x + b.w) |> List.maximum |> Maybe.withDefault 0
+                maxY = blocks |> List.map (\b -> b.y + b.h) |> List.maximum |> Maybe.withDefault 0
+            in
+                Model 0 0 maxX maxY "" data Children
 
         Activity activity ->
             Model 0 0 (activity.movingTime // 60) (toIntensity activity) (color activity.type_) data Normal
@@ -128,6 +132,14 @@ normalizer blocks =
             scale 1 1
 
 
+crop : Int -> Int -> Model -> Model
+crop maxW maxH model =
+    let
+        newW = List.minimum [maxW, model.w] |> Maybe.withDefault model.w
+        newH = List.minimum [maxH, model.h] |> Maybe.withDefault model.h
+    in
+        { model | w = newW, h = newH }
+
 
 -- DECOMPOSERS
 
@@ -176,6 +188,11 @@ stack blocks =
         |> List.foldl stackOnParent (initModel (Blocks []))
 
 
+list : Blocks -> Model
+list blocks =
+    blocks
+        |> List.foldl listOnParent (initModel (Blocks []))
+
 
 -- INTERNAL
 
@@ -204,6 +221,20 @@ stackOnParent block parent =
                 block
         )
         parent
+
+
+listOnParent : Model -> Model -> Model
+listOnParent block parent =
+    let
+        newBlock = 
+            case (lastBlock parent) of
+                Just lastBlock ->
+                    { block | y = (lastBlock.y + lastBlock.h + 5) }
+
+                Nothing ->
+                    block
+    in
+        appendBlock newBlock parent
 
 
 appendBlock : Model -> Model -> Model

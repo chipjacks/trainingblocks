@@ -1,2 +1,9 @@
-<div id='elm-main'></div>
-<%= javascript_pack_tag "main" %>
+<% if current_user %>
+  <div id='elm-main'></div>
+  <%= javascript_pack_tag "main" %>
+<% else %>
+  <div class="ui vertical masthead center aligned segment">
+    <img class="ui floated image" src="/trainingblock_large.png">
+  </div>
+
+<% end %>

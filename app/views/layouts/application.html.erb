@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>TrainingBlocks</title>
+    <title>Training Block</title>
     <%= csrf_meta_tags %>
 
     <%= stylesheet_link_tag    'application', media: 'all' %>
@@ -9,12 +9,12 @@
   </head>
 
   <body>
-    <div class="ui container">
-      <div class="ui text menu">
-        <%= link_to "Training Blocks", root_path, class: "item" %>
+    <div class="ui menu">
+      <div class="ui container">
+        <%= link_to image_tag("/trainingblock_small.png", class: "logo"), root_path, class: "item borderless" %>
         <div class="right menu">
           <% if current_user %>
-            <div class="item">
+            <div class="item borderless">
               Signed in as <%= current_user.email %>
             </div>
             <%= link_to "Account", edit_user_registration_path, class: 'item' %>
@@ -26,6 +26,8 @@
           <% end %>
         </div>
       </div>
+    </div>
+    <div class="ui container">
       <% if notice %>
         <div class="ui info message">
           <p class="notice"><%= notice %></p>

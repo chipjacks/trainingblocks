@@ -289,14 +289,15 @@ color type_ =
 toIntensity : Activity -> Int
 toIntensity activity =
     let
-        -- TODO: what about activites that aren't runs?
         minPerMile =
             (((toFloat activity.movingTime) / 60) / (activity.distance / 1609.34))
 
         estimatedIntensity =
             (9 - Basics.floor minPerMile)
     in
-        if estimatedIntensity < 1 then
+        if activity.type_ /= Run then
+            1
+        else if estimatedIntensity < 1 then
             1
         else if estimatedIntensity > 5 then
             5

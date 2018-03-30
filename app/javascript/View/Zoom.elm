@@ -67,8 +67,9 @@ view zoom activityAccess =
 
 monthOfYear : Zoom.Model -> (Date -> Date -> WebData (List Activity)) -> (Block.Model -> Block.Model) -> Html Msg
 monthOfYear zoom activities normalizer =
-    div [ class "month" ] [ a (onClickPage (Route.Zoom zoom)) [ Html.text (zoom.start |> Date.month |> toString) ]
-        , svg [ width "100%", height "100%" ]
+    div ([ class "month" ] ++  (onClickPage (Route.Zoom zoom)))
+        [ div [ class "ui sub header" ] [ Html.text (zoom.start |> Date.month |> toString) ]
+        , svg [ ]
             (List.concat
                 (Zoom.range zoom 
                     |> List.indexedMap (\i z ->

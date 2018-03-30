@@ -1,6 +1,7 @@
 module Main exposing (..)
 
-import Html exposing (Html, div)
+import Html exposing (Html, div, button, i)
+import Html.Attributes exposing (class)
 import Date exposing (Date, Month(..))
 import Date.Extra as Date exposing (Interval(..))
 import ActivityCache exposing (fetchActivities, accessActivities)
@@ -15,6 +16,8 @@ import Update.Extra exposing (filter, addCmd)
 import Block
 import View.Block
 import Mouse exposing (Position)
+import OnClickPage exposing (onClickPage)
+import DateTimePicker
 
 
 main : Program Never Model Msg
@@ -37,6 +40,7 @@ type alias Model =
     , blockEvent : Maybe ( Block.Event, Block.Model )
     , route : Route
     , mousePos : Position
+    , datePickerState : DateTimePicker.State
     }
 
 
@@ -49,6 +53,7 @@ init location =
             , blockEvent = Nothing
             , route = parseLocation location
             , mousePos = Position 0 0
+            , datePickerState = DateTimePicker.initialState
             }
     in
         case model.route of
@@ -103,6 +108,20 @@ update msg model =
         MouseMsg position ->
             { model | mousePos = position } ! []
 
+        DateChange datePickerState selectedDate ->
+            let
+                zoom =
+                    model.zoom
+
+                newDate =
+                    selectedDate |> Maybe.withDefault model.zoom.end
+
+                newUrl =
+                    (Route.toString <| Route.Zoom <| Zoom.initModel model.zoom.level newDate)
+            in
+                { model | datePickerState = datePickerState }
+                    ! [ Navigation.newUrl newUrl ]
+
 
 
 -- SUBSCRIPTIONS
@@ -123,7 +142,8 @@ view model =
     case model.route of
         Route.Zoom zoom ->
             div []
-                [ View.Zoom.view zoom (accessActivities model.activityCache)
+                [ viewHeader model
+                , View.Zoom.view zoom (accessActivities model.activityCache)
                 , View.Block.viewEvent model.mousePos model.blockEvent
                 ]
 
@@ -132,3 +152,37 @@ view model =
 
         Route.NotFound ->
             div [] [ Html.text "Not found" ]
+
+
+viewHeader : Model -> Html Msg
+viewHeader model =
+    let
+        zoom =
+            model.zoom
+    in
+        div [ class "ui secondary menu" ]
+            [ div [ class "ui simple dropdown item" ]
+                [ Html.text (toString model.zoom.level)
+                , Html.i [ class "dropdown icon" ] []
+                , div [ class "menu" ]
+                    [ div ([ class "item" ] ++ (onClickPage (Route.Zoom { zoom | level = Year }))) [ Html.text "Year" ]
+                    , div ([ class "item" ] ++ (onClickPage (Route.Zoom { zoom | level = Month }))) [ Html.text "Month" ]
+                    , div ([ class "item" ] ++ (onClickPage (Route.Zoom { zoom | level = Week }))) [ Html.text "Week" ]
+                    ]
+                ]
+            , div [ class "ui input item" ]
+                [ DateTimePicker.datePicker
+                    DateChange
+                    [ class "ui input" ]
+                    model.datePickerState
+                    (Just model.zoom.end)
+                ]
+            , div [ class "ui item" ]
+                [ button ([ class "ui left attached basic icon button" ] ++ (onClickPage (Route.Zoom (Zoom.older zoom))))
+                    [ Html.i [ class "arrow left icon" ] []
+                    ]
+                , button ([ class "ui right attached basic icon button" ] ++ (onClickPage (Route.Zoom (Zoom.newer zoom))))
+                    [ Html.i [ class "arrow right icon" ] []
+                    ]
+                ]
+            ]

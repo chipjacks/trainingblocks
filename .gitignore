@@ -27,3 +27,4 @@ yarn-debug.log*
 
 .env
 elm-stuff/
+.DS_Store

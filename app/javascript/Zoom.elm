@@ -1,4 +1,4 @@
-module Zoom exposing (Model, initModel, range, zoomIn)
+module Zoom exposing (Model, initModel, range, zoomIn, newer, older)
 
 import Date exposing (Date)
 import Date.Extra as Date exposing (Interval(..))
@@ -26,6 +26,16 @@ range zoom =
         |> List.map (\d -> Model (zoomIn zoom.level) d (Date.add (zoomIn zoom.level) 1 d))
 
 
+newer : Model -> Model
+newer model =
+    initModel model.level (Date.add (increment model.level) 1 model.end)
+
+
+older : Model -> Model
+older model =
+    initModel model.level (Date.add (increment model.level) -1 model.end)
+
+
 
 -- INTERNAL
 
@@ -49,9 +59,7 @@ dateLimits level date =
             )
 
         _ ->
-            ( Date.add level -1 (Date.ceiling (zoomIn level) date)
-            , Date.ceiling (zoomIn level) date
-            )
+            Debug.crash "Invalid interval"
 
 
 zoomIn : Interval -> Interval
@@ -67,4 +75,20 @@ zoomIn level =
             Day
 
         _ ->
-            Day
+            Debug.crash "Invalid interval"
+
+
+increment : Interval -> Interval
+increment level =
+    case level of
+        Year ->
+            Quarter
+
+        Month ->
+            Week
+
+        Week ->
+            Week
+
+        _ ->
+            Debug.crash "Invalid interval"

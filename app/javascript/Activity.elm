@@ -72,8 +72,13 @@ pace activity =
     let
         minPerMile =
             (1 / (activity.averageSpeed / 1609 * 60))
-        mins = floor minPerMile
-        secs = round ((minPerMile - (toFloat mins)) * 60)
+
+        mins =
+            floor minPerMile
+
+        secs =
+            round ((minPerMile - (toFloat mins)) * 60)
+
         strSecs =
             if secs < 10 then
                 "0" ++ (toString secs)
@@ -81,6 +86,7 @@ pace activity =
                 "00"
             else
                 toString secs
+
         strMins =
             if secs == 60 then
                 toString (mins + 1)

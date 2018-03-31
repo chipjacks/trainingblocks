@@ -179,10 +179,10 @@ viewHeader model =
                 ]
             , div [ class "ui item" ]
                 [ button ([ class "ui left attached basic icon button" ] ++ (onClickPage (Route.Zoom (Zoom.older zoom))))
-                    [ Html.i [ class "arrow left icon" ] []
+                    [ Html.i [ class "arrow down icon" ] []
                     ]
                 , button ([ class "ui right attached basic icon button" ] ++ (onClickPage (Route.Zoom (Zoom.newer zoom))))
-                    [ Html.i [ class "arrow right icon" ] []
+                    [ Html.i [ class "arrow up icon" ] []
                     ]
                 ]
             ]

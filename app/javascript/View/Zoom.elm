@@ -41,6 +41,7 @@ view zoom activityAccess =
             div [ class "month" ]
                 (  (headerOfMonth zoom)
                 :: (Zoom.range zoom
+                        |> List.reverse
                         |> List.map (\subZoom -> weekOfMonth subZoom activityAccess)
                 )
                 )

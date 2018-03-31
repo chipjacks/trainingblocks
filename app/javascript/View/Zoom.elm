@@ -1,6 +1,6 @@
-module View.Zoom exposing (view)
+module View.Zoom exposing (viewMenu, view)
 
-import Html exposing (Html, div, a)
+import Html exposing (Html, div, a, button)
 import Html.Attributes exposing (class, id)
 import OnClickPage exposing (onClickPage)
 import Date exposing (Month(..), Date)
@@ -14,6 +14,29 @@ import Zoom exposing (zoomIn)
 import View.Block
 import Svg exposing (Svg, svg)
 import Svg.Attributes exposing (width, height)
+
+
+viewMenu : Zoom.Model -> Html Msg
+viewMenu zoom =
+    div [ class "ui secondary menu" ]
+        [ div [ class "ui simple dropdown item" ]
+            [ Html.text (toString zoom.level)
+            , Html.i [ class "dropdown icon" ] []
+            , div [ class "menu" ]
+                [ div ([ class "item" ] ++ (onClickPage (Route.Zoom { zoom | level = Year }))) [ Html.text "Year" ]
+                , div ([ class "item" ] ++ (onClickPage (Route.Zoom { zoom | level = Month }))) [ Html.text "Month" ]
+                , div ([ class "item" ] ++ (onClickPage (Route.Zoom { zoom | level = Week }))) [ Html.text "Week" ]
+                ]
+            ]
+        , div [ class "ui item" ]
+            [ button ([ class "ui left attached basic icon button" ] ++ (onClickPage (Route.Zoom (Zoom.older zoom))))
+                [ Html.i [ class "arrow down icon" ] []
+                ]
+            , button ([ class "ui right attached basic icon button" ] ++ (onClickPage (Route.Zoom (Zoom.newer zoom))))
+                [ Html.i [ class "arrow up icon" ] []
+                ]
+            ]
+        ]
 
 
 view : Zoom.Model -> (Date -> Date -> WebData (List Activity)) -> Html Msg

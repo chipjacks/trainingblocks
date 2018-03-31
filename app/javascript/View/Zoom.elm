@@ -28,6 +28,23 @@ viewMenu zoom =
                 , div ([ class "item" ] ++ (onClickPage (Route.Zoom { zoom | level = Week }))) [ Html.text "Week" ]
                 ]
             ]
+        , div [ class "ui simple dropdown item" ]
+            [ Html.text (Zoom.string zoom)
+            , Html.i [ class "dropdown icon" ] []
+            , div [ class "menu" ]
+                (List.range -3 3
+                    |> List.reverse
+                    |> List.map (\n -> Zoom.jump n zoom)
+                    |> List.map (\z -> 
+                        if z == zoom then
+                            div ([ class "disabled item" ] ++ (onClickPage (Route.Zoom z)))
+                                [ Html.text <| Zoom.string z ]
+                        else
+                            div ([ class "item" ] ++ (onClickPage (Route.Zoom z)))
+                                [ Html.text <| Zoom.string z ]
+                        )
+                )
+            ]
         , div [ class "ui item" ]
             [ button ([ class "ui left attached basic icon button" ] ++ (onClickPage (Route.Zoom (Zoom.older zoom))))
                 [ Html.i [ class "arrow down icon" ] []

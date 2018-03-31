@@ -1,4 +1,4 @@
-module Zoom exposing (Model, initModel, range, zoomIn, newer, older)
+module Zoom exposing (Model, initModel, range, zoomIn, newer, older, jump, string)
 
 import Date exposing (Date)
 import Date.Extra as Date exposing (Interval(..))
@@ -35,6 +35,15 @@ older : Model -> Model
 older model =
     initModel model.level (Date.add (increment model.level) -1 model.end)
 
+
+jump : Int -> Model -> Model
+jump distance model =
+    initModel model.level (Date.add model.level distance (Date.floor model.level model.end))
+
+
+string : Model -> String
+string model =
+    Date.toFormattedString "MMMM ddd, Y" model.start ++ " - " ++ Date.toFormattedString "MMMM ddd, Y" model.end
 
 
 -- INTERNAL

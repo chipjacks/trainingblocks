@@ -41,4 +41,16 @@ suite =
                         |> List.length
                         |> Expect.equal 5
                 ]
+            , describe "#jump"
+                [ test "jumps between years" <|
+                    \_ -> initModel Year (Date.fromCalendarDate 2018 Apr 1)
+                        |> Zoom.jump 1
+                        |> .end
+                        |> Expect.equal (Date.fromCalendarDate 2019 Jan 1)
+                , test "jumps between months" <|
+                    \_ -> initModel Month (Date.fromCalendarDate 2018 Apr 1)
+                        |> Zoom.jump 1
+                        |> .end
+                        |> Expect.equal (Date.fromCalendarDate 2018 May 7)
+                ]
             ]

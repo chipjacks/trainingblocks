@@ -1,6 +1,6 @@
 module View.Zoom exposing (viewMenu, view)
 
-import Html exposing (Html, div, a, button, span)
+import Html exposing (Html, div, a, button)
 import Html.Attributes exposing (class, id)
 import OnClickPage exposing (onClickPage)
 import Date exposing (Month(..), Date)
@@ -89,13 +89,13 @@ view zoom activityAccess =
                 )
 
         Week ->
-            div [ class "week", id "week-plot" ]
+            div [ class "week" ]
                 [ div [ class "hours" ]
                     (Date.range Hour 1 (Date.floor Day zoom.start) (Date.add Day 1 (Date.floor Day zoom.start))
                         |> List.indexedMap (\i hr -> div [ class "hour" ] [ hr |> Date.toFormattedString "h" |> Html.text ])
                     )
                 , div [ class "days" ]
-                    (Zoom.range zoom 
+                    (Zoom.range zoom
                         |> List.reverse
                         |> List.map (\subZoom -> dayOfWeek subZoom activityAccess)
                     )
@@ -167,7 +167,7 @@ dayOfWeekOfMonth zoom activities =
 dayOfWeek : Zoom.Model -> (Date -> Date -> WebData (List Activity)) -> Html Msg
 dayOfWeek zoom activities =
     div [ class "day" ]
-        [ span [ class "summary" ] [ zoom.start |> Date.toFormattedString "E" |> Html.text ]
+        [ div [ class "summary" ] [ zoom.start |> Date.toFormattedString "E" |> Html.text ]
         , svg [ ]
             (RemoteData.withDefault [] (activities zoom.start zoom.end)
                 |> List.map (Block.initModel << Block.Activity)

@@ -44,7 +44,6 @@
     .hour {
       display: inline-block;
       width: 38px;
-      margin-right: -4px;
     }
   }
   .days {
@@ -54,6 +53,7 @@
       .summary {
         width: 58px;
         vertical-align: top;
+        display: inline-block;
       }
       svg {
         width: 912px;

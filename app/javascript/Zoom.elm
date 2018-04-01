@@ -43,7 +43,7 @@ jump distance model =
 
 string : Model -> String
 string model =
-    Date.toFormattedString "MMMM ddd, Y" model.start ++ " - " ++ Date.toFormattedString "MMMM ddd, Y" model.end
+    Date.toFormattedString "MMMM ddd, y" model.start ++ " - " ++ Date.toFormattedString "MMMM ddd, y" model.end
 
 
 -- INTERNAL
@@ -52,19 +52,19 @@ string model =
 dateLimits : Interval -> Date -> ( Date, Date )
 dateLimits level date =
     case level of
+        Year ->
+            ( Date.add Quarter -4 (Date.ceiling Quarter date)
+            , Date.ceiling Quarter date
+            )
+
         Month ->
             ( Date.add Week -5 (Date.ceiling Week date)
             , Date.ceiling Week date
             )
 
         Week ->
-            ( Date.add Week -1 (Date.ceiling Week date)
-            , Date.ceiling Week date
-            )
-
-        Year ->
-            ( Date.add Quarter -4 (Date.ceiling Quarter date)
-            , Date.ceiling Quarter date
+            ( Date.add Day -7 (Date.ceiling Day date)
+            , Date.ceiling Day date
             )
 
         _ ->
@@ -97,7 +97,7 @@ increment level =
             Week
 
         Week ->
-            Week
+            Day
 
         _ ->
             Debug.crash "Invalid interval"

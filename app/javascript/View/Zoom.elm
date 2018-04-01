@@ -45,12 +45,14 @@ viewMenu zoom =
                         )
                 )
             ]
-        , div [ class "ui item" ]
-            [ button ([ class "ui left attached basic icon button" ] ++ (onClickPage (Route.Zoom (Zoom.older zoom))))
-                [ Html.i [ class "arrow down icon" ] []
-                ]
-            , button ([ class "ui right attached basic icon button" ] ++ (onClickPage (Route.Zoom (Zoom.newer zoom))))
-                [ Html.i [ class "arrow up icon" ] []
+        , div [ class "right menu" ]
+            [ div [ class "ui item" ]
+                [ button ([ class "ui left attached basic icon button" ] ++ (onClickPage (Route.Zoom (Zoom.older zoom))))
+                    [ Html.i [ class "arrow down icon" ] []
+                    ]
+                , button ([ class "ui right attached basic icon button" ] ++ (onClickPage (Route.Zoom (Zoom.newer zoom))))
+                    [ Html.i [ class "arrow up icon" ] []
+                    ]
                 ]
             ]
         ]
@@ -94,6 +96,7 @@ view zoom activityAccess =
                     )
                 , div [ class "days" ]
                     (Zoom.range zoom 
+                        |> List.reverse
                         |> List.indexedMap (\i dayZoom -> div [ class "day" ] [ dayZoom.start |> Date.toFormattedString "E" |> Html.text ])
                     )
                 , svg [ ] (plotBlocks zoom activityAccess)

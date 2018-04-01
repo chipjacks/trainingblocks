@@ -1,8 +1,7 @@
 module Block exposing (Model, initModel, Data(..), View(..), sum, scale, split, stack, decompose, normalize, normalizer, plot, Event(..), shift, crop, list)
 
 import Activity exposing (Activity, ActivityType(..))
-import Date
-import Date.Extra
+import Date.Extra as Date
 
 
 {-
@@ -93,7 +92,7 @@ plot : Model -> Model
 plot model =
     case model.data of
         Activity activity ->
-            shift (activity.startDate |> Date.hour |> (*) 100) (activity.startDate |> Date.dayOfWeek |> Date.Extra.weekdayToNumber |> (+) -1 |> (*) 100) model
+            shift (activity.startDate |> Date.fractionalDay |> (*) 24 |> (*) 38 |> round) 0 model
 
         Blocks blocks ->
             model

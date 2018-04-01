@@ -1,6 +1,6 @@
 module View.Zoom exposing (viewMenu, view)
 
-import Html exposing (Html, div, a, button)
+import Html exposing (Html, div, a, button, span)
 import Html.Attributes exposing (class, id)
 import OnClickPage exposing (onClickPage)
 import Date exposing (Month(..), Date)
@@ -97,10 +97,9 @@ view zoom activityAccess =
                 , div [ class "days" ]
                     (Zoom.range zoom 
                         |> List.reverse
-                        |> List.indexedMap (\i dayZoom -> div [ class "day" ] [ dayZoom.start |> Date.toFormattedString "E" |> Html.text ])
+                        |> List.map (\subZoom -> dayOfWeek subZoom activityAccess)
                     )
-                , svg [ ] (plotBlocks zoom activityAccess)
-            ]
+                ]
 
         _ ->
             div [] [ Html.text "Invalid interval" ]
@@ -165,11 +164,15 @@ dayOfWeekOfMonth zoom activities =
             ]
     ]
 
-
-plotBlocks : Zoom.Model -> (Date -> Date -> WebData (List Activity)) -> List (Svg Msg)
-plotBlocks zoom activities =
-    RemoteData.withDefault [] (activities zoom.start zoom.end)
-        |> List.map (Block.initModel << Block.Activity)
-        |> List.map (Block.scale (10 / 6) 10)
-        |> List.map Block.plot
-        |> List.map View.Block.view
+dayOfWeek : Zoom.Model -> (Date -> Date -> WebData (List Activity)) -> Html Msg
+dayOfWeek zoom activities =
+    div [ class "day" ]
+        [ span [ class "summary" ] [ zoom.start |> Date.toFormattedString "E" |> Html.text ]
+        , svg [ ]
+            (RemoteData.withDefault [] (activities zoom.start zoom.end)
+                |> List.map (Block.initModel << Block.Activity)
+                |> List.map (Block.scale (38 / 60) 10)
+                |> List.map Block.plot
+                |> List.map View.Block.view
+            )
+        ]

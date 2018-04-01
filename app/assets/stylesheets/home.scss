@@ -36,28 +36,31 @@
   }
 }
 
-#week-plot {
-  width: 100%;
-  overflow-x: scroll;
+.week {
   .hours {
-     width: 2400px;
+     width: 912px;
+     margin-left: 58px;
+
     .hour {
       display: inline-block;
-      width: 100px;
+      width: 38px;
       margin-right: -4px;
     }
   }
   .days {
-    position: absolute;
-    left: 0;
     .day {
       display: block;
       height: 100px;
+      .summary {
+        width: 58px;
+        vertical-align: top;
+      }
+      svg {
+        width: 912px;
+        height: 100%;
+        display: inline-block;
+      }
     }
-  }
-  svg {
-    width: 2400px;
-    height: 700px;
   }
 }
 

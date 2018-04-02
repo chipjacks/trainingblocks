@@ -11,4 +11,11 @@
 // about supported directives.
 //
 //= require rails-ujs
+//= require jquery
+//= require jquery_ujs
+//= require semantic/semantic.min
 //= require_tree .
+
+setTimeout(function() {
+  $('.ui .message').transition('fade down');
+}, 5000);

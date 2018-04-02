@@ -17,12 +17,9 @@
             <div class="item borderless">
               Signed in as <%= current_user.email %>
             </div>
-            <%= link_to "Account", edit_user_registration_path, class: 'item' %>
-            <%= link_to "Logout", destroy_user_session_path, method: 'delete', class: 'item' %>
+            <%= link_to "Logout", destroy_user_session_path, method: 'delete', class: 'item borderless' %>
           <% else %>
-            <%= link_to 'Login', new_user_session_path, class: 'item' %>
-            <%= link_to 'Sign in with Strava', user_strava_omniauth_authorize_path, class: 'item' %>
-            <%= link_to 'Sign up', new_user_registration_path, class: 'item' %>
+            <%= link_to 'Sign in with Strava', user_strava_omniauth_authorize_path, class: 'item borderless' %>
           <% end %>
         </div>
       </div>

@@ -2,6 +2,7 @@ module View.Zoom exposing (viewMenu, view)
 
 import Html exposing (Html, div, a, button)
 import Html.Attributes exposing (class, id)
+import Html.Events exposing (onClick)
 import OnClickPage exposing (onClickPage)
 import Date exposing (Month(..), Date)
 import Date.Extra as Date exposing (Interval(..))
@@ -44,6 +45,11 @@ viewMenu zoom =
                                 [ Html.text <| Zoom.string z ]
                         )
                 )
+            ]
+        , div [ class "ui item" ]
+            [ button [ class "ui basic button", onClick ZoomToday ]
+                [ Html.text "Today"
+                ]
             ]
         , div [ class "right menu" ]
             [ div [ class "ui item" ]

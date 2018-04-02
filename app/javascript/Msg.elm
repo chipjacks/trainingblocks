@@ -13,4 +13,5 @@ type Msg
     | NewPage Route
     | BlockEvent (Maybe ( Block.Event, Block.Model ))
     | MouseMsg Mouse.Position
+    | ZoomToday
     | NoOp

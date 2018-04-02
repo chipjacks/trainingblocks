@@ -84,6 +84,9 @@ update msg model =
                     _ ->
                         ( { model | route = newRoute }, Cmd.none )
 
+        ZoomToday ->
+            model ! [ Task.perform (\date -> NewPage <| Route.Zoom <| Zoom.initModel model.zoom.level date) Date.now ]
+
         NewPage page ->
             model ! [ Navigation.newUrl (Route.toString page) ]
 

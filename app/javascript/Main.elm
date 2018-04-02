@@ -10,8 +10,6 @@ import Msg exposing (Msg(..))
 import Task
 import Zoom
 import View.Zoom
-import Dom.Scroll
-import Update.Extra exposing (filter, addCmd)
 import Block
 import View.Block
 import Mouse exposing (Position)
@@ -82,8 +80,6 @@ update msg model =
                         in
                             { model | zoom = zoom, activityCache = acModel, route = newRoute }
                                 ! [ acMsg |> Cmd.map UpdateActivityCache ]
-                                |> filter (zoom.level == Week)
-                                    (addCmd (Task.attempt (\r -> NoOp) (Dom.Scroll.toX "week-plot" 600)))
 
                     _ ->
                         ( { model | route = newRoute }, Cmd.none )

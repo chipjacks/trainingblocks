@@ -20,10 +20,6 @@
       <img src="/zoom_out.png" class="ui centered image">
     </div>
   </div>
-  <div class="ui vertical center aligned segment feature" style="min-height: 230px">
-    <h2 class="ui header">Sign in with your Strava account to get started</h3>
-    <%= link_to 'Sign in', user_strava_omniauth_authorize_path, class: 'ui huge primary button' %>
-  </div>
   <div class="ui vertical center aligned tertiary segment feature">
     <h4 class="ui header">
       COMING SOON
@@ -38,5 +34,9 @@
   <div class="ui vertical center aligned tertiary segment feature">
     <h2 class="ui header">Share plans and celebrate results</h3>
     <img src="/share_plans.png" class="ui centered image">
+  </div>
+  <div class="ui vertical center aligned segment feature" style="min-height: 230px">
+    <h2 class="ui header">Sign in with your Strava account to get started</h3>
+    <%= link_to 'Sign in', user_strava_omniauth_authorize_path, class: 'ui huge primary button' %>
   </div>
 <% end %>

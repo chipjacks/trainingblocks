@@ -19,3 +19,7 @@
  .logo {
    width: 120px !important;
  }
+
+ .menu {
+   border-radius: 0 !important;
+ }

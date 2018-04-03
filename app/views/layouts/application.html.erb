@@ -9,7 +9,7 @@
   </head>
 
   <body>
-    <div class="ui menu">
+    <div class="ui inverted blue menu">
       <div class="ui container">
         <%= link_to image_tag("/trainingblock_small.png", class: "logo"), root_path, class: "item borderless" %>
         <div class="right menu">
@@ -24,18 +24,20 @@
         </div>
       </div>
     </div>
-    <div class="ui container">
-      <% if notice %>
-        <div class="ui info message">
-          <p class="notice"><%= notice %></p>
-        </div>
-      <% end %>
-      <% if alert %>
-        <div class="ui warning message">
-          <p class="alert"><%= alert %></p>
-        </div>
-      <% end %>
-      <%= yield %>
-    </div>
+    <% if current_user %>
+      <div class="ui container">
+        <% if notice %>
+          <div class="ui info message">
+            <p class="notice"><%= notice %></p>
+          </div>
+        <% end %>
+        <% if alert %>
+          <div class="ui warning message">
+            <p class="alert"><%= alert %></p>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+    <%= yield %>
   </body>
 </html>

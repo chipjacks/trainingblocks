@@ -8,7 +8,6 @@
         Built for runners
       </h1>
       <h2>Training Block is a fitness platform designed to help you find the meaning behind the mileage.</h2>
-      <div class="ui huge primary button">Get Started <i class="right arrow icon"></i></div>
     </div>
   </div>
   <div class="ui vertical center aligned segment feature">
@@ -16,25 +15,28 @@
     <img src="/build_your_fitness.png" class="ui centered image">
   </div>
   <div class="ui vertical center aligned segment feature">
-    <h2 class="ui header">Capture how you're feeling</h3>
-    <img src="/capture_feeling.png" class="ui centered image">
-  </div>
-  <div class="ui vertical center aligned segment feature">
-    <h2 class="ui header">Set goals and see how you stack up</h3>
-    <img src="/set_goals.png" class="ui centered image">
-  </div>
-  <div class="ui vertical center aligned segment feature">
     <div class="ui text container">
       <h2 class="ui header">Zoom out to view your progress</h3>
       <img src="/zoom_out.png" class="ui centered image">
     </div>
   </div>
-  <div class="ui vertical center aligned segment feature">
+  <div class="ui vertical center aligned segment feature" style="min-height: 230px">
+    <h2 class="ui header">Sign in with your Strava account to get started</h3>
+    <%= link_to 'Sign in', user_strava_omniauth_authorize_path, class: 'ui huge primary button' %>
+  </div>
+  <div class="ui vertical center aligned tertiary segment feature">
+    <h4 class="ui header">
+      COMING SOON
+    </h4> 
+    <h2 class="ui header">Capture how you're feeling</h3>
+    <img src="/capture_feeling.png" class="ui centered image">
+  </div>
+  <div class="ui vertical center aligned tertiary segment feature">
+    <h2 class="ui header">Set goals and see how you stack up</h3>
+    <img src="/set_goals.png" class="ui centered image">
+  </div>
+  <div class="ui vertical center aligned tertiary segment feature">
     <h2 class="ui header">Share plans and celebrate results</h3>
     <img src="/share_plans.png" class="ui centered image">
-  </div>
-  <div class="ui vertical center aligned segment feature">
-    <h2 class="ui header">Sign up to get started</h3>
-    <div class="ui huge primary button">Sign up</div>
   </div>
 <% end %>

@@ -1,24 +1,26 @@
 # README
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+Training Block is a fitness platform for runners.
 
-Things you may want to cover:
+## Setup
 
-* Ruby version
+Dependencies:
+- Ruby 2.5
+- Rails 5.1
+- Elm 0.18
 
-* System dependencies
+`
+bundle install
+`
 
-* Configuration
+## Run
 
-* Database creation
+`
+rails server
+`
 
-* Database initialization
+## Test
 
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
+`
+rspec
+`

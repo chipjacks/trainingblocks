@@ -9,18 +9,18 @@ Dependencies:
 - Rails 5.1
 - Elm 0.18
 
-`
+```
 bundle install
-`
+```
 
 ## Run
 
-`
+```
 rails server
-`
+```
 
 ## Test
 
-`
+```
 rspec
-`
+```

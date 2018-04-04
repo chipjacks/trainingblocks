@@ -129,7 +129,8 @@ monthOfYear zoom activities normalizer =
                                     |> List.map (Block.scale (1/5) 5)
                                     |> List.map (Block.crop 30 25)
                                     |> List.map (Block.shift (j * 35) (i * 30))
-                                    |> Block.list
+                                    |> List.head
+                                    |> Maybe.withDefault (Block.initModel (Block.Blocks []))
                                     |> View.Block.view
                                 )
                         )

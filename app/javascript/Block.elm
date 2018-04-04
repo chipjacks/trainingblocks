@@ -273,13 +273,13 @@ color type_ =
             "skyblue"
 
         Weights ->
-            "red"
+            "grey"
 
         Ride ->
-            "green"
+            "grey"
 
         Swim ->
-            "orange"
+            "grey"
 
         Other ->
             "grey"

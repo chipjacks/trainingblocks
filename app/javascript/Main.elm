@@ -51,10 +51,7 @@ init location =
     in
         case model.route of
             Route.NotFound ->
-                model ! []
-
-            Route.Blank ->
-                model ! [ Task.perform (\date -> NewPage <| Route.Zoom <| Zoom.initModel Year date) Date.now ]
+                zoomToday model
 
             Route.Zoom _ ->
                 update (OnLocationChange location) model
@@ -81,11 +78,11 @@ update msg model =
                             { model | zoom = zoom, activityCache = acModel, route = newRoute }
                                 ! [ acMsg |> Cmd.map UpdateActivityCache ]
 
-                    _ ->
-                        ( { model | route = newRoute }, Cmd.none )
+                    Route.NotFound ->
+                        zoomToday model
 
         ZoomToday ->
-            model ! [ Task.perform (\date -> NewPage <| Route.Zoom <| Zoom.initModel model.zoom.level date) Date.now ]
+            zoomToday model
 
         NewPage page ->
             model ! [ Navigation.newUrl (Route.toString page) ]
@@ -102,6 +99,10 @@ update msg model =
         MouseMsg position ->
             { model | mousePos = position } ! []
 
+
+zoomToday : Model -> ( Model, Cmd Msg )
+zoomToday model =
+    model ! [ Task.perform (\date -> NewPage <| Route.Zoom <| Zoom.initModel model.zoom.level date) Date.now ]
 
 
 -- SUBSCRIPTIONS
@@ -126,9 +127,6 @@ view model =
                 , View.Zoom.view zoom (accessActivities model.activityCache)
                 , View.Block.viewEvent model.mousePos model.blockEvent
                 ]
-
-        Route.Blank ->
-            div [] [ Html.text "Blank" ]
 
         Route.NotFound ->
             div [] [ Html.text "Not found" ]

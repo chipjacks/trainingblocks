@@ -9,15 +9,13 @@ import Zoom
 
 type Route
     = Zoom Zoom.Model
-    | Blank
     | NotFound
 
 
 matchers : Parser (Route -> a) a
 matchers =
     oneOf
-        [ Url.map Blank Url.top
-        , Url.map Zoom <| Url.map Zoom.initModel (zoomLevel </> zoomDate)
+        [ Url.map Zoom <| Url.map Zoom.initModel (zoomLevel </> zoomDate)
         ]
 
 
@@ -57,8 +55,6 @@ toString route =
                 NotFound ->
                     [ "notfound" ]
 
-                Blank ->
-                    [ "" ]
     in
         "#/" ++ String.join "/" pieces
 

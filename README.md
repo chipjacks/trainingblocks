@@ -1,6 +1,6 @@
 # README
 
-Training Block is a fitness platform for runners.
+Training Blocks is a fitness platform for runners.
 
 ## Setup
 

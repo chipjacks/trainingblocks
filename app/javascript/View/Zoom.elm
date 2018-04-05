@@ -164,7 +164,7 @@ dayOfWeekOfMonth zoom activities =
         svg [ width "100%", height "100%" ]
             [RemoteData.withDefault [] (activities zoom.start zoom.end)
                 |> List.map (Block.initModel << Block.Activity)
-                |> List.map (Block.scale 0.5 10)
+                |> List.map (Block.scale 1 10)
                 |> List.map (Block.stack << Block.split 100)
                 |> Block.list
                 |> View.Block.view

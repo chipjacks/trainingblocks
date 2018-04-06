@@ -3,7 +3,7 @@
 // You can use Sass (SCSS) here: http://sass-lang.com/
 
 .masthead {
-  background: url("/banner.svg") !important;
+  background: image-url("banner.svg") !important;
   background-position: center 10% !important;
   background-size: cover !important;
   height: 600px;

@@ -24,6 +24,7 @@
 /node_modules
 yarn-debug.log*
 .yarn-integrity
+/public/assets
 
 .env
 elm-stuff/

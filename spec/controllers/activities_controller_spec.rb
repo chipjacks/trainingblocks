@@ -9,12 +9,20 @@ RSpec.describe ActivitiesController, type: :controller do
 
   describe "GET #index" do
     before :each do
-      6.times { FactoryBot.create(:activity, user: user) }
+      @start_date = DateTime.parse("2018-04-02 11:07:12")
+      6.times do |i|
+        FactoryBot.create(:activity, user: user, start_date: @start_date - i)
+      end
+      allow(subject).to receive(:fetch_external_activities).and_return(
+        JSON.parse(external_fixture('strava_activities.json')).map {|a|
+          StravaClient::SummaryActivity.new(a)
+        }
+      )
     end
 
-    it "lists activities" do
-      get :index, format: :json
-      expect(JSON.parse(response.body).size).to eq 6
+    it "merges external activities" do
+      get :index, format: :json, params: {before: @start_date.to_i}
+      expect(JSON.parse(response.body).size).to be > 6
     end
   end
 

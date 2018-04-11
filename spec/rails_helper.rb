@@ -69,3 +69,7 @@ RSpec.configure do |config|
     }
   })
 end
+
+def external_fixture(name)
+  File.read(File.join(Rails.root, 'spec', 'fixtures', name))
+end

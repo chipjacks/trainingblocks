@@ -5,7 +5,9 @@ module ActivitiesHelper
         duration: a.moving_time,
         distance: a.distance,
         completed: true,
-        external_id: a.external_id
+        external_id: a.id,
+        type_: a.type,
+        name: a.name
       }
     )
   end

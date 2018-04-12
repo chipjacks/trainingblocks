@@ -13,15 +13,12 @@ activities =
 
 activity : Int -> Float -> Int -> Activity
 activity date miles minutes =
-    { id = "1272606297"
+    { id = Just "1272606297"
     , name = "Morning Run"
     , distance = miles * 1609
-    , movingTime = minutes * 60
-    , elapsedTime = minutes * 60
-    , totalElevationGain = 244.2
+    , duration = minutes * 60
     , type_ = Run
     , startDate = Date.fromParts 2018 Jan date 8 45 28 0 
-    , startDateLocal = Date.fromParts 2017 Jan date 0 45 28 0 
-    , averageSpeed = 4
-    , maxSpeed = 5.2
+    , completed = True
+    , externalId = Just "garmin_push_123455"
     }

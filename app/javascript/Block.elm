@@ -76,7 +76,7 @@ initModel data =
                 Model 0 0 maxX maxY "" data Children
 
         Activity activity ->
-            Model 0 0 (activity.movingTime // 60) (toIntensity activity) (color activity.type_) data Normal
+            Model 0 0 (activity.duration // 60) (toIntensity activity) (color activity.type_) data Normal
 
 
 
@@ -289,7 +289,7 @@ toIntensity : Activity -> Int
 toIntensity activity =
     let
         minPerMile =
-            (((toFloat activity.movingTime) / 60) / (activity.distance / 1609.34))
+            (((toFloat activity.duration) / 60) / (activity.distance / 1609.34))
 
         estimatedIntensity =
             (9 - Basics.floor minPerMile)

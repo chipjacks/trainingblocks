@@ -31,7 +31,7 @@ RSpec.describe ActivitiesController, type: :controller do
       activity = FactoryBot.build(:activity, user: user)
       response = post :create, params: { activity: JSON.parse(activity.to_json) }, format: :json
       new_activity = JSON.parse(response.body)
-      expect(new_activity.slice(*%w(start_date duration distance completed external_id user_id id)).values).to_not include nil
+      expect(new_activity.slice(*%w(start_date type_ name duration distance completed external_id user_id id)).values).to_not include nil
     end
   end
 

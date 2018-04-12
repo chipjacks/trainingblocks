@@ -7,17 +7,14 @@ import Date exposing (Date)
 
 
 type alias Activity =
-    { id : String
+    { id : Maybe String
     , name : String
     , distance : Float
-    , movingTime : Int
-    , elapsedTime : Int
-    , totalElevationGain : Float
+    , duration : Int
     , type_ : ActivityType
     , startDate : Date
-    , startDateLocal : Date
-    , averageSpeed : Float
-    , maxSpeed : Float
+    , completed : Bool
+    , externalId : Maybe String
     }
 
 
@@ -42,17 +39,14 @@ list startDate endDate =
 decoder : Decoder Activity
 decoder =
     decode Activity
-        |> required "id" (JD.int |> JD.andThen (JD.succeed << toString))
+        |> optional "id" (JD.nullable JD.string) Nothing
         |> required "name" JD.string
         |> required "distance" JD.float
-        |> required "moving_time" JD.int
-        |> required "elapsed_time" JD.int
-        |> required "total_elevation_gain" JD.float
-        |> custom (JD.field "type" JD.string |> JD.andThen (JD.succeed << typeFromString))
+        |> required "duration" JD.int
+        |> custom (JD.field "type_" JD.string |> JD.andThen (JD.succeed << typeFromString))
         |> custom (JD.field "start_date" JD.string |> JD.andThen (fromResult << Date.fromString))
-        |> custom (JD.field "start_date_local" JD.string |> JD.andThen (fromResult << Date.fromString))
-        |> custom (JD.field "average_speed" JD.float)
-        |> custom (JD.field "max_speed" JD.float)
+        |> required "completed" JD.bool
+        |> optional "external_id" (JD.nullable JD.string) Nothing
 
 
 groupByType : List Activity -> List (List Activity)
@@ -71,7 +65,7 @@ pace : Activity -> String
 pace activity =
     let
         minPerMile =
-            (1 / (activity.averageSpeed / 1609 * 60))
+            (((toFloat activity.duration) / 60) / (activity.distance / 1609.34))
 
         mins =
             floor minPerMile
@@ -93,7 +87,7 @@ pace activity =
             else
                 toString mins
     in
-        if activity.averageSpeed == 0 then
+        if activity.distance == 0 then
             "unknown pace"
         else
             strMins ++ ":" ++ strSecs ++ " pace"

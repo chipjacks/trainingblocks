@@ -28,7 +28,7 @@ class ActivitiesController < ApplicationController
   private
 
   def activity_params
-    params.require(:activity).permit(:start_date, :duration, :distance, :completed, :external_id)
+    params.require(:activity).permit(:start_date, :type_, :name, :duration, :distance, :completed, :external_id)
   end
 
   def set_activity

@@ -4,33 +4,6 @@ import Activity exposing (Activity, ActivityType(..))
 import Date.Extra as Date
 
 
-{-
-   - containers (combine several blocks/containers into one)
-       - session (laps w/ different intensities)
-       x sum (average intensity)
-       - treemap
-       x stack
-   - scalers (change block width, height)
-       - normalize
-       - timeline
-       x split
-   - shifters (change block x, y)
-       - plot
-   - events (block events, msgs)
-       - mouseover tooltip
-       - mouseover unstack
-       - click
-       - drag/drop
-       - stretch
-   - labels (extras positioned relative to block)
-       - distance
-       - intensity
-       - time
-       - notes
-       - tooltip
--}
-
-
 type alias Model =
     { x : Int
     , y : Int
@@ -54,8 +27,8 @@ type Data
 
 
 type Event
-    = MouseOver
-    | Drag Int Int
+    = View
+    | Edit
 
 
 type alias Blocks =

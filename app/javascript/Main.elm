@@ -12,7 +12,7 @@ import Zoom
 import View.Zoom
 import Block
 import View.Block
-import SvgMouseEvents exposing (MouseEvent)
+import Mouse
 
 
 main : Program Never Model Msg
@@ -32,7 +32,7 @@ main =
 type alias Model =
     { activityCache : ActivityCache.Model
     , zoom : Zoom.Model
-    , blockEvent : Maybe ( MouseEvent, Block.Event, Block.Model )
+    , blockEvent : Maybe ( Mouse.Event, Block.Event, Block.Model )
     , route : Route
     }
 

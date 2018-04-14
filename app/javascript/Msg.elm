@@ -4,13 +4,13 @@ import ActivityCache
 import Block
 import Navigation exposing (Location)
 import Route exposing (Route)
-import SvgMouseEvents exposing (MouseEvent)
+import Mouse
 
 
 type Msg
     = UpdateActivityCache ActivityCache.Msg
     | OnLocationChange Location
     | NewPage Route
-    | BlockEvent (Maybe ( MouseEvent, Block.Event, Block.Model ))
+    | BlockEvent (Maybe ( Mouse.Event, Block.Event, Block.Model ))
     | ZoomToday
     | NoOp

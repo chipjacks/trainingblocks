@@ -5,7 +5,7 @@ import Svg exposing (Svg, rect, svg, g)
 import Svg.Attributes exposing (x, y, width, height, fill, stroke, transform)
 import Html exposing (Html, div)
 import Html.Attributes exposing (class)
-import SvgMouseEvents exposing (MouseEvent, onMouseOver, onMouseOut)
+import Mouse
 import Msg exposing (Msg(..))
 import Date.Extra as Date
 import Activity
@@ -20,8 +20,8 @@ view model =
         ( Activity activity, _ ) ->
             g
                 [ transform <| String.join " " [ "translate(", (toString model.x), " ", (toString model.y), ")" ]
-                , onMouseOver (\me -> BlockEvent (Just ( me, View, model )))
-                , onMouseOut (\me -> BlockEvent Nothing)
+                , Mouse.onOver (\me -> BlockEvent (Just ( me, View, model )))
+                , Mouse.onOut (\me -> BlockEvent Nothing)
                 ]
                 [ viewBlock model
                 ]
@@ -29,8 +29,8 @@ view model =
         ( _, Normal ) ->
             g
                 [ transform <| String.join " " [ "translate(", (toString model.x), " ", (toString model.y), ")" ]
-                , onMouseOver (\mouseEvent -> BlockEvent (Just ( mouseEvent, View, model )))
-                , onMouseOut (\_ -> BlockEvent Nothing)
+                , Mouse.onOver (\mouseEvent -> BlockEvent (Just ( mouseEvent, View, model )))
+                , Mouse.onOut (\_ -> BlockEvent Nothing)
                 ]
                 [ viewBlock model
                 ]
@@ -42,7 +42,7 @@ view model =
             g [] []
 
 
-viewEvent : Maybe ( MouseEvent, Block.Event, Block.Model ) -> Html Msg
+viewEvent : Maybe ( Mouse.Event, Block.Event, Block.Model ) -> Html Msg
 viewEvent event =
     case event of
         Nothing ->
@@ -51,12 +51,13 @@ viewEvent event =
         Just ( mouseEvent, blockEvent, blockModel ) ->
             div
                 [ class "block-tooltip"
-                , Html.Attributes.style
-                    [ ( "top", toString ({- mouseEvent.targetPos.y + -} 5) ++ "px" )
-                    , ( "left", toString ({- mouseEvent.targetPos.x + -} 5) ++ "px" )
-                    ]
+                , Html.Attributes.style (positionTooltip mouseEvent.pagePos mouseEvent.offsetPos blockModel.w)
                 ]
                 [ viewTooltip blockModel.data ]
+
+
+
+-- INTERNAL
 
 
 viewBlock : Block.Model -> Svg Msg
@@ -68,6 +69,13 @@ viewBlock model =
         , stroke "white"
         ]
         []
+
+
+positionTooltip : ( Float, Float ) -> ( Float, Float ) -> Int -> List ( String, String )
+positionTooltip pagePos offsetPos blockWidth =
+    [ ( "top", toString ((Tuple.second pagePos) - (Tuple.second offsetPos)) ++ "px" )
+    , ( "left", toString ((Tuple.first pagePos) - (Tuple.first offsetPos) + (toFloat blockWidth) + 5) ++ "px" )
+    ]
 
 
 viewTooltip : Block.Data -> Html Msg

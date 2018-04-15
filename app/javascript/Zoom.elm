@@ -46,6 +46,7 @@ string model =
     Date.toFormattedString "MMMM ddd, y" model.start ++ " - " ++ Date.toFormattedString "MMMM ddd, y" model.end
 
 
+
 -- INTERNAL
 
 

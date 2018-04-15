@@ -54,7 +54,6 @@ toString route =
 
                 NotFound ->
                     [ "notfound" ]
-
     in
         "#/" ++ String.join "/" pieces
 

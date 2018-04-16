@@ -1,4 +1,4 @@
-module Block exposing (Model, initModel, Data(..), View(..), sum, scale, split, stack, decompose, normalize, normalizer, plot, Event(..), shift, crop, list)
+module Block exposing (Model, initModel, Data(..), View(..), sum, scale, split, stack, decompose, normalize, normalizer, plot, shift, crop, list)
 
 import Activity exposing (Activity, ActivityType(..))
 import Date.Extra as Date
@@ -24,11 +24,6 @@ type View
 type Data
     = Activity Activity
     | Blocks Blocks
-
-
-type Event
-    = View
-    | Edit
 
 
 type alias Blocks =

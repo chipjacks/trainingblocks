@@ -13,6 +13,7 @@ import View.Zoom
 import Block
 import View.Block
 import Mouse
+import BlockEvent
 
 
 main : Program Never Model Msg
@@ -32,7 +33,7 @@ main =
 type alias Model =
     { activityCache : ActivityCache.Model
     , zoom : Zoom.Model
-    , blockEvent : Maybe ( Mouse.Event, Block.Event, Block.Model )
+    , blockEvent : BlockEvent.State
     , route : Route
     }
 
@@ -43,7 +44,7 @@ init location =
         model =
             { activityCache = ActivityCache.initModel
             , zoom = Zoom.initModel Year (Date.fromCalendarDate 2018 Jan 1)
-            , blockEvent = Nothing
+            , blockEvent = BlockEvent.init
             , route = parseLocation location
             }
     in
@@ -91,8 +92,8 @@ update msg model =
         NoOp ->
             model ! []
 
-        BlockEvent event ->
-            { model | blockEvent = event } ! []
+        UpdateBlockEvent event ->
+            { model | blockEvent = BlockEvent.update event model.blockEvent } ! []
 
 
 zoomToday : Model -> ( Model, Cmd Msg )
@@ -120,7 +121,7 @@ view model =
             div []
                 [ View.Zoom.viewMenu model.zoom
                 , View.Zoom.view zoom (accessActivities model.activityCache)
-                , View.Block.viewEvent model.blockEvent
+                , BlockEvent.view model.blockEvent
                 ]
 
         Route.NotFound ->

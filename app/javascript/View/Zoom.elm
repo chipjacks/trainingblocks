@@ -15,6 +15,8 @@ import Zoom exposing (zoomIn)
 import View.Block
 import Svg exposing (Svg, svg)
 import Svg.Attributes exposing (width, height)
+import Mouse
+import BlockEvent
 
 
 viewMenu : Zoom.Model -> Html Msg
@@ -183,7 +185,9 @@ dayOfWeek : Zoom.Model -> (Date -> Date -> WebData (List Activity)) -> Html Msg
 dayOfWeek zoom activities =
     div [ class "day" ]
         [ div [ class "summary" ] [ zoom.start |> Date.toFormattedString "E" |> Html.text ]
-        , svg []
+        , svg
+            [ Mouse.onDown (\mouseEvent -> UpdateBlockEvent (BlockEvent.Create mouseEvent))
+            ]
             (RemoteData.withDefault [] (activities zoom.start zoom.end)
                 |> List.map (Block.initModel << Block.Activity)
                 |> List.map (Block.scale (38 / 60) 10)

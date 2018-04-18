@@ -10,8 +10,9 @@ import Msg exposing (Msg(..))
 import Task
 import Zoom
 import View.Zoom
-import Block
 import View.Block
+import View.BlockEvent
+import Block
 import Mouse
 import BlockEvent
 
@@ -121,7 +122,7 @@ view model =
             div []
                 [ View.Zoom.viewMenu model.zoom
                 , View.Zoom.view zoom (accessActivities model.activityCache)
-                , BlockEvent.view model.blockEvent
+                , View.BlockEvent.view model.blockEvent
                 ]
 
         Route.NotFound ->

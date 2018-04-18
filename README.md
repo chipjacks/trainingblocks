@@ -24,3 +24,9 @@ rails server
 ```
 rspec
 ```
+
+## TODO
+
+- [ ] use elm-css
+- [ ] put all the magic numbers in a config file
+- [ ] be a responsible adult

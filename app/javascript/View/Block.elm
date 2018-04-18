@@ -22,7 +22,7 @@ view model =
             g
                 [ transform <| String.join " " [ "translate(", (toString model.x), " ", (toString model.y), ")" ]
                 , Mouse.onOver (\me -> UpdateBlockEvent (BlockEvent.View me model))
-                , Mouse.onOut (\me -> UpdateBlockEvent BlockEvent.Escape)
+                , Mouse.onOut (\me -> UpdateBlockEvent BlockEvent.EscapeView)
                 , Mouse.onDown (\me -> UpdateBlockEvent (BlockEvent.Edit me model))
                 ]
                 [ viewBlock model
@@ -32,7 +32,7 @@ view model =
             g
                 [ transform <| String.join " " [ "translate(", (toString model.x), " ", (toString model.y), ")" ]
                 , Mouse.onOver (\me -> UpdateBlockEvent (BlockEvent.View me model))
-                , Mouse.onOut (\_ -> UpdateBlockEvent BlockEvent.Escape)
+                , Mouse.onOut (\_ -> UpdateBlockEvent BlockEvent.EscapeView)
                 , Mouse.onDown (\me -> UpdateBlockEvent (BlockEvent.Edit me model))
                 ]
                 [ viewBlock model

@@ -186,7 +186,7 @@ dayOfWeek zoom activities =
     div [ class "day" ]
         [ div [ class "summary" ] [ zoom.start |> Date.toFormattedString "E" |> Html.text ]
         , svg
-            [ Mouse.onDown (\mouseEvent -> UpdateBlockEvent (BlockEvent.Create mouseEvent))
+            [ Mouse.onDown (\mouseEvent -> UpdateBlockEvent (BlockEvent.Create mouseEvent zoom.start))
             ]
             (RemoteData.withDefault [] (activities zoom.start zoom.end)
                 |> List.map (Block.initModel << Block.Activity)

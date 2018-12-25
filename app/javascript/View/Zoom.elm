@@ -21,7 +21,7 @@ viewMenu : Zoom.Model -> Html Msg
 viewMenu zoom =
     div [ class "ui secondary menu" ]
         [ div [ class "ui simple dropdown item" ]
-            [ Html.text (toString zoom.level)
+            [ Html.text (Debug.toString zoom.level)
             , Html.i [ class "dropdown icon" ] []
             , div [ class "menu" ]
                 [ div ([ class "item" ] ++ onClickPage (Route.Zoom { zoom | level = Year })) [ Html.text "Year" ]
@@ -123,7 +123,7 @@ view zoom activityAccess =
 monthOfYear : Zoom.Model -> (Date -> Date -> WebData (List Activity)) -> (Block.Model -> Block.Model) -> Html Msg
 monthOfYear zoom activities normalizer =
     div ([ class "month" ] ++ onClickPage (Route.Zoom zoom))
-        [ div [ class "ui sub header" ] [ Html.text (zoom.start |> Date.month |> toString) ]
+        [ div [ class "ui sub header" ] [ Html.text (zoom.start |> Date.month |> Debug.toString) ]
         , svg []
             (List.concat
                 (Zoom.range zoom
@@ -151,7 +151,7 @@ headerOfMonth : Zoom.Model -> Html Msg
 headerOfMonth zoom =
     div [ class "week header" ]
         (div [ class "summary" ] []
-            :: (Zoom.range (Zoom.initModel Week zoom.end) |> List.map (\z -> div [ class "day" ] [ Html.text (Date.dayOfWeek z.start |> toString) ]))
+            :: (Zoom.range (Zoom.initModel Week zoom.end) |> List.map (\z -> div [ class "day" ] [ Html.text (Date.dayOfWeek z.start |> Debug.toString) ]))
         )
 
 

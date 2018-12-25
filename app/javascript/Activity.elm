@@ -81,20 +81,20 @@ pace activity =
 
         strSecs =
             if secs < 10 then
-                "0" ++ toString secs
+                "0" ++ String.fromInt secs
 
             else if secs == 60 then
                 "00"
 
             else
-                toString secs
+                String.fromInt secs
 
         strMins =
             if secs == 60 then
-                toString (mins + 1)
+                String.fromInt (mins + 1)
 
             else
-                toString mins
+                String.fromInt mins
     in
     if activity.averageSpeed == 0 then
         "unknown pace"
@@ -109,7 +109,7 @@ miles activity =
         |> round
         |> toFloat
         |> (\n -> n / 10)
-        |> (\n -> toString n ++ " miles")
+        |> (\n -> String.fromFloat n ++ " miles")
 
 
 

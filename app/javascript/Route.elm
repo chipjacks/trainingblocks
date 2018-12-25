@@ -50,7 +50,7 @@ toString route =
         pieces =
             case route of
                 Zoom model ->
-                    [ model.level |> Basics.toString |> String.toLower, model.end |> toRataDie |> Basics.toString ]
+                    [ model.level |> Debug.toString |> String.toLower, model.end |> toRataDie |> String.fromInt ]
 
                 NotFound ->
                     [ "notfound" ]

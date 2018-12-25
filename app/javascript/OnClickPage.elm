@@ -1,16 +1,16 @@
 module OnClickPage exposing (onClickPage)
 
-import Route exposing (Route)
 import Html exposing (Attribute)
-import Html.Attributes exposing (style, href)
-import Html.Events exposing (onWithOptions, defaultOptions)
+import Html.Attributes exposing (href, style)
+import Html.Events exposing (defaultOptions, onWithOptions)
 import Json.Decode exposing (Decoder)
 import Msg exposing (Msg(..))
+import Route exposing (Route)
 
 
 onClickPage : Route -> List (Attribute Msg)
 onClickPage page =
-    [ style [ ( "pointer", "cursor" ) ]
+    [ style "pointer" "cursor"
     , href (Route.toString page)
     , onPreventDefaultClick (NewPage page)
     ]
@@ -28,7 +28,7 @@ onPreventDefaultClick message =
 preventDefault2 : Decoder Bool
 preventDefault2 =
     Json.Decode.map2
-        (invertedOr)
+        invertedOr
         (Json.Decode.field "ctrlKey" Json.Decode.bool)
         (Json.Decode.field "metaKey" Json.Decode.bool)
 

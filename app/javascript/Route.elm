@@ -1,9 +1,9 @@
 module Route exposing (Route(..), parseLocation, toString)
 
-import Navigation exposing (Location)
-import UrlParser as Url exposing ((</>), Parser, oneOf, parseHash, s, int, custom)
 import Date exposing (Date)
-import Date.Extra exposing (fromRataDie, toRataDie, Interval(..))
+import Date.Extra exposing (Interval(..), fromRataDie, toRataDie)
+import Navigation exposing (Location)
+import UrlParser as Url exposing ((</>), Parser, custom, int, oneOf, parseHash, s)
 import Zoom
 
 
@@ -54,14 +54,13 @@ toString route =
 
                 NotFound ->
                     [ "notfound" ]
-
     in
-        "#/" ++ String.join "/" pieces
+    "#/" ++ String.join "/" pieces
 
 
 parseLocation : Location -> Route
 parseLocation location =
-    case (parseHash matchers location) of
+    case parseHash matchers location of
         Just route ->
             route
 

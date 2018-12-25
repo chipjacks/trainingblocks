@@ -1,18 +1,18 @@
-module Main exposing (..)
+module Main exposing (Model, init, main, subscriptions, update, view, zoomToday)
 
-import Html exposing (Html, div)
+import ActivityCache exposing (accessActivities, fetchActivities)
+import Block
 import Date exposing (Date, Month(..))
 import Date.Extra as Date exposing (Interval(..))
-import ActivityCache exposing (fetchActivities, accessActivities)
-import Route exposing (Route, parseLocation)
-import Navigation exposing (Location)
-import Msg exposing (Msg(..))
-import Task
-import Zoom
-import View.Zoom
-import Block
-import View.Block
+import Html exposing (Html, div)
 import Mouse exposing (Position)
+import Msg exposing (Msg(..))
+import Navigation exposing (Location)
+import Route exposing (Route, parseLocation)
+import Task
+import View.Block
+import View.Zoom
+import Zoom
 
 
 main : Program Never Model Msg
@@ -49,12 +49,12 @@ init location =
             , mousePos = Position 0 0
             }
     in
-        case model.route of
-            Route.NotFound ->
-                zoomToday model
+    case model.route of
+        Route.NotFound ->
+            zoomToday model
 
-            Route.Zoom _ ->
-                update (OnLocationChange location) model
+        Route.Zoom _ ->
+            update (OnLocationChange location) model
 
 
 
@@ -69,40 +69,54 @@ update msg model =
                 newRoute =
                     parseLocation location
             in
-                case newRoute of
-                    Route.Zoom zoom ->
-                        let
-                            ( acModel, acMsg ) =
-                                fetchActivities model.activityCache zoom.start zoom.end
-                        in
-                            { model | zoom = zoom, activityCache = acModel, route = newRoute }
-                                ! [ acMsg |> Cmd.map UpdateActivityCache ]
+            case newRoute of
+                Route.Zoom zoom ->
+                    let
+                        ( acModel, acMsg ) =
+                            fetchActivities model.activityCache zoom.start zoom.end
+                    in
+                    ( { model | zoom = zoom, activityCache = acModel, route = newRoute }
+                    , acMsg |> Cmd.map UpdateActivityCache
+                    )
 
-                    Route.NotFound ->
-                        zoomToday model
+                Route.NotFound ->
+                    zoomToday model
 
         ZoomToday ->
             zoomToday model
 
         NewPage page ->
-            model ! [ Navigation.newUrl (Route.toString page) ]
+            ( model
+            , Navigation.newUrl (Route.toString page)
+            )
 
         UpdateActivityCache subMsg ->
-            { model | activityCache = ActivityCache.update subMsg model.activityCache } ! []
+            ( { model | activityCache = ActivityCache.update subMsg model.activityCache }
+            , Cmd.none
+            )
 
         NoOp ->
-            model ! []
+            ( model
+            , Cmd.none
+            )
 
         BlockEvent event ->
-            { model | blockEvent = event } ! []
+            ( { model | blockEvent = event }
+            , Cmd.none
+            )
 
         MouseMsg position ->
-            { model | mousePos = position } ! []
+            ( { model | mousePos = position }
+            , Cmd.none
+            )
 
 
 zoomToday : Model -> ( Model, Cmd Msg )
 zoomToday model =
-    model ! [ Task.perform (\date -> NewPage <| Route.Zoom <| Zoom.initModel model.zoom.level date) Date.now ]
+    ( model
+    , Task.perform (\date -> NewPage <| Route.Zoom <| Zoom.initModel model.zoom.level date) Date.now
+    )
+
 
 
 -- SUBSCRIPTIONS

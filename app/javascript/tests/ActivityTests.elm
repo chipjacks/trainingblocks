@@ -1,18 +1,19 @@
 module ActivityTests exposing (suite)
 
-import Expect exposing (Expectation)
-import Test exposing (..)
-import Json.Decode as JD
+import Activity exposing (Activity, ActivityType(..))
 import Date exposing (Date, Month(..))
 import Date.Extra as Date
+import Expect exposing (Expectation)
+import Json.Decode as JD
+import Test exposing (..)
 import TestHelpers exposing (activities)
-import Activity exposing (Activity, ActivityType(..))
 
 
 suite : Test
 suite =
     let
-        activityStr = """
+        activityStr =
+            """
             {
                 "id": 1272606297,
                 "external_id": "garmin_push_2328646805",
@@ -51,6 +52,7 @@ suite =
                 "has_kudoed": false
             }
         """
+
         activity =
             { id = "1272606297"
             , name = "Morning Run"
@@ -59,22 +61,24 @@ suite =
             , elapsedTime = 5760
             , totalElevationGain = 244.2
             , type_ = Run
-            , startDate = Date.fromParts 2017 Nov 11 7 45 28 0 
-            , startDateLocal = Date.fromParts 2017 Nov 10 23 45 28 0 
+            , startDate = Date.fromParts 2017 Nov 11 7 45 28 0
+            , startDateLocal = Date.fromParts 2017 Nov 10 23 45 28 0
             , averageSpeed = 3.155
             , maxSpeed = 5.2
             }
     in
-        describe "Activity" [
-            describe "#decoder"
-                [ test "decodes activities" <|
-                    \_ -> JD.decodeString Activity.decoder activityStr
+    describe "Activity"
+        [ describe "#decoder"
+            [ test "decodes activities" <|
+                \_ ->
+                    JD.decodeString Activity.decoder activityStr
                         |> Expect.equal (Ok activity)
-                ]
-            , describe "#groupByType"
-                [ test "groups activities by type" <|
-                    \_ -> Activity.groupByType activities
-                        |> List.map (\a -> List.map .type_ a)
-                        |> Expect.equal [[Run, Run, Run]]
-                ]
             ]
+        , describe "#groupByType"
+            [ test "groups activities by type" <|
+                \_ ->
+                    Activity.groupByType activities
+                        |> List.map (\a -> List.map .type_ a)
+                        |> Expect.equal [ [ Run, Run, Run ] ]
+            ]
+        ]

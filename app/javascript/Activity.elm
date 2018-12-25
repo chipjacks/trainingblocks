@@ -1,9 +1,9 @@
-module Activity exposing (Activity, list, decoder, ActivityType(..), groupByType, pace, miles)
+module Activity exposing (Activity, ActivityType(..), decoder, groupByType, list, miles, pace)
 
+import Date exposing (Date)
 import Http exposing (..)
 import Json.Decode as JD exposing (Decoder)
-import Json.Decode.Pipeline exposing (decode, required, optional, custom)
-import Date exposing (Date)
+import Json.Decode.Pipeline exposing (custom, decode, optional, required)
 
 
 type alias Activity =
@@ -34,9 +34,9 @@ list startDate endDate =
     let
         request_url =
             url "/activities"
-                [ ( "before", ((Date.toTime endDate / 1000) |> toString) ) ]
+                [ ( "before", (Date.toTime endDate / 1000) |> toString ) ]
     in
-        Http.get request_url (JD.list decoder)
+    Http.get request_url (JD.list decoder)
 
 
 decoder : Decoder Activity
@@ -71,32 +71,36 @@ pace : Activity -> String
 pace activity =
     let
         minPerMile =
-            (1 / (activity.averageSpeed / 1609 * 60))
+            1 / (activity.averageSpeed / 1609 * 60)
 
         mins =
             floor minPerMile
 
         secs =
-            round ((minPerMile - (toFloat mins)) * 60)
+            round ((minPerMile - toFloat mins) * 60)
 
         strSecs =
             if secs < 10 then
-                "0" ++ (toString secs)
+                "0" ++ toString secs
+
             else if secs == 60 then
                 "00"
+
             else
                 toString secs
 
         strMins =
             if secs == 60 then
                 toString (mins + 1)
+
             else
                 toString mins
     in
-        if activity.averageSpeed == 0 then
-            "unknown pace"
-        else
-            strMins ++ ":" ++ strSecs ++ " pace"
+    if activity.averageSpeed == 0 then
+        "unknown pace"
+
+    else
+        strMins ++ ":" ++ strSecs ++ " pace"
 
 
 miles : Activity -> String

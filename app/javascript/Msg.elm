@@ -2,9 +2,9 @@ module Msg exposing (Msg(..))
 
 import ActivityCache
 import Block
+import Mouse
 import Navigation exposing (Location)
 import Route exposing (Route)
-import Mouse
 
 
 type Msg

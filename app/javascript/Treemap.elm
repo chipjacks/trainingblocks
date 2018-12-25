@@ -1,4 +1,4 @@
-module Treemap exposing (..)
+module Treemap exposing (Container, Coordinate, Offset, TreeMap(..), calculateRatio, cutArea, getCoordinates, improvesRatio, normalize, shortestEdge, squarify, treemapSingledimensional)
 
 -- FROM https://github.com/folkertdev/elm-treemap
 
@@ -41,36 +41,37 @@ getCoordinates row ({ width, height } as container) =
         initialSubyoffset =
             container.offset.y
     in
-        if width >= height then
-            let
-                ratios =
-                    row
-                        |> List.map (\datum -> datum / areaWidth)
-                        |> List.scanl (+) initialSubyoffset
+    if width >= height then
+        let
+            ratios =
+                row
+                    |> List.map (\datum -> datum / areaWidth)
+                    |> List.scanl (+) initialSubyoffset
 
-                determineBox current subyoffset =
-                    ( initialSubxoffset
-                    , subyoffset
-                    , initialSubxoffset + areaWidth
-                    , subyoffset + current / areaWidth
-                    )
-            in
-                List.map2 determineBox row ratios
-        else
-            let
-                ratios =
-                    row
-                        |> List.map (\datum -> datum / areaHeight)
-                        |> List.scanl (+) initialSubxoffset
+            determineBox current subyoffset =
+                ( initialSubxoffset
+                , subyoffset
+                , initialSubxoffset + areaWidth
+                , subyoffset + current / areaWidth
+                )
+        in
+        List.map2 determineBox row ratios
 
-                determineBox current subxoffset =
-                    ( subxoffset
-                    , initialSubyoffset
-                    , subxoffset + current / areaHeight
-                    , initialSubyoffset + areaHeight
-                    )
-            in
-                List.map2 determineBox row ratios
+    else
+        let
+            ratios =
+                row
+                    |> List.map (\datum -> datum / areaHeight)
+                    |> List.scanl (+) initialSubxoffset
+
+            determineBox current subxoffset =
+                ( subxoffset
+                , initialSubyoffset
+                , subxoffset + current / areaHeight
+                , initialSubyoffset + areaHeight
+                )
+        in
+        List.map2 determineBox row ratios
 
 
 {-| Once we've placed some boxes into an row we then need to identify the remaining area,
@@ -87,13 +88,14 @@ cutArea area ({ width, height } as container) =
             newWidth =
                 width - areaWidth
         in
-            { offset =
-                { x = container.offset.x + areaWidth
-                , y = container.offset.y
-                }
-            , width = newWidth
-            , height = height
+        { offset =
+            { x = container.offset.x + areaWidth
+            , y = container.offset.y
             }
+        , width = newWidth
+        , height = height
+        }
+
     else
         let
             areaHeight =
@@ -102,13 +104,13 @@ cutArea area ({ width, height } as container) =
             newHeight =
                 height - areaHeight
         in
-            { offset =
-                { x = container.offset.x
-                , y = container.offset.y + areaHeight
-                }
-            , width = width
-            , height = newHeight
+        { offset =
+            { x = container.offset.x
+            , y = container.offset.y + areaHeight
             }
+        , width = width
+        , height = newHeight
+        }
 
 
 
@@ -124,7 +126,7 @@ normalize area data =
         multiplier =
             area / List.sum data
     in
-        List.map (\datum -> datum * multiplier) data
+    List.map (\datum -> datum * multiplier) data
 
 
 {-| calculates the maximum width to height ratio of the
@@ -147,9 +149,9 @@ calculateRatio row length =
                 ( minimal, maximal, total ) =
                     List.foldl folder ( r, r, r ) rs
             in
-                max
-                    (length ^ 2 * maximal / (total ^ 2))
-                    ((total ^ 2) / ((length ^ 2) * minimal))
+            max
+                (length ^ 2 * maximal / (total ^ 2))
+                ((total ^ 2) / ((length ^ 2) * minimal))
 
 
 {-| implements the worse calculation and comparision as given in Bruls
@@ -159,6 +161,7 @@ improvesRatio : List Float -> Float -> Float -> Bool
 improvesRatio currentRow nextnode length =
     if List.length currentRow == 0 then
         True
+
     else
         let
             newRow =
@@ -170,9 +173,9 @@ improvesRatio currentRow nextnode length =
             newratio =
                 calculateRatio newRow length
         in
-            -- the pseudocode in the Bruls paper has the direction of the comparison
-            -- wrong, this is the correct one.
-            currentratio >= newratio
+        -- the pseudocode in the Bruls paper has the direction of the comparison
+        -- wrong, this is the correct one.
+        currentratio >= newratio
 
 
 {-| as per the Bruls paper
@@ -190,17 +193,18 @@ squarify data currentRow container stack =
                 length =
                     shortestEdge container
             in
-                if improvesRatio currentRow d length then
-                    squarify ds (currentRow ++ [ d ]) container stack
-                else
-                    let
-                        newContainer =
-                            cutArea (List.sum currentRow) container
+            if improvesRatio currentRow d length then
+                squarify ds (currentRow ++ [ d ]) container stack
 
-                        newStack =
-                            getCoordinates currentRow container :: stack
-                    in
-                        squarify data [] newContainer newStack
+            else
+                let
+                    newContainer =
+                        cutArea (List.sum currentRow) container
+
+                    newStack =
+                        getCoordinates currentRow container :: stack
+                in
+                squarify data [] newContainer newStack
 
 
 treemapSingledimensional : Container -> List Float -> List Coordinate

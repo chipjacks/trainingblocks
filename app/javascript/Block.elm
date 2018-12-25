@@ -1,7 +1,8 @@
-module Block exposing (Model, initModel, Data(..), View(..), sum, scale, split, stack, decompose, normalize, normalizer, plot, Event(..), shift, crop, list)
+module Block exposing (Data(..), Event(..), Model, View(..), crop, decompose, initModel, list, normalize, normalizer, plot, scale, shift, split, stack, sum)
 
 import Activity exposing (Activity, ActivityType(..))
 import Date.Extra as Date
+
 
 
 {-
@@ -73,7 +74,7 @@ initModel data =
                 maxY =
                     blocks |> List.map (\b -> b.y + b.h) |> List.maximum |> Maybe.withDefault 0
             in
-                Model 0 0 maxX maxY "" data Children
+            Model 0 0 maxX maxY "" data Children
 
         Activity activity ->
             Model 0 0 (activity.movingTime // 60) (toIntensity activity) (color activity.type_) data Normal
@@ -103,19 +104,19 @@ scale xFactor yFactor model =
     case model.data of
         Blocks blocks ->
             { model
-                | w = ((toFloat model.w) * xFactor) |> round
-                , h = ((toFloat model.h) * yFactor) |> round
-                , x = ((toFloat model.x) * xFactor) |> round
-                , y = ((toFloat model.y) * yFactor) |> round
+                | w = (toFloat model.w * xFactor) |> round
+                , h = (toFloat model.h * yFactor) |> round
+                , x = (toFloat model.x * xFactor) |> round
+                , y = (toFloat model.y * yFactor) |> round
                 , data = Blocks (List.map (scale xFactor yFactor) blocks)
             }
 
         _ ->
             { model
-                | w = ((toFloat model.w) * xFactor) |> round
-                , h = ((toFloat model.h) * yFactor) |> round
-                , x = ((toFloat model.x) * xFactor) |> round
-                , y = ((toFloat model.y) * yFactor) |> round
+                | w = (toFloat model.w * xFactor) |> round
+                , h = (toFloat model.h * yFactor) |> round
+                , x = (toFloat model.x * xFactor) |> round
+                , y = (toFloat model.y * yFactor) |> round
             }
 
 
@@ -126,9 +127,9 @@ normalize blocks =
 
 normalizer : Blocks -> (Model -> Model)
 normalizer blocks =
-    case (List.map .w blocks |> List.maximum) of
+    case List.map .w blocks |> List.maximum of
         Just maxDuration ->
-            scale (1 / (toFloat maxDuration) * 100) 1
+            scale (1 / toFloat maxDuration * 100) 1
 
         Nothing ->
             scale 1 1
@@ -143,7 +144,7 @@ crop maxW maxH model =
         newH =
             List.minimum [ maxH, model.h ] |> Maybe.withDefault model.h
     in
-        { model | w = newW, h = newH }
+    { model | w = newW, h = newH }
 
 
 
@@ -163,7 +164,8 @@ decompose model =
 split : Int -> Model -> Blocks
 split maxWidth model =
     if model.w > maxWidth then
-        { model | w = maxWidth, view = Split } :: (split maxWidth { model | w = model.w - maxWidth })
+        { model | w = maxWidth, view = Split } :: split maxWidth { model | w = model.w - maxWidth }
+
     else
         [ model ]
 
@@ -184,12 +186,12 @@ sum blocks =
         h_ =
             (activities model |> List.map toIntensity |> List.sum) // (activities model |> List.length)
     in
-        { model
-            | w = w_
-            , h = h_
-            , color = (blocks |> List.map .color |> List.head |> Maybe.withDefault "")
-            , view = Normal
-        }
+    { model
+        | w = w_
+        , h = h_
+        , color = blocks |> List.map .color |> List.head |> Maybe.withDefault ""
+        , view = Normal
+    }
 
 
 stack : Blocks -> Model
@@ -221,10 +223,11 @@ activities model =
 stackOnParent : Model -> Model -> Model
 stackOnParent block parent =
     appendBlock
-        (case (lastBlock parent) of
+        (case lastBlock parent of
             Just lastBlock ->
                 if lastBlock.view == Split then
                     { block | x = lastBlock.x + 2, y = lastBlock.y + 3 }
+
                 else
                     { block | x = lastBlock.x + 5, y = lastBlock.y + 5 }
 
@@ -238,19 +241,19 @@ listOnParent : Model -> Model -> Model
 listOnParent block parent =
     let
         newBlock =
-            case (lastBlock parent) of
+            case lastBlock parent of
                 Just lastBlock ->
-                    { block | y = (lastBlock.y + lastBlock.h + 5) }
+                    { block | y = lastBlock.y + lastBlock.h + 5 }
 
                 Nothing ->
                     block
     in
-        appendBlock newBlock parent
+    appendBlock newBlock parent
 
 
 appendBlock : Model -> Model -> Model
 appendBlock model parent =
-    (decompose parent)
+    decompose parent
         ++ [ model ]
         |> initModel
         << Blocks
@@ -289,16 +292,19 @@ toIntensity : Activity -> Int
 toIntensity activity =
     let
         minPerMile =
-            (((toFloat activity.movingTime) / 60) / (activity.distance / 1609.34))
+            (toFloat activity.movingTime / 60) / (activity.distance / 1609.34)
 
         estimatedIntensity =
-            (9 - Basics.floor minPerMile)
+            9 - Basics.floor minPerMile
     in
-        if activity.type_ /= Run then
-            1
-        else if estimatedIntensity < 1 then
-            1
-        else if estimatedIntensity > 5 then
-            5
-        else
-            estimatedIntensity
+    if activity.type_ /= Run then
+        1
+
+    else if estimatedIntensity < 1 then
+        1
+
+    else if estimatedIntensity > 5 then
+        5
+
+    else
+        estimatedIntensity

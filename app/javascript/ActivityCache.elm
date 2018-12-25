@@ -1,10 +1,10 @@
-module ActivityCache exposing (fetchActivities, accessActivities, Model, initModel, Msg, update)
+module ActivityCache exposing (Model, Msg, accessActivities, fetchActivities, initModel, update)
 
-import Dict exposing (Dict)
-import Date exposing (Date)
-import Date.Extra as Date exposing (toRataDie, Interval(..))
-import RemoteData exposing (WebData, RemoteData(..))
 import Activity exposing (Activity)
+import Date exposing (Date)
+import Date.Extra as Date exposing (Interval(..), toRataDie)
+import Dict exposing (Dict)
+import RemoteData exposing (RemoteData(..), WebData)
 
 
 type alias Model =
@@ -31,7 +31,7 @@ update msg model =
                         activities =
                             filterActivities date (Date.add Month 1 date) allActivities
                     in
-                        { model | cache = Dict.insert (date |> keyFor) (Success activities) model.cache }
+                    { model | cache = Dict.insert (date |> keyFor) (Success activities) model.cache }
 
                 _ ->
                     model
@@ -79,12 +79,12 @@ fetchIfMissing date result =
         ( model, cmds ) =
             result
     in
-        case value of
-            Just webdata ->
-                result
+    case value of
+        Just webdata ->
+            result
 
-            Nothing ->
-                ( { model | cache = Dict.insert key Loading model.cache }, (stravaRequestCmd date) :: cmds )
+        Nothing ->
+            ( { model | cache = Dict.insert key Loading model.cache }, stravaRequestCmd date :: cmds )
 
 
 stravaRequestCmd : Date -> Cmd Msg
@@ -93,6 +93,6 @@ stravaRequestCmd date =
         endDate =
             Date.add Month 1 date
     in
-        Activity.list date endDate
-            |> RemoteData.sendRequest
-            |> Cmd.map (GotActivities date)
+    Activity.list date endDate
+        |> RemoteData.sendRequest
+        |> Cmd.map (GotActivities date)

@@ -1,17 +1,17 @@
 module Zoom exposing (Model, initModel, jump, newer, older, range, string, zoomIn)
 
-import Date exposing (Date)
-import Date.Extra as Date exposing (Interval(..))
+import Date exposing (Date, Interval(..), Unit(..))
+import DateFormat
 
 
 type alias Model =
-    { level : Date.Interval
+    { level : Date.Unit
     , start : Date
     , end : Date
     }
 
 
-initModel : Interval -> Date -> Model
+initModel : Unit -> Date -> Model
 initModel level endDate =
     let
         ( start, end ) =
@@ -22,7 +22,7 @@ initModel level endDate =
 
 range : Model -> List Model
 range zoom =
-    Date.range (zoomIn zoom.level) 1 zoom.start zoom.end
+    Date.range (zoomIn zoom.level |> toInterval) 1 zoom.start zoom.end
         |> List.map (\d -> Model (zoomIn zoom.level) d (Date.add (zoomIn zoom.level) 1 d))
 
 
@@ -38,67 +38,81 @@ older model =
 
 jump : Int -> Model -> Model
 jump distance model =
-    initModel model.level (Date.add model.level distance (Date.floor model.level model.end))
+    initModel model.level (Date.add model.level distance (Date.floor (toInterval model.level) model.end))
 
 
 string : Model -> String
 string model =
-    Date.toFormattedString "MMMM ddd, y" model.start ++ " - " ++ Date.toFormattedString "MMMM ddd, y" model.end
-
+    Date.format "MMMM ddd, y" model.start ++ " - " ++ Date.format "MMMM ddd, y" model.end
 
 
 -- INTERNAL
 
+toInterval : Unit -> Interval
+toInterval level =
+    case level of
+        Years ->
+            Year
 
-dateLimits : Interval -> Date -> ( Date, Date )
+        Months ->
+            Month
+
+        Days ->
+            Day
+
+        _ ->
+            Debug.todo "Invalid interval"
+
+
+dateLimits : Unit -> Date -> ( Date, Date )
 dateLimits level date =
     case level of
-        Year ->
-            ( Date.add Quarter -4 (Date.ceiling Quarter date)
+        Years ->
+            ( Date.add Months -12 (Date.ceiling Quarter date)
             , Date.ceiling Quarter date
             )
 
-        Month ->
-            ( Date.add Week -5 (Date.ceiling Week date)
+        Months ->
+            ( Date.add Weeks -5 (Date.ceiling Week date)
             , Date.ceiling Week date
             )
 
-        Week ->
-            ( Date.add Day -7 (Date.ceiling Day date)
+        Weeks ->
+            ( Date.add Days -7 (Date.ceiling Day date)
             , Date.ceiling Day date
             )
 
         _ ->
-            Debug.crash "Invalid interval"
+            Debug.todo "Invalid interval"
 
 
-zoomIn : Interval -> Interval
+zoomIn : Unit -> Unit
 zoomIn level =
     case level of
-        Year ->
-            Month
+        Years ->
+            Months
 
-        Month ->
-            Week
+        Months ->
+            Weeks
 
-        Week ->
-            Day
+        Weeks ->
+            Days
 
         _ ->
-            Debug.crash "Invalid interval"
+            Debug.todo "Invalid interval"
 
 
-increment : Interval -> Interval
+increment : Unit -> Unit
 increment level =
     case level of
-        Year ->
-            Quarter
+        Years ->
+            Months
 
-        Month ->
-            Week
+        Months ->
+            Weeks
 
-        Week ->
-            Day
+        Weeks ->
+            Days
 
         _ ->
-            Debug.crash "Invalid interval"
+            Debug.todo "Invalid interval"

@@ -1,9 +1,7 @@
 module Route exposing (Route(..), parseLocation, toString)
 
-import Date exposing (Date)
-import Date.Extra exposing (Interval(..), fromRataDie, toRataDie)
-import Navigation exposing (Location)
-import UrlParser as Url exposing ((</>), Parser, custom, int, oneOf, parseHash, s)
+import Date exposing (Date, Interval(..), fromRataDie, toRataDie)
+import Url exposing ((</>), Parser, custom, int, oneOf, parseHash, s)
 import Zoom
 
 

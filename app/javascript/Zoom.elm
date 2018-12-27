@@ -1,7 +1,6 @@
 module Zoom exposing (Model, initModel, jump, newer, older, range, string, zoomIn)
 
 import Date exposing (Date, Interval(..), Unit(..))
-import DateFormat
 
 
 type alias Model =
@@ -46,7 +45,9 @@ string model =
     Date.format "MMMM ddd, y" model.start ++ " - " ++ Date.format "MMMM ddd, y" model.end
 
 
+
 -- INTERNAL
+
 
 toInterval : Unit -> Interval
 toInterval level =
@@ -57,11 +58,11 @@ toInterval level =
         Months ->
             Month
 
+        Weeks ->
+            Week
+
         Days ->
             Day
-
-        _ ->
-            Debug.todo "Invalid interval"
 
 
 dateLimits : Unit -> Date -> ( Date, Date )

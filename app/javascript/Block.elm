@@ -1,7 +1,7 @@
 module Block exposing (Data(..), Event(..), Model, View(..), crop, decompose, initModel, list, normalize, normalizer, plot, scale, shift, split, stack, sum)
 
 import Activity exposing (Activity, ActivityType(..))
-import Date.Extra as Date
+import Date
 
 
 
@@ -93,8 +93,9 @@ plot : Model -> Model
 plot model =
     case model.data of
         Activity activity ->
-            shift (activity.startDate |> Date.fractionalDay |> (*) 24 |> (*) 38 |> round) 0 model
+            model
 
+        -- TODO: shift the blocks
         Blocks blocks ->
             model
 
@@ -224,12 +225,12 @@ stackOnParent : Model -> Model -> Model
 stackOnParent block parent =
     appendBlock
         (case lastBlock parent of
-            Just lastBlock ->
-                if lastBlock.view == Split then
-                    { block | x = lastBlock.x + 2, y = lastBlock.y + 3 }
+            Just b ->
+                if b.view == Split then
+                    { b | x = b.x + 2, y = b.y + 3 }
 
                 else
-                    { block | x = lastBlock.x + 5, y = lastBlock.y + 5 }
+                    { b | x = b.x + 5, y = b.y + 5 }
 
             Nothing ->
                 block
@@ -242,8 +243,8 @@ listOnParent block parent =
     let
         newBlock =
             case lastBlock parent of
-                Just lastBlock ->
-                    { block | y = lastBlock.y + lastBlock.h + 5 }
+                Just b ->
+                    { b | y = b.y + b.h + 5 }
 
                 Nothing ->
                     block

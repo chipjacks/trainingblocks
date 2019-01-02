@@ -36,8 +36,8 @@ suite =
                 \_ ->
                     am
                         |> scale 2 3
-                        |> (\b -> ( b.w, b.h, b.x, b.y ))
-                        |> Expect.equal ( am.w * 2, am.h * 3, am.x * 2, am.y * 3 )
+                        |> (\b -> [ b.w, b.h, b.x, b.y ])
+                        |> Expect.equal [ am.w * 2, am.h * 3, am.x * 2, am.y * 3 ]
             , test "works on nested blocks" <|
                 \_ ->
                     ams
@@ -46,12 +46,12 @@ suite =
                         |> sum
                         |> scale 2 3
                         |> decompose
-                        |> List.map (\b -> ( b.w, b.h, b.x, b.y ))
+                        |> List.map (\b -> [ b.w, b.h, b.x, b.y ])
                         |> Expect.equal
                             (ams
                                 |> decompose
                                 |> List.indexedMap (\i b -> shift (i * 5) (i * 5) b)
-                                |> List.map (\b -> ( b.w * 2, b.h * 3, b.x * 2, b.y * 3 ))
+                                |> List.map (\b -> [ b.w * 2, b.h * 3, b.x * 2, b.y * 3 ])
                             )
             ]
         , describe "#sum"

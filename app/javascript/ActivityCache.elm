@@ -1,8 +1,7 @@
 module ActivityCache exposing (Model, Msg, accessActivities, fetchActivities, initModel, update)
 
 import Activity exposing (Activity)
-import Date exposing (Date)
-import Date.Extra as Date exposing (Interval(..), toRataDie)
+import Date exposing (Date, Interval(..), toRataDie)
 import Dict exposing (Dict)
 import RemoteData exposing (RemoteData(..), WebData)
 
@@ -29,7 +28,7 @@ update msg model =
                 Success allActivities ->
                     let
                         activities =
-                            filterActivities date (Date.add Month 1 date) allActivities
+                            filterActivities date (Date.add Date.Months 1 date) allActivities
                     in
                     { model | cache = Dict.insert (date |> keyFor) (Success activities) model.cache }
 
@@ -64,7 +63,7 @@ keyFor date =
 
 filterActivities : Date -> Date -> (List Activity -> List Activity)
 filterActivities a b =
-    List.filter (\activity -> Date.isBetween a (Date.add Date.Second -1 b) activity.startDate)
+    List.filter (\activity -> Date.isBetween a (Date.add Date.Days -1 b) activity.startDate)
 
 
 fetchIfMissing : Date -> ( Model, List (Cmd Msg) ) -> ( Model, List (Cmd Msg) )
@@ -91,7 +90,7 @@ stravaRequestCmd : Date -> Cmd Msg
 stravaRequestCmd date =
     let
         endDate =
-            Date.add Month 1 date
+            Date.add Date.Months 1 date
     in
     Activity.list date endDate
         |> RemoteData.sendRequest

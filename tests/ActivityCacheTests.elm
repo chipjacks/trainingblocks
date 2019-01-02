@@ -1,8 +1,8 @@
 module ActivityCacheTests exposing (suite)
 
 import ActivityCache exposing (accessActivities, fetchActivities)
-import Date exposing (Month(..))
-import Date.Extra as Date
+import Time exposing (Month(..))
+import Date
 import Dict
 import Expect exposing (Expectation)
 import RemoteData exposing (RemoteData(..))
@@ -17,7 +17,7 @@ suite =
             Date.fromCalendarDate 2018 Jan 1
 
         endDate =
-            Date.add Date.Month 3 startDate
+            Date.add Date.Months 3 startDate
 
         jan15 =
             Date.fromCalendarDate 2018 Jan 15
@@ -28,8 +28,8 @@ suite =
                     (\d ->
                         ( Date.toRataDie d
                         , Success
-                            (Date.range Date.Day 1 d (Date.add Date.Month 1 d)
-                                |> List.map (\d -> activity (Date.day d) 4 30)
+                            (Date.range Date.Day 1 d (Date.add Date.Months 1 d)
+                                |> List.map (\d2 -> activity (Date.day d2) 4 30)
                             )
                         )
                     )
@@ -49,9 +49,9 @@ suite =
         , describe "#accessActivities"
             [ test "returns activites if they have all been loaded" <|
                 \_ ->
-                    accessActivities loadedModel jan15 (Date.add Date.Week 1 jan15)
+                    accessActivities loadedModel jan15 (Date.add Date.Weeks 1 jan15)
                         |> Expect.equal
-                            (Date.range Date.Day 1 jan15 (Date.add Date.Week 1 jan15)
+                            (Date.range Date.Day 1 jan15 (Date.add Date.Weeks 1 jan15)
                                 |> List.map (\d -> activity (Date.day d) 4 30)
                                 |> RemoteData.succeed
                             )

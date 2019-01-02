@@ -1,8 +1,8 @@
 module ActivityTests exposing (suite)
 
 import Activity exposing (Activity, ActivityType(..))
-import Date exposing (Date, Month(..))
-import Date.Extra as Date
+import Time exposing (Month(..))
+import Date exposing (Date)
 import Expect exposing (Expectation)
 import Json.Decode as JD
 import Test exposing (..)
@@ -61,8 +61,7 @@ suite =
             , elapsedTime = 5760
             , totalElevationGain = 244.2
             , type_ = Run
-            , startDate = Date.fromParts 2017 Nov 11 7 45 28 0
-            , startDateLocal = Date.fromParts 2017 Nov 10 23 45 28 0
+            , startDate = Date.fromCalendarDate 2017 Nov 11
             , averageSpeed = 3.155
             , maxSpeed = 5.2
             }

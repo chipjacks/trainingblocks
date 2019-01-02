@@ -1,9 +1,10 @@
 module Activity exposing (Activity, ActivityType(..), decoder, groupByType, list, miles, pace)
 
 import Date exposing (Date)
-import Http exposing (..)
+import Http exposing (Request)
 import Json.Decode as JD exposing (Decoder)
-import Json.Decode.Pipeline exposing (custom, decode, optional, required)
+import Json.Decode.Pipeline exposing (custom, optional, required)
+import Url.Builder
 
 
 type alias Activity =
@@ -15,7 +16,6 @@ type alias Activity =
     , totalElevationGain : Float
     , type_ : ActivityType
     , startDate : Date
-    , startDateLocal : Date
     , averageSpeed : Float
     , maxSpeed : Float
     }
@@ -32,25 +32,28 @@ type ActivityType
 list : Date -> Date -> Request (List Activity)
 list startDate endDate =
     let
+        secondsInADay =
+            60 * 24
+
+        -- TODO: Check this logic
         request_url =
             url "/activities"
-                [ ( "before", (Date.toTime endDate / 1000) |> toString ) ]
+                [ ( "before", Date.toRataDie endDate |> (*) secondsInADay |> String.fromInt ) ]
     in
     Http.get request_url (JD.list decoder)
 
 
 decoder : Decoder Activity
 decoder =
-    decode Activity
-        |> required "id" (JD.int |> JD.andThen (JD.succeed << toString))
+    JD.succeed Activity
+        |> required "id" (JD.int |> JD.andThen (JD.succeed << String.fromInt))
         |> required "name" JD.string
         |> required "distance" JD.float
         |> required "moving_time" JD.int
         |> required "elapsed_time" JD.int
         |> required "total_elevation_gain" JD.float
         |> custom (JD.field "type" JD.string |> JD.andThen (JD.succeed << typeFromString))
-        |> custom (JD.field "start_date" JD.string |> JD.andThen (fromResult << Date.fromString))
-        |> custom (JD.field "start_date_local" JD.string |> JD.andThen (fromResult << Date.fromString))
+        |> custom (JD.field "start_date_local" dateDecoder)
         |> custom (JD.field "average_speed" JD.float)
         |> custom (JD.field "max_speed" JD.float)
 
@@ -118,17 +121,9 @@ miles activity =
 
 url : String -> List ( String, String ) -> String
 url baseUrl args =
-    case args of
-        [] ->
-            baseUrl
-
-        _ ->
-            baseUrl ++ "?" ++ String.join "&" (List.map queryPair args)
-
-
-queryPair : ( String, String ) -> String
-queryPair ( key, value ) =
-    Http.encodeUri key ++ "=" ++ Http.encodeUri value
+    Url.Builder.absolute
+        [ baseUrl ]
+        (args |> List.map (\( key, value ) -> Url.Builder.string key value))
 
 
 typeFromString : String -> ActivityType
@@ -148,6 +143,12 @@ typeFromString str =
 
         _ ->
             Other
+
+
+dateDecoder : Decoder Date
+dateDecoder =
+    JD.string
+        |> JD.andThen (\s -> String.left 10 s |> Date.fromIsoString |> fromResult)
 
 
 fromResult : Result String a -> Decoder a

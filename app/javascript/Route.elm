@@ -11,6 +11,32 @@ type Route
     | NotFound
 
 
+toString : Route -> String
+toString route =
+    let
+        pieces =
+            case route of
+                Zoom model ->
+                    [ model.level |> Debug.toString |> String.toLower, model.end |> toRataDie |> String.fromInt ]
+
+                NotFound ->
+                    [ "notfound" ]
+    in
+    "#/" ++ String.join "/" pieces
+
+
+fromUrl : Url -> Route
+fromUrl url =
+    case Url.Parser.parse matchers url of
+        Just route ->
+            route
+
+        Nothing ->
+            NotFound
+
+
+-- INTERNAL
+
 matchers : Parser (Route -> a) a
 matchers =
     oneOf
@@ -42,26 +68,3 @@ zoomDate =
         \segment ->
             String.toInt segment |> Maybe.map fromRataDie
 
-
-toString : Route -> String
-toString route =
-    let
-        pieces =
-            case route of
-                Zoom model ->
-                    [ model.level |> Debug.toString |> String.toLower, model.end |> toRataDie |> String.fromInt ]
-
-                NotFound ->
-                    [ "notfound" ]
-    in
-    "#/" ++ String.join "/" pieces
-
-
-fromUrl : Url -> Route
-fromUrl url =
-    case Url.Parser.parse matchers url of
-        Just route ->
-            route
-
-        Nothing ->
-            NotFound

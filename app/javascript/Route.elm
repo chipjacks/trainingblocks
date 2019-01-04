@@ -1,7 +1,8 @@
-module Route exposing (Route(..), parseLocation, toString)
+module Route exposing (Route(..), fromUrl, toString)
 
-import Date exposing (Date, Interval(..), fromRataDie, toRataDie)
-import Url exposing ((</>), Parser, custom, int, oneOf, parseHash, s)
+import Date exposing (Date, Unit(..), fromRataDie, toRataDie)
+import Url exposing (Url)
+import Url.Parser exposing ((</>), Parser, custom, int, oneOf, s, map)
 import Zoom
 
 
@@ -13,33 +14,33 @@ type Route
 matchers : Parser (Route -> a) a
 matchers =
     oneOf
-        [ Url.map Zoom <| Url.map Zoom.initModel (zoomLevel </> zoomDate)
+        [ map Zoom <| map Zoom.initModel (zoomLevel </> zoomDate)
         ]
 
 
-zoomLevel : Parser (Interval -> a) a
+zoomLevel : Parser (Unit -> a) a
 zoomLevel =
     custom "LEVEL" <|
         \segment ->
             case segment of
                 "year" ->
-                    Ok Year
+                    Just Years
 
                 "month" ->
-                    Ok Month
+                    Just Months
 
                 "week" ->
-                    Ok Week
+                    Just Weeks
 
                 _ ->
-                    Err "Invalid zoom level"
+                    Nothing
 
 
 zoomDate : Parser (Date -> a) a
 zoomDate =
     custom "DATE" <|
         \segment ->
-            String.toInt segment |> Result.map fromRataDie
+            String.toInt segment |> Maybe.map fromRataDie
 
 
 toString : Route -> String
@@ -56,9 +57,9 @@ toString route =
     "#/" ++ String.join "/" pieces
 
 
-parseLocation : Location -> Route
-parseLocation location =
-    case parseHash matchers location of
+fromUrl : Url -> Route
+fromUrl url =
+    case Url.Parser.parse matchers url of
         Just route ->
             route
 

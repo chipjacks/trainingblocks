@@ -2,7 +2,7 @@ module View.Block exposing (view, viewEvent)
 
 import Activity
 import Block exposing (..)
-import Date.Extra as Date
+import Date
 import Html exposing (Html, div)
 import Html.Attributes exposing (class)
 import Mouse exposing (Position)

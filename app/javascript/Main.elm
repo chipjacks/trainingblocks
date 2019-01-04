@@ -3,12 +3,11 @@ module Main exposing (Model, init, main, subscriptions, update, view, zoomToday)
 import ActivityCache exposing (accessActivities, fetchActivities)
 import Block
 import Date exposing (Date, Month(..))
-import Date.Extra as Date exposing (Interval(..))
 import Html exposing (Html, div)
 import Mouse exposing (Position)
 import Msg exposing (Msg(..))
-import Navigation exposing (Location)
-import Route exposing (Route, parseLocation)
+import Url exposing (Url)
+import Route exposing (Route, fromUrl)
 import Task
 import View.Block
 import View.Zoom
@@ -17,7 +16,7 @@ import Zoom
 
 main : Program Never Model Msg
 main =
-    Navigation.program OnLocationChange
+    Navigation.program ChangedUrl
         { init = init
         , view = view
         , update = update
@@ -38,14 +37,14 @@ type alias Model =
     }
 
 
-init : Location -> ( Model, Cmd Msg )
-init location =
+init : Url -> ( Model, Cmd Msg )
+init url =
     let
         model =
             { activityCache = ActivityCache.initModel
             , zoom = Zoom.initModel Year (Date.fromCalendarDate 2018 Jan 1)
             , blockEvent = Nothing
-            , route = parseLocation location
+            , route = fromUrl url
             , mousePos = Position 0 0
             }
     in
@@ -54,7 +53,7 @@ init location =
             zoomToday model
 
         Route.Zoom _ ->
-            update (OnLocationChange location) model
+            update (UrlChanged url) model
 
 
 
@@ -64,10 +63,10 @@ init location =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        OnLocationChange location ->
+        ChangedUrl url ->
             let
                 newRoute =
-                    parseLocation location
+                    fromUrl url
             in
             case newRoute of
                 Route.Zoom zoom ->

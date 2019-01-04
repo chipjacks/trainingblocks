@@ -3,13 +3,13 @@ module Msg exposing (Msg(..))
 import ActivityCache
 import Block
 import Mouse
-import Navigation exposing (Location)
+import Url exposing (Url)
 import Route exposing (Route)
 
 
 type Msg
     = UpdateActivityCache ActivityCache.Msg
-    | OnLocationChange Location
+    | ChangedUrl Url
     | NewPage Route
     | BlockEvent (Maybe ( Block.Event, Block.Model ))
     | MouseMsg Mouse.Position

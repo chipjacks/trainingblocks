@@ -2,7 +2,7 @@ module Route exposing (Route(..), fromUrl, toString)
 
 import Date exposing (Date, Unit(..), fromRataDie, toRataDie)
 import Url exposing (Url)
-import Url.Parser exposing ((</>), Parser, custom, int, oneOf, s, map)
+import Url.Parser exposing ((</>), Parser, custom, int, map, oneOf, s)
 import Zoom
 
 
@@ -35,7 +35,9 @@ fromUrl url =
             NotFound
 
 
+
 -- INTERNAL
+
 
 matchers : Parser (Route -> a) a
 matchers =
@@ -67,4 +69,3 @@ zoomDate =
     custom "DATE" <|
         \segment ->
             String.toInt segment |> Maybe.map fromRataDie
-

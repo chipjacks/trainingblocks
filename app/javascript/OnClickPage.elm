@@ -2,7 +2,7 @@ module OnClickPage exposing (onClickPage)
 
 import Html exposing (Attribute)
 import Html.Attributes exposing (href, style)
-import Html.Events exposing (defaultOptions, onWithOptions)
+import Html.Events exposing (preventDefaultOn)
 import Json.Decode exposing (Decoder)
 import Msg exposing (Msg(..))
 import Route exposing (Route)
@@ -16,10 +16,11 @@ onClickPage page =
     ]
 
 
+-- INTERNAL
+
 onPreventDefaultClick : msg -> Attribute msg
 onPreventDefaultClick message =
-    onWithOptions "click"
-        { defaultOptions | preventDefault = True }
+    preventDefaultOn "click"
         (preventDefault2
             |> Json.Decode.andThen (maybePreventDefault message)
         )
@@ -33,14 +34,9 @@ preventDefault2 =
         (Json.Decode.field "metaKey" Json.Decode.bool)
 
 
-maybePreventDefault : msg -> Bool -> Decoder msg
+maybePreventDefault : msg -> Bool -> Decoder ( msg, Bool )
 maybePreventDefault msg preventDefault =
-    case preventDefault of
-        True ->
-            Json.Decode.succeed msg
-
-        False ->
-            Json.Decode.fail "Normal link"
+    Json.Decode.succeed ( msg, preventDefault )
 
 
 invertedOr : Bool -> Bool -> Bool

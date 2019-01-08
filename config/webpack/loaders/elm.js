@@ -2,12 +2,12 @@ const { resolve } = require('path')
 
 const isProduction = process.env.NODE_ENV === 'production'
 const elmSource = resolve(process.cwd())
-const elmMake = `${elmSource}/node_modules/.bin/elm-make`
+const elmPath = `${elmSource}/node_modules/.bin/elm`
 
-const elmDefaultOptions = { cwd: elmSource, pathToMake: elmMake }
+const elmDefaultOptions = { cwd: elmSource, pathToElm: elmPath }
 const developmentOptions = Object.assign({}, elmDefaultOptions, {
-  verbose: true,
-  warn: true,
+  verbose: false,
+  warn: false,
   debug: true
 })
 
@@ -19,5 +19,5 @@ const elmWebpackLoader = {
 module.exports = {
   test: /\.elm(\.erb)?$/,
   exclude: [/elm-stuff/, /node_modules/],
-  use: isProduction ? [elmWebpackLoader] : [{ loader: 'elm-hot-loader' }, elmWebpackLoader]
+  use: elmWebpackLoader
 }

@@ -2,25 +2,29 @@ module Main exposing (Model, init, main, subscriptions, update, view, zoomToday)
 
 import ActivityCache exposing (accessActivities, fetchActivities)
 import Block
-import Date exposing (Date, Month(..))
+import Browser exposing (Document)
+import Browser.Navigation as Navigation
+import Date exposing (Date, Unit(..))
 import Html exposing (Html, div)
-import Mouse exposing (Position)
 import Msg exposing (Msg(..))
-import Url exposing (Url)
 import Route exposing (Route, fromUrl)
 import Task
+import Time exposing (Month(..))
+import Url exposing (Url)
 import View.Block
 import View.Zoom
 import Zoom
 
 
-main : Program Never Model Msg
+main : Program () Model Msg
 main =
-    Navigation.program ChangedUrl
+    Browser.application
         { init = init
         , view = view
         , update = update
         , subscriptions = subscriptions
+        , onUrlRequest = LinkClicked
+        , onUrlChange = ChangedUrl
         }
 
 
@@ -31,21 +35,19 @@ main =
 type alias Model =
     { activityCache : ActivityCache.Model
     , zoom : Zoom.Model
-    , blockEvent : Maybe ( Block.Event, Block.Model )
     , route : Route
-    , mousePos : Position
+    , key : Navigation.Key
     }
 
 
-init : Url -> ( Model, Cmd Msg )
-init url =
+init : () -> Url -> Navigation.Key -> ( Model, Cmd Msg )
+init _ url key =
     let
         model =
             { activityCache = ActivityCache.initModel
-            , zoom = Zoom.initModel Year (Date.fromCalendarDate 2018 Jan 1)
-            , blockEvent = Nothing
+            , zoom = Zoom.initModel Years (Date.fromCalendarDate 2018 Jan 1)
             , route = fromUrl url
-            , mousePos = Position 0 0
+            , key = key
             }
     in
     case model.route of
@@ -53,7 +55,7 @@ init url =
             zoomToday model
 
         Route.Zoom _ ->
-            update (UrlChanged url) model
+            update (ChangedUrl url) model
 
 
 
@@ -81,13 +83,25 @@ update msg model =
                 Route.NotFound ->
                     zoomToday model
 
+        ChangedRoute route ->
+            ( model
+            , Navigation.pushUrl model.key (Route.toString route)
+            )
+
+        LinkClicked urlRequest ->
+            case urlRequest of
+                Browser.Internal url ->
+                    ( model
+                    , Navigation.pushUrl model.key (Url.toString url)
+                    )
+
+                Browser.External href ->
+                    ( model
+                    , Navigation.load href
+                    )
+
         ZoomToday ->
             zoomToday model
-
-        NewPage page ->
-            ( model
-            , Navigation.newUrl (Route.toString page)
-            )
 
         UpdateActivityCache subMsg ->
             ( { model | activityCache = ActivityCache.update subMsg model.activityCache }
@@ -99,21 +113,11 @@ update msg model =
             , Cmd.none
             )
 
-        BlockEvent event ->
-            ( { model | blockEvent = event }
-            , Cmd.none
-            )
-
-        MouseMsg position ->
-            ( { model | mousePos = position }
-            , Cmd.none
-            )
-
 
 zoomToday : Model -> ( Model, Cmd Msg )
 zoomToday model =
     ( model
-    , Task.perform (\date -> NewPage <| Route.Zoom <| Zoom.initModel model.zoom.level date) Date.now
+    , Task.perform (\date -> ChangedRoute (Route.Zoom <| Zoom.initModel model.zoom.level date)) Date.today
     )
 
 
@@ -123,22 +127,27 @@ zoomToday model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.batch
-        [ Mouse.moves MouseMsg ]
+    Sub.none
 
 
 
 -- VIEW
 
 
-view : Model -> Html Msg
+view : Model -> Document Msg
 view model =
+    { title = "Training Blocks"
+    , body = [ viewBody model ]
+    }
+
+
+viewBody : Model -> Html Msg
+viewBody model =
     case model.route of
         Route.Zoom zoom ->
             div []
                 [ View.Zoom.viewMenu model.zoom
                 , View.Zoom.view zoom (accessActivities model.activityCache)
-                , View.Block.viewEvent model.mousePos model.blockEvent
                 ]
 
         Route.NotFound ->

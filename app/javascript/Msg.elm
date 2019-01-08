@@ -2,16 +2,15 @@ module Msg exposing (Msg(..))
 
 import ActivityCache
 import Block
-import Mouse
-import Url exposing (Url)
+import Browser
 import Route exposing (Route)
+import Url exposing (Url)
 
 
 type Msg
     = UpdateActivityCache ActivityCache.Msg
     | ChangedUrl Url
-    | NewPage Route
-    | BlockEvent (Maybe ( Block.Event, Block.Model ))
-    | MouseMsg Mouse.Position
+    | LinkClicked Browser.UrlRequest
+    | ChangedRoute Route
     | ZoomToday
     | NoOp

@@ -12,11 +12,13 @@ onClickPage : Route -> List (Attribute Msg)
 onClickPage page =
     [ style "pointer" "cursor"
     , href (Route.toString page)
-    , onPreventDefaultClick (NewPage page)
+    , onPreventDefaultClick (ChangedRoute page)
     ]
 
 
+
 -- INTERNAL
+
 
 onPreventDefaultClick : msg -> Attribute msg
 onPreventDefaultClick message =

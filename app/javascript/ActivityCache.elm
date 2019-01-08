@@ -33,7 +33,7 @@ update msg model =
                     { model | cache = Dict.insert (date |> keyFor) (Success activities) model.cache }
 
                 _ ->
-                    model
+                    Debug.todo "failure!"
 
 
 fetchActivities : Model -> Date -> Date -> ( Model, Cmd Msg )

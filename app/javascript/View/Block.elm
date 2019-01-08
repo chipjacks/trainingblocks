@@ -1,15 +1,13 @@
-module View.Block exposing (view, viewEvent)
+module View.Block exposing (view)
 
 import Activity
 import Block exposing (..)
 import Date
 import Html exposing (Html, div)
 import Html.Attributes exposing (class)
-import Mouse exposing (Position)
 import Msg exposing (Msg(..))
 import Svg exposing (Svg, g, rect, svg)
 import Svg.Attributes exposing (fill, height, stroke, transform, width, x, y)
-import Svg.Events exposing (onMouseOut, onMouseOver)
 
 
 
@@ -22,8 +20,6 @@ view model =
         ( Activity activity, _ ) ->
             g
                 [ transform <| String.join " " [ "translate(", String.fromInt model.x, " ", String.fromInt model.y, ")" ]
-                , onMouseOver (BlockEvent (Just ( MouseOver, model )))
-                , onMouseOut (BlockEvent Nothing)
                 ]
                 [ viewBlock model
                 ]
@@ -31,8 +27,6 @@ view model =
         ( _, Normal ) ->
             g
                 [ transform <| String.join " " [ "translate(", String.fromInt model.x, " ", String.fromInt model.y, ")" ]
-                , onMouseOver (BlockEvent (Just ( MouseOver, model )))
-                , onMouseOut (BlockEvent Nothing)
                 ]
                 [ viewBlock model
                 ]
@@ -44,21 +38,6 @@ view model =
             g [] []
 
 
-viewEvent : Position -> Maybe ( Block.Event, Block.Model ) -> Html Msg
-viewEvent mousePos event =
-    case event of
-        Nothing ->
-            div [] []
-
-        Just ( event, eventModel ) ->
-            div
-                [ class "block-tooltip"
-                , Html.Attributes.style "top" (String.fromInt (mousePos.y + 5) ++ "px")
-                , Html.Attributes.style "left" (String.fromInt (mousePos.x + 5) ++ "px")
-                ]
-                [ viewTooltip eventModel.data ]
-
-
 viewBlock : Block.Model -> Svg Msg
 viewBlock model =
     rect
@@ -68,25 +47,3 @@ viewBlock model =
         , stroke "white"
         ]
         []
-
-
-viewTooltip : Block.Data -> Html Msg
-viewTooltip data =
-    case data of
-        Activity activity ->
-            div [ class "ui card" ]
-                [ div [ class "content" ]
-                    [ div [ class "header" ] [ Html.text activity.name ]
-                    , div [ class "ui list" ]
-                        [ div [ class "item" ] [ Html.text <| Debug.toString activity.type_ ]
-                        , div [ class "item" ] [ Html.text <| Date.toFormattedString "h:mm a" activity.startDate ]
-                        , div [ class "item" ] [ Html.text <| (String.fromInt (activity.movingTime // 60) ++ " minutes") ]
-                        , div [ class "item" ] [ Html.text <| Activity.miles activity ]
-                        , div [ class "item" ] [ Html.text <| Activity.pace activity ]
-                        , div [ class "item" ] [ Html.text <| ((String.fromInt <| round <| activity.totalElevationGain) ++ " feet elevation gain") ]
-                        ]
-                    ]
-                ]
-
-        Blocks blocks ->
-            div [] []

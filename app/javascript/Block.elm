@@ -1,4 +1,4 @@
-module Block exposing (Data(..), Event(..), Model, View(..), crop, decompose, initModel, list, normalize, normalizer, plot, scale, shift, split, stack, sum)
+module Block exposing (Data(..), Model, View(..), crop, decompose, initModel, list, normalize, normalizer, plot, scale, shift, split, stack, sum)
 
 import Activity exposing (Activity, ActivityType(..))
 import Date
@@ -52,11 +52,6 @@ type View
 type Data
     = Activity Activity
     | Blocks Blocks
-
-
-type Event
-    = MouseOver
-    | Drag Int Int
 
 
 type alias Blocks =

@@ -2,8 +2,7 @@ module View.Zoom exposing (view, viewMenu)
 
 import Activity exposing (Activity)
 import Block
-import Date exposing (Date, Month(..))
-import Date.Extra as Date exposing (Interval(..))
+import Date exposing (Date, Unit(..))
 import Html exposing (Html, a, button, div)
 import Html.Attributes exposing (class, id)
 import Html.Events exposing (onClick)
@@ -13,6 +12,7 @@ import RemoteData exposing (RemoteData(..), WebData)
 import Route
 import Svg exposing (Svg, svg)
 import Svg.Attributes exposing (height, width)
+import Time exposing (Month(..))
 import View.Block
 import Zoom exposing (zoomIn)
 
@@ -24,9 +24,9 @@ viewMenu zoom =
             [ Html.text (Debug.toString zoom.level)
             , Html.i [ class "dropdown icon" ] []
             , div [ class "menu" ]
-                [ div ([ class "item" ] ++ onClickPage (Route.Zoom { zoom | level = Year })) [ Html.text "Year" ]
-                , div ([ class "item" ] ++ onClickPage (Route.Zoom { zoom | level = Month })) [ Html.text "Month" ]
-                , div ([ class "item" ] ++ onClickPage (Route.Zoom { zoom | level = Week })) [ Html.text "Week" ]
+                [ div ([ class "item" ] ++ onClickPage (Route.Zoom { zoom | level = Years })) [ Html.text "Year" ]
+                , div ([ class "item" ] ++ onClickPage (Route.Zoom { zoom | level = Months })) [ Html.text "Month" ]
+                , div ([ class "item" ] ++ onClickPage (Route.Zoom { zoom | level = Weeks })) [ Html.text "Week" ]
                 ]
             ]
         , div [ class "ui simple dropdown item" ]
@@ -69,7 +69,7 @@ viewMenu zoom =
 view : Zoom.Model -> (Date -> Date -> WebData (List Activity)) -> Html Msg
 view zoom activityAccess =
     case zoom.level of
-        Year ->
+        Years ->
             let
                 normalizer =
                     (Zoom.range zoom
@@ -90,7 +90,7 @@ view zoom activityAccess =
                     |> List.map (\subZoom -> monthOfYear subZoom activityAccess normalizer)
                 )
 
-        Month ->
+        Months ->
             div [ class "month" ]
                 (headerOfMonth zoom
                     :: (Zoom.range zoom
@@ -98,19 +98,6 @@ view zoom activityAccess =
                             |> List.map (\subZoom -> weekOfMonth subZoom activityAccess)
                        )
                 )
-
-        Week ->
-            div [ class "week" ]
-                [ div [ class "hours" ]
-                    (Date.range Hour 1 (Date.floor Day zoom.start) (Date.add Day 1 (Date.floor Day zoom.start))
-                        |> List.indexedMap (\i hr -> div [ class "hour" ] [ hr |> Date.toFormattedString "h" |> Html.text ])
-                    )
-                , div [ class "days" ]
-                    (Zoom.range zoom
-                        |> List.reverse
-                        |> List.map (\subZoom -> dayOfWeek subZoom activityAccess)
-                    )
-                ]
 
         _ ->
             div [] [ Html.text "Invalid interval" ]
@@ -151,14 +138,14 @@ headerOfMonth : Zoom.Model -> Html Msg
 headerOfMonth zoom =
     div [ class "week header" ]
         (div [ class "summary" ] []
-            :: (Zoom.range (Zoom.initModel Week zoom.end) |> List.map (\z -> div [ class "day" ] [ Html.text (Date.dayOfWeek z.start |> Debug.toString) ]))
+            :: (Zoom.range (Zoom.initModel Weeks zoom.end) |> List.map (\z -> div [ class "day" ] [ Html.text (Date.weekday z.start |> Debug.toString) ]))
         )
 
 
 weekOfMonth : Zoom.Model -> (Date -> Date -> WebData (List Activity)) -> Html Msg
 weekOfMonth zoom activities =
     div [ class "week" ]
-        (a (class "summary" :: onClickPage (Route.Zoom zoom)) [ Html.text <| (zoom.start |> Date.toFormattedString "MMM ddd") ++ (zoom.end |> Date.toFormattedString " - ddd") ]
+        (a (class "summary" :: onClickPage (Route.Zoom zoom)) [ Html.text <| (zoom.start |> Date.format "MMM ddd") ++ (zoom.end |> Date.format " - ddd") ]
             :: (Zoom.range zoom
                     |> List.map (\subZoom -> dayOfWeekOfMonth subZoom activities)
                )
@@ -182,7 +169,7 @@ dayOfWeekOfMonth zoom activities =
 dayOfWeek : Zoom.Model -> (Date -> Date -> WebData (List Activity)) -> Html Msg
 dayOfWeek zoom activities =
     div [ class "day" ]
-        [ div [ class "summary" ] [ zoom.start |> Date.toFormattedString "E" |> Html.text ]
+        [ div [ class "summary" ] [ zoom.start |> Date.format "E" |> Html.text ]
         , svg []
             (RemoteData.withDefault [] (activities zoom.start zoom.end)
                 |> List.map (Block.initModel << Block.Activity)

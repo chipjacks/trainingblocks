@@ -2,6 +2,7 @@ module Route exposing (Route(..), fromUrl, toString)
 
 import Date exposing (Date, Unit(..), fromRataDie, toRataDie)
 import Url exposing (Url)
+import Url.Builder
 import Url.Parser exposing ((</>), Parser, custom, int, map, oneOf, s)
 import Zoom
 
@@ -22,7 +23,7 @@ toString route =
                 NotFound ->
                     [ "notfound" ]
     in
-    "#/" ++ String.join "/" pieces
+    Url.Builder.absolute ("#" :: pieces) []
 
 
 fromUrl : Url -> Route

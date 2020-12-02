@@ -1,0 +1,35 @@
+// Place all the styles related to the home controller here.
+// They will automatically be included in application.css.
+// You can use Sass (SCSS) here: http://sass-lang.com/
+
+.masthead {
+  background: image-url("banner.svg") !important;
+  background-position: center 10% !important;
+  background-size: cover !important;
+  height: 600px;
+  margin-top: -15px !important;
+
+  h1.ui.header {
+    margin-top: 2.5em;
+    margin-bottom: 0em;
+    font-size: 4em;
+    font-weight: normal;
+  }
+
+  h2 {
+    font-size: 1.7em;
+    font-weight: normal;
+  }
+}
+
+.feature {
+  min-height: 300px;
+
+  h2 {
+    margin-top: 2em !important;
+  }
+
+  img {
+    margin-bottom: 2em;
+  }
+}

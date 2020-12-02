@@ -37,7 +37,7 @@ gem 'jbuilder', '~> 2.5'
 gem 'devise', '~> 4.4.1'
 gem 'omniauth-strava', '~> 0.0.6'
 
-gem 'strava-client', '~> 1.0.0', :git => 'https://github.com/chipjacks/strava-client'
+gem 'strava-client', '~> 1.1.0', :git => 'https://github.com/chipjacks/strava-client'
 
 gem 'jquery-rails', '~> 4.3.1'
 

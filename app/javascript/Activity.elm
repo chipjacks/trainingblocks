@@ -1,156 +1,353 @@
-module Activity exposing (Activity, list, decoder, ActivityType(..), groupByType, pace, miles)
+module Activity exposing (Activity, ActivityData(..), Distance(..), Id, Minutes, Pace(..), Seconds, activityTypeToString, decoder, distance, encoder, mprLevel, newId, pace)
 
-import Http exposing (..)
-import Json.Decode as JD exposing (Decoder)
-import Json.Decode.Pipeline exposing (decode, required, optional, custom)
 import Date exposing (Date)
+import Emoji
+import Enum exposing (Enum)
+import Json.Decode as Decode
+import Json.Encode as Encode
+import MPRLevel
+import Random
+import Task exposing (Task)
 
 
 type alias Activity =
-    { id : String
-    , name : String
-    , distance : Float
-    , movingTime : Int
-    , elapsedTime : Int
-    , totalElevationGain : Float
-    , type_ : ActivityType
-    , startDate : Date
-    , startDateLocal : Date
-    , averageSpeed : Float
-    , maxSpeed : Float
+    { id : Id
+    , date : Date
+    , description : String
+    , data : ActivityData
     }
 
 
-type ActivityType
-    = Run
-    | Ride
-    | Weights
-    | Swim
-    | Other
+type ActivityData
+    = Run Minutes Pace Bool
+    | Interval Seconds Pace Bool
+    | Race Minutes Distance Bool
+    | Other Minutes Bool
+    | Note String
+    | Session (List Activity)
 
 
-list : Date -> Date -> Request (List Activity)
-list startDate endDate =
+activityTypeToString : ActivityData -> String
+activityTypeToString aType =
+    case aType of
+        Run _ _ _ ->
+            "Run"
+
+        Interval _ _ _ ->
+            "Interval"
+
+        Race _ _ _ ->
+            "Race"
+
+        Other _ _ ->
+            "Other"
+
+        Note _ ->
+            "Note"
+
+        Session _ ->
+            "Session"
+
+
+newId : Random.Generator String
+newId =
     let
-        request_url =
-            url "/activities"
-                [ ( "before", ((Date.toTime endDate / 1000) |> toString) ) ]
+        digitsToString digits =
+            List.map String.fromInt digits
+                |> String.join ""
     in
-        Http.get request_url (JD.list decoder)
+    Random.list 10 (Random.int 0 9)
+        |> Random.map digitsToString
 
 
-decoder : Decoder Activity
+mprLevel : Activity -> Maybe Int
+mprLevel activity =
+    case activity.data of
+        Race minutes distance_ _ ->
+            MPRLevel.lookup MPRLevel.Neutral
+                (distance.toString distance_)
+                (minutes * 60)
+                |> Result.map (\( rt, level ) -> level)
+                |> Result.toMaybe
+
+        _ ->
+            Nothing
+
+
+type alias Id =
+    String
+
+
+type alias Minutes =
+    Int
+
+
+type alias Seconds =
+    Int
+
+
+type Pace
+    = Easy
+    | Moderate
+    | Steady
+    | Brisk
+    | Aerobic
+    | Lactate
+    | Groove
+    | VO2
+    | Fast
+
+
+pace : Enum Pace
+pace =
+    Enum.create
+        [ Easy
+        , Moderate
+        , Steady
+        , Brisk
+        , Aerobic
+        , Lactate
+        , Groove
+        , VO2
+        , Fast
+        ]
+        (\a ->
+            case a of
+                Easy ->
+                    "Easy"
+
+                Moderate ->
+                    "Moderate"
+
+                Steady ->
+                    "Steady"
+
+                Brisk ->
+                    "Brisk"
+
+                Aerobic ->
+                    "Aerobic"
+
+                Lactate ->
+                    "Lactate"
+
+                Groove ->
+                    "Groove"
+
+                VO2 ->
+                    "VO2"
+
+                Fast ->
+                    "Fast"
+        )
+
+
+type Distance
+    = FiveK
+    | EightK
+    | FiveMile
+    | TenK
+    | FifteenK
+    | TenMile
+    | TwentyK
+    | HalfMarathon
+    | TwentyFiveK
+    | ThirtyK
+    | Marathon
+
+
+distance : Enum Distance
+distance =
+    Enum.create
+        [ FiveK
+        , EightK
+        , FiveMile
+        , TenK
+        , FifteenK
+        , TenMile
+        , TwentyK
+        , HalfMarathon
+        , TwentyFiveK
+        , ThirtyK
+        , Marathon
+        ]
+        (\a ->
+            case a of
+                FiveK ->
+                    "5k"
+
+                EightK ->
+                    "8k"
+
+                FiveMile ->
+                    "5 mile"
+
+                TenK ->
+                    "10k"
+
+                FifteenK ->
+                    "15k"
+
+                TenMile ->
+                    "10 mile"
+
+                TwentyK ->
+                    "20k"
+
+                HalfMarathon ->
+                    "Half Marathon"
+
+                TwentyFiveK ->
+                    "25k"
+
+                ThirtyK ->
+                    "30k"
+
+                Marathon ->
+                    "Marathon"
+        )
+
+
+
+-- SERIALIZATION
+
+
+decoder : Decode.Decoder Activity
 decoder =
-    decode Activity
-        |> required "id" (JD.int |> JD.andThen (JD.succeed << toString))
-        |> required "name" JD.string
-        |> required "distance" JD.float
-        |> required "moving_time" JD.int
-        |> required "elapsed_time" JD.int
-        |> required "total_elevation_gain" JD.float
-        |> custom (JD.field "type" JD.string |> JD.andThen (JD.succeed << typeFromString))
-        |> custom (JD.field "start_date" JD.string |> JD.andThen (fromResult << Date.fromString))
-        |> custom (JD.field "start_date_local" JD.string |> JD.andThen (fromResult << Date.fromString))
-        |> custom (JD.field "average_speed" JD.float)
-        |> custom (JD.field "max_speed" JD.float)
+    Decode.map4 Activity
+        (Decode.field "id" Decode.string)
+        (Decode.field "date" dateDecoder)
+        (Decode.field "description" Decode.string)
+        (Decode.field "data" activityDataDecoder)
 
 
-groupByType : List Activity -> List (List Activity)
-groupByType activities =
-    activityTypes
-        |> List.map (\t -> List.filter (\a -> a.type_ == t) activities)
-        |> List.filter (\l -> List.length l > 0)
-
-
-activityTypes : List ActivityType
-activityTypes =
-    [ Run, Ride, Weights, Swim, Other ]
-
-
-pace : Activity -> String
-pace activity =
+activityDataDecoder : Decode.Decoder ActivityData
+activityDataDecoder =
     let
-        minPerMile =
-            (1 / (activity.averageSpeed / 1609 * 60))
+        runDecoder =
+            Decode.map3 Run
+                (Decode.field "duration" Decode.int)
+                (Decode.field "pace" pace.decoder)
+                (Decode.field "completed" Decode.bool)
 
-        mins =
-            floor minPerMile
+        intervalDecoder =
+            Decode.map3 Interval
+                (Decode.field "duration" Decode.int)
+                (Decode.field "pace" pace.decoder)
+                (Decode.field "completed" Decode.bool)
 
-        secs =
-            round ((minPerMile - (toFloat mins)) * 60)
+        raceDecoder =
+            Decode.map3 Race
+                (Decode.field "duration" Decode.int)
+                (Decode.field "distance" distance.decoder)
+                (Decode.field "completed" Decode.bool)
 
-        strSecs =
-            if secs < 10 then
-                "0" ++ (toString secs)
-            else if secs == 60 then
-                "00"
-            else
-                toString secs
+        otherDecoder =
+            Decode.map2 Other
+                (Decode.field "duration" Decode.int)
+                (Decode.field "completed" Decode.bool)
 
-        strMins =
-            if secs == 60 then
-                toString (mins + 1)
-            else
-                toString mins
+        noteDecoder =
+            Decode.map Note
+                (Decode.field "emoji" Decode.string)
+
+        sessionDecoder =
+            Decode.map Session
+                (Decode.field "activities" (Decode.list (Decode.lazy (\a -> decoder))))
     in
-        if activity.averageSpeed == 0 then
-            "unknown pace"
-        else
-            strMins ++ ":" ++ strSecs ++ " pace"
+    Decode.field "type" Decode.string
+        |> Decode.andThen
+            (\dataType ->
+                case dataType of
+                    "run" ->
+                        runDecoder
+
+                    "interval" ->
+                        intervalDecoder
+
+                    "race" ->
+                        raceDecoder
+
+                    "other" ->
+                        otherDecoder
+
+                    "note" ->
+                        noteDecoder
+
+                    "session" ->
+                        sessionDecoder
+
+                    _ ->
+                        Decode.fail ("Invalid type: " ++ dataType)
+            )
 
 
-miles : Activity -> String
-miles activity =
-    (activity.distance / 1609 * 10)
-        |> round
-        |> toFloat
-        |> (\n -> n / 10)
-        |> (\n -> toString n ++ " miles")
+encoder : Activity -> Encode.Value
+encoder activity =
+    let
+        dataEncoder data =
+            case data of
+                Run minutes pace_ completed ->
+                    Encode.object
+                        [ ( "type", Encode.string "run" )
+                        , ( "duration", Encode.int minutes )
+                        , ( "pace", pace.encode pace_ )
+                        , ( "completed", Encode.bool completed )
+                        ]
+
+                Interval seconds pace_ completed ->
+                    Encode.object
+                        [ ( "type", Encode.string "interval" )
+                        , ( "duration", Encode.int seconds )
+                        , ( "pace", pace.encode pace_ )
+                        , ( "completed", Encode.bool completed )
+                        ]
+
+                Race minutes distance_ completed ->
+                    Encode.object
+                        [ ( "type", Encode.string "race" )
+                        , ( "duration", Encode.int minutes )
+                        , ( "distance", distance.encode distance_ )
+                        , ( "completed", Encode.bool completed )
+                        ]
+
+                Other minutes completed ->
+                    Encode.object
+                        [ ( "type", Encode.string "other" )
+                        , ( "duration", Encode.int minutes )
+                        , ( "completed", Encode.bool completed )
+                        ]
+
+                Note emoji ->
+                    Encode.object
+                        [ ( "type", Encode.string "note" )
+                        , ( "emoji", Encode.string emoji )
+                        ]
+
+                Session activities ->
+                    Encode.object
+                        [ ( "type", Encode.string "session" )
+                        , ( "activities", Encode.list encoder activities )
+                        ]
+    in
+    Encode.object
+        [ ( "id", Encode.string activity.id )
+        , ( "date", Encode.string (Date.toIsoString activity.date) )
+        , ( "description", Encode.string activity.description )
+        , ( "data", dataEncoder activity.data )
+        ]
 
 
+dateDecoder : Decode.Decoder Date
+dateDecoder =
+    let
+        isoStringDecoder str =
+            case Date.fromIsoString str of
+                Ok date ->
+                    Decode.succeed date
 
--- INTERNAL
-
-
-url : String -> List ( String, String ) -> String
-url baseUrl args =
-    case args of
-        [] ->
-            baseUrl
-
-        _ ->
-            baseUrl ++ "?" ++ String.join "&" (List.map queryPair args)
-
-
-queryPair : ( String, String ) -> String
-queryPair ( key, value ) =
-    Http.encodeUri key ++ "=" ++ Http.encodeUri value
-
-
-typeFromString : String -> ActivityType
-typeFromString str =
-    case str of
-        "Run" ->
-            Run
-
-        "Ride" ->
-            Ride
-
-        "WeightTraining" ->
-            Weights
-
-        "Swim" ->
-            Swim
-
-        _ ->
-            Other
-
-
-fromResult : Result String a -> Decoder a
-fromResult result =
-    case result of
-        Ok a ->
-            JD.succeed a
-
-        Err errorMessage ->
-            JD.fail errorMessage
+                Err _ ->
+                    Decode.fail "Invalid date string"
+    in
+    Decode.string
+        |> Decode.andThen isoStringDecoder

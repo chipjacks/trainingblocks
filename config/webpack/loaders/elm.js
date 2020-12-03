@@ -7,7 +7,7 @@ const elmMake = `${elmSource}/node_modules/.bin/elm`
 const elmDefaultOptions = { cwd: elmSource, pathToElm: elmMake }
 const developmentOptions = Object.assign({}, elmDefaultOptions, {
   verbose: true,
-  debug: true
+  debug: false,
 })
 
 const elmWebpackLoader = {

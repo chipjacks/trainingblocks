@@ -1,0 +1,13 @@
+{
+  "short_name": "Rhino Log",
+  "name": "Rhino Log",
+  "icons": [
+    {
+      "src": "icon@480w.png",
+      "sizes": "480x480",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone"
+}

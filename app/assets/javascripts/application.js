@@ -13,8 +13,3 @@
 //= require rails-ujs
 //= require jquery
 //= require jquery_ujs
-//= require_tree .
-
-setTimeout(function() {
-  $('.ui .message').transition('fade down');
-}, 5000);

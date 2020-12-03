@@ -64,9 +64,16 @@ viewNavbar model =
             row [ style "padding" "0.5rem" ]
                 [ column [] [ Calendar.viewMenu calendar ]
                 , compactColumn [ style "min-width" "1.5rem", style "justify-content" "center" ]
-                    [ viewIf (Store.needsFlush store) (spinner "1.5rem")
+                    [ div [ class "dropdown" ]
+                        [ if Store.needsFlush store then
+                            spinner "1.5rem"
+
+                          else
+                            i [ class "mi-options-vertical", style "font-size" "1.5rem", style "color" "var(--icon-gray)" ] []
+                        , div [ class "dropdown-content", style "right" "0" ]
+                            [ a [ Html.Attributes.href " /users/sign_out", Html.Attributes.attribute "data-method" "delete" ] [ text "Logout" ] ]
+                        ]
                     ]
-                , compactColumn [] [ a [ Html.Attributes.href " /users/sign_out", Html.Attributes.attribute "data-method" "delete" ] [ text "logout" ] ]
                 ]
 
         _ ->

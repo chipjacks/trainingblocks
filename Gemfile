@@ -34,7 +34,7 @@ gem 'jbuilder', '~> 2.5'
 # Use Capistrano for deployment
 # gem 'capistrano-rails', group: :development
 
-gem 'devise', '~> 4.4.1'
+gem 'devise', '~> 4.7.1'
 gem 'omniauth-strava', '~> 0.0.6'
 
 gem 'strava-client', '~> 1.1.0', :git => 'https://github.com/chipjacks/strava-client'

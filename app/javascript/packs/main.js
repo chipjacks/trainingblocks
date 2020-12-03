@@ -10,27 +10,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const app = Elm.Main.init(target);
 
-  if('serviceWorker' in navigator) {
-    navigator.serviceWorker
-      .register('/service-worker.js', { scope: './' });
-
-    let refreshing;
-    navigator.serviceWorker.addEventListener('controllerchange', function () {
-      if (refreshing) return;
-      const conf = window.confirm('An update is available. Reload?')
-      if (conf) {
-        window.location.reload();
-        refreshing = true;
-      }
-    });
-  }
-
   window.localStorage.setItem('loadDate', Date.now());
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') {
       const AUTO_RELOAD_DAILY_MS = 60 * 1000 * 60 * 24;
       if (navigator.standalone && (Date.now() - window.localStorage.getItem('loadDate') > AUTO_RELOAD_DAILY_MS)) {
-        // manual reload because serviceWorker.update() not working for iOS PWA.
         window.localStorage.setItem('loadDate', Date.now());
         window.location.reload();
       };

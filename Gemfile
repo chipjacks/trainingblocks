@@ -47,7 +47,7 @@ group :development, :test do
   gem 'pry-rails'
   gem 'rspec-rails', '~> 3.7.0'
   gem 'capybara', '~> 2.18.0'
-  gem 'factory_bot_rails', '~> 4.8.2'
+  gem 'factory_bot_rails', '~> 6.1.0'
 end
 
 group :development do

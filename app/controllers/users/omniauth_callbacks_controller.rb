@@ -8,7 +8,7 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
       session["devise.strava_access_token"] = access_token
       set_flash_message(:notice, :success, kind: "Strava") if is_navigational_format?
     else
-      set_flash_message(:alert, :failure, kind: "Strava", reason: "log in failed")
+      set_flash_message(:alert, :failure, kind: "Strava", reason: "#{@user.errors.full_messages.join(', ')}")
       redirect_to root_path
     end
   end

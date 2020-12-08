@@ -2,7 +2,6 @@
 // head of your layout file, like app/views/layouts/application.html.erb.
 // It will render "Hello Elm!" within the page.
 //
-import loadMetaTagData from "./meta-tag-bootstrap";
 import { Elm } from "../Main";
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -80,3 +79,13 @@ document.addEventListener("DOMContentLoaded", () => {
     e.target.releasePointerCapture(e.pointerId);
   });
 });
+
+function loadMetaTagData(name) {
+  const element = document.querySelectorAll(`meta[name=${name}]`)[0];
+
+  if (typeof element !== "undefined") {
+    return element.getAttribute("content");
+  } else {
+    return null;
+  }
+}

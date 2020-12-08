@@ -5,7 +5,7 @@ class ActivitiesController < ApplicationController
   def index
     # activities = @strava.get_logged_in_athlete_activities({before: params['before'].to_i})
     # TODO: error handling
-    render json: current_user.activities
+    render json: (current_user.activities || [])
   end
 
   def update

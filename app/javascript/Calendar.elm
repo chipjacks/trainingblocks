@@ -260,6 +260,17 @@ view model activities activeId activeRataDie =
         ]
 
 
+viewActivityShape : Activity -> Bool -> Html Msg
+viewActivityShape activity isActive =
+    div
+        [ style "width" "min-content"
+        , Html.Events.on "pointerdown" (Decode.succeed (MoveActivity activity))
+        , attributeIf isActive (class "dynamic-shape")
+        , style "touch-action" "none"
+        ]
+        [ ActivityShape.view activity ]
+
+
 
 -- SCROLLING
 
@@ -368,12 +379,8 @@ viewWeek allActivities today selected start activeId =
 viewWeekDay : ( Date, List Activity ) -> Bool -> Bool -> String -> Html Msg
 viewWeekDay ( date, activities ) isToday isSelected activeId =
     let
-        pointerEvent a =
-            if activeId == a.id then
-                MoveActivity a
-
-            else
-                EditActivity a
+        isActive a =
+            activeId == a.id
     in
     column
         [ attributeIf isSelected (id "selected-date")
@@ -394,13 +401,13 @@ viewWeekDay ( date, activities ) isToday isSelected activeId =
             :: List.map
                 (\a ->
                     row
-                        [ Html.Events.on "pointerdown" (Decode.succeed (pointerEvent a))
+                        [ attributeIf (not (isActive a)) (Html.Events.on "pointerdown" (pointerDownDecoder a))
                         , class "no-select"
                         , style "margin-bottom" "0.1rem"
                         , style "margin-right" "0.2rem"
-                        , attributeIf (a.id == activeId) (style "opacity" "0.5")
+                        , attributeIf (isActive a) (style "opacity" "0.5")
                         ]
-                        [ ActivityShape.view a ]
+                        [ viewActivityShape a (isActive a) ]
                 )
                 activities
 
@@ -493,13 +500,11 @@ viewActivity isActive isActiveDate activity =
         , styleIf isActive "background-color" "var(--highlight-gray)"
         ]
         [ compactColumn
-            [ attributeIf isActive (Html.Events.on "pointerdown" (Decode.succeed (MoveActivity activity)))
-            , attributeIf isActive (class "dynamic-shape")
-            , style "flex-basis" "5rem"
+            [ style "flex-basis" "5rem"
             , style "justify-content" "center"
             , attributeIf (not isActive) (Html.Events.on "pointerdown" (pointerDownDecoder activity))
             ]
-            [ ActivityShape.view activity ]
+            [ viewActivityShape activity isActive ]
         , a
             [ class "column expand"
             , style "justify-content" "center"

@@ -32,7 +32,7 @@ get (Model zoom start end selected today scrollCompleted) =
 
 init : Zoom -> Date -> Date -> Model
 init zoom selected today =
-    Model zoom (Date.floor Date.Quarter selected) (Date.ceiling Date.Quarter selected) selected today True
+    Model zoom (Date.add Date.Months -3 selected) (Date.add Date.Months 3 selected) selected today True
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -180,14 +180,11 @@ listMonths date changeDate =
 listYears : Date -> (Date -> Msg) -> List (Html Msg)
 listYears date changeDate =
     let
-        middle =
-            Date.fromCalendarDate 2019 (Date.month date) 1
-
         start =
-            Date.add Date.Years -3 middle
+            Date.add Date.Years -3 (Date.fromCalendarDate 2019 Time.Jan 1)
 
         end =
-            Date.add Date.Years 3 middle
+            Date.add Date.Years 3 (Date.fromCalendarDate 2019 Time.Jan 1)
     in
     Date.range Date.Month 12 start end
         |> List.map (viewDropdownItem changeDate "yyyy")

@@ -13,56 +13,36 @@ import Time exposing (Month(..), utc)
 -- CONFIG
 
 
-config =
-    { docId = "428e9b77627a652f297c35eedca65c95"
-    , url = "https://6483b615-f5bc-4f3d-8b78-188c8df679dc-bluemix.cloudantnosqldb.appdomain.cloud"
-    , database =
-        { dev = "runapp2_dev"
-        , prod = "runapp2"
-        }
-    , authHeader =
-        { dev = "YXBpa2V5LTU2NGQ2NWMxNWNkNTRhYjRiOGVhOTUxMmU2YmU4MmE0OjI4YjgxMWZhMDExZGZiYjVlOThlNzdmNmYzMTdmMDZkM2Y1YTJmNGE="
-        , prod = "YXBpa2V5LWZiZTQyOTUwZWE2YzQxNGVhZjRiNGM4MmZkOGQ3MDgyOjNiNmRiMDMzZTM5NzlkZWQzMDhmNzM5YTgyNzdhZjNhZjM0YjdlZDU="
-        }
-    }
-
-
 storeUrl =
-    String.join "/" [ config.url, config.database.dev, config.docId ]
-
-
-authHeader =
-    Http.header "Authorization" ("Basic " ++ config.authHeader.dev)
+    "/activities"
 
 
 
 -- ROUTES
 
 
-getActivities : Task String ( String, List Activity )
+getActivities : Task String (List Activity)
 getActivities =
     Http.task
         { method = "GET"
-        , headers = [ Http.header "Content-Type" "application/json", authHeader ]
+        , headers = [ Http.header "Content-Type" "application/json" ]
         , url = storeUrl
         , body = Http.emptyBody
         , resolver =
             Http.stringResolver <|
                 handleJsonResponse <|
-                    Decode.map2 Tuple.pair
-                        (Decode.field "_rev" Decode.string)
-                        (Decode.field "activities" (Decode.list Activity.decoder))
+                    Decode.list Activity.decoder
         , timeout = Nothing
         }
 
 
 postActivities : String -> List Activity -> Task String Bool
-postActivities revision activities =
+postActivities csrfToken activities =
     Http.task
         { method = "PUT"
-        , headers = [ Http.header "Content-Type" "application/json", authHeader ]
+        , headers = [ Http.header "Content-Type" "application/json", Http.header "X-CSRF-Token" csrfToken ]
         , url = storeUrl
-        , body = Http.jsonBody (Encode.object [ ( "_rev", Encode.string revision ), ( "activities", Encode.list Activity.encoder activities ) ])
+        , body = Http.jsonBody (Encode.object [ ( "activities", Encode.list Activity.encoder activities ) ])
         , resolver =
             Http.stringResolver <|
                 handleJsonResponse <|

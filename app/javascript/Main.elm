@@ -38,7 +38,7 @@ main =
 
 
 type Model
-    = Loading (Maybe Date) (Maybe (List Activity))
+    = Loading (Maybe Date) (Maybe (List Activity)) String
     | Loaded State
     | Error String
 
@@ -47,12 +47,12 @@ type State
     = State Calendar.Model Store.Model ActivityState
 
 
-init : () -> ( Model, Cmd Msg )
-init _ =
-    ( Loading Nothing Nothing
+init : { csrfToken : String } -> ( Model, Cmd Msg )
+init { csrfToken } =
+    ( Loading Nothing Nothing csrfToken
     , Cmd.batch
         [ Task.perform Jump Date.today
-        , Task.attempt GotActivities (Api.getActivities |> Task.map Tuple.second)
+        , Task.attempt GotActivities Api.getActivities
         ]
     )
 
@@ -91,16 +91,16 @@ viewNavbar model =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case model of
-        Loading dateM activitiesM ->
+        Loading dateM activitiesM token ->
             case msg of
                 Jump date ->
-                    Loading (Just date) activitiesM
+                    Loading (Just date) activitiesM token
                         |> updateLoading
 
                 GotActivities activitiesR ->
                     case activitiesR of
                         Ok activities ->
-                            Loading dateM (Just activities)
+                            Loading dateM (Just activities) token
                                 |> updateLoading
 
                         Err err ->
@@ -124,7 +124,7 @@ update msg model =
                 VisibilityChange visibility ->
                     case visibility of
                         Events.Visible ->
-                            ( model, Cmd.batch [ Task.perform LoadToday Date.today, Task.attempt GotActivities (Api.getActivities |> Task.map Tuple.second) ] )
+                            ( model, Cmd.batch [ Task.perform LoadToday Date.today, Task.attempt GotActivities Api.getActivities ] )
 
                         Events.Hidden ->
                             ( model, Store.flush store )
@@ -398,11 +398,11 @@ update msg model =
 updateLoading : Model -> ( Model, Cmd Msg )
 updateLoading model =
     case model of
-        Loading (Just date) (Just activities) ->
+        Loading (Just date) (Just activities) csrfToken ->
             (Loaded <|
                 State
                     (Calendar.init Msg.Month date date)
-                    (Store.init activities)
+                    (Store.init csrfToken activities)
                     None
             )
                 |> update (Jump date)
@@ -489,7 +489,7 @@ view model =
         , borderStyle "border-right"
         ]
         [ case model of
-            Loading _ _ ->
+            Loading _ _ _ ->
                 column [] [ text "Loading" ]
 
             Error errorString ->

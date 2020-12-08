@@ -1,28 +1,23 @@
-
-const VERSION = '0.1.2';
+const VERSION = "0.1.2";
 
 const cacheName = `rhinolog v${VERSION}`;
 
-self.addEventListener('install', function(e) {
+self.addEventListener("install", function (e) {
   e.waitUntil(
-    caches.open(cacheName).then(function(cache) {
-      return cache.addAll([
-        '/icon.svg',
-        '/icon@480w.png',
-        '/manifest.json',
-      ]);
+    caches.open(cacheName).then(function (cache) {
+      return cache.addAll(["/icon.svg", "/icon@480w.png", "/manifest.json"]);
     })
   );
   self.skipWaiting();
 });
 
-self.addEventListener('activate', function(event) {
+self.addEventListener("activate", function (event) {
   var cacheAllowlist = [cacheName];
 
   event.waitUntil(
-    caches.keys().then(function(cacheNames) {
+    caches.keys().then(function (cacheNames) {
       return Promise.all(
-        cacheNames.map(function(cacheName) {
+        cacheNames.map(function (cacheName) {
           if (cacheAllowlist.indexOf(cacheName) === -1) {
             return caches.delete(cacheName);
           }
@@ -32,9 +27,10 @@ self.addEventListener('activate', function(event) {
   );
 });
 
-self.addEventListener('fetch', function(event) {
+self.addEventListener("fetch", function (event) {
+  if (event.request.method != "GET") return;
   event.respondWith(
-    caches.match(event.request).then(function(response) {
+    caches.match(event.request).then(function (response) {
       if (response) {
         return response;
       }

@@ -6,4 +6,5 @@ Rails.application.routes.draw do
   root to: "home#index"
 
   get 'activities', to: 'activities#index'
+  put 'activities', to: 'activities#update'
 end

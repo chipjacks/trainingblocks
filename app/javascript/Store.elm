@@ -10,20 +10,20 @@ import Task exposing (Task)
 
 
 type Model
-    = Model State (List Msg)
+    = Model State (List Msg) String
 
 
 type alias State =
     { activities : List Activity }
 
 
-init : List Activity -> Model
-init activities =
-    Model (State activities) []
+init : String -> List Activity -> Model
+init csrfToken activities =
+    Model (State activities) [] csrfToken
 
 
 get : Model -> (State -> b) -> b
-get (Model state _) f =
+get (Model state _ _) f =
     f state
 
 
@@ -33,7 +33,7 @@ cmd msg =
 
 
 needsFlush : Model -> Bool
-needsFlush (Model _ msgs) =
+needsFlush (Model _ msgs _) =
     not (List.isEmpty msgs)
 
 
@@ -77,27 +77,27 @@ updateState msg state =
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg (Model state msgs) =
+update msg (Model state msgs csrfToken) =
     let
         model =
-            Model state msgs
+            Model state msgs csrfToken
     in
     case msg of
         Posted sentMsgs result ->
             case result of
                 Ok True ->
-                    ( Model state msgs
+                    ( Model state msgs csrfToken
                     , Cmd.none
                     )
 
                 _ ->
-                    ( Model state (msgs ++ sentMsgs)
+                    ( Model state (msgs ++ sentMsgs) csrfToken
                     , Cmd.none
                     )
 
         DebounceFlush length ->
             if length == List.length msgs then
-                ( Model state []
+                ( Model state [] csrfToken
                 , flush model
                 )
 
@@ -111,13 +111,13 @@ update msg (Model state msgs) =
                         newState =
                             List.foldr (\rmsg rs -> updateState rmsg rs) (State activities) msgs
                     in
-                    ( Model newState msgs, Cmd.none )
+                    ( Model newState msgs csrfToken, Cmd.none )
 
                 Err _ ->
                     ( model, Cmd.none )
 
         _ ->
-            ( Model (updateState msg state) (msg :: msgs)
+            ( Model (updateState msg state) (msg :: msgs) csrfToken
             , debounceFlush (List.length msgs + 1)
             )
 
@@ -130,14 +130,14 @@ debounceFlush length =
 flush : Model -> Cmd Msg
 flush model =
     case model of
-        Model state [] ->
+        Model state [] _ ->
             Cmd.none
 
-        Model state msgs ->
+        Model state msgs csrfToken ->
             Api.getActivities
-                |> Task.map (Tuple.mapSecond State)
-                |> Task.map (Tuple.mapSecond (\remoteState -> List.foldr (\msg rs -> updateState msg rs) remoteState msgs))
-                |> Task.andThen (\( revision, newRemoteState ) -> Api.postActivities revision newRemoteState.activities)
+                |> Task.map State
+                |> Task.map (\remoteState -> List.foldr (\msg rs -> updateState msg rs) remoteState msgs)
+                |> Task.andThen (\newRemoteState -> Api.postActivities csrfToken newRemoteState.activities)
                 |> Task.attempt (Posted msgs)
 
 

@@ -29,3 +29,5 @@ yarn-debug.log*
 .env
 elm-stuff/
 .DS_Store
+
+/config/master.key

@@ -343,15 +343,74 @@ viewHeader model =
 viewWeek : List Activity -> Date -> Date -> Date -> String -> Html Msg
 viewWeek allActivities today selected start activeId =
     let
-        dayViews =
+        days =
             daysOfWeek start
+
+        isNewMonth =
+            days
+                |> List.any (\d -> Date.day d == 1)
+
+        dayViews =
+            days
                 |> List.map (\d -> viewWeekDay ( d, filterActivities d allActivities ) (d == today) (d == selected) activeId)
 
         activities =
-            daysOfWeek start
+            days
                 |> List.map (\d -> filterActivities d allActivities)
                 |> List.concat
+    in
+    row [ style "padding" "0 0.5rem", styleIf isNewMonth "margin-top" "1rem" ] <|
+        titleWeek activities
+            :: dayViews
 
+
+viewWeekDay : ( Date, List Activity ) -> Bool -> Bool -> String -> Html Msg
+viewWeekDay ( date, activities ) isToday isSelected activeId =
+    let
+        isActive a =
+            activeId == a.id
+    in
+    column
+        [ attributeIf isSelected (id "selected-date")
+        , style "min-height" "4rem"
+        , style "padding-bottom" "1rem"
+        , Html.Events.on "pointerenter" (Decode.succeed (MoveTo date))
+        ]
+    <|
+        viewIf (Date.day date == 1)
+            (row [ style "margin-top" "-1rem", style "overflow-x" "visible", style "max-width" "3rem", style "white-space" "nowrap" ]
+                [ if Date.weekdayNumber date == 7 then
+                    text (Date.format "MMM" date)
+
+                  else
+                    text (Date.format "MMMM" date)
+                ]
+            )
+            :: row []
+                [ a
+                    [ onClick (ChangeZoom Month (Just date))
+                    , attribute "data-date" (Date.toIsoString date)
+                    , styleIf isToday "text-decoration" "underline"
+                    ]
+                    [ text (Date.format "d" date) ]
+                ]
+            :: List.map
+                (\a ->
+                    row
+                        [ attributeIf (not (isActive a)) (Html.Events.on "pointerdown" (pointerDownDecoder a))
+                        , class "no-select"
+                        , style "margin-bottom" "0.1rem"
+                        , style "margin-right" "0.2rem"
+                        , attributeIf (isActive a) (style "opacity" "0.5")
+                        ]
+                        [ viewActivityShape a (isActive a) ]
+                )
+                activities
+
+
+titleWeek : List Activity -> Html msg
+titleWeek activities =
+    let
         ( runDuration, otherDuration ) =
             activities
                 |> List.map
@@ -370,55 +429,6 @@ viewWeek allActivities today selected start activeId =
                                 ( 0, 0 )
                     )
                 |> List.foldl (\( r, o ) ( sr, so ) -> ( sr + r, so + o )) ( 0, 0 )
-    in
-    row [ style "padding" "0 0.5rem" ] <|
-        titleWeek start ( runDuration, otherDuration )
-            :: dayViews
-
-
-viewWeekDay : ( Date, List Activity ) -> Bool -> Bool -> String -> Html Msg
-viewWeekDay ( date, activities ) isToday isSelected activeId =
-    let
-        isActive a =
-            activeId == a.id
-    in
-    column
-        [ attributeIf isSelected (id "selected-date")
-        , style "min-height" "4rem"
-        , style "padding-bottom" "1rem"
-        , Html.Events.on "pointerenter" (Decode.succeed (MoveTo date))
-        ]
-    <|
-        row []
-            [ a
-                [ onClick (ChangeZoom Month (Just date))
-                , attribute "data-date" (Date.toIsoString date)
-                , styleIf isToday "text-decoration" "underline"
-                ]
-                [ text (Date.format "d" date)
-                ]
-            ]
-            :: List.map
-                (\a ->
-                    row
-                        [ attributeIf (not (isActive a)) (Html.Events.on "pointerdown" (pointerDownDecoder a))
-                        , class "no-select"
-                        , style "margin-bottom" "0.1rem"
-                        , style "margin-right" "0.2rem"
-                        , attributeIf (isActive a) (style "opacity" "0.5")
-                        ]
-                        [ viewActivityShape a (isActive a) ]
-                )
-                activities
-
-
-titleWeek : Date -> ( Int, Int ) -> Html msg
-titleWeek start ( runDuration, otherDuration ) =
-    let
-        monthStart =
-            daysOfWeek start
-                |> List.filter (\d -> Date.day d == 1)
-                |> List.head
 
         hours duration =
             (toFloat duration / 60)
@@ -427,15 +437,9 @@ titleWeek start ( runDuration, otherDuration ) =
         minutes duration =
             remainderBy 60 duration
     in
-    column [ style "min-width" "4rem" ]
-        [ row
-            (Maybe.map (\month -> [ class "month-header", attribute "data-date" (Date.toIsoString month) ]) monthStart
-                |> Maybe.withDefault []
-            )
-            [ text
-                (monthStart |> Maybe.map (Date.format "MMM") |> Maybe.withDefault "")
-            ]
-        , row [ style "color" "var(--activity-green)" ]
+    column
+        [ style "min-width" "4rem" ]
+        [ row [ style "color" "var(--activity-green)" ]
             [ text <|
                 if runDuration /= 0 then
                     List.foldr (++) "" [ String.fromInt (hours runDuration), "h ", String.fromInt (minutes runDuration), "m" ]

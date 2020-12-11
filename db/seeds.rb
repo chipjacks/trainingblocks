@@ -10,6 +10,18 @@ me = User.find_by(uid: "2456610")
 
 unless me then raise "Strava uid not found." end
 
-me.activities = %x(cat db/activities.json | jq -cr '.').chomp
+me.activities.each{ |a| a.destroy }
+
+activities = JSON.parse(%x(cat db/activities.json | jq -cr '.').chomp)
+activities.each do |obj|
+  Activity.create(
+    id: obj["id"],
+    description: obj["description"],
+    data: obj["data"],
+    user: me
+  )
+end
+
+me.entries = JSON.parse(%x(cat db/entries.json | jq -cr '.').chomp)
 me.save!
 puts "Success!"

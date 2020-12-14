@@ -43,6 +43,12 @@ updateState msg state =
         Create activity ->
             { state | activities = updateActivity activity True state.activities }
 
+        Update activity ->
+            { state | activities = updateActivity activity False state.activities }
+
+        Delete activity ->
+            { state | activities = List.filter (\a -> a.id /= activity.id) state.activities }
+
         Group activities session ->
             let
                 ids =
@@ -60,17 +66,11 @@ updateState msg state =
             in
             { state | activities = List.filter (\a -> a.id /= session.id) ungrouped }
 
-        Update activity ->
-            { state | activities = updateActivity activity False state.activities }
-
         Move date activity ->
             { state | activities = moveActivity activity date state.activities }
 
         Shift up activity ->
             { state | activities = shiftActivity activity up state.activities }
-
-        Delete activity ->
-            { state | activities = List.filter (\a -> a.id /= activity.id) state.activities }
 
         _ ->
             state
@@ -134,10 +134,7 @@ flush model =
             Cmd.none
 
         Model state msgs csrfToken ->
-            Api.getActivities
-                |> Task.map State
-                |> Task.map (\remoteState -> List.foldr (\msg rs -> updateState msg rs) remoteState msgs)
-                |> Task.andThen (\newRemoteState -> Api.postActivities csrfToken newRemoteState.activities)
+            Api.postActivities csrfToken state.activities (activityChanges msgs)
                 |> Task.attempt (Posted msgs)
 
 
@@ -198,3 +195,24 @@ shiftUp id activities =
 
         _ ->
             activities
+
+
+activityChanges : List Msg -> List ( String, Activity )
+activityChanges msgs =
+    let
+        activityChange m =
+            case m of
+                Create a ->
+                    Just ( "create", a )
+
+                Update a ->
+                    Just ( "update", a )
+
+                Delete a ->
+                    Just ( "delete", a )
+
+                _ ->
+                    Nothing
+    in
+    List.reverse msgs
+        |> List.filterMap activityChange

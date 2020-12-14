@@ -9,18 +9,36 @@ class ActivitiesController < ApplicationController
     render json: activities
   end
 
-  def update
-    current_user.activities = params[:activities].as_json
-    result = current_user.save
-    render json: { ok: result }
+  def batch_update
+    changes = params[:changes]
+    Activity.transaction do
+      changes.each do |change|
+        activity_params = change['activity'].permit(:id, :description, :date, data: {})
+        if change['msg'] == 'create'
+          current_user.activities.create!(activity_params)
+        elsif change['msg'] == 'update'
+          activity = current_user.activities.find(activity_params['id'])
+          activity.update!(activity_params)
+        elsif change['msg'] == 'delete'
+          activity = current_user.activities.find(activity_params['id'])
+          activity.destroy!()
+        else
+          puts "Invalid change #{change}"
+        end
+      end
+
+      current_user.entries = params[:entries]
+      current_user.save!
+    end
+    render json: { ok: true }
   end
 
   private
 
-  def initialize_strava
-    # TODO: make sure user is authenticated into Strava
-    access_token = session["devise.strava_access_token"]
-    StravaClient.configure { |config| config.access_token = access_token }
-    @strava = StravaClient::ActivitiesApi.new
-  end
+    def initialize_strava
+      # TODO: make sure user is authenticated into Strava
+      access_token = session["devise.strava_access_token"]
+      StravaClient.configure { |config| config.access_token = access_token }
+      @strava = StravaClient::ActivitiesApi.new
+    end
 end

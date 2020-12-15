@@ -10,6 +10,12 @@ class ActivitiesController < ApplicationController
   end
 
   def batch_update
+    rev = params[:rev]
+    if (rev != entries_revision)
+      render status: :conflict, json: { ok: false }
+      return
+    end
+
     changes = params[:changes]
     Activity.transaction do
       changes.each do |change|
@@ -40,5 +46,9 @@ class ActivitiesController < ApplicationController
       access_token = session["devise.strava_access_token"]
       StravaClient.configure { |config| config.access_token = access_token }
       @strava = StravaClient::ActivitiesApi.new
+    end
+
+    def entries_revision
+      Digest::MD5.hexdigest(current_user.entries.to_json)
     end
 end

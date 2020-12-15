@@ -38,7 +38,7 @@ main =
 
 
 type Model
-    = Loading (Maybe Date) (Maybe (List Activity)) String
+    = Loading (Maybe Date) (Maybe Store.Model) String
     | Loaded State
     | Error String
 
@@ -99,12 +99,12 @@ update msg model =
 
                 GotActivities activitiesR ->
                     case activitiesR of
-                        Ok activities ->
-                            Loading dateM (Just activities) token
+                        Ok ( revision, activities ) ->
+                            Loading dateM (Just (Store.init token revision activities)) token
                                 |> updateLoading
 
                         Err err ->
-                            ( Error err, Cmd.none )
+                            ( Error (Api.errorString err), Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )
@@ -398,11 +398,11 @@ update msg model =
 updateLoading : Model -> ( Model, Cmd Msg )
 updateLoading model =
     case model of
-        Loading (Just date) (Just activities) csrfToken ->
+        Loading (Just date) (Just store) csrfToken ->
             (Loaded <|
                 State
                     (Calendar.init Msg.Month date date)
-                    (Store.init csrfToken activities)
+                    store
                     None
             )
                 |> update (Jump date)

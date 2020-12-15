@@ -6,7 +6,7 @@ class ActivitiesController < ApplicationController
     # activities = @strava.get_logged_in_athlete_activities({before: params['before'].to_i})
     # TODO: error handling
     activities = Activity.list(current_user)
-    render json: activities
+    render json: { activities: activities, rev: entries_revision }
   end
 
   def batch_update
@@ -23,16 +23,20 @@ class ActivitiesController < ApplicationController
         if change['msg'] == 'create'
           current_user.activities.create!(activity_params)
         elsif change['msg'] == 'update'
-          current_user.activities.find(activity_params['id']).update!(activity_params)
+          activity = current_user.activities.find(activity_params['id'])
+          activity.update!(activity_params)
         elsif change['msg'] == 'delete'
-          current_user.activities.find(activity_params['id']).destroy!(activity_params)
+          activity = current_user.activities.find(activity_params['id'])
+          activity.destroy!()
         else
           raise ActiveRecord::StatementInvalid.new("Invalid change #{change}")
         end
       end
 
-      current_user.entries = params[:entries]
-      current_user.save!
+      Rails.logger.silence do
+        current_user.entries = params[:entries]
+        current_user.save!
+      end
     end
 
   rescue ActiveRecord::StatementInvalid => exception
@@ -42,7 +46,7 @@ class ActivitiesController < ApplicationController
     Rails.logger.error exception.message
     render status: :internal_server_error, json: { ok: false }
   else
-    render json: { ok: true }
+    render json: { ok: true, rev: entries_revision }
   end
 
   private
@@ -55,6 +59,6 @@ class ActivitiesController < ApplicationController
     end
 
     def entries_revision
-      Digest::MD5.hexdigest(current_user.entries.to_json)
+      Digest::MD5.hexdigest(current_user.reload.entries.to_json)
     end
 end

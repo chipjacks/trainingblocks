@@ -14,12 +14,12 @@ type Model
 
 
 type alias State =
-    { activities : List Activity }
+    { activities : List Activity, revision : String }
 
 
-init : String -> List Activity -> Model
-init csrfToken activities =
-    Model (State activities) [] csrfToken
+init : String -> String -> List Activity -> Model
+init csrfToken revision activities =
+    Model (State activities revision) [] csrfToken
 
 
 get : Model -> (State -> b) -> b
@@ -85,12 +85,21 @@ update msg (Model state msgs csrfToken) =
     case msg of
         Posted sentMsgs result ->
             case result of
-                Ok True ->
-                    ( Model state msgs csrfToken
+                Ok ( rev, True ) ->
+                    ( Model { state | revision = rev } msgs csrfToken
                     , Cmd.none
                     )
 
+                Err (Http.BadStatus 409) ->
+                    ( Model state (msgs ++ sentMsgs) csrfToken
+                    , Task.attempt GotActivities Api.getActivities
+                    )
+
                 _ ->
+                    let
+                        log =
+                            Debug.log "error" msg
+                    in
                     ( Model state (msgs ++ sentMsgs) csrfToken
                     , Cmd.none
                     )
@@ -106,12 +115,14 @@ update msg (Model state msgs csrfToken) =
 
         GotActivities result ->
             case result of
-                Ok activities ->
+                Ok ( revision, activities ) ->
                     let
                         newState =
-                            List.foldr (\rmsg rs -> updateState rmsg rs) (State activities) msgs
+                            List.foldr (\rmsg rs -> updateState rmsg rs) (State activities revision) msgs
                     in
-                    ( Model newState msgs csrfToken, Cmd.none )
+                    ( Model newState msgs csrfToken
+                    , debounceFlush (List.length msgs)
+                    )
 
                 Err _ ->
                     ( model, Cmd.none )
@@ -134,7 +145,7 @@ flush model =
             Cmd.none
 
         Model state msgs csrfToken ->
-            Api.postActivities csrfToken state.activities (activityChanges msgs)
+            Api.postActivities csrfToken state.revision state.activities (activityChanges msgs)
                 |> Task.attempt (Posted msgs)
 
 

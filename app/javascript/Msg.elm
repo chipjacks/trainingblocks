@@ -45,7 +45,7 @@ type ActivityState
 
 type Msg
     = LoadToday Date
-    | GotActivities (Result String (List Activity))
+    | GotActivities (Result Http.Error ( String, List Activity ))
     | VisibilityChange Events.Visibility
     | KeyPressed String
     | MouseMoved Float Float
@@ -61,7 +61,7 @@ type Msg
     | Move Date Activity
     | Shift Bool Activity
     | Delete Activity
-    | Posted (List Msg) (Result String Bool)
+    | Posted (List Msg) (Result Http.Error ( String, Bool ))
     | DebounceFlush Int
       -- CALENDAR
     | Jump Date

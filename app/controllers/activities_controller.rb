@@ -23,19 +23,25 @@ class ActivitiesController < ApplicationController
         if change['msg'] == 'create'
           current_user.activities.create!(activity_params)
         elsif change['msg'] == 'update'
-          activity = current_user.activities.find(activity_params['id'])
-          activity.update!(activity_params)
+          current_user.activities.find(activity_params['id']).update!(activity_params)
         elsif change['msg'] == 'delete'
-          activity = current_user.activities.find(activity_params['id'])
-          activity.destroy!()
+          current_user.activities.find(activity_params['id']).destroy!(activity_params)
         else
-          puts "Invalid change #{change}"
+          raise ActiveRecord::StatementInvalid.new("Invalid change #{change}")
         end
       end
 
       current_user.entries = params[:entries]
       current_user.save!
     end
+
+  rescue ActiveRecord::StatementInvalid => exception
+    Rails.logger.error exception.message
+    render status: :bad_request, json: { ok: false }
+  rescue => exception
+    Rails.logger.error exception.message
+    render status: :internal_server_error, json: { ok: false }
+  else
     render json: { ok: true }
   end
 

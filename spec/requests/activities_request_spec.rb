@@ -26,4 +26,14 @@ RSpec.describe "Activities", type: :request do
     expect(response).to have_http_status(:conflict)
     expect(@user.activities).to_not include(@activity)
   end
+
+  it "aborts invalid updates" do
+    invalid_activity = { duration: 10 }
+    post "/activities", :params => { changes: [ { msg: 'create', activity: invalid_activity } ],
+                                     entries: @entries,
+                                     rev: Digest::MD5.hexdigest(@user.entries.to_json)
+                                   }.as_json
+    expect(response).to have_http_status(:bad_request)
+    expect(@user.entries.to_json).to_not eq(@entries.to_json)
+  end
 end

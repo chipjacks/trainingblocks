@@ -3,8 +3,7 @@ class ActivitiesController < ApplicationController
   before_action :initialize_strava
 
   def index
-    # activities = @strava.get_logged_in_athlete_activities({before: params['before'].to_i})
-    # TODO: error handling
+    # activities = @strava.get_logged_in_athlete_activities({before: Time.now.to_i})
     activities = Activity.list(current_user)
     render json: { activities: activities, rev: entries_revision }
   end
@@ -20,17 +19,20 @@ class ActivitiesController < ApplicationController
     Activity.transaction do
       changes.each do |change|
         activity_params = change['activity'].permit(:id, :description, :date, data: {})
-        if change['msg'] == 'create'
+
+        case change['msg']
+        when 'create'
           current_user.activities.create!(activity_params)
-        elsif change['msg'] == 'update'
+        when 'update'
           activity = current_user.activities.find(activity_params['id'])
           activity.update!(activity_params)
-        elsif change['msg'] == 'delete'
+        when 'delete'
           activity = current_user.activities.find(activity_params['id'])
           activity.destroy!()
         else
           raise ActiveRecord::StatementInvalid.new("Invalid change #{change}")
         end
+
       end
 
       Rails.logger.silence do
@@ -51,14 +53,48 @@ class ActivitiesController < ApplicationController
 
   private
 
+    def entries_revision
+      Digest::MD5.hexdigest(current_user.reload.entries.to_json)
+    end
+
     def initialize_strava
       # TODO: make sure user is authenticated into Strava
+      refresh_strava_token
       access_token = session["devise.strava_access_token"]
       StravaClient.configure { |config| config.access_token = access_token }
       @strava = StravaClient::ActivitiesApi.new
     end
 
-    def entries_revision
-      Digest::MD5.hexdigest(current_user.reload.entries.to_json)
+    def refresh_strava_token
+      expiration_window_seconds = 3600
+      refresh_token = session["devise.strava_refresh_token"]
+      expires_at = session["devise.strava_expires_at"]
+
+      if refresh_token && expires_at && (expires_at - Time.now().to_i < expiration_window_seconds)
+        post_strava_refresh_token(refresh_token)
+      end
+    end
+
+    def post_strava_refresh_token(refresh_token)
+      uri = URI('https://www.strava.com/oauth/token')
+      strava_config = Rails.configuration.devise.omniauth_configs[:strava].strategy
+      data = { 'client_id' => strava_config['client_id'],
+							 'client_secret' => strava_config['client_secret'],
+							 'grant_type' => 'refresh_token',
+							 'refresh_token' => refresh_token
+			}
+
+      res = Net::HTTP.post(uri, data.to_json, "Content-Type" => "application/json")
+
+      case res
+      when Net::HTTPSuccess
+				json = JSON.parse(res.body)
+        session["devise.strava_refresh_token"] = json["refresh_token"]
+        session["devise.strava_expires_at"] = json["expires_at"]
+        session["devise.strava_access_token"] = json["access_token"]
+        Rails.logger.debug "Strava token refreshed: #{res.body}"
+      else
+        Rails.logger.error "Error refreshing Strava token: #{res.body}"
+      end
     end
 end

@@ -3,8 +3,9 @@ class ActivitiesController < ApplicationController
   before_action :initialize_strava
 
   def index
-    # activities = @strava.get_logged_in_athlete_activities({before: Time.now.to_i})
+    strava = @strava.get_logged_in_athlete_activities({per_page: 200})
     activities = Activity.list(current_user)
+    activities = Activity.merge(activities, strava)
     render json: { activities: activities, rev: entries_revision }
   end
 

@@ -39,7 +39,7 @@ getActivities =
         }
 
 
-postActivities : String -> String -> List Activity -> List ( String, Activity ) -> Task Http.Error (String, Bool)
+postActivities : String -> String -> List Activity -> List ( String, Activity ) -> Task Http.Error ( String, Bool )
 postActivities csrfToken revision activities changes =
     let
         changeEncoder ( msg, activity ) =

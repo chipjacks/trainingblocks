@@ -4,9 +4,16 @@ class ActivitiesController < ApplicationController
 
   def index
     strava = @strava.get_logged_in_athlete_activities({per_page: 200})
-    activities = Activity.list(current_user)
-    activities = Activity.merge(activities, strava)
-    render json: { activities: activities, rev: entries_revision }
+    entries = Activity.merge(current_user, strava)
+
+    Rails.logger.silence do
+      current_user.entries = entries
+      current_user.save!
+    end
+
+    current_user.reload
+
+    render json: { activities: Activity.list(current_user), rev: entries_revision }
   end
 
   def batch_update
@@ -55,7 +62,7 @@ class ActivitiesController < ApplicationController
   private
 
     def entries_revision
-      Digest::MD5.hexdigest(current_user.reload.entries.to_json)
+      Digest::MD5.hexdigest(current_user.entries.to_json)
     end
 
     def initialize_strava

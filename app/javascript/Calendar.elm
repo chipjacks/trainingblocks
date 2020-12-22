@@ -12,6 +12,7 @@ import Html.Keyed
 import Html.Lazy
 import Json.Decode as Decode
 import Msg exposing (ActivityState(..), Msg(..), Zoom(..))
+import Pace
 import Ports exposing (scrollToSelectedDate)
 import Process
 import Skeleton exposing (attributeIf, borderStyle, column, compactColumn, expandingRow, row, spinner, styleIf, viewIf, viewMaybe)
@@ -520,10 +521,10 @@ viewActivity isActive isActiveDate activity =
                     [ text <|
                         case activity.data of
                             Activity.Run mins pace_ _ ->
-                                String.fromInt mins ++ " min " ++ String.toLower (Activity.pace.toString pace_)
+                                String.fromInt mins ++ " min " ++ String.toLower (Pace.paceToString pace_)
 
                             Activity.Interval secs pace_ _ ->
-                                String.fromInt secs ++ " secs " ++ String.toLower (Activity.pace.toString pace_)
+                                String.fromInt secs ++ " secs " ++ String.toLower (Pace.paceToString pace_)
 
                             Activity.Race mins _ _ ->
                                 String.fromInt mins ++ " min "

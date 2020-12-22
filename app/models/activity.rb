@@ -29,8 +29,10 @@ class Activity < ApplicationRecord
     unmatched.each do |u|
       u[:user] = user
       a = u.reject {|k,v| k == :date }
-      saved = Activity.create_with(a).find_or_create_by(id: u[:id])
+      saved = Activity.create_with(a).find_or_create_by!(id: u[:id])
       find_or_create_entry(entries, u[:date], u[:id])
+    rescue => exception
+      Rails.logger.error "#{exception} - Unmatched activity: #{u}"
     end
 
     entries

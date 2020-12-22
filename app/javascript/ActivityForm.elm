@@ -5,14 +5,16 @@ import ActivityShape
 import Api
 import Array exposing (Array)
 import Date exposing (Date)
+import Duration
 import Emoji
 import Html exposing (Html, a, button, div, i, input, span, text)
 import Html.Attributes exposing (class, href, id, name, placeholder, style, type_, value)
 import Html.Events exposing (on, onClick, onFocus, onInput)
 import Http
 import Json.Decode as Decode
-import MPRLevel exposing (stripTimeStr)
+import MPRLevel
 import Msg exposing (ActivityForm, ActivityState(..), DataForm(..), FormError(..), Msg(..))
+import Pace exposing (Pace)
 import Skeleton exposing (attributeIf, borderStyle, column, compactColumn, expandingRow, row, viewIf, viewMaybe)
 import Store
 import Task exposing (Task)
@@ -243,10 +245,10 @@ updatePace : String -> DataForm -> DataForm
 updatePace paceStr dataForm =
     case dataForm of
         RunForm data ->
-            RunForm { data | pace = Activity.pace.fromString paceStr |> Maybe.withDefault (defaults dataForm |> .pace) }
+            RunForm { data | pace = Pace.paceFromString paceStr }
 
         IntervalForm data ->
-            IntervalForm { data | pace = Activity.pace.fromString paceStr |> Maybe.withDefault (defaults dataForm |> .pace) }
+            IntervalForm { data | pace = Pace.paceFromString paceStr }
 
         _ ->
             dataForm
@@ -434,7 +436,7 @@ viewShape model =
             validate model
                 |> Result.toMaybe
                 |> Maybe.map ActivityShape.view
-                |> Maybe.withDefault (ActivityShape.viewDefault True (Activity.Run 30 Activity.Easy True))
+                |> Maybe.withDefault (ActivityShape.viewDefault True (Activity.Run (defaults model.dataForm |> .duration) (defaults model.dataForm |> .pace) True))
     in
     compactColumn
         [ class "dynamic-shape"
@@ -478,7 +480,7 @@ shapeSelect model =
 
 
 type alias Defaults =
-    { duration : Int, pace : Activity.Pace, distance : Activity.Distance, completed : Bool, emoji : String }
+    { duration : Int, pace : Int, distance : Activity.Distance, completed : Bool, emoji : String }
 
 
 defaults : DataForm -> Defaults
@@ -505,7 +507,7 @@ defaults dataForm =
                     pace
 
                 _ ->
-                    Activity.Easy
+                    Pace.trainingPaceToSeconds 47 Pace.Easy
 
         distance_ =
             case dataForm of
@@ -636,32 +638,36 @@ durationInput msg isSeconds duration =
         []
 
 
-paceSelect : Maybe Int -> (String -> Msg) -> Activity.Pace -> Html Msg
+paceSelect : Maybe Int -> (String -> Msg) -> Pace -> Html Msg
 paceSelect levelM msg pace =
     let
         paceNames =
-            Activity.pace.list |> List.map Tuple.first
+            Pace.trainingPace.list |> List.map Tuple.first
 
         paceTimes =
             case levelM of
                 Just level ->
-                    MPRLevel.trainingPaces ( MPRLevel.Neutral, level )
-                        |> Result.map (List.map (\( name, ( minPace, maxPace ) ) -> stripTimeStr maxPace))
-                        |> Result.withDefault (List.repeat (List.length Activity.pace.list) "")
+                    Pace.trainingPaces ( MPRLevel.Neutral, level )
+                        |> Result.map (List.map (\( name, ( minPace, maxPace ) ) -> Duration.stripTimeStr maxPace))
+                        |> Result.withDefault (List.repeat (List.length Pace.trainingPace.list) "")
 
                 Nothing ->
-                    List.repeat (List.length Activity.pace.list) ""
+                    List.repeat (List.length Pace.trainingPace.list) ""
     in
     div [ class "dropdown medium" ]
         [ button [ class "button medium" ]
-            [ text (Activity.pace.toString pace) ]
+            [ text (Pace.paceToString pace) ]
         , div [ class "dropdown-content" ]
             (List.map2
-                (\name time ->
-                    a [ onClick (msg name), style "text-align" "left" ] [ span [ style "color" "var(--accent-blue)", style "margin-right" "0.5rem" ] [ Html.text time ], Html.text name ]
+                (\time name ->
+                    a [ onClick (msg time), style "text-align" "left" ]
+                        [ span [ style "color" "var(--accent-blue)", style "margin-right" "0.5rem" ]
+                            [ Html.text time ]
+                        , Html.text name
+                        ]
                 )
-                paceNames
                 paceTimes
+                paceNames
             )
         ]
 

@@ -1,9 +1,10 @@
 module ActivityShape exposing (view, viewDefault)
 
-import Activity exposing (Activity, Pace(..))
+import Activity exposing (Activity)
 import Emoji
 import Html exposing (Html, div)
 import Html.Attributes exposing (class, style)
+import Pace exposing (TrainingPace(..))
 import Skeleton exposing (column, row, styleIf)
 
 
@@ -24,15 +25,23 @@ view : Activity -> Html msg
 view activity =
     case activity.data of
         Activity.Run mins pace completed ->
-            Block Green completed { width = toWidth pace, height = toHeight mins }
+            let
+                trainingPace =
+                    Pace.secondsToTrainingPace 47 pace
+            in
+            Block Green completed { width = toWidth trainingPace, height = toHeight mins }
                 |> viewShape
 
         Activity.Interval secs pace completed ->
-            Block Orange completed { width = toWidth pace, height = toIntervalHeight secs }
+            let
+                trainingPace =
+                    Pace.secondsToTrainingPace 47 pace
+            in
+            Block Orange completed { width = toWidth trainingPace, height = toIntervalHeight secs }
                 |> viewShape
 
         Activity.Race mins dist completed ->
-            Block Red completed { width = toWidth (Maybe.withDefault Activity.Lactate Nothing), height = toHeight mins }
+            Block Red completed { width = toWidth (Maybe.withDefault Pace.Lactate Nothing), height = toHeight mins }
                 |> viewShape
 
         Activity.Other mins completed ->
@@ -144,7 +153,7 @@ toIntervalHeight duration =
     toFloat duration / 600
 
 
-toWidth : Activity.Pace -> Float
+toWidth : TrainingPace -> Float
 toWidth pace =
     case pace of
         Easy ->

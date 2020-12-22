@@ -1,4 +1,4 @@
-module Activity exposing (Activity, ActivityData(..), Distance(..), Id, Minutes, Pace(..), Seconds, activityTypeToString, decoder, distance, encoder, mprLevel, newId, pace)
+module Activity exposing (Activity, ActivityData(..), Distance(..), Id, Minutes, Seconds, activityTypeToString, decoder, distance, encoder, mprLevel, newId)
 
 import Date exposing (Date)
 import Emoji
@@ -6,6 +6,7 @@ import Enum exposing (Enum)
 import Json.Decode as Decode
 import Json.Encode as Encode
 import MPRLevel
+import Pace exposing (Pace)
 import Random
 import Task exposing (Task)
 
@@ -84,62 +85,6 @@ type alias Minutes =
 
 type alias Seconds =
     Int
-
-
-type Pace
-    = Easy
-    | Moderate
-    | Steady
-    | Brisk
-    | Aerobic
-    | Lactate
-    | Groove
-    | VO2
-    | Fast
-
-
-pace : Enum Pace
-pace =
-    Enum.create
-        [ Easy
-        , Moderate
-        , Steady
-        , Brisk
-        , Aerobic
-        , Lactate
-        , Groove
-        , VO2
-        , Fast
-        ]
-        (\a ->
-            case a of
-                Easy ->
-                    "Easy"
-
-                Moderate ->
-                    "Moderate"
-
-                Steady ->
-                    "Steady"
-
-                Brisk ->
-                    "Brisk"
-
-                Aerobic ->
-                    "Aerobic"
-
-                Lactate ->
-                    "Lactate"
-
-                Groove ->
-                    "Groove"
-
-                VO2 ->
-                    "VO2"
-
-                Fast ->
-                    "Fast"
-        )
 
 
 type Distance
@@ -227,13 +172,13 @@ activityDataDecoder =
         runDecoder =
             Decode.map3 Run
                 (Decode.field "duration" Decode.int)
-                (Decode.field "pace" pace.decoder)
+                (Decode.field "pace" Pace.trainingPace.decoder |> Decode.map (Pace.trainingPaceToSeconds 47))
                 (Decode.field "completed" Decode.bool)
 
         intervalDecoder =
             Decode.map3 Interval
                 (Decode.field "duration" Decode.int)
-                (Decode.field "pace" pace.decoder)
+                (Decode.field "pace" Pace.trainingPace.decoder |> Decode.map (Pace.trainingPaceToSeconds 47))
                 (Decode.field "completed" Decode.bool)
 
         raceDecoder =
@@ -291,7 +236,7 @@ encoder activity =
                     Encode.object
                         [ ( "type", Encode.string "run" )
                         , ( "duration", Encode.int minutes )
-                        , ( "pace", pace.encode pace_ )
+                        , ( "pace", Encode.int pace_ )
                         , ( "completed", Encode.bool completed )
                         ]
 
@@ -299,7 +244,7 @@ encoder activity =
                     Encode.object
                         [ ( "type", Encode.string "interval" )
                         , ( "duration", Encode.int seconds )
-                        , ( "pace", pace.encode pace_ )
+                        , ( "pace", Encode.int pace_ )
                         , ( "completed", Encode.bool completed )
                         ]
 

@@ -16,6 +16,7 @@ import Html.Lazy
 import Http
 import Json.Decode as Decode
 import Msg exposing (ActivityForm, ActivityState(..), Msg(..))
+import Pace
 import Ports
 import Random
 import Skeleton exposing (borderStyle, column, compactColumn, expandingRow, row, spinner, styleIf, viewIf, viewMaybe)
@@ -458,7 +459,7 @@ initActivity today dateM =
             Date.compare date today == LT || date == today
     in
     Activity.newId
-        |> Random.map (\id -> Activity id date "" (Activity.Run 30 Activity.Easy completed))
+        |> Random.map (\id -> Activity id date "" (Activity.Run 30 (Pace.trainingPaceToSeconds 47 Pace.Easy) completed))
         |> Random.generate NewActivity
 
 

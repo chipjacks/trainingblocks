@@ -21,8 +21,7 @@ paceToString seconds =
         secs =
             remainderBy 60 seconds
     in
-    List.map String.fromInt [ mins, secs ]
-        |> String.join ":"
+    String.fromInt mins ++ ":" ++ Duration.formatSeconds secs
 
 
 paceFromString : String -> Maybe Int
@@ -82,12 +81,13 @@ trainingPaceToSeconds : Int -> TrainingPace -> Int
 trainingPaceToSeconds level tp =
     trainingPaces ( MPRLevel.Neutral, level )
         |> Result.map
-            (\l -> List.filter (\( name, _ ) -> name == tp) l |> List.head)
-        |> Result.map
-            (Maybe.map
-                (\( _, ( minPace, maxPace ) ) -> Duration.timeStrToSeconds maxPace |> Result.withDefault 0)
+            (\l ->
+                List.filter (\( name, _ ) -> name == tp) l
+                    |> List.head
+                    |> Maybe.map
+                        (\( _, ( minPace, maxPace ) ) -> paceFromString maxPace |> Maybe.withDefault 0)
+                    |> Maybe.withDefault 0
             )
-        |> Result.map (Maybe.withDefault 0)
         |> Result.withDefault 0
 
 
@@ -97,7 +97,7 @@ secondsToTrainingPace level seconds =
         |> Result.map
             (\list ->
                 List.map (\( name, ( minPace, maxPace ) ) -> ( name, Duration.timeStrToSeconds maxPace |> Result.withDefault 0 )) list
-                    |> List.filter (\( name, maxPaceSeconds ) -> seconds < maxPaceSeconds)
+                    |> List.filter (\( name, maxPaceSeconds ) -> seconds <= maxPaceSeconds)
                     |> List.reverse
                     |> List.head
                     |> Maybe.map Tuple.first

@@ -1,4 +1,4 @@
-module Duration exposing (stripTimeStr, timeStrToHrsMinsSecs, timeStrToSeconds, timeToSeconds)
+module Duration exposing (formatSeconds, stripTimeStr, timeStrToHrsMinsSecs, timeStrToSeconds, timeToSeconds)
 
 
 type alias Minutes =
@@ -42,13 +42,16 @@ stripTimeStr str =
         [ 0, min, sec ] ->
             String.fromInt min
                 ++ ":"
-                ++ (case compare sec 10 of
-                        LT ->
-                            "0" ++ String.fromInt sec
-
-                        _ ->
-                            String.fromInt sec
-                   )
+                ++ formatSeconds sec
 
         _ ->
             str
+
+
+formatSeconds : Int -> String
+formatSeconds sec =
+    if sec < 10 then
+        "0" ++ String.fromInt sec
+
+    else
+        String.fromInt sec

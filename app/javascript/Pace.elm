@@ -25,20 +25,20 @@ paceToString seconds =
         |> String.join ":"
 
 
-paceFromString : String -> Int
+paceFromString : String -> Maybe Int
 paceFromString paceStr =
     case Duration.timeStrToHrsMinsSecs paceStr of
         [ hrs, mins, secs ] ->
-            Duration.timeToSeconds hrs mins secs
+            Just (Duration.timeToSeconds hrs mins secs)
 
         [ mins, secs ] ->
-            mins * 60 + secs
+            Just (mins * 60 + secs)
 
         [ secs ] ->
-            secs
+            Just secs
 
         _ ->
-            0
+            Nothing
 
 
 

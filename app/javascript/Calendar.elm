@@ -520,11 +520,11 @@ viewActivity isActive isActiveDate activity =
                 [ column []
                     [ text <|
                         case activity.data of
-                            Activity.Run mins pace_ _ ->
-                                String.fromInt mins ++ " min " ++ String.toLower (Pace.paceToString pace_)
+                            Activity.Run mins paceM _ ->
+                                String.fromInt mins ++ " min " ++ String.toLower (Maybe.map (Pace.secondsToTrainingPace 47) paceM |> Maybe.map Pace.trainingPace.toString |> Maybe.withDefault "")
 
-                            Activity.Interval secs pace_ _ ->
-                                String.fromInt secs ++ " secs " ++ String.toLower (Pace.paceToString pace_)
+                            Activity.Interval secs paceM _ ->
+                                String.fromInt secs ++ " secs " ++ String.toLower (Maybe.map (Pace.secondsToTrainingPace 47) paceM |> Maybe.map Pace.trainingPace.toString |> Maybe.withDefault "")
 
                             Activity.Race mins _ _ ->
                                 String.fromInt mins ++ " min "

@@ -20,8 +20,8 @@ type alias Activity =
 
 
 type ActivityData
-    = Run Minutes Pace Bool
-    | Interval Seconds Pace Bool
+    = Run Minutes (Maybe Pace) Bool
+    | Interval Seconds (Maybe Pace) Bool
     | Race Minutes Distance Bool
     | Other Minutes Bool
     | Note String
@@ -172,13 +172,13 @@ activityDataDecoder =
         runDecoder =
             Decode.map3 Run
                 (Decode.field "duration" Decode.int)
-                (Decode.field "pace" Pace.trainingPace.decoder |> Decode.map (Pace.trainingPaceToSeconds 47))
+                (Decode.maybe (Decode.field "pace" Pace.trainingPace.decoder |> Decode.map (Pace.trainingPaceToSeconds 47)))
                 (Decode.field "completed" Decode.bool)
 
         intervalDecoder =
             Decode.map3 Interval
                 (Decode.field "duration" Decode.int)
-                (Decode.field "pace" Pace.trainingPace.decoder |> Decode.map (Pace.trainingPaceToSeconds 47))
+                (Decode.maybe (Decode.field "pace" Pace.trainingPace.decoder |> Decode.map (Pace.trainingPaceToSeconds 47)))
                 (Decode.field "completed" Decode.bool)
 
         raceDecoder =
@@ -232,21 +232,25 @@ encoder activity =
     let
         dataEncoder data =
             case data of
-                Run minutes pace_ completed ->
-                    Encode.object
+                Run minutes paceM completed ->
+                    Encode.object <|
                         [ ( "type", Encode.string "run" )
                         , ( "duration", Encode.int minutes )
-                        , ( "pace", Encode.int pace_ )
                         , ( "completed", Encode.bool completed )
                         ]
+                            ++ (Maybe.map (\p -> [ ( "pace", Encode.int p ) ]) paceM
+                                    |> Maybe.withDefault []
+                               )
 
-                Interval seconds pace_ completed ->
-                    Encode.object
+                Interval seconds paceM completed ->
+                    Encode.object <|
                         [ ( "type", Encode.string "interval" )
                         , ( "duration", Encode.int seconds )
-                        , ( "pace", Encode.int pace_ )
                         , ( "completed", Encode.bool completed )
                         ]
+                            ++ (Maybe.map (\p -> [ ( "pace", Encode.int p ) ]) paceM
+                                    |> Maybe.withDefault []
+                               )
 
                 Race minutes distance_ completed ->
                     Encode.object

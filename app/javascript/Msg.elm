@@ -5,7 +5,6 @@ import Browser.Dom as Dom
 import Browser.Events as Events
 import Date exposing (Date)
 import Http
-import Pace exposing (Pace)
 
 
 type Zoom
@@ -29,8 +28,8 @@ type FormError
 
 
 type DataForm
-    = RunForm { duration : String, pace : Pace, completed : Bool }
-    | IntervalForm { duration : String, pace : Pace, completed : Bool }
+    = RunForm { duration : String, pace : String, completed : Bool }
+    | IntervalForm { duration : String, pace : String, completed : Bool }
     | RaceForm { duration : String, distance : Activity.Distance, completed : Bool }
     | OtherForm { duration : String, completed : Bool }
     | NoteForm { emoji : String }

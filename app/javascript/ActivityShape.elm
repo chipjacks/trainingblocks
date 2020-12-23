@@ -24,20 +24,24 @@ type Color
 view : Activity -> Html msg
 view activity =
     case activity.data of
-        Activity.Run mins pace completed ->
+        Activity.Run mins paceM completed ->
             let
-                trainingPace =
-                    Pace.secondsToTrainingPace 47 pace
+                width =
+                    Maybe.map (Pace.secondsToTrainingPace 47) paceM
+                        |> Maybe.map toWidth
+                        |> Maybe.withDefault 0.5
             in
-            Block Green completed { width = toWidth trainingPace, height = toHeight mins }
+            Block Green completed { width = width, height = toHeight mins }
                 |> viewShape
 
-        Activity.Interval secs pace completed ->
+        Activity.Interval secs paceM completed ->
             let
-                trainingPace =
-                    Pace.secondsToTrainingPace 47 pace
+                width =
+                    Maybe.map (Pace.secondsToTrainingPace 47) paceM
+                        |> Maybe.map toWidth
+                        |> Maybe.withDefault 0.5
             in
-            Block Orange completed { width = toWidth trainingPace, height = toIntervalHeight secs }
+            Block Orange completed { width = width, height = toIntervalHeight secs }
                 |> viewShape
 
         Activity.Race mins dist completed ->

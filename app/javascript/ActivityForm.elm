@@ -464,14 +464,24 @@ shapeSelect model =
         typeStr =
             toActivityData model.dataForm |> Activity.activityTypeToString
     in
-    div [ class "dropdown medium" ]
-        [ button [ class "button medium" ]
+    div [ class "dropdown" ]
+        [ button [ class "button", style "font-size" "0.8rem" ]
             [ text typeStr ]
         , viewIf (typeStr /= "Session")
             (div [ class "dropdown-content" ]
                 (List.map
                     (\aType ->
-                        a [ onClick (SelectedShape aType) ] [ row [] [ ActivityShape.viewDefault True aType, compactColumn [ style "margin-left" "0.5rem", style "margin-top" "0.1rem" ] [ text (Activity.activityTypeToString aType) ] ] ]
+                        a [ onClick (SelectedShape aType) ]
+                            [ row []
+                                [ ActivityShape.viewDefault True aType
+                                , compactColumn
+                                    [ style "margin-left" "0.5rem"
+                                    , style "margin-top" "0.1rem"
+                                    , style "font-size" "0.8rem"
+                                    ]
+                                    [ text (Activity.activityTypeToString aType) ]
+                                ]
+                            ]
                     )
                     types
                 )
@@ -585,7 +595,7 @@ emojiSelect msg emoji =
         emojiItem data =
             a [ onClick (msg data.name), style "text-align" "left", padding, style "white-space" "nowrap" ]
                 [ Emoji.view data
-                , div [ style "display" "inline-block", style "vertical-align" "top", style "margin-left" "0.5rem" ]
+                , div [ style "display" "inline-block", style "vertical-align" "top", style "margin-left" "0.5rem", style "font-size" "0.8rem" ]
                     [ Html.text data.name ]
                 ]
     in
@@ -659,18 +669,15 @@ paceSelect levelM msg paceStr =
 
                 Nothing ->
                     List.repeat (List.length Pace.trainingPace.list) ""
-
-        padding =
-            style "padding" "3.5px 0.5rem 0.5px 0.5rem"
     in
     div [ class "row" ]
-        [ div [ class "dropdown medium" ]
+        [ div [ class "dropdown" ]
             [ div [ class "row" ]
                 [ button
                     [ class "button"
-                    , padding
                     , style "border-top-right-radius" "0"
                     , style "border-bottom-right-radius" "0"
+                    , style "font-size" "0.8rem"
                     ]
                     [ text trainingPaceStr ]
                 , input
@@ -685,7 +692,7 @@ paceSelect levelM msg paceStr =
             , div [ class "dropdown-content" ]
                 (List.map2
                     (\time name ->
-                        a [ onClick (msg time), style "text-align" "left" ]
+                        a [ onClick (msg time), style "text-align" "left", style "font-size" "0.8rem" ]
                             [ span [ style "color" "var(--accent-blue)", style "margin-right" "0.5rem" ]
                                 [ Html.text time ]
                             , Html.text name
@@ -700,13 +707,18 @@ paceSelect levelM msg paceStr =
 
 distanceSelect : (String -> Msg) -> Activity.Distance -> Html Msg
 distanceSelect msg distance =
-    div [ class "dropdown medium" ]
-        [ button [ class "button medium" ]
+    div [ class "dropdown" ]
+        [ button [ class "button", style "font-size" "0.8rem" ]
             [ text (Activity.distance.toString distance) ]
         , div [ class "dropdown-content" ]
             (List.map
                 (\( distanceOpt, _ ) ->
-                    a [ onClick (msg distanceOpt), style "text-align" "left" ] [ Html.text distanceOpt ]
+                    a
+                        [ onClick (msg distanceOpt)
+                        , style "text-align" "left"
+                        , style "font-size" "0.8rem"
+                        ]
+                        [ Html.text distanceOpt ]
                 )
                 Activity.distance.list
             )

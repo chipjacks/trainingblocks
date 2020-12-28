@@ -30,9 +30,12 @@ suite =
                     Expect.equal (trainingPaceToSeconds 47 Easy) (7 * 60 + 35)
             ]
         , describe "secondsToTrainingPace" <|
-            [ test "returns the correct training pace" <|
+            [ test "returns the correct training pace for brisk" <|
                 \_ ->
-                    Expect.equal (secondsToTrainingPace 47 (6 * 60 + 29)) Steady
+                    Expect.equal (secondsToTrainingPace 44 (6 * 60 + 29)) Brisk
+            , test "returns the correct training pace for fast" <|
+                \_ ->
+                    Expect.equal (secondsToTrainingPace 44 (5 * 60 + 9)) Fast
             , fuzz2 (Fuzz.intRange 1 60)
                 (Fuzz.oneOf (List.map (Tuple.second >> Fuzz.constant) trainingPace.list))
                 "reverses trainingPaceToSeconds"

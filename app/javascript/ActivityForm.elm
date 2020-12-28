@@ -369,7 +369,7 @@ view levelM activityM =
                                     ]
                                     []
                                 ]
-                            , row [ style "flex-wrap" "wrap", style "align-items" "center" ] <|
+                            , row [ style "flex-wrap" "none", style "align-items" "center" ] <|
                                 compactColumn [ style "margin-right" "0.2rem" ] [ shapeSelect model ]
                                     :: dataInputs model.dataForm model.result
                             , row []
@@ -641,7 +641,7 @@ durationInput msg isSeconds duration =
         , onInput msg
         , onFocus (msg "")
         , name "duration"
-        , style "width" "3rem"
+        , style "width" "2.5rem"
         , class "input small"
         , value duration
         ]
@@ -683,8 +683,8 @@ paceSelect levelM msg paceStr =
                 , input
                     [ onInput msg
                     , onFocus (msg "")
-                    , class "input small icon"
-                    , style "width" "6rem"
+                    , class "input small"
+                    , style "width" "2.5rem"
                     , value paceStr
                     ]
                     []

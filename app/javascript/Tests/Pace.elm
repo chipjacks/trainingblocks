@@ -20,6 +20,9 @@ suite =
             [ fuzz (Fuzz.intRange 180 1200) "reverses paceToString" <|
                 \i ->
                     Expect.equal (paceToString i |> paceFromString) (Just i)
+            , test "returns the correct pace in seconds" <|
+                \_ ->
+                    Expect.equal (paceFromString "6:40") (Just (6 * 60 + 40))
             ]
         , describe "trainingPaceToSeconds" <|
             [ test "returns the correct max pace in seconds" <|

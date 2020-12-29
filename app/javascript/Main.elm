@@ -459,7 +459,7 @@ initActivity today dateM =
             Date.compare date today == LT || date == today
     in
     Activity.newId
-        |> Random.map (\id -> Activity id date "" (Activity.Run 30 (Just (Pace.trainingPaceToSeconds 47 Pace.Easy)) completed))
+        |> Random.map (\id -> Activity id date "" (Activity.Run 30 Nothing completed))
         |> Random.generate NewActivity
 
 
@@ -543,7 +543,7 @@ view model =
                 in
                 column (style "position" "relative" :: events)
                     [ Html.Lazy.lazy Calendar.viewHeader calendar
-                    , Html.Lazy.lazy4 Calendar.view calendar activities activeId activeRataDie
+                    , Html.Lazy.lazy5 Calendar.view calendar activities activeId activeRataDie levelM
                     , Html.Lazy.lazy viewActivityM activityM
                     , Html.Lazy.lazy2 ActivityForm.view levelM activityM
                     ]

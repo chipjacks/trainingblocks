@@ -205,8 +205,8 @@ filterActivities date activities =
     List.filter (\a -> a.date == date) activities
 
 
-view : Model -> List Activity -> String -> Int -> Html Msg
-view model activities activeId activeRataDie =
+view : Model -> List Activity -> String -> Int -> Maybe Int -> Html Msg
+view model activities activeId activeRataDie levelM =
     let
         (Model zoom start end selected today scrollCompleted) =
             model
@@ -216,7 +216,15 @@ view model activities activeId activeRataDie =
                 [ [ ( Date.toIsoString date, Html.Lazy.lazy3 viewDay (date == today) (date == selected) (Date.toRataDie date) ) ]
                 , filterActivities date activities
                     |> List.map
-                        (\activity -> ( activity.id, Html.Lazy.lazy3 viewActivity (String.contains activity.id activeId) (Date.toRataDie date == activeRataDie) activity ))
+                        (\activity ->
+                            ( activity.id
+                            , Html.Lazy.lazy4 viewActivity
+                                (String.contains activity.id activeId)
+                                (Date.toRataDie date == activeRataDie)
+                                levelM
+                                activity
+                            )
+                        )
                 , [ ( Date.toIsoString date ++ "+", Html.Lazy.lazy viewAddButton date ) ]
                 ]
 
@@ -492,8 +500,8 @@ viewDay isToday isSelected rataDie =
         [ text (Date.format "E MMM d" date) ]
 
 
-viewActivity : Bool -> Bool -> Activity -> Html Msg
-viewActivity isActive isActiveDate activity =
+viewActivity : Bool -> Bool -> Maybe Int -> Activity -> Html Msg
+viewActivity isActive isActiveDate levelM activity =
     let
         level =
             Activity.mprLevel activity
@@ -521,10 +529,10 @@ viewActivity isActive isActiveDate activity =
                     [ text <|
                         case activity.data of
                             Activity.Run mins paceM _ ->
-                                String.fromInt mins ++ " min " ++ String.toLower (Maybe.map (Pace.secondsToTrainingPace 47) paceM |> Maybe.map Pace.trainingPace.toString |> Maybe.withDefault "")
+                                String.fromInt mins ++ " min " ++ String.toLower (Maybe.map2 Pace.secondsToTrainingPace levelM paceM |> Maybe.map Pace.trainingPace.toString |> Maybe.withDefault "")
 
                             Activity.Interval secs paceM _ ->
-                                String.fromInt secs ++ " secs " ++ String.toLower (Maybe.map (Pace.secondsToTrainingPace 47) paceM |> Maybe.map Pace.trainingPace.toString |> Maybe.withDefault "")
+                                String.fromInt secs ++ " secs " ++ String.toLower (Maybe.map2 Pace.secondsToTrainingPace levelM paceM |> Maybe.map Pace.trainingPace.toString |> Maybe.withDefault "")
 
                             Activity.Race mins _ _ ->
                                 String.fromInt mins ++ " min "

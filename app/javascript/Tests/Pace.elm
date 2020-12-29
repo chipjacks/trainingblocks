@@ -23,6 +23,9 @@ suite =
             , test "returns the correct pace in seconds" <|
                 \_ ->
                     Expect.equal (paceFromString "6:40") (Just (6 * 60 + 40))
+            , test "returns Nothing for empty string" <|
+                \_ ->
+                    Expect.equal (paceFromString "") Nothing
             ]
         , describe "trainingPaceToSeconds" <|
             [ test "returns the correct max pace in seconds" <|

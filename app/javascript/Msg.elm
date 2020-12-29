@@ -76,7 +76,7 @@ type Msg
     | SelectActivity Activity Bool
     | EditActivity Activity
     | SelectedDate Date
-    | SelectedShape Activity.ActivityData
+    | SelectedShape DataForm
     | EditedDescription String
     | SelectedEmoji String
     | CheckedCompleted

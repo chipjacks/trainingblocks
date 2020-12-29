@@ -116,55 +116,10 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
-        SelectedShape activityData ->
-            case activityData of
-                Activity.Run mins paceM completed ->
-                    ( updateResult
-                        { model
-                            | dataForm = RunForm { duration = String.fromInt mins, pace = Maybe.map Pace.paceToString paceM |> Maybe.withDefault "", completed = completed }
-                        }
-                    , Cmd.none
-                    )
-
-                Activity.Interval secs paceM completed ->
-                    ( updateResult
-                        { model
-                            | dataForm = IntervalForm { duration = String.fromInt secs, pace = Maybe.map Pace.paceToString paceM |> Maybe.withDefault "", completed = completed }
-                        }
-                    , Cmd.none
-                    )
-
-                Activity.Race mins dist completed ->
-                    ( updateResult
-                        { model
-                            | dataForm = RaceForm { duration = String.fromInt mins, distance = dist, completed = completed }
-                        }
-                    , Cmd.none
-                    )
-
-                Activity.Other mins completed ->
-                    ( updateResult
-                        { model
-                            | dataForm = OtherForm { duration = String.fromInt mins, completed = completed }
-                        }
-                    , Cmd.none
-                    )
-
-                Activity.Note emoji ->
-                    ( updateResult
-                        { model
-                            | dataForm = NoteForm { emoji = emoji }
-                        }
-                    , Cmd.none
-                    )
-
-                Activity.Session activities ->
-                    ( updateResult
-                        { model
-                            | dataForm = SessionForm activities
-                        }
-                    , Cmd.none
-                    )
+        SelectedShape dataForm ->
+            ( updateResult { model | dataForm = dataForm }
+            , Cmd.none
+            )
 
         EditedDescription desc ->
             ( updateResult { model | description = desc }
@@ -436,7 +391,7 @@ viewShape model =
             validate model
                 |> Result.toMaybe
                 |> Maybe.map ActivityShape.view
-                |> Maybe.withDefault (ActivityShape.viewDefault True (Activity.Run (defaults model.dataForm |> .duration) (defaults model.dataForm |> .pace |> Just) True))
+                |> Maybe.withDefault (ActivityShape.viewDefault True (toActivityData model.dataForm))
     in
     compactColumn
         [ class "dynamic-shape"
@@ -454,11 +409,11 @@ shapeSelect model =
             defaults model.dataForm
 
         types =
-            [ Activity.Run duration (Just pace) completed
-            , Activity.Interval duration (Just pace) completed
-            , Activity.Race duration distance completed
-            , Activity.Other duration completed
-            , Activity.Note emoji
+            [ RunForm { duration = duration, pace = pace, completed = completed }
+            , IntervalForm { duration = duration, pace = pace, completed = completed }
+            , RaceForm { duration = duration, distance = distance, completed = completed }
+            , OtherForm { duration = duration, completed = completed }
+            , NoteForm { emoji = emoji }
             ]
 
         typeStr =
@@ -473,13 +428,13 @@ shapeSelect model =
                     (\aType ->
                         a [ onClick (SelectedShape aType) ]
                             [ row []
-                                [ ActivityShape.viewDefault True aType
+                                [ ActivityShape.viewDefault True (toActivityData aType)
                                 , compactColumn
                                     [ style "margin-left" "0.5rem"
                                     , style "margin-top" "0.1rem"
                                     , style "font-size" "0.8rem"
                                     ]
-                                    [ text (Activity.activityTypeToString aType) ]
+                                    [ text (Activity.activityTypeToString (toActivityData aType)) ]
                                 ]
                             ]
                     )
@@ -490,29 +445,36 @@ shapeSelect model =
 
 
 type alias Defaults =
-    { duration : Int, pace : Int, distance : Activity.Distance, completed : Bool, emoji : String }
+    { duration : String, pace : String, distance : Activity.Distance, completed : Bool, emoji : String }
 
 
 defaults : DataForm -> Defaults
 defaults dataForm =
     let
         duration_ =
-            parseDuration <|
-                case dataForm of
-                    RunForm { duration } ->
-                        duration
+            case dataForm of
+                RunForm { duration } ->
+                    duration
 
-                    RaceForm { duration } ->
-                        duration
+                RaceForm { duration } ->
+                    duration
 
-                    OtherForm { duration } ->
-                        duration
+                OtherForm { duration } ->
+                    duration
 
-                    _ ->
-                        "30"
+                _ ->
+                    "30"
 
         pace_ =
-            Pace.trainingPaceToSeconds 47 Pace.Easy
+            case dataForm of
+                RunForm { pace } ->
+                    pace
+
+                IntervalForm { pace } ->
+                    pace
+
+                _ ->
+                    "7:30"
 
         distance_ =
             case dataForm of
@@ -653,9 +615,9 @@ paceSelect levelM msg paceStr =
     let
         trainingPaceStr =
             parsePace paceStr
-                |> Maybe.map (Pace.secondsToTrainingPace 47)
+                |> Maybe.map2 (\level paceSecs -> Pace.secondsToTrainingPace level paceSecs) levelM
                 |> Maybe.map Pace.trainingPace.toString
-                |> Maybe.withDefault ""
+                |> Maybe.withDefault "Pace"
 
         paceNames =
             Pace.trainingPace.list |> List.map Tuple.first

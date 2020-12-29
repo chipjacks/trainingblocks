@@ -26,11 +26,19 @@ timeStrToSeconds str =
 
 leadingField : Parser Int
 leadingField =
-    Parser.mapChompedString
-        (\s a -> String.toInt s |> Maybe.withDefault 0)
-    <|
-        Parser.succeed ()
-            |. Parser.chompWhile Char.isDigit
+    Parser.succeed ()
+        |. Parser.chompWhile Char.isDigit
+        |> Parser.mapChompedString
+            (\s a -> String.toInt s)
+        |> Parser.andThen
+            (\maybeInt ->
+                case maybeInt of
+                    Just i ->
+                        Parser.succeed i
+
+                    Nothing ->
+                        Parser.problem "Failed to parse int"
+            )
 
 
 trailingField : Parser Int

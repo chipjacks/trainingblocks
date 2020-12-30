@@ -544,14 +544,14 @@ view model =
                 column (style "position" "relative" :: events)
                     [ Html.Lazy.lazy Calendar.viewHeader calendar
                     , Html.Lazy.lazy5 Calendar.view calendar activities activeId activeRataDie levelM
-                    , Html.Lazy.lazy viewActivityM activityM
+                    , Html.Lazy.lazy2 viewActivityM levelM activityM
                     , Html.Lazy.lazy2 ActivityForm.view levelM activityM
                     ]
         ]
 
 
-viewActivityM : ActivityState -> Html Msg
-viewActivityM activityState =
+viewActivityM : Maybe Int -> ActivityState -> Html Msg
+viewActivityM levelM activityState =
     case activityState of
         Moving activity x y ->
             row
@@ -561,7 +561,7 @@ viewActivityM activityState =
                 , style "z-index" "3"
                 ]
                 [ compactColumn [ style "flex-basis" "5rem" ]
-                    [ ActivityShape.view activity ]
+                    [ ActivityShape.view levelM activity ]
                 ]
 
         _ ->

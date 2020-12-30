@@ -234,7 +234,7 @@ view model activities activeId activeRataDie levelM =
                     weekList start end
                         |> List.map
                             (\d ->
-                                ( Date.toIsoString d, Html.Lazy.lazy5 viewWeek activities today selected d activeId )
+                                ( Date.toIsoString d, Html.Lazy.lazy6 viewWeek activities today selected d activeId levelM )
                             )
 
                 Month ->
@@ -269,15 +269,15 @@ view model activities activeId activeRataDie levelM =
         ]
 
 
-viewActivityShape : Activity -> Bool -> Html Msg
-viewActivityShape activity isActive =
+viewActivityShape : Activity -> Bool -> Maybe Int -> Html Msg
+viewActivityShape activity isActive levelM =
     div
         [ style "width" "min-content"
         , Html.Events.on "pointerdown" (Decode.succeed (MoveActivity activity))
         , attributeIf isActive (class "dynamic-shape")
         , style "touch-action" "none"
         ]
-        [ ActivityShape.view activity ]
+        [ ActivityShape.view levelM activity ]
 
 
 
@@ -349,8 +349,8 @@ viewHeader model =
             )
 
 
-viewWeek : List Activity -> Date -> Date -> Date -> String -> Html Msg
-viewWeek allActivities today selected start activeId =
+viewWeek : List Activity -> Date -> Date -> Date -> String -> Maybe Int -> Html Msg
+viewWeek allActivities today selected start activeId levelM =
     let
         days =
             daysOfWeek start
@@ -361,7 +361,7 @@ viewWeek allActivities today selected start activeId =
 
         dayViews =
             days
-                |> List.map (\d -> viewWeekDay ( d, filterActivities d allActivities ) (d == today) (d == selected) activeId)
+                |> List.map (\d -> viewWeekDay ( d, filterActivities d allActivities ) (d == today) (d == selected) activeId levelM)
 
         activities =
             days
@@ -373,8 +373,8 @@ viewWeek allActivities today selected start activeId =
             :: dayViews
 
 
-viewWeekDay : ( Date, List Activity ) -> Bool -> Bool -> String -> Html Msg
-viewWeekDay ( date, activities ) isToday isSelected activeId =
+viewWeekDay : ( Date, List Activity ) -> Bool -> Bool -> String -> Maybe Int -> Html Msg
+viewWeekDay ( date, activities ) isToday isSelected activeId levelM =
     let
         isActive a =
             activeId == a.id
@@ -412,7 +412,7 @@ viewWeekDay ( date, activities ) isToday isSelected activeId =
                         , style "margin-right" "0.2rem"
                         , attributeIf (isActive a) (style "opacity" "0.5")
                         ]
-                        [ viewActivityShape a (isActive a) ]
+                        [ viewActivityShape a (isActive a) levelM ]
                 )
                 activities
 
@@ -517,7 +517,7 @@ viewActivity isActive isActiveDate levelM activity =
             , style "justify-content" "center"
             , attributeIf (not isActive) (Html.Events.on "pointerdown" (pointerDownDecoder activity))
             ]
-            [ viewActivityShape activity isActive ]
+            [ viewActivityShape activity isActive levelM ]
         , a
             [ class "column expand"
             , style "justify-content" "center"

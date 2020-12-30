@@ -307,7 +307,7 @@ view levelM activityM =
                             )
                         ]
                     , row []
-                        [ viewShape model
+                        [ viewShape levelM model
                         , column []
                             [ row []
                                 [ text (Maybe.map (Date.format "E MMM d") model.date |> Maybe.withDefault "Select Date")
@@ -384,13 +384,13 @@ viewMultiSelectButtons activities =
         ]
 
 
-viewShape : ActivityForm -> Html Msg
-viewShape model =
+viewShape : Maybe Int -> ActivityForm -> Html Msg
+viewShape levelM model =
     let
         activityShape =
             validate model
                 |> Result.toMaybe
-                |> Maybe.map ActivityShape.view
+                |> Maybe.map (ActivityShape.view levelM)
                 |> Maybe.withDefault (ActivityShape.viewDefault True (toActivityData model.dataForm))
     in
     compactColumn

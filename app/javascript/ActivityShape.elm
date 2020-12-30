@@ -21,27 +21,21 @@ type Color
     | Gray
 
 
-view : Activity -> Html msg
-view activity =
+view : Maybe Int -> Activity -> Html msg
+view levelM activity =
+    let
+        width paceM =
+            Maybe.map2 Pace.secondsToTrainingPace levelM paceM
+                |> Maybe.map toWidth
+                |> Maybe.withDefault 0.5
+    in
     case activity.data of
         Activity.Run mins paceM completed ->
-            let
-                width =
-                    Maybe.map (Pace.secondsToTrainingPace 47) paceM
-                        |> Maybe.map toWidth
-                        |> Maybe.withDefault 0.5
-            in
-            Block Green completed { width = width, height = toHeight mins }
+            Block Green completed { width = width paceM, height = toHeight mins }
                 |> viewShape
 
         Activity.Interval secs paceM completed ->
-            let
-                width =
-                    Maybe.map (Pace.secondsToTrainingPace 47) paceM
-                        |> Maybe.map toWidth
-                        |> Maybe.withDefault 0.5
-            in
-            Block Orange completed { width = width, height = toIntervalHeight secs }
+            Block Orange completed { width = width paceM, height = toIntervalHeight secs }
                 |> viewShape
 
         Activity.Race mins dist completed ->
@@ -57,7 +51,7 @@ view activity =
                 |> viewShape
 
         Activity.Session activities ->
-            div [] (List.map view activities)
+            div [] (List.map (view levelM) activities)
 
 
 viewDefault : Bool -> Activity.ActivityData -> Html msg

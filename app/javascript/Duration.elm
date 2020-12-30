@@ -1,6 +1,90 @@
-module Duration exposing (formatSeconds, stripTimeStr, timeStrToHrsMinsSecs, timeStrToSeconds, timeToSeconds)
+module Duration exposing (formatSeconds, fromString, parser, stripTimeStr, timeStrToHrsMinsSecs, timeStrToSeconds, timeToSeconds, toString, toStringWithUnits)
 
 import Parser exposing ((|.), (|=), Parser)
+
+
+toString : Int -> String
+toString seconds =
+    let
+        ( hrs, mins, secs ) =
+            toHrsMinsSecs seconds
+    in
+    String.join ""
+        [ if hrs > 0 then
+            String.fromInt hrs ++ ":"
+
+          else
+            ""
+        , if hrs > 0 then
+            formatSeconds mins
+
+          else
+            String.fromInt mins
+        , if secs > 0 then
+            ":" ++ formatSeconds secs
+
+          else
+            ""
+        ]
+
+
+toStringWithUnits : Int -> String
+toStringWithUnits seconds =
+    let
+        ( hrs, mins, secs ) =
+            toHrsMinsSecs seconds
+    in
+    String.join " "
+        [ if hrs > 0 then
+            String.fromInt hrs ++ "h"
+
+          else
+            ""
+        , if mins > 0 then
+            String.fromInt mins ++ "m"
+
+          else
+            ""
+        , if secs > 0 then
+            String.fromInt secs ++ "s"
+
+          else
+            ""
+        ]
+
+
+toHrsMinsSecs : Int -> ( Int, Int, Int )
+toHrsMinsSecs seconds =
+    let
+        hrs =
+            (seconds // 60) // 60
+
+        mins =
+            (seconds // 60) - (60 * hrs)
+
+        secs =
+            remainderBy 60 seconds
+    in
+    ( hrs, mins, secs )
+
+
+fromString : String -> Maybe Int
+fromString str =
+    case Parser.run parser str of
+        Ok [ 0, mins, secs ] ->
+            Just (mins * 60 + secs)
+
+        Ok [ hrs, mins, secs ] ->
+            Just (hrs * 60 * 60 + mins * 60 + secs)
+
+        Ok [ hrs, mins ] ->
+            Just (hrs * 60 * 60 + mins * 60)
+
+        Ok [ mins ] ->
+            Just (mins * 60)
+
+        _ ->
+            Nothing
 
 
 timeToSeconds : Int -> Int -> Int -> Int
@@ -74,8 +158,8 @@ trailingField =
             )
 
 
-durationParser : Parser (List Int)
-durationParser =
+parser : Parser (List Int)
+parser =
     Parser.succeed (\a b -> a :: b)
         |= leadingField
         |= (Parser.loop [] <|
@@ -89,7 +173,7 @@ durationParser =
 
 timeStrToHrsMinsSecs : String -> Result (List Parser.DeadEnd) (List Int)
 timeStrToHrsMinsSecs str =
-    Parser.run durationParser str
+    Parser.run parser str
 
 
 stripTimeStr : String -> String

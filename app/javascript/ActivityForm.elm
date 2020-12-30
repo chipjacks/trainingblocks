@@ -1,6 +1,6 @@
 module ActivityForm exposing (init, initMove, isEditing, update, view)
 
-import Activity exposing (Activity, ActivityData, Minutes)
+import Activity exposing (Activity, ActivityData)
 import ActivityShape
 import Api
 import Array exposing (Array)
@@ -34,17 +34,17 @@ init activity =
     in
     baseModel <|
         case activity.data of
-            Activity.Run minutes paceM completed ->
-                RunForm { duration = String.fromInt minutes, pace = Maybe.map Pace.paceToString paceM |> Maybe.withDefault "", completed = completed }
+            Activity.Run seconds paceM completed ->
+                RunForm { duration = Duration.toString seconds, pace = Maybe.map Pace.paceToString paceM |> Maybe.withDefault "", completed = completed }
 
             Activity.Interval seconds paceM completed ->
-                IntervalForm { duration = String.fromInt seconds, pace = Maybe.map Pace.paceToString paceM |> Maybe.withDefault "", completed = completed }
+                IntervalForm { duration = Duration.toString seconds, pace = Maybe.map Pace.paceToString paceM |> Maybe.withDefault "", completed = completed }
 
-            Activity.Race minutes distance_ completed ->
-                RaceForm { duration = String.fromInt minutes, distance = distance_, completed = completed }
+            Activity.Race seconds distance_ completed ->
+                RaceForm { duration = Duration.toString seconds, distance = distance_, completed = completed }
 
-            Activity.Other minutes completed ->
-                OtherForm { duration = String.fromInt minutes, completed = completed }
+            Activity.Other seconds completed ->
+                OtherForm { duration = Duration.toString seconds, completed = completed }
 
             Activity.Note emoji_ ->
                 NoteForm { emoji = emoji_ }
@@ -515,7 +515,16 @@ parseDuration str =
         0
 
     else
-        String.toInt str |> Maybe.withDefault 0
+        Duration.fromString str |> Maybe.withDefault 0
+
+
+parseIntervalDuration : String -> Int
+parseIntervalDuration str =
+    if String.isEmpty str then
+        0
+
+    else
+        Pace.paceFromString str |> Maybe.withDefault 0
 
 
 parsePace : String -> Maybe Int
@@ -530,7 +539,7 @@ toActivityData dataForm =
             Activity.Run (parseDuration duration) (parsePace pace) completed
 
         IntervalForm { duration, pace, completed } ->
-            Activity.Interval (parseDuration duration) (parsePace pace) completed
+            Activity.Interval (parseIntervalDuration duration) (parsePace pace) completed
 
         RaceForm { duration, distance, completed } ->
             Activity.Race (parseDuration duration) distance completed
@@ -592,15 +601,7 @@ emojiSelect msg emoji =
 durationInput : (String -> Msg) -> Bool -> String -> Html Msg
 durationInput msg isSeconds duration =
     input
-        [ type_ "number"
-        , placeholder
-            (if isSeconds then
-                "Secs"
-
-             else
-                "Mins"
-            )
-        , onInput msg
+        [ onInput msg
         , onFocus (msg "")
         , name "duration"
         , style "width" "2.5rem"

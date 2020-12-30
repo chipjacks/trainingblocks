@@ -459,7 +459,7 @@ initActivity today dateM =
             Date.compare date today == LT || date == today
     in
     Activity.newId
-        |> Random.map (\id -> Activity id date "" (Activity.Run 30 Nothing completed))
+        |> Random.map (\id -> Activity id date "" (Activity.Run (30 * 60) Nothing completed))
         |> Random.generate NewActivity
 
 

@@ -6,6 +6,7 @@ import Enum exposing (Enum)
 import Json.Decode as Decode
 import MPRData
 import MPRLevel exposing (RunnerType(..))
+import Parser
 
 
 type alias Pace =
@@ -14,19 +15,12 @@ type alias Pace =
 
 paceToString : Int -> String
 paceToString seconds =
-    let
-        mins =
-            seconds // 60
-
-        secs =
-            remainderBy 60 seconds
-    in
-    String.fromInt mins ++ ":" ++ Duration.formatSeconds secs
+    Duration.toString seconds
 
 
 paceFromString : String -> Maybe Int
-paceFromString paceStr =
-    case Duration.timeStrToHrsMinsSecs paceStr of
+paceFromString str =
+    case Parser.run Duration.parser str of
         Ok [ 0, mins, secs ] ->
             Just (mins * 60 + secs)
 

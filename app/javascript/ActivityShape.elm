@@ -30,19 +30,19 @@ view levelM activity =
                 |> Maybe.withDefault 0.5
     in
     case activity.data of
-        Activity.Run mins paceM completed ->
-            Block Green completed { width = width paceM, height = toHeight mins }
+        Activity.Run secs paceM completed ->
+            Block Green completed { width = width paceM, height = toHeight secs }
                 |> viewShape
 
         Activity.Interval secs paceM completed ->
-            Block Orange completed { width = width paceM, height = toIntervalHeight secs }
+            Block Orange completed { width = width paceM, height = toHeight secs }
                 |> viewShape
 
-        Activity.Race mins dist completed ->
-            Block Red completed { width = toWidth (Maybe.withDefault Pace.Lactate Nothing), height = toHeight mins }
+        Activity.Race secs dist completed ->
+            Block Red completed { width = toWidth (Maybe.withDefault Pace.Lactate Nothing), height = toHeight secs }
                 |> viewShape
 
-        Activity.Other mins completed ->
+        Activity.Other secs completed ->
             Circle Gray completed (String.toList activity.description |> List.head)
                 |> viewShape
 
@@ -141,13 +141,8 @@ colorString color =
             "var(--activity-gray)"
 
 
-toHeight : Activity.Minutes -> Float
+toHeight : Activity.Seconds -> Float
 toHeight duration =
-    toFloat duration / 10
-
-
-toIntervalHeight : Activity.Seconds -> Float
-toIntervalHeight duration =
     toFloat duration / 600
 
 

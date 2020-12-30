@@ -5,6 +5,7 @@ import ActivityForm
 import ActivityShape
 import Browser.Dom as Dom
 import Date exposing (Date)
+import Duration
 import Html exposing (Html, a, button, div, i, text)
 import Html.Attributes exposing (attribute, class, href, id, style)
 import Html.Events exposing (on, onClick, onMouseDown, onMouseOver)
@@ -425,14 +426,14 @@ titleWeek activities =
                 |> List.map
                     (\a ->
                         case a.data of
-                            Activity.Run mins _ _ ->
-                                ( mins, 0 )
+                            Activity.Run secs _ _ ->
+                                ( secs, 0 )
 
-                            Activity.Race mins _ _ ->
-                                ( mins, 0 )
+                            Activity.Race secs _ _ ->
+                                ( secs, 0 )
 
-                            Activity.Other mins _ ->
-                                ( 0, mins )
+                            Activity.Other secs _ ->
+                                ( 0, secs )
 
                             _ ->
                                 ( 0, 0 )
@@ -440,11 +441,10 @@ titleWeek activities =
                 |> List.foldl (\( r, o ) ( sr, so ) -> ( sr + r, so + o )) ( 0, 0 )
 
         hours duration =
-            (toFloat duration / 60)
-                |> Basics.floor
+            (duration // 60) // 60
 
         minutes duration =
-            remainderBy 60 duration
+            remainderBy 60 (duration // 60)
     in
     column
         [ style "min-width" "4rem" ]
@@ -528,17 +528,17 @@ viewActivity isActive isActiveDate levelM activity =
                 [ column []
                     [ text <|
                         case activity.data of
-                            Activity.Run mins paceM _ ->
-                                String.fromInt mins ++ " min " ++ String.toLower (Maybe.map2 Pace.secondsToTrainingPace levelM paceM |> Maybe.map Pace.trainingPace.toString |> Maybe.withDefault "")
+                            Activity.Run secs paceM _ ->
+                                Duration.toStringWithUnits secs ++ " " ++ String.toLower (Maybe.map2 Pace.secondsToTrainingPace levelM paceM |> Maybe.map Pace.trainingPace.toString |> Maybe.withDefault "")
 
                             Activity.Interval secs paceM _ ->
-                                String.fromInt secs ++ " secs " ++ String.toLower (Maybe.map2 Pace.secondsToTrainingPace levelM paceM |> Maybe.map Pace.trainingPace.toString |> Maybe.withDefault "")
+                                Duration.toStringWithUnits secs ++ " " ++ String.toLower (Maybe.map2 Pace.secondsToTrainingPace levelM paceM |> Maybe.map Pace.trainingPace.toString |> Maybe.withDefault "")
 
-                            Activity.Race mins _ _ ->
-                                String.fromInt mins ++ " min "
+                            Activity.Race secs _ _ ->
+                                Duration.toStringWithUnits secs
 
-                            Activity.Other mins _ ->
-                                String.fromInt mins ++ " min "
+                            Activity.Other secs _ ->
+                                Duration.toStringWithUnits secs
 
                             _ ->
                                 ""

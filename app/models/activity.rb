@@ -4,15 +4,19 @@ class Activity < ApplicationRecord
 
   def self.list(user)
     activities = user.activities
-    activities = user.entries.map do |e|
-      a = activities.find{ |a| a.id == e['id'] }.serializable_hash.deep_symbolize_keys
-      a[:date] = e['date']
-      a
-    rescue => exception
-      Rails.logger.error "#{exception} - Entry: #{e}"
-      nil
+    entries = user.entries
+    activityEntries = []
+    entries.each do |e|
+      a = activities.find{ |a| a.id == e['id'] }
+      if !a
+        Rails.logger.error "Missing entry: #{e}"
+      else
+        a = a.serializable_hash.deep_symbolize_keys
+        a[:date] = e['date']
+        activityEntries.push(a)
+      end
     end
-    activities.select{ |a| a }
+    activityEntries
   end
 
   def self.merge(user, strava_activities)
@@ -48,10 +52,11 @@ class Activity < ApplicationRecord
 
     date = Date.parse(activity[:start_date_local]).to_s
     description = activity[:name]
-    duration = activity[:moving_time] / 60
+    duration = activity[:moving_time]
+    pace = metersPerSecondToSecondsPerMile(activity[:average_speed])
     data =
       if type === "run"
-         { type: type, pace: "Easy", duration: duration, completed: true }
+         { type: type, pace: pace, duration: duration, completed: true }
       else
          { type: type, duration: duration, completed: true }
       end
@@ -65,9 +70,10 @@ class Activity < ApplicationRecord
     same_date = a[:date] == b[:date]
 
     same_type = a[:data][:type] == b[:data][:type]
+    ten_minutes = 10 * 60
     same_duration =
       if a[:data][:duration] && b[:data][:duration]
-        (a[:data][:duration] - b[:data][:duration]).abs < 10
+        (a[:data][:duration] - b[:data][:duration]).abs < ten_minutes
       else
         true
       end
@@ -80,5 +86,9 @@ class Activity < ApplicationRecord
 
     index = entries.index{ |e| Date.parse(e['date']) > Date.parse(date) }
     entries.insert(index || -1, { 'date' => date, 'id' => id })
+  end
+
+  def self.metersPerSecondToSecondsPerMile(mps)
+    (mps * 1609.3).round
   end
 end

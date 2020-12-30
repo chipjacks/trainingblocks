@@ -1,4 +1,4 @@
-module Activity exposing (Activity, ActivityData(..), Distance(..), Id, Minutes, Seconds, activityTypeToString, decoder, distance, encoder, mprLevel, newId)
+module Activity exposing (Activity, ActivityData(..), Distance(..), Id, Seconds, activityTypeToString, decoder, distance, encoder, mprLevel, newId)
 
 import Date exposing (Date)
 import Emoji
@@ -20,10 +20,10 @@ type alias Activity =
 
 
 type ActivityData
-    = Run Minutes (Maybe Pace) Bool
+    = Run Seconds (Maybe Pace) Bool
     | Interval Seconds (Maybe Pace) Bool
-    | Race Minutes Distance Bool
-    | Other Minutes Bool
+    | Race Seconds Distance Bool
+    | Other Seconds Bool
     | Note String
     | Session (List Activity)
 
@@ -64,10 +64,10 @@ newId =
 mprLevel : Activity -> Maybe Int
 mprLevel activity =
     case activity.data of
-        Race minutes distance_ _ ->
+        Race seconds distance_ _ ->
             MPRLevel.lookup MPRLevel.Neutral
                 (distance.toString distance_)
-                (minutes * 60)
+                seconds
                 |> Result.map (\( rt, level ) -> level)
                 |> Result.toMaybe
 
@@ -77,10 +77,6 @@ mprLevel activity =
 
 type alias Id =
     String
-
-
-type alias Minutes =
-    Int
 
 
 type alias Seconds =
@@ -172,13 +168,13 @@ activityDataDecoder =
         runDecoder =
             Decode.map3 Run
                 (Decode.field "duration" Decode.int)
-                (Decode.maybe (Decode.field "pace" Pace.trainingPace.decoder |> Decode.map (Pace.trainingPaceToSeconds 47)))
+                (Decode.maybe (Decode.field "pace" Decode.int))
                 (Decode.field "completed" Decode.bool)
 
         intervalDecoder =
             Decode.map3 Interval
                 (Decode.field "duration" Decode.int)
-                (Decode.maybe (Decode.field "pace" Pace.trainingPace.decoder |> Decode.map (Pace.trainingPaceToSeconds 47)))
+                (Decode.maybe (Decode.field "pace" Decode.int))
                 (Decode.field "completed" Decode.bool)
 
         raceDecoder =

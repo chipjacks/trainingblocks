@@ -14,12 +14,12 @@ type Model
 
 
 type alias State =
-    { activities : List Activity, revision : String }
+    { activities : List Activity, revision : String, level : Maybe Int }
 
 
-init : String -> String -> List Activity -> Model
-init csrfToken revision activities =
-    Model (State activities revision) [] csrfToken
+init : String -> String -> List Activity -> Maybe Int -> Model
+init csrfToken revision activities levelM =
+    Model (State activities revision levelM) [] csrfToken
 
 
 get : Model -> (State -> b) -> b
@@ -118,7 +118,7 @@ update msg (Model state msgs csrfToken) =
                 Ok ( revision, activities ) ->
                     let
                         newState =
-                            List.foldr (\rmsg rs -> updateState rmsg rs) (State activities revision) msgs
+                            List.foldr (\rmsg rs -> updateState rmsg rs) { state | activities = activities, revision = revision } msgs
                     in
                     ( Model newState msgs csrfToken
                     , debounceFlush (List.length msgs)

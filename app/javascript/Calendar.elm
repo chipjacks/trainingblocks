@@ -235,7 +235,15 @@ view model activities activeId activeRataDie levelM =
                     weekList start end
                         |> List.map
                             (\d ->
-                                ( Date.toIsoString d, Html.Lazy.lazy6 viewWeek activities today selected d activeId levelM )
+                                ( Date.toIsoString d
+                                , Html.Lazy.lazy6 viewWeek
+                                    activities
+                                    today
+                                    selected
+                                    d
+                                    activeId
+                                    levelM
+                                )
                             )
 
                 Month ->

@@ -101,7 +101,9 @@ update msg model =
                 GotActivities activitiesR ->
                     case activitiesR of
                         Ok ( revision, activities ) ->
-                            Loading dateM (Just (Store.init token revision activities)) token
+                            Loading dateM
+                                (Just (Store.init token revision activities (calculateLevel activities)))
+                                token
                                 |> updateLoading
 
                         Err err ->
@@ -502,7 +504,7 @@ view model =
                         Store.get store .activities
 
                     levelM =
-                        calculateLevel activities
+                        Store.get store .level
 
                     events =
                         case activityM of

@@ -45,7 +45,7 @@ toStringWithUnits seconds =
 
           else
             ""
-        , if secs > 0 then
+        , if secs > 0 && hrs == 0 && mins < 10 then
             String.fromInt secs ++ "s"
 
           else

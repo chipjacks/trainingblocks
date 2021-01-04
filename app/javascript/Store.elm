@@ -17,9 +17,9 @@ type alias State =
     { activities : List Activity, revision : String, level : Maybe Int }
 
 
-init : String -> String -> List Activity -> Maybe Int -> Model
-init csrfToken revision activities levelM =
-    Model (State activities revision levelM) [] csrfToken
+init : String -> String -> List Activity -> Model
+init csrfToken revision activities =
+    Model (State activities revision Nothing |> updateLevel) [] csrfToken
 
 
 get : Model -> (State -> b) -> b
@@ -42,12 +42,15 @@ updateState msg state =
     case msg of
         Create activity ->
             { state | activities = updateActivity activity True state.activities }
+                |> updateLevel
 
         Update activity ->
             { state | activities = updateActivity activity False state.activities }
+                |> updateLevel
 
         Delete activity ->
             { state | activities = List.filter (\a -> a.id /= activity.id) state.activities }
+                |> updateLevel
 
         Group activities session ->
             let
@@ -74,6 +77,18 @@ updateState msg state =
 
         _ ->
             state
+
+
+updateLevel : State -> State
+updateLevel state =
+    let
+        calculateLevel activities =
+            activities
+                |> List.filterMap Activity.mprLevel
+                |> List.reverse
+                |> List.head
+    in
+    { state | level = calculateLevel state.activities }
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )

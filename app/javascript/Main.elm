@@ -102,7 +102,7 @@ update msg model =
                     case activitiesR of
                         Ok ( revision, activities ) ->
                             Loading dateM
-                                (Just (Store.init token revision activities (calculateLevel activities)))
+                                (Just (Store.init token revision activities))
                                 token
                                 |> updateLoading
 
@@ -470,14 +470,6 @@ initSession head activities =
     Activity.newId
         |> Random.map (\id -> Activity id head.date "" (Activity.Session activities))
         |> Random.generate (Group activities)
-
-
-calculateLevel : List Activity -> Maybe Int
-calculateLevel activities =
-    activities
-        |> List.filterMap Activity.mprLevel
-        |> List.reverse
-        |> List.head
 
 
 

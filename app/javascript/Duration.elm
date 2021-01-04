@@ -71,14 +71,15 @@ toHrsMinsSecs seconds =
 fromString : String -> Maybe Int
 fromString str =
     case Parser.run parser str of
-        Ok [ 0, mins, secs ] ->
-            Just (mins * 60 + secs)
-
         Ok [ hrs, mins, secs ] ->
             Just (hrs * 60 * 60 + mins * 60 + secs)
 
-        Ok [ hrs, mins ] ->
-            Just (hrs * 60 * 60 + mins * 60)
+        Ok [ hrsOrMins, minsOrSecs ] ->
+            if hrsOrMins > 3 then
+                Just (hrsOrMins * 60 + minsOrSecs)
+
+            else
+                Just (hrsOrMins * 60 * 60 + minsOrSecs * 60)
 
         Ok [ mins ] ->
             Just (mins * 60)

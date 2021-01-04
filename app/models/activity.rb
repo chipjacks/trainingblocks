@@ -89,6 +89,6 @@ class Activity < ApplicationRecord
   end
 
   def self.metersPerSecondToSecondsPerMile(mps)
-    (mps * 1609.3).round
+    (1609.3 / mps).round
   end
 end

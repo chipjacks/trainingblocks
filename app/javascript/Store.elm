@@ -134,6 +134,7 @@ update msg (Model state msgs csrfToken) =
                     let
                         newState =
                             List.foldr (\rmsg rs -> updateState rmsg rs) { state | activities = activities, revision = revision } msgs
+                                |> updateLevel
                     in
                     ( Model newState msgs csrfToken
                     , debounceFlush (List.length msgs)

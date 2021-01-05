@@ -515,6 +515,13 @@ viewActivity isActive isActiveDate levelM activity =
             Activity.mprLevel activity
                 |> Maybe.map (\l -> "level " ++ String.fromInt l)
                 |> Maybe.withDefault ""
+
+        trainingPaceStr paceM =
+            Maybe.map2 Pace.secondsToTrainingPace levelM paceM
+                |> Maybe.withDefault (Just Pace.Easy)
+                |> Maybe.map Pace.trainingPace.toString
+                |> Maybe.withDefault ""
+                |> String.toLower
     in
     row
         [ style "padding" "0.5rem 0.5rem"
@@ -537,10 +544,16 @@ viewActivity isActive isActiveDate levelM activity =
                     [ text <|
                         case activity.data of
                             Activity.Run secs paceM _ ->
-                                Duration.toStringWithUnits secs ++ " " ++ String.toLower (Maybe.map2 Pace.secondsToTrainingPace levelM paceM |> Maybe.map Pace.trainingPace.toString |> Maybe.withDefault "")
+                                String.join " "
+                                    [ Duration.toStringWithUnits secs
+                                    , trainingPaceStr paceM
+                                    ]
 
                             Activity.Interval secs paceM _ ->
-                                Duration.toStringWithUnits secs ++ " " ++ String.toLower (Maybe.map2 Pace.secondsToTrainingPace levelM paceM |> Maybe.map Pace.trainingPace.toString |> Maybe.withDefault "")
+                                String.join " "
+                                    [ Duration.toStringWithUnits secs
+                                    , trainingPaceStr paceM
+                                    ]
 
                             Activity.Race secs _ _ ->
                                 Duration.toStringWithUnits secs

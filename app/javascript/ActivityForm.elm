@@ -617,6 +617,7 @@ paceSelect levelM msg paceStr =
         trainingPaceStr =
             parsePace paceStr
                 |> Maybe.map2 (\level paceSecs -> Pace.secondsToTrainingPace level paceSecs) levelM
+                |> Maybe.withDefault (Just Pace.Easy)
                 |> Maybe.map Pace.trainingPace.toString
                 |> Maybe.withDefault "Pace"
 

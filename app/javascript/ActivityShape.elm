@@ -26,6 +26,7 @@ view levelM activity =
     let
         width paceM =
             Maybe.map2 Pace.secondsToTrainingPace levelM paceM
+                |> Maybe.withDefault (Just Easy)
                 |> Maybe.map toWidth
                 |> Maybe.withDefault 0.5
     in

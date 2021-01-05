@@ -85,19 +85,18 @@ trainingPaceToSeconds level tp =
         |> Result.withDefault 0
 
 
-secondsToTrainingPace : Int -> Int -> TrainingPace
+secondsToTrainingPace : Int -> Int -> Maybe TrainingPace
 secondsToTrainingPace level seconds =
     trainingPaces ( MPRLevel.Neutral, level )
-        |> Result.map
+        |> Result.toMaybe
+        |> Maybe.andThen
             (\list ->
                 List.map (\( name, ( minPace, maxPace ) ) -> ( name, Duration.timeStrToSeconds maxPace |> Result.withDefault 0 )) list
                     |> List.filter (\( name, maxPaceSeconds ) -> seconds <= maxPaceSeconds)
                     |> List.reverse
                     |> List.head
                     |> Maybe.map Tuple.first
-                    |> Maybe.withDefault Easy
             )
-        |> Result.withDefault Easy
 
 
 type TrainingPace

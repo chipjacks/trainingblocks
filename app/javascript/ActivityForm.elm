@@ -489,6 +489,9 @@ defaults dataForm =
                 RunForm { completed } ->
                     completed
 
+                IntervalForm { completed } ->
+                    completed
+
                 RaceForm { completed } ->
                     completed
 

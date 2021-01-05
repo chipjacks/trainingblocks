@@ -53,12 +53,12 @@ class Activity < ApplicationRecord
     date = Date.parse(activity[:start_date_local]).to_s
     description = activity[:name]
     duration = activity[:moving_time]
-    pace = metersPerSecondToSecondsPerMile(activity[:average_speed])
     data =
       if type === "run"
-         { type: type, pace: pace, duration: duration, completed: true }
+        pace = metersPerSecondToSecondsPerMile(activity[:average_speed])
+        { type: type, pace: pace, duration: duration, completed: true }
       else
-         { type: type, duration: duration, completed: true }
+        { type: type, duration: duration, completed: true }
       end
 
     { id: activity[:id].to_s, date: date, description: description, data: data }

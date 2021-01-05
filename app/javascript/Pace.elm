@@ -65,7 +65,7 @@ trainingPaces ( runnerType, level ) =
     in
     case res of
         Just arr ->
-            Ok (Array.toList arr |> List.map2 (\x y -> Tuple.pair x y) (List.map Tuple.second trainingPace.list))
+            Ok (Array.toList arr |> List.map2 (\x y -> Tuple.pair x y) (List.map Tuple.second (List.drop 1 trainingPace.list)))
 
         Nothing ->
             Err "out of range"
@@ -85,7 +85,7 @@ trainingPaceToSeconds level tp =
         |> Result.withDefault 0
 
 
-secondsToTrainingPace : Int -> Int -> Maybe TrainingPace
+secondsToTrainingPace : Int -> Int -> TrainingPace
 secondsToTrainingPace level seconds =
     trainingPaces ( MPRLevel.Neutral, level )
         |> Result.toMaybe
@@ -97,10 +97,12 @@ secondsToTrainingPace level seconds =
                     |> List.head
                     |> Maybe.map Tuple.first
             )
+        |> Maybe.withDefault Slow
 
 
 type TrainingPace
-    = Easy
+    = Slow
+    | Easy
     | Moderate
     | Steady
     | Brisk
@@ -114,7 +116,8 @@ type TrainingPace
 trainingPace : Enum TrainingPace
 trainingPace =
     Enum.create
-        [ Easy
+        [ Slow
+        , Easy
         , Moderate
         , Steady
         , Brisk
@@ -126,6 +129,9 @@ trainingPace =
         ]
         (\a ->
             case a of
+                Slow ->
+                    "Slow"
+
                 Easy ->
                     "Easy"
 

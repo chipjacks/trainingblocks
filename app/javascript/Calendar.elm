@@ -518,7 +518,6 @@ viewActivity isActive isActiveDate levelM activity =
 
         trainingPaceStr paceM =
             Maybe.map2 Pace.secondsToTrainingPace levelM paceM
-                |> Maybe.withDefault (Just Pace.Easy)
                 |> Maybe.map Pace.trainingPace.toString
                 |> Maybe.withDefault ""
                 |> String.toLower

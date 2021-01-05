@@ -617,22 +617,22 @@ paceSelect levelM msg paceStr =
         trainingPaceStr =
             parsePace paceStr
                 |> Maybe.map2 (\level paceSecs -> Pace.secondsToTrainingPace level paceSecs) levelM
-                |> Maybe.withDefault (Just Pace.Easy)
                 |> Maybe.map Pace.trainingPace.toString
                 |> Maybe.withDefault "Pace"
 
         paceNames =
-            Pace.trainingPace.list |> List.map Tuple.first
+            List.drop 1 Pace.trainingPace.list
+                |> List.map Tuple.first
 
         paceTimes =
             case levelM of
                 Just level ->
                     Pace.trainingPaces ( MPRLevel.Neutral, level )
                         |> Result.map (List.map (\( name, ( minPace, maxPace ) ) -> Duration.stripTimeStr maxPace))
-                        |> Result.withDefault (List.repeat (List.length Pace.trainingPace.list) "")
+                        |> Result.withDefault []
 
                 Nothing ->
-                    List.repeat (List.length Pace.trainingPace.list) ""
+                    []
     in
     div [ class "row" ]
         [ div [ class "dropdown" ]
@@ -653,17 +653,20 @@ paceSelect levelM msg paceStr =
                     ]
                     []
                 ]
-            , div [ class "dropdown-content" ]
-                (List.map2
-                    (\time name ->
-                        a [ onClick (msg time), style "text-align" "left", style "font-size" "0.8rem" ]
-                            [ span [ style "color" "var(--accent-blue)", style "margin-right" "0.5rem" ]
-                                [ Html.text time ]
-                            , Html.text name
-                            ]
-                    )
-                    paceTimes
-                    paceNames
+            , viewMaybe levelM
+                (\_ ->
+                    div [ class "dropdown-content" ]
+                        (List.map2
+                            (\time name ->
+                                a [ onClick (msg time), style "text-align" "left", style "font-size" "0.8rem" ]
+                                    [ span [ style "color" "var(--accent-blue)", style "margin-right" "0.5rem" ]
+                                        [ Html.text time ]
+                                    , Html.text name
+                                    ]
+                            )
+                            paceTimes
+                            paceNames
+                        )
                 )
             ]
         ]

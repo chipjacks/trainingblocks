@@ -24,7 +24,7 @@ class ActivitiesController < ApplicationController
     end
 
     changes = params[:changes]
-    Activity.transaction do
+    ActiveRecord::Base.transaction do
       changes.each do |change|
         activity_params = change['activity'].permit(:id, :description, :date, data: {})
 
@@ -34,9 +34,6 @@ class ActivitiesController < ApplicationController
         when 'update'
           activity = current_user.activities.find(activity_params['id'])
           activity.update!(activity_params)
-        when 'delete'
-          activity = current_user.activities.find(activity_params['id'])
-          activity.destroy!()
         else
           raise ActiveRecord::StatementInvalid.new("Invalid change #{change}")
         end

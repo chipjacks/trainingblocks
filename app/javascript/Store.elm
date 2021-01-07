@@ -235,14 +235,8 @@ activityChanges msgs =
                 Update a ->
                     Just ( "update", a )
 
-                Delete a ->
-                    Just ( "delete", a )
-
                 Group _ session ->
                     Just ( "create", session )
-
-                Ungroup _ session ->
-                    Just ( "delete", session )
 
                 _ ->
                     Nothing

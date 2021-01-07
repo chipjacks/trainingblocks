@@ -14,6 +14,12 @@ me.activities.each{ |a| a.destroy }
 
 activities = JSON.parse(%x(cat db/activities.json | jq -cr '.').chomp)
 activities.each do |obj|
+  type = obj['data']['type']
+  duration = obj['data']['duration']
+  if type == "run" || type == "race"
+    # convert minutes to seconds
+    obj['data']['duration'] = duration * 60
+  end
   Activity.create(
     id: obj["id"],
     description: obj["description"],

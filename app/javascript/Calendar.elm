@@ -511,16 +511,23 @@ viewDay isToday isSelected rataDie =
 viewActivity : Bool -> Bool -> Maybe Int -> Activity -> Html Msg
 viewActivity isActive isActiveDate levelM activity =
     let
-        level =
+        activityLevel =
             Activity.mprLevel activity
                 |> Maybe.map (\l -> "level " ++ String.fromInt l)
                 |> Maybe.withDefault ""
 
         trainingPaceStr paceM =
-            Maybe.map2 Pace.secondsToTrainingPace levelM paceM
-                |> Maybe.map Pace.trainingPace.toString
-                |> Maybe.withDefault ""
-                |> String.toLower
+            case ( paceM, levelM ) of
+                ( Just pace, Just level ) ->
+                    Pace.secondsToTrainingPace level pace
+                        |> Pace.trainingPace.toString
+                        |> String.toLower
+
+                ( Just pace, Nothing ) ->
+                    " at " ++ Pace.paceToString pace ++ " pace"
+
+                _ ->
+                    ""
     in
     row
         [ style "padding" "0.5rem 0.5rem"
@@ -563,7 +570,7 @@ viewActivity isActive isActiveDate levelM activity =
                             _ ->
                                 ""
                     ]
-                , compactColumn [ style "align-items" "flex-end" ] [ text level ]
+                , compactColumn [ style "align-items" "flex-end" ] [ text activityLevel ]
                 ]
             ]
         , compactColumn

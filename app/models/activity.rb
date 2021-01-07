@@ -5,7 +5,7 @@ class Activity < ApplicationRecord
   def self.list(user)
     activities = user.activities
     entries = user.entries
-    activityEntries = []
+    activity_entries = []
     entries.each do |e|
       a = activities.find{ |a| a.id == e['id'] }
       if !a
@@ -13,10 +13,10 @@ class Activity < ApplicationRecord
       else
         a = a.serializable_hash.deep_symbolize_keys
         a[:date] = e['date']
-        activityEntries.push(a)
+        activity_entries.push(a)
       end
     end
-    activityEntries
+    activity_entries
   end
 
   def self.merge(user, strava_activities)
@@ -61,7 +61,7 @@ class Activity < ApplicationRecord
         { type: type, duration: duration, completed: true }
       end
 
-    { id: activity[:id].to_s, date: date, description: description, data: data }
+    { id: "strava_#{activity[:id].to_s}", date: date, description: description, data: data }
   end
 
   def self.is_match(a, b)

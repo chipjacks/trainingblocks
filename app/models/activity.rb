@@ -1,26 +1,8 @@
 class Activity < ApplicationRecord
   belongs_to :user
-  attr_accessor :date
-
-  def self.list(user)
-    activities = user.activities
-    entries = user.entries
-    activity_entries = []
-    entries.each do |e|
-      a = activities.find{ |a| a.id == e['id'] }
-      if !a
-        Rails.logger.error "Missing entry: #{e}"
-      else
-        a = a.serializable_hash.deep_symbolize_keys
-        a[:date] = e['date']
-        activity_entries.push(a)
-      end
-    end
-    activity_entries
-  end
 
   def self.merge(user, strava_activities)
-    activities = list(user)
+    activities = user.activities
     unmatched = []
     strava_activities.map{ |s| from_strava_activity(s.as_json.deep_symbolize_keys) }.each do |s|
       matches = activities.select { |a| is_match(s, a) }
@@ -29,17 +11,12 @@ class Activity < ApplicationRecord
       end
     end
 
-    entries = user.entries
     unmatched.each do |u|
       u[:user] = user
-      a = u.reject {|k,v| k == :date }
       saved = Activity.create_with(a).find_or_create_by!(id: u[:id])
-      find_or_create_entry(entries, u[:date], u[:id])
     rescue => exception
       Rails.logger.error "#{exception} - Unmatched activity: #{u}"
     end
-
-    entries
   end
 
   def self.from_strava_activity(activity)
@@ -79,13 +56,6 @@ class Activity < ApplicationRecord
       end
 
     same_date && same_type && same_duration
-  end
-
-  def self.find_or_create_entry(entries, date, id)
-    return if entries.find_index { |e| e['id'] == id }
-
-    index = entries.index{ |e| Date.parse(e['date']) > Date.parse(date) }
-    entries.insert(index || -1, { 'date' => date, 'id' => id })
   end
 
   def self.metersPerSecondToSecondsPerMile(mps)

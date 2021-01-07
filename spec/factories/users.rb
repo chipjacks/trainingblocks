@@ -5,11 +5,9 @@ FactoryBot.define do
   end
 
   trait :activities do
-    entries { JSON.parse(IO.read(Rails.root + 'db/entries.json').chomp) }
-
     after(:create) do |user, evaluator|
       activities = JSON.parse(IO.read(Rails.root + 'db/activities.json').chomp)
-      activities.each do |obj|
+      activities.each do |obj, idx|
         Activity.create(
           id: obj["id"],
           description: obj["description"],

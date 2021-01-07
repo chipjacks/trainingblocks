@@ -13,21 +13,31 @@ unless me then raise "Strava uid not found." end
 me.activities.each{ |a| a.destroy }
 
 activities = JSON.parse(%x(cat db/activities.json | jq -cr '.').chomp)
+last_date = nil
+order = 0
 activities.each do |obj|
-  type = obj['data']['type']
-  duration = obj['data']['duration']
+  type = obj["data"]["type"]
+  duration = obj["data"]["duration"]
   if type == "run" || type == "race"
     # convert minutes to seconds
-    obj['data']['duration'] = duration * 60
+    obj["data"]["duration"] = duration * 60
   end
-  Activity.create(
-    id: obj["id"],
+
+  created = Activity.create(
+    id: Array.new(10) { |i| rand(10) }.join,
+    date: Date.parse(obj["date"]),
+    order: order,
     description: obj["description"],
     data: obj["data"],
     user: me
   )
+
+  if obj['date'] == last_date
+    order += 1
+  else
+    order = 0
+    last_date = obj['date']
+  end
 end
 
-me.entries = JSON.parse(%x(cat db/entries.json | jq -cr '.').chomp)
-me.save!
 puts "Success!"

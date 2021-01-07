@@ -3,22 +3,12 @@ class ActivitiesController < ApplicationController
   before_action :initialize_strava
 
   def index
-    strava = @strava.get_logged_in_athlete_activities({per_page: 200})
-    entries = Activity.merge(current_user, strava)
-
-    Rails.logger.silence do
-      current_user.entries = entries
-      current_user.save!
-    end
-
-    current_user.reload
-
-    render json: { activities: Activity.list(current_user), rev: entries_revision }
+    render json: { activities: current_user.activities, rev: revision }
   end
 
   def batch_update
     rev = params[:rev]
-    if (rev != entries_revision)
+    if (rev != revision)
       render status: :conflict, json: { ok: false }
       return
     end
@@ -39,11 +29,6 @@ class ActivitiesController < ApplicationController
         end
 
       end
-
-      Rails.logger.silence do
-        current_user.entries = params[:entries]
-        current_user.save!
-      end
     end
 
   rescue ActiveRecord::StatementInvalid => exception
@@ -53,13 +38,13 @@ class ActivitiesController < ApplicationController
     Rails.logger.error exception.message
     render status: :internal_server_error, json: { ok: false }
   else
-    render json: { ok: true, rev: entries_revision }
+    render json: { ok: true, rev: revision }
   end
 
   private
 
-    def entries_revision
-      Digest::MD5.hexdigest(current_user.entries.to_json)
+    def revision
+      current_user.last_activity_update
     end
 
     def initialize_strava

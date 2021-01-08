@@ -39,19 +39,19 @@ getActivities =
         }
 
 
-postActivities : String -> String -> List Activity -> List ( String, Activity ) -> Task Http.Error ( String, Bool )
-postActivities csrfToken revision activities changes =
+postActivities : String -> String -> List ( String, Int ) -> List ( String, Activity ) -> Task Http.Error ( String, Bool )
+postActivities csrfToken revision orderUpdates activityUpdates =
     let
-        changeEncoder ( msg, activity ) =
+        activityUpdateEncoder ( msg, activity ) =
             Encode.object
                 [ ( "msg", Encode.string msg )
                 , ( "activity", Activity.encoder activity )
                 ]
 
-        entryEncoder activity =
+        orderUpdateEncoder ( id, order ) =
             Encode.object
-                [ ( "date", Encode.string (Date.toIsoString activity.date) )
-                , ( "id", Encode.string activity.id )
+                [ ( "id", Encode.string id )
+                , ( "order", Encode.int order )
                 ]
     in
     Http.task
@@ -61,8 +61,8 @@ postActivities csrfToken revision activities changes =
         , body =
             Http.jsonBody
                 (Encode.object
-                    [ ( "entries", Encode.list entryEncoder activities )
-                    , ( "changes", Encode.list changeEncoder changes )
+                    [ ( "orderUpdates", Encode.list orderUpdateEncoder orderUpdates )
+                    , ( "activityUpdates", Encode.list activityUpdateEncoder activityUpdates )
                     , ( "rev", Encode.string revision )
                     ]
                 )

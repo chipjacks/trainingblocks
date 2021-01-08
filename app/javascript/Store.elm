@@ -6,6 +6,7 @@ import Date exposing (Date)
 import Http
 import Msg exposing (Msg(..))
 import Process
+import Set
 import Task exposing (Task)
 
 
@@ -161,7 +162,7 @@ flush model =
             Cmd.none
 
         Model state msgs csrfToken ->
-            Api.postActivities csrfToken state.revision state.activities (activityChanges msgs)
+            Api.postActivities csrfToken state.revision (orderUpdates state.activities msgs) (activityUpdates msgs)
                 |> Task.attempt (Posted msgs)
 
 
@@ -224,22 +225,72 @@ shiftUp id activities =
             activities
 
 
-activityChanges : List Msg -> List ( String, Activity )
-activityChanges msgs =
+activityUpdates : List Msg -> List ( String, Activity )
+activityUpdates msgs =
     let
         activityChange m =
             case m of
                 Create a ->
                     Just ( "create", a )
 
+                Move date a ->
+                    Just ( "update", { a | date = date } )
+
                 Update a ->
                     Just ( "update", a )
 
-                Group _ session ->
-                    Just ( "create", session )
+                Delete a ->
+                    Just ( "delete", a )
+
+                Group activities session ->
+                    Just ( "group", session )
+
+                Ungroup activities session ->
+                    Just ( "ungroup", session )
 
                 _ ->
                     Nothing
     in
     List.reverse msgs
         |> List.filterMap activityChange
+
+
+orderUpdates : List Activity -> List Msg -> List ( String, Int )
+orderUpdates activities msgs =
+    let
+        orderingChange m =
+            case m of
+                Create a ->
+                    Just a.date
+
+                Delete a ->
+                    Just a.date
+
+                Group _ session ->
+                    Just session.date
+
+                Ungroup _ session ->
+                    Just session.date
+
+                Move date a ->
+                    Just date
+
+                Shift _ a ->
+                    Just a.date
+
+                _ ->
+                    Nothing
+
+        dates =
+            msgs
+                |> List.filterMap orderingChange
+                |> List.map Date.toRataDie
+                |> Set.fromList
+                |> Set.toList
+                |> List.sort
+                |> List.map Date.fromRataDie
+    in
+    dates
+        |> List.map (\d -> List.filter (\a -> a.date == d) activities)
+        |> List.map (\l -> List.indexedMap (\i a -> ( a.id, i )) l)
+        |> List.concat

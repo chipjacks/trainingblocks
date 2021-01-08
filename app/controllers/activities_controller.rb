@@ -13,9 +13,8 @@ class ActivitiesController < ApplicationController
       return
     end
 
-    changes = params[:changes]
     ActiveRecord::Base.transaction do
-      changes.each do |change|
+      params[:activityUpdates].each do |change|
         activity_params = change['activity'].permit(:id, :description, :date, data: {})
 
         case change['msg']
@@ -24,10 +23,34 @@ class ActivitiesController < ApplicationController
         when 'update'
           activity = current_user.activities.find(activity_params['id'])
           activity.update!(activity_params)
+        when 'delete'
+          activity = current_user.activities.find(activity_params['id'])
+          activity.destroy!
+        when 'group'
+          activity_params['data']['activities'].each do |a|
+            activity = current_user.activities.find(a['id'])
+            activity.destroy!
+          end
+          current_user.activities.create!(activity_params)
+        when 'ungroup'
+          activity_params['data']['activities'].each do |a|
+            current_user.activities.create!(a)
+          end
+          activity = current_user.activities.find(activity_params['id'])
+          activity.destroy!
         else
           raise ActiveRecord::StatementInvalid.new("Invalid change #{change}")
         end
 
+      end
+
+      params[:orderUpdates].each do |change|
+        activity = Activity.find(change['id'])
+        if !activity
+          raise ActiveRecord::StatementInvalid.new("Invalid order #{change}")
+        end
+        activity.order = change['order']
+        activity.save!
       end
     end
 

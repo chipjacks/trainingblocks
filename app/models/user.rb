@@ -8,11 +8,11 @@ class User < ApplicationRecord
          :omniauthable, omniauth_providers: %i[strava]
 
   def last_activity_update
-    last_update = activities.select(:updated_at).order(updated_at: :desc).limit(1)
+    last_update = activities.unscoped.select(:updated_at).order(updated_at: :desc).limit(1)
     if last_update.first
-      last_update.first.updated_at.to_s
+      last_update.first.updated_at.strftime("%s")
     else
-      "none"
+      0
     end
   end
 

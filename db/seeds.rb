@@ -6,12 +6,51 @@
 #   movies = Movie.create([{ name: 'Star Wars' }, { name: 'Lord of the Rings' }])
 #   Character.create(name: 'Luke', movie: movies.first)
 
+def trainingPaceToSeconds(tp)
+  case tp
+  when 'Easy'
+    7 * 60 + 35
+  when 'Moderate'
+    6 * 60 + 44
+  when 'Steady'
+    6 * 60 + 29
+  when 'Brisk'
+    6 * 60 + 13
+  when 'Aerobic'
+    5 * 60 + 58
+  when 'Lactate'
+    5 * 60 + 43
+  when 'Groove'
+    5 * 60 + 27
+  when 'VO2'
+    5 * 60 + 12
+  when 'Fast'
+    4 * 60 + 56
+  else
+    7 * 60 + 45
+  end
+end
+
 def create_activity(obj, order, me)
   type = obj["data"]["type"]
   duration = obj["data"]["duration"]
   if type != "interval" && duration
     # convert minutes to seconds
     obj["data"]["duration"] = duration * 60
+  end
+  data = obj["data"]
+  if data['pace']
+    data['trainingPace'] = data['pace']
+    data['pace'] = trainingPaceToSeconds(data['pace'])
+  end
+
+  if data["type"] == "session"
+    data["activities"].map do |a|
+      if a['data']['pace']
+        a['data']['pace'] = trainingPaceToSeconds(a['data']['pace'])
+      end
+      a
+    end
   end
 
   created = Activity.create(
@@ -23,11 +62,6 @@ def create_activity(obj, order, me)
     user: me
   )
 
-  if obj["data"]["type"] == "session"
-    obj["data"]["activities"].each do |a|
-      # create_activity(a, nil, me)
-    end
-  end
 end
 
 me = User.find_by(uid: "2456610")

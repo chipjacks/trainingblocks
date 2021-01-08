@@ -31,25 +31,26 @@ def trainingPaceToSeconds(tp)
   end
 end
 
-def create_activity(obj, order, me)
-  type = obj["data"]["type"]
-  duration = obj["data"]["duration"]
+def migrate_data(data)
+  type = data["type"]
+  duration = data["duration"]
   if type != "interval" && duration
     # convert minutes to seconds
-    obj["data"]["duration"] = duration * 60
+    data["duration"] = duration * 60
   end
-  data = obj["data"]
   if data['pace']
-    data['trainingPace'] = data['pace']
     data['pace'] = trainingPaceToSeconds(data['pace'])
   end
+  data
+end
 
+def create_activity(obj, order, me)
+  obj['data'] = migrate_data(obj['data'])
+
+  data = obj['data']
   if data["type"] == "session"
-    data["activities"].map do |a|
-      if a['data']['pace']
-        a['data']['pace'] = trainingPaceToSeconds(a['data']['pace'])
-      end
-      a
+    data['activities'] = data["activities"].map do |a|
+      migrate_data(a['data'])
     end
   end
 

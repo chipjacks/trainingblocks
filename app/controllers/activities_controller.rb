@@ -26,18 +26,6 @@ class ActivitiesController < ApplicationController
         when 'delete'
           activity = current_user.activities.find(activity_params['id'])
           activity.destroy!
-        when 'group'
-          activity_params['data']['activities'].each do |a|
-            activity = current_user.activities.find(a['id'])
-            activity.destroy!
-          end
-          current_user.activities.create!(activity_params)
-        when 'ungroup'
-          activity_params['data']['activities'].each do |a|
-            current_user.activities.create!(a)
-          end
-          activity = current_user.activities.find(activity_params['id'])
-          activity.destroy!
         else
           raise ActiveRecord::StatementInvalid.new("Invalid change #{change}")
         end

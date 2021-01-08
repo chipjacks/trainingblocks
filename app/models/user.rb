@@ -12,7 +12,7 @@ class User < ApplicationRecord
     if last_update.first
       last_update.first.updated_at.strftime("%s")
     else
-      0
+      "0"
     end
   end
 

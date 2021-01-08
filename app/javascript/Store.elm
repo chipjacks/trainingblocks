@@ -231,28 +231,31 @@ activityUpdates msgs =
         activityChange m =
             case m of
                 Create a ->
-                    Just ( "create", a )
+                    [ ( "create", a ) ]
 
                 Move date a ->
-                    Just ( "update", { a | date = date } )
+                    [ ( "update", { a | date = date } ) ]
 
                 Update a ->
-                    Just ( "update", a )
+                    [ ( "update", a ) ]
 
                 Delete a ->
-                    Just ( "delete", a )
+                    [ ( "delete", a ) ]
 
                 Group activities session ->
-                    Just ( "group", session )
+                    ( "create", session )
+                        :: List.map (\a -> ( "delete", a )) activities
 
                 Ungroup activities session ->
-                    Just ( "ungroup", session )
+                    ( "delete", session )
+                        :: List.map (\a -> ( "create", a )) activities
 
                 _ ->
-                    Nothing
+                    []
     in
     List.reverse msgs
-        |> List.filterMap activityChange
+        |> List.map activityChange
+        |> List.concat
 
 
 orderUpdates : List Activity -> List Msg -> List ( String, Int )

@@ -25,7 +25,7 @@ type ActivityData
     | Race Seconds Distance Bool
     | Other Seconds Bool
     | Note String
-    | Session (List Activity)
+    | Session (List ActivityData)
 
 
 activityTypeToString : ActivityData -> String
@@ -194,7 +194,7 @@ activityDataDecoder =
 
         sessionDecoder =
             Decode.map Session
-                (Decode.field "activities" (Decode.list (Decode.lazy (\a -> decoder))))
+                (Decode.field "activities" (Decode.list (Decode.lazy (\a -> activityDataDecoder))))
     in
     Decode.field "type" Decode.string
         |> Decode.andThen
@@ -272,7 +272,7 @@ encoder activity =
                 Session activities ->
                     Encode.object
                         [ ( "type", Encode.string "session" )
-                        , ( "activities", Encode.list encoder activities )
+                        , ( "activities", Encode.list dataEncoder activities )
                         ]
     in
     Encode.object

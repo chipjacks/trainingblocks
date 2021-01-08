@@ -1,6 +1,6 @@
 module ActivityShape exposing (view, viewDefault)
 
-import Activity exposing (Activity)
+import Activity exposing (ActivityData)
 import Emoji
 import Html exposing (Html, div)
 import Html.Attributes exposing (class, style)
@@ -21,15 +21,15 @@ type Color
     | Gray
 
 
-view : Maybe Int -> Activity -> Html msg
-view levelM activity =
+view : Maybe Int -> ActivityData -> Html msg
+view levelM activityData =
     let
         width paceM =
             Maybe.map2 Pace.secondsToTrainingPace levelM paceM
                 |> Maybe.map toWidth
                 |> Maybe.withDefault 0.5
     in
-    case activity.data of
+    case activityData of
         Activity.Run secs paceM completed ->
             Block Green completed { width = width paceM, height = toHeight secs }
                 |> viewShape
@@ -43,7 +43,7 @@ view levelM activity =
                 |> viewShape
 
         Activity.Other secs completed ->
-            Circle Gray completed (String.toList activity.description |> List.head)
+            Circle Gray completed Nothing
                 |> viewShape
 
         Activity.Note emoji ->

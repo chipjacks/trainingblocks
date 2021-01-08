@@ -355,7 +355,7 @@ viewButtons activity editing =
         , column [] []
         , case activity.data of
             Activity.Session activities ->
-                toolbarButton (Ungroup activities activity) "mi-folder" False
+                toolbarButton (ClickedUngroup activity) "mi-folder" False
 
             _ ->
                 Html.text ""
@@ -390,7 +390,7 @@ viewShape levelM model =
         activityShape =
             validate model
                 |> Result.toMaybe
-                |> Maybe.map (ActivityShape.view levelM)
+                |> Maybe.map (\a -> ActivityShape.view levelM a.data)
                 |> Maybe.withDefault (ActivityShape.viewDefault True (toActivityData model.dataForm))
     in
     compactColumn
@@ -553,8 +553,8 @@ toActivityData dataForm =
         NoteForm { emoji } ->
             Activity.Note emoji
 
-        SessionForm activities ->
-            Activity.Session activities
+        SessionForm data ->
+            Activity.Session data
 
 
 emojiSelect : (String -> Msg) -> String -> Html Msg

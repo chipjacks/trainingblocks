@@ -33,7 +33,7 @@ type DataForm
     | RaceForm { duration : String, distance : Activity.Distance, completed : Bool }
     | OtherForm { duration : String, completed : Bool }
     | NoteForm { emoji : String }
-    | SessionForm (List Activity)
+    | SessionForm (List Activity.ActivityData)
 
 
 type ActivityState
@@ -87,5 +87,6 @@ type Msg
     | ClickedCopy Activity
     | ClickedMove Activity
     | ClickedGroup
+    | ClickedUngroup Activity
     | ClickedClose
     | NewId String

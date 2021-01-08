@@ -286,7 +286,7 @@ viewActivityShape activity isActive levelM =
         , attributeIf isActive (class "dynamic-shape")
         , style "touch-action" "none"
         ]
-        [ ActivityShape.view levelM activity ]
+        [ ActivityShape.view levelM activity.data ]
 
 
 

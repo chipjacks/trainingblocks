@@ -382,6 +382,24 @@ update msg model =
                     ( activityFormState, Cmd.batch [ calendarCmd, activityFormCmd ] )
                         |> loaded
 
+                ClickedUngroup session ->
+                    case session.data of
+                        Activity.Session dataList ->
+                            ( model
+                            , Random.list (List.length dataList) Activity.newId
+                                |> Random.map
+                                    (\ids ->
+                                        List.map2
+                                            (\id data -> Activity id session.date "" data)
+                                            ids
+                                            dataList
+                                    )
+                                |> Random.generate (\activities -> Ungroup activities session)
+                            )
+
+                        _ ->
+                            ( model, Cmd.none )
+
                 ClickedGroup ->
                     case activityM of
                         Selected (a :: tail) ->
@@ -468,7 +486,7 @@ initActivity today dateM =
 initSession : Activity -> List Activity -> Cmd Msg
 initSession head activities =
     Activity.newId
-        |> Random.map (\id -> Activity id head.date "" (Activity.Session activities))
+        |> Random.map (\id -> Activity id head.date "" (Activity.Session (List.map .data activities)))
         |> Random.generate (Group activities)
 
 
@@ -555,7 +573,7 @@ viewActivityM levelM activityState =
                 , style "z-index" "3"
                 ]
                 [ compactColumn [ style "flex-basis" "5rem" ]
-                    [ ActivityShape.view levelM activity ]
+                    [ ActivityShape.view levelM activity.data ]
                 ]
 
         _ ->

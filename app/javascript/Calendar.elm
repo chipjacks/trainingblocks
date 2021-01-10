@@ -429,12 +429,15 @@ viewWeekDay ( date, activities ) isToday isSelected activeId levelM =
 titleWeek : List Activity -> Html msg
 titleWeek activities =
     let
-        ( runDuration, otherDuration ) =
-            activities
+        sumDuration datas =
+            datas
                 |> List.map
-                    (\a ->
-                        case a.data of
+                    (\data ->
+                        case data of
                             Activity.Run secs _ _ ->
+                                ( secs, 0 )
+
+                            Activity.Interval secs _ _ ->
                                 ( secs, 0 )
 
                             Activity.Race secs _ _ ->
@@ -443,10 +446,16 @@ titleWeek activities =
                             Activity.Other secs _ ->
                                 ( 0, secs )
 
-                            _ ->
+                            Activity.Note _ ->
                                 ( 0, 0 )
+
+                            Activity.Session sDatas ->
+                                sumDuration sDatas
                     )
                 |> List.foldl (\( r, o ) ( sr, so ) -> ( sr + r, so + o )) ( 0, 0 )
+
+        ( runDuration, otherDuration ) =
+            sumDuration (List.map .data activities)
 
         hours duration =
             (duration // 60) // 60

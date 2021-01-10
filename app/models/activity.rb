@@ -1,5 +1,6 @@
 class Activity < ApplicationRecord
   belongs_to :user
+  has_one :import
 
   def self.merge(user, strava_activities)
     activities = user.activities

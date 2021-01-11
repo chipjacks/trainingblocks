@@ -1,5 +1,6 @@
 class User < ApplicationRecord
   has_many :activities, -> { order(date: :asc, order: :asc) }
+  has_many :imports
 
   # Include default devise modules. Others available are:
   # :lockable, :timeoutable

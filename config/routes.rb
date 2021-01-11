@@ -7,4 +7,6 @@ Rails.application.routes.draw do
 
   get 'activities', to: 'activities#index'
   post 'activities', to: 'activities#batch_update'
+
+  get 'imports', to: 'imports#index'
 end

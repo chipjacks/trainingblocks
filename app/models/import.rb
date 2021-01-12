@@ -1,13 +1,15 @@
 class Import < ApplicationRecord
   belongs_to :user
-  belongs_to :activity, optional: true
+  has_one :activity
 
   def self.add_new(imports, source, user)
     ids = Hash[imports.map { |a| [a.id.to_s, a] }]
     existing_ids = user.imports.select(:id).map { |i| i.id }
     new_ids = Set.new(ids.keys) - existing_ids
-    new_ids.map{ |id| ids[id] }.each do |a|
-      find_or_create(a.id, source, a, user)
+    new_ids.map{ |id| ids[id] }.each do |import_data|
+      import = find_or_create(import_data.id, source, import_data, user)
+      activity = Activity.from_strava_activity(import)
+      activity.match_or_create
     end
   end
 

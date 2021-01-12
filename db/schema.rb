@@ -23,7 +23,7 @@ ActiveRecord::Schema.define(version: 2021_01_10_170127) do
     t.bigint "user_id", null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
-    t.bigint "import_id"
+    t.string "import_id"
     t.index ["import_id"], name: "index_activities_on_import_id"
     t.index ["user_id"], name: "index_activities_on_user_id"
   end

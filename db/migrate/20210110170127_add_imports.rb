@@ -10,8 +10,6 @@ class AddImports < ActiveRecord::Migration[6.1]
       t.timestamps
     end
 
-    change_table(:activities) do |t|
-      t.references :import
-    end
+    add_reference :activities, :import, type: :string
   end
 end

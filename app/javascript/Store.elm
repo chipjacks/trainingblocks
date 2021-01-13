@@ -112,10 +112,6 @@ update msg (Model state msgs csrfToken) =
                     )
 
                 _ ->
-                    let
-                        log =
-                            Debug.log "error" msg
-                    in
                     ( Model state (msgs ++ sentMsgs) csrfToken
                     , Cmd.none
                     )

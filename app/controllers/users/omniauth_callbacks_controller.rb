@@ -4,6 +4,9 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
     credentials = request.env.dig("omniauth.auth", "credentials")
 
     if @user.persisted? && credentials
+      if @user.previously_new_record?
+        InitialStravaImportJob.perform_now(@user, credentials["token"])
+      end
       sign_in_and_redirect @user, event: :authentication
       session["devise.strava_access_token"] = credentials["token"]
       session["devise.strava_refresh_token"] = credentials["refresh_token"]

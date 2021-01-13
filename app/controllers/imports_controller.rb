@@ -3,9 +3,6 @@ class ImportsController < ApplicationController
   before_action :initialize_strava
 
   def index
-    strava = @strava.get_logged_in_athlete_activities({per_page: 200})
-    Import.add_new(strava, "strava", current_user)
-
     render json: { imports: current_user.imports }
   end
 

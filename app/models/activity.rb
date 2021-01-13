@@ -1,6 +1,7 @@
 class Activity < ApplicationRecord
   belongs_to :user
   belongs_to :import, optional: true
+  default_scope { order(date: :asc, order: :asc) }
 
   def match_or_create
     match = Activity.where(date: self.date, user: self.user).find { |a| self.match?(a) }

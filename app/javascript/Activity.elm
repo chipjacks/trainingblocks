@@ -1,4 +1,4 @@
-module Activity exposing (Activity, ActivityData(..), Distance(..), Id, Minutes, Pace(..), Seconds, activityTypeToString, decoder, distance, encoder, mprLevel, newId, pace)
+module Activity exposing (Activity, ActivityData(..), Distance(..), Id, Seconds, activityTypeToString, decoder, distance, encoder, mprLevel, newId)
 
 import Date exposing (Date)
 import Emoji
@@ -6,6 +6,7 @@ import Enum exposing (Enum)
 import Json.Decode as Decode
 import Json.Encode as Encode
 import MPRLevel
+import Pace exposing (Pace)
 import Random
 import Task exposing (Task)
 
@@ -19,12 +20,12 @@ type alias Activity =
 
 
 type ActivityData
-    = Run Minutes Pace Bool
-    | Interval Seconds Pace Bool
-    | Race Minutes Distance Bool
-    | Other Minutes Bool
+    = Run Seconds (Maybe Pace) Bool
+    | Interval Seconds (Maybe Pace) Bool
+    | Race Seconds Distance Bool
+    | Other Seconds Bool
     | Note String
-    | Session (List Activity)
+    | Session (List ActivityData)
 
 
 activityTypeToString : ActivityData -> String
@@ -63,10 +64,10 @@ newId =
 mprLevel : Activity -> Maybe Int
 mprLevel activity =
     case activity.data of
-        Race minutes distance_ _ ->
+        Race seconds distance_ _ ->
             MPRLevel.lookup MPRLevel.Neutral
                 (distance.toString distance_)
-                (minutes * 60)
+                seconds
                 |> Result.map (\( rt, level ) -> level)
                 |> Result.toMaybe
 
@@ -78,68 +79,8 @@ type alias Id =
     String
 
 
-type alias Minutes =
-    Int
-
-
 type alias Seconds =
     Int
-
-
-type Pace
-    = Easy
-    | Moderate
-    | Steady
-    | Brisk
-    | Aerobic
-    | Lactate
-    | Groove
-    | VO2
-    | Fast
-
-
-pace : Enum Pace
-pace =
-    Enum.create
-        [ Easy
-        , Moderate
-        , Steady
-        , Brisk
-        , Aerobic
-        , Lactate
-        , Groove
-        , VO2
-        , Fast
-        ]
-        (\a ->
-            case a of
-                Easy ->
-                    "Easy"
-
-                Moderate ->
-                    "Moderate"
-
-                Steady ->
-                    "Steady"
-
-                Brisk ->
-                    "Brisk"
-
-                Aerobic ->
-                    "Aerobic"
-
-                Lactate ->
-                    "Lactate"
-
-                Groove ->
-                    "Groove"
-
-                VO2 ->
-                    "VO2"
-
-                Fast ->
-                    "Fast"
-        )
 
 
 type Distance
@@ -227,13 +168,13 @@ activityDataDecoder =
         runDecoder =
             Decode.map3 Run
                 (Decode.field "duration" Decode.int)
-                (Decode.field "pace" pace.decoder)
+                (Decode.maybe (Decode.field "pace" Decode.int))
                 (Decode.field "completed" Decode.bool)
 
         intervalDecoder =
             Decode.map3 Interval
                 (Decode.field "duration" Decode.int)
-                (Decode.field "pace" pace.decoder)
+                (Decode.maybe (Decode.field "pace" Decode.int))
                 (Decode.field "completed" Decode.bool)
 
         raceDecoder =
@@ -253,7 +194,7 @@ activityDataDecoder =
 
         sessionDecoder =
             Decode.map Session
-                (Decode.field "activities" (Decode.list (Decode.lazy (\a -> decoder))))
+                (Decode.field "activities" (Decode.list (Decode.lazy (\a -> activityDataDecoder))))
     in
     Decode.field "type" Decode.string
         |> Decode.andThen
@@ -287,21 +228,25 @@ encoder activity =
     let
         dataEncoder data =
             case data of
-                Run minutes pace_ completed ->
-                    Encode.object
+                Run minutes paceM completed ->
+                    Encode.object <|
                         [ ( "type", Encode.string "run" )
                         , ( "duration", Encode.int minutes )
-                        , ( "pace", pace.encode pace_ )
                         , ( "completed", Encode.bool completed )
                         ]
+                            ++ (Maybe.map (\p -> [ ( "pace", Encode.int p ) ]) paceM
+                                    |> Maybe.withDefault []
+                               )
 
-                Interval seconds pace_ completed ->
-                    Encode.object
+                Interval seconds paceM completed ->
+                    Encode.object <|
                         [ ( "type", Encode.string "interval" )
                         , ( "duration", Encode.int seconds )
-                        , ( "pace", pace.encode pace_ )
                         , ( "completed", Encode.bool completed )
                         ]
+                            ++ (Maybe.map (\p -> [ ( "pace", Encode.int p ) ]) paceM
+                                    |> Maybe.withDefault []
+                               )
 
                 Race minutes distance_ completed ->
                     Encode.object
@@ -327,7 +272,7 @@ encoder activity =
                 Session activities ->
                     Encode.object
                         [ ( "type", Encode.string "session" )
-                        , ( "activities", Encode.list encoder activities )
+                        , ( "activities", Encode.list dataEncoder activities )
                         ]
     in
     Encode.object

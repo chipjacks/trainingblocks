@@ -1,9 +1,10 @@
 module ActivityShape exposing (view, viewDefault)
 
-import Activity exposing (Activity, Pace(..))
+import Activity exposing (ActivityData)
 import Emoji
 import Html exposing (Html, div)
 import Html.Attributes exposing (class, style)
+import Pace exposing (TrainingPace(..))
 import Skeleton exposing (column, row, styleIf)
 
 
@@ -20,23 +21,29 @@ type Color
     | Gray
 
 
-view : Activity -> Html msg
-view activity =
-    case activity.data of
-        Activity.Run mins pace completed ->
-            Block Green completed { width = toWidth pace, height = toHeight mins }
+view : Maybe Int -> ActivityData -> Html msg
+view levelM activityData =
+    let
+        width paceM =
+            Maybe.map2 Pace.secondsToTrainingPace levelM paceM
+                |> Maybe.map toWidth
+                |> Maybe.withDefault 0.5
+    in
+    case activityData of
+        Activity.Run secs paceM completed ->
+            Block Green completed { width = width paceM, height = toHeight secs }
                 |> viewShape
 
-        Activity.Interval secs pace completed ->
-            Block Orange completed { width = toWidth pace, height = toIntervalHeight secs }
+        Activity.Interval secs paceM completed ->
+            Block Orange completed { width = width paceM, height = toHeight secs }
                 |> viewShape
 
-        Activity.Race mins dist completed ->
-            Block Red completed { width = toWidth (Maybe.withDefault Activity.Lactate Nothing), height = toHeight mins }
+        Activity.Race secs dist completed ->
+            Block Red completed { width = toWidth (Maybe.withDefault Pace.Lactate Nothing), height = toHeight secs }
                 |> viewShape
 
-        Activity.Other mins completed ->
-            Circle Gray completed (String.toList activity.description |> List.head)
+        Activity.Other secs completed ->
+            Circle Gray completed Nothing
                 |> viewShape
 
         Activity.Note emoji ->
@@ -44,7 +51,7 @@ view activity =
                 |> viewShape
 
         Activity.Session activities ->
-            div [] (List.map view activities)
+            div [] (List.map (view levelM) activities)
 
 
 viewDefault : Bool -> Activity.ActivityData -> Html msg
@@ -134,19 +141,17 @@ colorString color =
             "var(--activity-gray)"
 
 
-toHeight : Activity.Minutes -> Float
+toHeight : Activity.Seconds -> Float
 toHeight duration =
-    toFloat duration / 10
-
-
-toIntervalHeight : Activity.Seconds -> Float
-toIntervalHeight duration =
     toFloat duration / 600
 
 
-toWidth : Activity.Pace -> Float
+toWidth : TrainingPace -> Float
 toWidth pace =
     case pace of
+        Slow ->
+            0.5
+
         Easy ->
             1
 

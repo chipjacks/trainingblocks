@@ -5,6 +5,7 @@ import ActivityForm
 import ActivityShape
 import Browser.Dom as Dom
 import Date exposing (Date)
+import Duration
 import Html exposing (Html, a, button, div, i, text)
 import Html.Attributes exposing (attribute, class, href, id, style)
 import Html.Events exposing (on, onClick, onMouseDown, onMouseOver)
@@ -12,6 +13,7 @@ import Html.Keyed
 import Html.Lazy
 import Json.Decode as Decode
 import Msg exposing (ActivityState(..), Msg(..), Zoom(..))
+import Pace
 import Ports exposing (scrollToSelectedDate)
 import Process
 import Skeleton exposing (attributeIf, borderStyle, column, compactColumn, expandingRow, row, spinner, styleIf, viewIf, viewMaybe)
@@ -204,8 +206,8 @@ filterActivities date activities =
     List.filter (\a -> a.date == date) activities
 
 
-view : Model -> List Activity -> String -> Int -> Html Msg
-view model activities activeId activeRataDie =
+view : Model -> List Activity -> String -> Int -> Maybe Int -> Html Msg
+view model activities activeId activeRataDie levelM =
     let
         (Model zoom start end selected today scrollCompleted) =
             model
@@ -215,7 +217,15 @@ view model activities activeId activeRataDie =
                 [ [ ( Date.toIsoString date, Html.Lazy.lazy3 viewDay (date == today) (date == selected) (Date.toRataDie date) ) ]
                 , filterActivities date activities
                     |> List.map
-                        (\activity -> ( activity.id, Html.Lazy.lazy3 viewActivity (String.contains activity.id activeId) (Date.toRataDie date == activeRataDie) activity ))
+                        (\activity ->
+                            ( activity.id
+                            , Html.Lazy.lazy4 viewActivity
+                                (String.contains activity.id activeId)
+                                (Date.toRataDie date == activeRataDie)
+                                levelM
+                                activity
+                            )
+                        )
                 , [ ( Date.toIsoString date ++ "+", Html.Lazy.lazy viewAddButton date ) ]
                 ]
 
@@ -225,7 +235,15 @@ view model activities activeId activeRataDie =
                     weekList start end
                         |> List.map
                             (\d ->
-                                ( Date.toIsoString d, Html.Lazy.lazy5 viewWeek activities today selected d activeId )
+                                ( Date.toIsoString d
+                                , Html.Lazy.lazy6 viewWeek
+                                    activities
+                                    today
+                                    selected
+                                    d
+                                    activeId
+                                    levelM
+                                )
                             )
 
                 Month ->
@@ -260,15 +278,15 @@ view model activities activeId activeRataDie =
         ]
 
 
-viewActivityShape : Activity -> Bool -> Html Msg
-viewActivityShape activity isActive =
+viewActivityShape : Activity -> Bool -> Maybe Int -> Html Msg
+viewActivityShape activity isActive levelM =
     div
         [ style "width" "min-content"
         , Html.Events.on "pointerdown" (Decode.succeed (MoveActivity activity))
         , attributeIf isActive (class "dynamic-shape")
         , style "touch-action" "none"
         ]
-        [ ActivityShape.view activity ]
+        [ ActivityShape.view levelM activity.data ]
 
 
 
@@ -340,8 +358,8 @@ viewHeader model =
             )
 
 
-viewWeek : List Activity -> Date -> Date -> Date -> String -> Html Msg
-viewWeek allActivities today selected start activeId =
+viewWeek : List Activity -> Date -> Date -> Date -> String -> Maybe Int -> Html Msg
+viewWeek allActivities today selected start activeId levelM =
     let
         days =
             daysOfWeek start
@@ -352,7 +370,7 @@ viewWeek allActivities today selected start activeId =
 
         dayViews =
             days
-                |> List.map (\d -> viewWeekDay ( d, filterActivities d allActivities ) (d == today) (d == selected) activeId)
+                |> List.map (\d -> viewWeekDay ( d, filterActivities d allActivities ) (d == today) (d == selected) activeId levelM)
 
         activities =
             days
@@ -364,8 +382,8 @@ viewWeek allActivities today selected start activeId =
             :: dayViews
 
 
-viewWeekDay : ( Date, List Activity ) -> Bool -> Bool -> String -> Html Msg
-viewWeekDay ( date, activities ) isToday isSelected activeId =
+viewWeekDay : ( Date, List Activity ) -> Bool -> Bool -> String -> Maybe Int -> Html Msg
+viewWeekDay ( date, activities ) isToday isSelected activeId levelM =
     let
         isActive a =
             activeId == a.id
@@ -403,7 +421,7 @@ viewWeekDay ( date, activities ) isToday isSelected activeId =
                         , style "margin-right" "0.2rem"
                         , attributeIf (isActive a) (style "opacity" "0.5")
                         ]
-                        [ viewActivityShape a (isActive a) ]
+                        [ viewActivityShape a (isActive a) levelM ]
                 )
                 activities
 
@@ -411,31 +429,39 @@ viewWeekDay ( date, activities ) isToday isSelected activeId =
 titleWeek : List Activity -> Html msg
 titleWeek activities =
     let
-        ( runDuration, otherDuration ) =
-            activities
+        sumDuration datas =
+            datas
                 |> List.map
-                    (\a ->
-                        case a.data of
-                            Activity.Run mins _ _ ->
-                                ( mins, 0 )
+                    (\data ->
+                        case data of
+                            Activity.Run secs _ _ ->
+                                ( secs, 0 )
 
-                            Activity.Race mins _ _ ->
-                                ( mins, 0 )
+                            Activity.Interval secs _ _ ->
+                                ( secs, 0 )
 
-                            Activity.Other mins _ ->
-                                ( 0, mins )
+                            Activity.Race secs _ _ ->
+                                ( secs, 0 )
 
-                            _ ->
+                            Activity.Other secs _ ->
+                                ( 0, secs )
+
+                            Activity.Note _ ->
                                 ( 0, 0 )
+
+                            Activity.Session sDatas ->
+                                sumDuration sDatas
                     )
                 |> List.foldl (\( r, o ) ( sr, so ) -> ( sr + r, so + o )) ( 0, 0 )
 
+        ( runDuration, otherDuration ) =
+            sumDuration (List.map .data activities)
+
         hours duration =
-            (toFloat duration / 60)
-                |> Basics.floor
+            (duration // 60) // 60
 
         minutes duration =
-            remainderBy 60 duration
+            remainderBy 60 (duration // 60)
     in
     column
         [ style "min-width" "4rem" ]
@@ -491,13 +517,26 @@ viewDay isToday isSelected rataDie =
         [ text (Date.format "E MMM d" date) ]
 
 
-viewActivity : Bool -> Bool -> Activity -> Html Msg
-viewActivity isActive isActiveDate activity =
+viewActivity : Bool -> Bool -> Maybe Int -> Activity -> Html Msg
+viewActivity isActive isActiveDate levelM activity =
     let
-        level =
+        activityLevel =
             Activity.mprLevel activity
                 |> Maybe.map (\l -> "level " ++ String.fromInt l)
                 |> Maybe.withDefault ""
+
+        trainingPaceStr paceM =
+            case ( paceM, levelM ) of
+                ( Just pace, Just level ) ->
+                    Pace.secondsToTrainingPace level pace
+                        |> Pace.trainingPace.toString
+                        |> String.toLower
+
+                ( Just pace, Nothing ) ->
+                    " at " ++ Pace.paceToString pace ++ " pace"
+
+                _ ->
+                    ""
     in
     row
         [ style "padding" "0.5rem 0.5rem"
@@ -508,7 +547,7 @@ viewActivity isActive isActiveDate activity =
             , style "justify-content" "center"
             , attributeIf (not isActive) (Html.Events.on "pointerdown" (pointerDownDecoder activity))
             ]
-            [ viewActivityShape activity isActive ]
+            [ viewActivityShape activity isActive levelM ]
         , a
             [ class "column expand"
             , style "justify-content" "center"
@@ -519,22 +558,28 @@ viewActivity isActive isActiveDate activity =
                 [ column []
                     [ text <|
                         case activity.data of
-                            Activity.Run mins pace_ _ ->
-                                String.fromInt mins ++ " min " ++ String.toLower (Activity.pace.toString pace_)
+                            Activity.Run secs paceM _ ->
+                                String.join " "
+                                    [ Duration.toStringWithUnits secs
+                                    , trainingPaceStr paceM
+                                    ]
 
-                            Activity.Interval secs pace_ _ ->
-                                String.fromInt secs ++ " secs " ++ String.toLower (Activity.pace.toString pace_)
+                            Activity.Interval secs paceM _ ->
+                                String.join " "
+                                    [ Duration.toStringWithUnits secs
+                                    , trainingPaceStr paceM
+                                    ]
 
-                            Activity.Race mins _ _ ->
-                                String.fromInt mins ++ " min "
+                            Activity.Race secs _ _ ->
+                                Duration.toStringWithUnits secs
 
-                            Activity.Other mins _ ->
-                                String.fromInt mins ++ " min "
+                            Activity.Other secs _ ->
+                                Duration.toStringWithUnits secs
 
                             _ ->
                                 ""
                     ]
-                , compactColumn [ style "align-items" "flex-end" ] [ text level ]
+                , compactColumn [ style "align-items" "flex-end" ] [ text activityLevel ]
                 ]
             ]
         , compactColumn

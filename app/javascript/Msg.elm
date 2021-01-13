@@ -28,12 +28,12 @@ type FormError
 
 
 type DataForm
-    = RunForm { duration : String, pace : Activity.Pace, completed : Bool }
-    | IntervalForm { duration : String, pace : Activity.Pace, completed : Bool }
+    = RunForm { duration : String, pace : String, completed : Bool }
+    | IntervalForm { duration : String, pace : String, completed : Bool }
     | RaceForm { duration : String, distance : Activity.Distance, completed : Bool }
     | OtherForm { duration : String, completed : Bool }
     | NoteForm { emoji : String }
-    | SessionForm (List Activity)
+    | SessionForm (List Activity.ActivityData)
 
 
 type ActivityState
@@ -45,7 +45,7 @@ type ActivityState
 
 type Msg
     = LoadToday Date
-    | GotActivities (Result String (List Activity))
+    | GotActivities (Result Http.Error ( String, List Activity ))
     | VisibilityChange Events.Visibility
     | KeyPressed String
     | MouseMoved Float Float
@@ -61,7 +61,7 @@ type Msg
     | Move Date Activity
     | Shift Bool Activity
     | Delete Activity
-    | Posted (List Msg) (Result String Bool)
+    | Posted (List Msg) (Result Http.Error ( String, Bool ))
     | DebounceFlush Int
       -- CALENDAR
     | Jump Date
@@ -76,7 +76,7 @@ type Msg
     | SelectActivity Activity Bool
     | EditActivity Activity
     | SelectedDate Date
-    | SelectedShape Activity.ActivityData
+    | SelectedShape DataForm
     | EditedDescription String
     | SelectedEmoji String
     | CheckedCompleted
@@ -87,5 +87,6 @@ type Msg
     | ClickedCopy Activity
     | ClickedMove Activity
     | ClickedGroup
+    | ClickedUngroup Activity
     | ClickedClose
     | NewId String

@@ -6,6 +6,7 @@ import Date exposing (Date)
 import Http
 import Msg exposing (Msg(..))
 import Process
+import Set
 import Task exposing (Task)
 
 
@@ -14,12 +15,12 @@ type Model
 
 
 type alias State =
-    { activities : List Activity }
+    { activities : List Activity, revision : String, level : Maybe Int }
 
 
-init : String -> List Activity -> Model
-init csrfToken activities =
-    Model (State activities) [] csrfToken
+init : String -> String -> List Activity -> Model
+init csrfToken revision activities =
+    Model (State activities revision Nothing |> updateLevel) [] csrfToken
 
 
 get : Model -> (State -> b) -> b
@@ -42,6 +43,15 @@ updateState msg state =
     case msg of
         Create activity ->
             { state | activities = updateActivity activity True state.activities }
+                |> updateLevel
+
+        Update activity ->
+            { state | activities = updateActivity activity False state.activities }
+                |> updateLevel
+
+        Delete activity ->
+            { state | activities = List.filter (\a -> a.id /= activity.id) state.activities }
+                |> updateLevel
 
         Group activities session ->
             let
@@ -60,20 +70,26 @@ updateState msg state =
             in
             { state | activities = List.filter (\a -> a.id /= session.id) ungrouped }
 
-        Update activity ->
-            { state | activities = updateActivity activity False state.activities }
-
         Move date activity ->
             { state | activities = moveActivity activity date state.activities }
 
         Shift up activity ->
             { state | activities = shiftActivity activity up state.activities }
 
-        Delete activity ->
-            { state | activities = List.filter (\a -> a.id /= activity.id) state.activities }
-
         _ ->
             state
+
+
+updateLevel : State -> State
+updateLevel state =
+    let
+        calculateLevel activities =
+            activities
+                |> List.filterMap Activity.mprLevel
+                |> List.reverse
+                |> List.head
+    in
+    { state | level = calculateLevel state.activities }
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -85,12 +101,21 @@ update msg (Model state msgs csrfToken) =
     case msg of
         Posted sentMsgs result ->
             case result of
-                Ok True ->
-                    ( Model state msgs csrfToken
+                Ok ( rev, True ) ->
+                    ( Model { state | revision = rev } msgs csrfToken
                     , Cmd.none
                     )
 
+                Err (Http.BadStatus 409) ->
+                    ( Model state (msgs ++ sentMsgs) csrfToken
+                    , Task.attempt GotActivities Api.getActivities
+                    )
+
                 _ ->
+                    let
+                        log =
+                            Debug.log "error" msg
+                    in
                     ( Model state (msgs ++ sentMsgs) csrfToken
                     , Cmd.none
                     )
@@ -106,12 +131,15 @@ update msg (Model state msgs csrfToken) =
 
         GotActivities result ->
             case result of
-                Ok activities ->
+                Ok ( revision, activities ) ->
                     let
                         newState =
-                            List.foldr (\rmsg rs -> updateState rmsg rs) (State activities) msgs
+                            List.foldr (\rmsg rs -> updateState rmsg rs) { state | activities = activities, revision = revision } msgs
+                                |> updateLevel
                     in
-                    ( Model newState msgs csrfToken, Cmd.none )
+                    ( Model newState msgs csrfToken
+                    , debounceFlush (List.length msgs)
+                    )
 
                 Err _ ->
                     ( model, Cmd.none )
@@ -134,10 +162,7 @@ flush model =
             Cmd.none
 
         Model state msgs csrfToken ->
-            Api.getActivities
-                |> Task.map State
-                |> Task.map (\remoteState -> List.foldr (\msg rs -> updateState msg rs) remoteState msgs)
-                |> Task.andThen (\newRemoteState -> Api.postActivities csrfToken newRemoteState.activities)
+            Api.postActivities csrfToken state.revision (orderUpdates state.activities msgs) (activityUpdates msgs)
                 |> Task.attempt (Posted msgs)
 
 
@@ -198,3 +223,77 @@ shiftUp id activities =
 
         _ ->
             activities
+
+
+activityUpdates : List Msg -> List ( String, Activity )
+activityUpdates msgs =
+    let
+        activityChange m =
+            case m of
+                Create a ->
+                    [ ( "create", a ) ]
+
+                Move date a ->
+                    [ ( "update", { a | date = date } ) ]
+
+                Update a ->
+                    [ ( "update", a ) ]
+
+                Delete a ->
+                    [ ( "delete", a ) ]
+
+                Group activities session ->
+                    ( "create", session )
+                        :: List.map (\a -> ( "delete", a )) activities
+
+                Ungroup activities session ->
+                    ( "delete", session )
+                        :: List.map (\a -> ( "create", a )) activities
+
+                _ ->
+                    []
+    in
+    List.reverse msgs
+        |> List.map activityChange
+        |> List.concat
+
+
+orderUpdates : List Activity -> List Msg -> List ( String, Int )
+orderUpdates activities msgs =
+    let
+        orderingChange m =
+            case m of
+                Create a ->
+                    Just a.date
+
+                Delete a ->
+                    Just a.date
+
+                Group _ session ->
+                    Just session.date
+
+                Ungroup _ session ->
+                    Just session.date
+
+                Move date a ->
+                    Just date
+
+                Shift _ a ->
+                    Just a.date
+
+                _ ->
+                    Nothing
+
+        dates =
+            msgs
+                |> List.filterMap orderingChange
+                |> List.map Date.toRataDie
+                |> Set.fromList
+                |> Set.toList
+                |> List.sort
+                |> List.map Date.fromRataDie
+    in
+    dates
+        |> List.map (\d -> List.filter (\a -> a.date == d) activities)
+        |> List.map (\l -> List.indexedMap (\i a -> ( a.id, i )) l)
+        |> List.concat

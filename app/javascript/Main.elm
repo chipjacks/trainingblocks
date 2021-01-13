@@ -16,6 +16,7 @@ import Html.Lazy
 import Http
 import Json.Decode as Decode
 import Msg exposing (ActivityForm, ActivityState(..), Msg(..))
+import Pace
 import Ports
 import Random
 import Skeleton exposing (borderStyle, column, compactColumn, expandingRow, row, spinner, styleIf, viewIf, viewMaybe)
@@ -38,7 +39,7 @@ main =
 
 
 type Model
-    = Loading (Maybe Date) (Maybe (List Activity)) String
+    = Loading (Maybe Date) (Maybe Store.Model) String
     | Loaded State
     | Error String
 
@@ -99,12 +100,14 @@ update msg model =
 
                 GotActivities activitiesR ->
                     case activitiesR of
-                        Ok activities ->
-                            Loading dateM (Just activities) token
+                        Ok ( revision, activities ) ->
+                            Loading dateM
+                                (Just (Store.init token revision activities))
+                                token
                                 |> updateLoading
 
                         Err err ->
-                            ( Error err, Cmd.none )
+                            ( Error (Api.errorString err), Cmd.none )
 
                 _ ->
                     ( model, Cmd.none )
@@ -379,6 +382,24 @@ update msg model =
                     ( activityFormState, Cmd.batch [ calendarCmd, activityFormCmd ] )
                         |> loaded
 
+                ClickedUngroup session ->
+                    case session.data of
+                        Activity.Session dataList ->
+                            ( model
+                            , Random.list (List.length dataList) Activity.newId
+                                |> Random.map
+                                    (\ids ->
+                                        List.map2
+                                            (\id data -> Activity id session.date "" data)
+                                            ids
+                                            dataList
+                                    )
+                                |> Random.generate (\activities -> Ungroup activities session)
+                            )
+
+                        _ ->
+                            ( model, Cmd.none )
+
                 ClickedGroup ->
                     case activityM of
                         Selected (a :: tail) ->
@@ -398,11 +419,11 @@ update msg model =
 updateLoading : Model -> ( Model, Cmd Msg )
 updateLoading model =
     case model of
-        Loading (Just date) (Just activities) csrfToken ->
+        Loading (Just date) (Just store) csrfToken ->
             (Loaded <|
                 State
                     (Calendar.init Msg.Month date date)
-                    (Store.init csrfToken activities)
+                    store
                     None
             )
                 |> update (Jump date)
@@ -458,23 +479,15 @@ initActivity today dateM =
             Date.compare date today == LT || date == today
     in
     Activity.newId
-        |> Random.map (\id -> Activity id date "" (Activity.Run 30 Activity.Easy completed))
+        |> Random.map (\id -> Activity id date "" (Activity.Run (30 * 60) Nothing completed))
         |> Random.generate NewActivity
 
 
 initSession : Activity -> List Activity -> Cmd Msg
 initSession head activities =
     Activity.newId
-        |> Random.map (\id -> Activity id head.date "" (Activity.Session activities))
+        |> Random.map (\id -> Activity id head.date "" (Activity.Session (List.map .data activities)))
         |> Random.generate (Group activities)
-
-
-calculateLevel : List Activity -> Maybe Int
-calculateLevel activities =
-    activities
-        |> List.filterMap Activity.mprLevel
-        |> List.reverse
-        |> List.head
 
 
 
@@ -501,7 +514,7 @@ view model =
                         Store.get store .activities
 
                     levelM =
-                        calculateLevel activities
+                        Store.get store .level
 
                     events =
                         case activityM of
@@ -542,15 +555,15 @@ view model =
                 in
                 column (style "position" "relative" :: events)
                     [ Html.Lazy.lazy Calendar.viewHeader calendar
-                    , Html.Lazy.lazy4 Calendar.view calendar activities activeId activeRataDie
-                    , Html.Lazy.lazy viewActivityM activityM
+                    , Html.Lazy.lazy5 Calendar.view calendar activities activeId activeRataDie levelM
+                    , Html.Lazy.lazy2 viewActivityM levelM activityM
                     , Html.Lazy.lazy2 ActivityForm.view levelM activityM
                     ]
         ]
 
 
-viewActivityM : ActivityState -> Html Msg
-viewActivityM activityState =
+viewActivityM : Maybe Int -> ActivityState -> Html Msg
+viewActivityM levelM activityState =
     case activityState of
         Moving activity x y ->
             row
@@ -560,7 +573,7 @@ viewActivityM activityState =
                 , style "z-index" "3"
                 ]
                 [ compactColumn [ style "flex-basis" "5rem" ]
-                    [ ActivityShape.view activity ]
+                    [ ActivityShape.view levelM activity.data ]
                 ]
 
         _ ->

@@ -8,5 +8,6 @@ Rails.application.routes.draw do
   get 'activities', to: 'activities#index'
   post 'activities', to: 'activities#batch_update'
 
-  get 'imports', to: 'imports#index'
+  get 'imports/strava_push', to: 'imports#validate_strava_push'
+  post 'imports/strava_push', to: 'imports#strava_push'
 end

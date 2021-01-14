@@ -5,25 +5,25 @@
   <script src="https://cdn.jsdelivr.net/npm/semantic-ui@2.3.1/dist/semantic.min.js"></script>
 <% end %>
 
-<div class="ui inverted blue menu">
+<div class="ui menu">
   <div class="ui container">
     <%= link_to root_path, class: "item borderless" do %>
        <img src='icon.svg' />
     <% end %>
     <div class="right menu">
       <% if current_user %>
-	<div class="item borderless">
-	  Signed in as <%= current_user.email %>
-      </div>
-      <%= link_to "Logout", destroy_user_session_path, method: 'delete', class: 'item borderless' %>
-    <% else %>
-      <%= link_to 'Sign in with Strava', user_strava_omniauth_authorize_path, class: 'item borderless' %>
-    <% end %>
+        <div class="item borderless">
+          Signed in as <%= current_user.email %>
+        </div>
+        <%= link_to "Logout", destroy_user_session_path, method: 'delete', class: 'item borderless' %>
+      <% else %>
+        <%= link_to 'Sign in with Strava', user_strava_omniauth_authorize_path, class: 'item borderless' %>
+      <% end %>
     </div>
   </div>
 </div>
 
-<div class="ui inverted blue vertical masthead center aligned segment">
+<div class="ui vertical masthead center aligned segment">
   <div class="ui container">
     <% if notice %>
       <div class="ui info message">
@@ -32,44 +32,15 @@
     <% end %>
     <% if alert %>
       <div class="ui warning message">
-	<p class="alert"><%= alert %></p>
+	      <p class="alert"><%= alert %></p>
       </div>
     <% end %>
   </div>
 
   <div class="ui text container">
-    <h1 class="ui inverted huge header">
-      Built for runners
-    </h1>
-    <h2>Training Blocks is a fitness platform designed to help you find the meaning behind the mileage.</h2>
+    <%= image_tag('logo.svg', class: 'ui centered image') %>
+    <h2>
+      Build your running fitness.
+    </h2>
   </div>
-</div>
-<div class="ui vertical center aligned segment feature">
-  <h2 class="ui header">Build your fitness, one block at a time</h3>
-  <%= image_tag('build_your_fitness.png', class: 'ui centered image') %>
-</div>
-<div class="ui vertical center aligned segment feature">
-  <div class="ui text container">
-    <h2 class="ui header">Zoom out to view your progress</h3>
-    <%= image_tag('zoom_out.png', class: 'ui centered image') %>
-  </div>
-</div>
-<div class="ui vertical center aligned tertiary segment feature">
-  <h4 class="ui header">
-    COMING SOON
-  </h4> 
-  <h2 class="ui header">Capture how you're feeling</h3>
-  <%= image_tag('capture_feeling.png', class: 'ui centered image') %>
-</div>
-<div class="ui vertical center aligned tertiary segment feature">
-  <h2 class="ui header">Set goals and see how you stack up</h3>
-  <%= image_tag('set_goals.png', class: 'ui centered image') %>
-</div>
-<div class="ui vertical center aligned tertiary segment feature">
-  <h2 class="ui header">Share plans and celebrate results</h3>
-  <%= image_tag('share_plans.png', class: 'ui centered image') %>
-</div>
-<div class="ui vertical center aligned segment feature" style="min-height: 230px">
-  <h2 class="ui header">Sign in with your Strava account to get started</h3>
-  <%= link_to 'Sign in', user_strava_omniauth_authorize_path, class: 'ui huge primary button' %>
 </div>

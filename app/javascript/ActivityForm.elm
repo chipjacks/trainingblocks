@@ -229,32 +229,35 @@ updateResult model =
 view : Maybe Int -> ActivityState -> Html Msg
 view levelM activityM =
     let
+        spacing =
+            style "margin-left" "0.4rem"
+
         dataInputs form result =
             case form of
                 RunForm { duration, pace } ->
-                    [ compactColumn [] [ durationInput EditedDuration False duration ]
-                    , compactColumn [] [ paceSelect levelM SelectedPace pace ]
+                    [ compactColumn [ spacing ] [ durationInput EditedDuration False duration ]
+                    , compactColumn [ spacing ] [ paceSelect levelM SelectedPace pace ]
                     ]
 
                 IntervalForm { duration, pace } ->
-                    [ compactColumn [] [ durationInput EditedDuration True duration ]
-                    , compactColumn [] [ paceSelect levelM SelectedPace pace ]
+                    [ compactColumn [ spacing ] [ durationInput EditedDuration True duration ]
+                    , compactColumn [ spacing ] [ paceSelect levelM SelectedPace pace ]
                     ]
 
                 RaceForm { duration, distance } ->
-                    [ compactColumn [] [ durationInput EditedDuration False duration ]
-                    , compactColumn [] [ distanceSelect SelectedDistance distance ]
-                    , compactColumn []
+                    [ compactColumn [ spacing ] [ durationInput EditedDuration False duration ]
+                    , compactColumn [ spacing ] [ distanceSelect SelectedDistance distance ]
+                    , compactColumn [ spacing ]
                         [ viewMaybe (Result.toMaybe result |> Maybe.andThen Activity.mprLevel)
                             (\level -> text <| "Level " ++ String.fromInt level)
                         ]
                     ]
 
                 OtherForm { duration } ->
-                    [ compactColumn [] [ durationInput EditedDuration False duration ] ]
+                    [ compactColumn [ spacing ] [ durationInput EditedDuration False duration ] ]
 
                 NoteForm { emoji } ->
-                    [ compactColumn [] [ emojiSelect SelectedEmoji emoji ] ]
+                    [ compactColumn [ spacing ] [ emojiSelect SelectedEmoji emoji ] ]
 
                 SessionForm _ ->
                     []
@@ -309,8 +312,7 @@ view levelM activityM =
                             )
                         ]
                     , row []
-                        [ viewShape levelM model
-                        , column []
+                        [ column []
                             [ row []
                                 [ text (Maybe.map (Date.format "E MMM d") model.date |> Maybe.withDefault "Select Date")
                                 ]
@@ -394,24 +396,6 @@ viewMultiSelectButtons activities =
         ]
 
 
-viewShape : Maybe Int -> ActivityForm -> Html Msg
-viewShape levelM model =
-    let
-        activityShape =
-            validate model
-                |> Result.toMaybe
-                |> Maybe.map (\a -> ActivityShape.view levelM a.data)
-                |> Maybe.withDefault (ActivityShape.viewDefault True (toActivityData model.dataForm))
-    in
-    compactColumn
-        [ class "dynamic-shape"
-        , style "flex-basis" "3.3rem"
-        , style "justify-content" "center"
-        , Html.Events.onClick CheckedCompleted
-        ]
-        [ activityShape ]
-
-
 shapeSelect : ActivityForm -> Html Msg
 shapeSelect model =
     let
@@ -428,25 +412,23 @@ shapeSelect model =
 
         typeStr =
             toActivityData model.dataForm |> Activity.activityTypeToString
+
+        buttonContents aType =
+            row []
+                [ ActivityShape.viewDefault True (toActivityData aType)
+                , compactColumn
+                    [ style "margin-left" "0.3rem" ]
+                    [ text (Activity.activityTypeToString (toActivityData aType)) ]
+                ]
     in
     div [ class "dropdown" ]
-        [ button [ class "button", style "font-size" "0.8rem" ]
-            [ text typeStr ]
+        [ button [ class "button" ]
+            [ buttonContents model.dataForm ]
         , viewIf (typeStr /= "Session")
             (div [ class "dropdown-content" ]
                 (List.map
                     (\aType ->
-                        a [ onClick (SelectedShape aType) ]
-                            [ row []
-                                [ ActivityShape.viewDefault True (toActivityData aType)
-                                , compactColumn
-                                    [ style "margin-left" "0.5rem"
-                                    , style "margin-top" "0.1rem"
-                                    , style "font-size" "0.8rem"
-                                    ]
-                                    [ text (Activity.activityTypeToString (toActivityData aType)) ]
-                                ]
-                            ]
+                        a [ onClick (SelectedShape aType) ] [ buttonContents aType ]
                     )
                     types
                 )
@@ -574,12 +556,12 @@ emojiSelect msg emoji =
             Emoji.filter (String.toLower emoji) |> List.take 10
 
         padding =
-            style "padding" "3.5px 0.5rem 0.5px 0.5rem"
+            style "padding" "8px 0.5rem 2px 0.5rem"
 
         emojiItem data =
             a [ onClick (msg data.name), style "text-align" "left", padding, style "white-space" "nowrap" ]
                 [ Emoji.view data
-                , div [ style "display" "inline-block", style "vertical-align" "top", style "margin-left" "0.5rem", style "font-size" "0.8rem" ]
+                , div [ style "display" "inline-block", style "vertical-align" "top", style "margin-left" "0.5rem" ]
                     [ Html.text data.name ]
                 ]
     in
@@ -600,7 +582,7 @@ emojiSelect msg emoji =
                 , input
                     [ onInput msg
                     , onFocus (msg "")
-                    , class "input small icon"
+                    , class "input icon"
                     , style "width" "6rem"
                     , value emoji
                     ]
@@ -617,8 +599,8 @@ durationInput msg isSeconds duration =
         [ onInput msg
         , onFocus (msg "")
         , name "duration"
-        , style "width" "2.5rem"
-        , class "input small"
+        , style "width" "4rem"
+        , class "input"
         , value duration
         ]
         []
@@ -652,16 +634,16 @@ paceSelect levelM msg paceStr =
             [ div [ class "row" ]
                 [ button
                     [ class "button"
+                    , style "padding-top" "0.6rem"
                     , style "border-top-right-radius" "0"
                     , style "border-bottom-right-radius" "0"
-                    , style "font-size" "0.8rem"
                     ]
                     [ text trainingPaceStr ]
                 , input
                     [ onInput msg
                     , onFocus (msg "")
-                    , class "input small"
-                    , style "width" "2.5rem"
+                    , class "input"
+                    , style "width" "4rem"
                     , value paceStr
                     ]
                     []
@@ -671,10 +653,10 @@ paceSelect levelM msg paceStr =
                     div [ class "dropdown-content" ]
                         (List.map2
                             (\time name ->
-                                a [ onClick (msg time), style "text-align" "left", style "font-size" "0.8rem" ]
-                                    [ span [ style "color" "var(--accent-blue)", style "margin-right" "0.5rem" ]
+                                a [ onClick (msg time), style "text-align" "left" ]
+                                    [ Html.text name
+                                    , span [ style "color" "var(--accent-blue)", style "margin-left" "0.2rem", style "float" "right" ]
                                         [ Html.text time ]
-                                    , Html.text name
                                     ]
                             )
                             paceTimes
@@ -688,7 +670,7 @@ paceSelect levelM msg paceStr =
 distanceSelect : (String -> Msg) -> Activity.Distance -> Html Msg
 distanceSelect msg distance =
     div [ class "dropdown" ]
-        [ button [ class "button", style "font-size" "0.8rem" ]
+        [ button [ class "button" ]
             [ text (Activity.distance.toString distance) ]
         , div [ class "dropdown-content" ]
             (List.map
@@ -696,7 +678,6 @@ distanceSelect msg distance =
                     a
                         [ onClick (msg distanceOpt)
                         , style "text-align" "left"
-                        , style "font-size" "0.8rem"
                         ]
                         [ Html.text distanceOpt ]
                 )

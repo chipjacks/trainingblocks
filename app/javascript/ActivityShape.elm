@@ -1,4 +1,4 @@
-module ActivityShape exposing (view, viewDefault)
+module ActivityShape exposing (view)
 
 import Activity exposing (ActivityData)
 import Emoji
@@ -9,9 +9,8 @@ import Skeleton exposing (column, row, styleIf)
 
 
 type Shape
-    = Block Color Bool { width : Float, height : Float }
-    | Circle Color Bool (Maybe Char)
-    | Emoji String
+    = Block { width : Float, height : Float } Color Bool
+    | Circle Color Bool
 
 
 type Color
@@ -22,70 +21,42 @@ type Color
 
 
 view : Maybe Int -> ActivityData -> Html msg
-view levelM activityData =
+view levelM data =
     let
         width paceM =
             Maybe.map2 Pace.secondsToTrainingPace levelM paceM
                 |> Maybe.map toWidth
                 |> Maybe.withDefault 0.5
+
+        shape =
+            if data.pace /= Nothing then
+                Block { width = width data.pace, height = toHeight data.duration }
+
+            else
+                Circle
+
+        color =
+            case data.effort of
+                Nothing ->
+                    Gray
+
+                Just Activity.Easy ->
+                    Green
+
+                Just Activity.Moderate ->
+                    Orange
+
+                Just Activity.Hard ->
+                    Red
     in
-    case activityData of
-        Activity.Run secs paceM completed ->
-            Block Green completed { width = width paceM, height = toHeight secs }
-                |> viewShape
-
-        Activity.Interval secs paceM completed ->
-            Block Orange completed { width = width paceM, height = toHeight secs }
-                |> viewShape
-
-        Activity.Race secs dist completed ->
-            Block Red completed { width = toWidth (Maybe.withDefault Pace.Lactate Nothing), height = toHeight secs }
-                |> viewShape
-
-        Activity.Other secs completed ->
-            Circle Gray completed Nothing
-                |> viewShape
-
-        Activity.Note emoji ->
-            Emoji emoji
-                |> viewShape
-
-        Activity.Session activities ->
-            div [] (List.map (view levelM) activities)
-
-
-viewDefault : Bool -> Activity.ActivityData -> Html msg
-viewDefault completed activityData =
-    case activityData of
-        Activity.Run _ _ _ ->
-            Block Green completed { width = 3, height = 1 }
-                |> viewShape
-
-        Activity.Interval _ _ _ ->
-            Block Orange completed { width = 3, height = 1 }
-                |> viewShape
-
-        Activity.Race _ _ _ ->
-            Block Red completed { width = 3, height = 1 }
-                |> viewShape
-
-        Activity.Other _ _ ->
-            Circle Gray completed Nothing
-                |> viewShape
-
-        Activity.Note _ ->
-            Emoji Emoji.default.name
-                |> viewShape
-
-        Activity.Session _ ->
-            Block Orange completed { width = 3, height = 1 }
-                |> viewShape
+    shape color data.completed
+        |> viewShape
 
 
 viewShape : Shape -> Html msg
 viewShape shape =
     case shape of
-        Block color completed { width, height } ->
+        Block { width, height } color completed ->
             div
                 [ style "width" <| String.fromFloat (width * 0.3) ++ "rem"
                 , style "height" <| String.fromFloat height ++ "rem"
@@ -100,7 +71,7 @@ viewShape shape =
                 ]
                 []
 
-        Circle color completed charM ->
+        Circle color completed ->
             let
                 ( backgroundColor, textColor ) =
                     if completed then
@@ -119,10 +90,7 @@ viewShape shape =
                 , style "background-color" backgroundColor
                 , style "color" textColor
                 ]
-                [ Html.text (charM |> Maybe.map Char.toUpper |> Maybe.map String.fromChar |> Maybe.withDefault "") ]
-
-        Emoji name ->
-            Emoji.view (Emoji.find name)
+                [ Html.text (Nothing |> Maybe.map Char.toUpper |> Maybe.map String.fromChar |> Maybe.withDefault "") ]
 
 
 colorString : Color -> String

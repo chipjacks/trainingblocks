@@ -14,9 +14,9 @@ import Http
 import Json.Decode as Decode
 import MPRLevel
 import MonoIcons
-import Msg exposing (ActivityForm, ActivityState(..), DataForm(..), FormError(..), Msg(..))
+import Msg exposing (ActivityForm, ActivityState(..), FormError(..), Msg(..))
 import Pace exposing (Pace)
-import Skeleton exposing (attributeIf, borderStyle, column, compactColumn, expandingRow, row, viewIf, viewMaybe)
+import Skeleton exposing (attributeIf, borderStyle, column, compactColumn, expandingRow, row, styleIf, viewIf, viewMaybe)
 import Store
 import Svg exposing (Svg)
 import Task exposing (Task)
@@ -31,28 +31,19 @@ import Task exposing (Task)
 init : Activity -> ActivityForm
 init activity =
     let
-        baseModel =
-            ActivityForm activity.id (Just activity.date) activity.description (Ok activity)
+        data =
+            activity.data
     in
-    baseModel <|
-        case activity.data of
-            Activity.Run seconds paceM completed ->
-                RunForm { duration = Duration.toString seconds, pace = Maybe.map Pace.paceToString paceM |> Maybe.withDefault "", completed = completed }
-
-            Activity.Interval seconds paceM completed ->
-                IntervalForm { duration = Duration.toString seconds, pace = Maybe.map Pace.paceToString paceM |> Maybe.withDefault "", completed = completed }
-
-            Activity.Race seconds distance_ completed ->
-                RaceForm { duration = Duration.toString seconds, distance = distance_, completed = completed }
-
-            Activity.Other seconds completed ->
-                OtherForm { duration = Duration.toString seconds, completed = completed }
-
-            Activity.Note emoji_ ->
-                NoteForm { emoji = emoji_ }
-
-            Activity.Session activities ->
-                SessionForm activities
+    ActivityForm activity.id
+        (Just activity.date)
+        activity.description
+        (Ok activity)
+        (Duration.toString data.duration)
+        data.completed
+        (Maybe.map Pace.paceToString data.pace |> Maybe.withDefault "")
+        data.distance
+        data.effort
+        (Maybe.withDefault "" data.emoji)
 
 
 initMove : Activity -> ActivityForm
@@ -97,7 +88,8 @@ validate model =
                 model.id
                 date
                 description
-                (toActivityData model.dataForm)
+                (toActivityData model)
+                Nothing
         )
         (validateFieldExists model.date "date")
         (validateFieldExists (Just model.description) "description")
@@ -118,38 +110,38 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
-        SelectedShape dataForm ->
-            ( updateResult { model | dataForm = dataForm }
-            , Cmd.none
-            )
-
         EditedDescription desc ->
             ( updateResult { model | description = desc }
             , Cmd.none
             )
 
-        SelectedEmoji char ->
-            ( updateResult { model | dataForm = NoteForm { emoji = char } }
+        SelectedEffort effort ->
+            ( updateResult { model | effort = Just effort }
+            , Cmd.none
+            )
+
+        SelectedEmoji name ->
+            ( updateResult { model | emoji = name }
             , Cmd.none
             )
 
         CheckedCompleted ->
-            ( updateResult { model | dataForm = updateCompleted model.dataForm }
+            ( updateResult { model | completed = not model.completed }
             , Cmd.none
             )
 
         EditedDuration str ->
-            ( updateResult { model | dataForm = updateDuration str model.dataForm }
+            ( updateResult { model | duration = str }
             , Cmd.none
             )
 
         SelectedPace str ->
-            ( updateResult { model | dataForm = updatePace str model.dataForm }
+            ( updateResult { model | pace = str }
             , Cmd.none
             )
 
-        SelectedDistance str ->
-            ( updateResult { model | dataForm = updateDistance str model.dataForm }
+        SelectedDistance dist ->
+            ( updateResult { model | distance = Just dist }
             , Cmd.none
             )
 
@@ -158,67 +150,6 @@ update msg model =
 
         _ ->
             ( model, Cmd.none )
-
-
-updateCompleted : DataForm -> DataForm
-updateCompleted dataForm =
-    case dataForm of
-        RunForm data ->
-            RunForm { data | completed = not data.completed }
-
-        IntervalForm data ->
-            IntervalForm { data | completed = not data.completed }
-
-        RaceForm data ->
-            RaceForm { data | completed = not data.completed }
-
-        OtherForm data ->
-            OtherForm { data | completed = not data.completed }
-
-        _ ->
-            dataForm
-
-
-updateDuration : String -> DataForm -> DataForm
-updateDuration duration dataForm =
-    case dataForm of
-        RunForm data ->
-            RunForm { data | duration = duration }
-
-        IntervalForm data ->
-            IntervalForm { data | duration = duration }
-
-        RaceForm data ->
-            RaceForm { data | duration = duration }
-
-        OtherForm data ->
-            OtherForm { data | duration = duration }
-
-        _ ->
-            dataForm
-
-
-updatePace : String -> DataForm -> DataForm
-updatePace paceStr dataForm =
-    case dataForm of
-        RunForm data ->
-            RunForm { data | pace = paceStr }
-
-        IntervalForm data ->
-            IntervalForm { data | pace = paceStr }
-
-        _ ->
-            dataForm
-
-
-updateDistance : String -> DataForm -> DataForm
-updateDistance distanceStr dataForm =
-    case dataForm of
-        RaceForm data ->
-            RaceForm { data | distance = Activity.distance.fromString distanceStr |> Maybe.withDefault (defaults dataForm |> .distance) }
-
-        _ ->
-            dataForm
 
 
 updateResult : ActivityForm -> ActivityForm
@@ -230,37 +161,16 @@ view : Maybe Int -> ActivityState -> Html Msg
 view levelM activityM =
     let
         spacing =
-            style "margin-left" "0.4rem"
+            style "margin" "3px 0 0 5px"
 
         dataInputs form result =
-            case form of
-                RunForm { duration, pace } ->
-                    [ compactColumn [ spacing ] [ durationInput EditedDuration False duration ]
-                    , compactColumn [ spacing ] [ paceSelect levelM SelectedPace pace ]
-                    ]
-
-                IntervalForm { duration, pace } ->
-                    [ compactColumn [ spacing ] [ durationInput EditedDuration True duration ]
-                    , compactColumn [ spacing ] [ paceSelect levelM SelectedPace pace ]
-                    ]
-
-                RaceForm { duration, distance } ->
-                    [ compactColumn [ spacing ] [ durationInput EditedDuration False duration ]
-                    , compactColumn [ spacing ] [ distanceSelect SelectedDistance distance ]
-                    , compactColumn [ spacing ]
-                        [ viewMaybe (Result.toMaybe result |> Maybe.andThen Activity.mprLevel)
-                            (\level -> text <| "Level " ++ String.fromInt level)
-                        ]
-                    ]
-
-                OtherForm { duration } ->
-                    [ compactColumn [ spacing ] [ durationInput EditedDuration False duration ] ]
-
-                NoteForm { emoji } ->
-                    [ compactColumn [ spacing ] [ emojiSelect SelectedEmoji emoji ] ]
-
-                SessionForm _ ->
-                    []
+            [ compactColumn [ spacing ] [ completionToggle CheckedCompleted form.completed ]
+            , compactColumn [ spacing ] [ durationInput EditedDuration False form.duration ]
+            , compactColumn [ spacing ] [ effortSelect SelectedEffort form.effort ]
+            , compactColumn [ spacing ] [ paceSelect levelM SelectedPace form.pace ]
+            , compactColumn [ spacing ] [ distanceSelect SelectedDistance form.distance ]
+            , compactColumn [ spacing ] [ emojiSelect SelectedEmoji form.emoji ]
+            ]
 
         sharedAttributes =
             [ borderStyle "border-bottom"
@@ -328,9 +238,8 @@ view levelM activityM =
                                     ]
                                     []
                                 ]
-                            , row [ style "flex-wrap" "none", style "align-items" "center" ] <|
-                                compactColumn [ style "margin-right" "0.2rem" ] [ shapeSelect model ]
-                                    :: dataInputs model.dataForm model.result
+                            , row [ style "flex-wrap" "wrap", style "margin-left" "-5px" ]
+                                (dataInputs model model.result)
                             , row []
                                 [ viewError model.result ]
                             ]
@@ -356,13 +265,6 @@ viewButtons activity editing =
         , toolbarButton (ClickedMove activity) MonoIcons.calendar False
         , toolbarButton (Shift True activity) MonoIcons.arrowUp False
         , toolbarButton (Shift False activity) MonoIcons.arrowDown False
-        , column [] []
-        , case activity.data of
-            Activity.Session activities ->
-                toolbarButton (ClickedUngroup activity) MonoIcons.folder False
-
-            _ ->
-                Html.text ""
         , column [] []
         , toolbarButton ClickedClose MonoIcons.close False
         ]
@@ -396,112 +298,13 @@ viewMultiSelectButtons activities =
         ]
 
 
-shapeSelect : ActivityForm -> Html Msg
-shapeSelect model =
-    let
-        { duration, pace, distance, emoji, completed } =
-            defaults model.dataForm
-
-        types =
-            [ RunForm { duration = duration, pace = pace, completed = completed }
-            , IntervalForm { duration = duration, pace = pace, completed = completed }
-            , RaceForm { duration = duration, distance = distance, completed = completed }
-            , OtherForm { duration = duration, completed = completed }
-            , NoteForm { emoji = emoji }
-            ]
-
-        typeStr =
-            toActivityData model.dataForm |> Activity.activityTypeToString
-
-        buttonContents aType =
-            row []
-                [ ActivityShape.viewDefault True (toActivityData aType)
-                , compactColumn
-                    [ style "margin-left" "0.3rem" ]
-                    [ text (Activity.activityTypeToString (toActivityData aType)) ]
-                ]
-    in
-    div [ class "dropdown" ]
-        [ button [ class "button" ]
-            [ buttonContents model.dataForm ]
-        , viewIf (typeStr /= "Session")
-            (div [ class "dropdown-content" ]
-                (List.map
-                    (\aType ->
-                        a [ onClick (SelectedShape aType) ] [ buttonContents aType ]
-                    )
-                    types
-                )
-            )
-        ]
-
-
 type alias Defaults =
     { duration : String, pace : String, distance : Activity.Distance, completed : Bool, emoji : String }
 
 
-defaults : DataForm -> Defaults
-defaults dataForm =
-    let
-        duration_ =
-            case dataForm of
-                RunForm { duration } ->
-                    duration
-
-                RaceForm { duration } ->
-                    duration
-
-                OtherForm { duration } ->
-                    duration
-
-                _ ->
-                    "30"
-
-        pace_ =
-            case dataForm of
-                RunForm { pace } ->
-                    pace
-
-                IntervalForm { pace } ->
-                    pace
-
-                _ ->
-                    "7:30"
-
-        distance_ =
-            case dataForm of
-                RaceForm { distance } ->
-                    distance
-
-                _ ->
-                    Activity.FiveK
-
-        completed_ =
-            case dataForm of
-                RunForm { completed } ->
-                    completed
-
-                IntervalForm { completed } ->
-                    completed
-
-                RaceForm { completed } ->
-                    completed
-
-                OtherForm { completed } ->
-                    completed
-
-                _ ->
-                    True
-
-        emoji_ =
-            case dataForm of
-                NoteForm { emoji } ->
-                    emoji
-
-                _ ->
-                    Emoji.default.name
-    in
-    Defaults duration_ pace_ distance_ completed_ emoji_
+defaults : Defaults
+defaults =
+    Defaults "30" "7:30" Activity.FiveK True Emoji.default.name
 
 
 parseDuration : String -> Int
@@ -513,40 +316,46 @@ parseDuration str =
         Duration.fromString str |> Maybe.withDefault 0
 
 
-parseIntervalDuration : String -> Int
-parseIntervalDuration str =
-    if String.isEmpty str then
-        0
-
-    else
-        Pace.paceFromString str |> Maybe.withDefault 0
-
-
 parsePace : String -> Maybe Int
 parsePace str =
     Pace.paceFromString str
 
 
-toActivityData : DataForm -> ActivityData
-toActivityData dataForm =
-    case dataForm of
-        RunForm { duration, pace, completed } ->
-            Activity.Run (parseDuration duration) (parsePace pace) completed
+toActivityData : ActivityForm -> ActivityData
+toActivityData model =
+    Activity.ActivityData
+        (parseDuration model.duration)
+        model.completed
+        (parsePace model.pace)
+        model.distance
+        model.effort
+        (case model.emoji of
+            "" ->
+                Nothing
 
-        IntervalForm { duration, pace, completed } ->
-            Activity.Interval (parseIntervalDuration duration) (parsePace pace) completed
+            _ ->
+                Just model.emoji
+        )
 
-        RaceForm { duration, distance, completed } ->
-            Activity.Race (parseDuration duration) distance completed
 
-        OtherForm { duration, completed } ->
-            Activity.Other (parseDuration duration) completed
+completionToggle : Msg -> Bool -> Html Msg
+completionToggle msg completed =
+    div [ class "row" ]
+        [ button
+            [ class "button"
+            , onClick CheckedCompleted
+            , styleIf (not completed) "background-color" "transparent"
+            , styleIf (not completed) "box-shadow" "0 0 0 2px var(--button-gray) inset"
+            ]
+            [ text
+                (if completed then
+                    "Completed"
 
-        NoteForm { emoji } ->
-            Activity.Note emoji
-
-        SessionForm data ->
-            Activity.Session data
+                 else
+                    "Planned"
+                )
+            ]
+        ]
 
 
 emojiSelect : (String -> Msg) -> String -> Html Msg
@@ -667,19 +476,38 @@ paceSelect levelM msg paceStr =
         ]
 
 
-distanceSelect : (String -> Msg) -> Activity.Distance -> Html Msg
-distanceSelect msg distance =
+effortSelect : (Activity.Effort -> Msg) -> Maybe Activity.Effort -> Html Msg
+effortSelect msg effortM =
     div [ class "dropdown" ]
         [ button [ class "button" ]
-            [ text (Activity.distance.toString distance) ]
+            [ text (Maybe.map Activity.effort.toString effortM |> Maybe.withDefault "Effort") ]
         , div [ class "dropdown-content" ]
             (List.map
-                (\( distanceOpt, _ ) ->
+                (\( effortStr, effortOpt ) ->
+                    a
+                        [ onClick (msg effortOpt)
+                        , style "text-align" "left"
+                        ]
+                        [ Html.text effortStr ]
+                )
+                Activity.effort.list
+            )
+        ]
+
+
+distanceSelect : (Activity.Distance -> Msg) -> Maybe Activity.Distance -> Html Msg
+distanceSelect msg distanceM =
+    div [ class "dropdown" ]
+        [ button [ class "button" ]
+            [ text (Maybe.map Activity.distance.toString distanceM |> Maybe.withDefault "Distance") ]
+        , div [ class "dropdown-content" ]
+            (List.map
+                (\( distanceStr, distanceOpt ) ->
                     a
                         [ onClick (msg distanceOpt)
                         , style "text-align" "left"
                         ]
-                        [ Html.text distanceOpt ]
+                        [ Html.text distanceStr ]
                 )
                 Activity.distance.list
             )

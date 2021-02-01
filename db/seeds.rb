@@ -52,6 +52,9 @@ def create_activity(obj, order, me)
     data['activities'] = data["activities"].map do |a|
       migrate_data(a['data'])
     end
+    return
+  elsif data["type"] == "note"
+    return
   end
 
   created = Activity.create(

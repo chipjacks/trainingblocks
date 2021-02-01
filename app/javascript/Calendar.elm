@@ -434,24 +434,12 @@ titleWeek activities =
             datas
                 |> List.map
                     (\data ->
-                        case data of
-                            Activity.Run secs _ _ ->
-                                ( secs, 0 )
+                        case data.pace of
+                            Just pace ->
+                                ( data.duration, 0 )
 
-                            Activity.Interval secs _ _ ->
-                                ( secs, 0 )
-
-                            Activity.Race secs _ _ ->
-                                ( secs, 0 )
-
-                            Activity.Other secs _ ->
-                                ( 0, secs )
-
-                            Activity.Note _ ->
-                                ( 0, 0 )
-
-                            Activity.Session sDatas ->
-                                sumDuration sDatas
+                            Nothing ->
+                                ( 0, data.duration )
                     )
                 |> List.foldl (\( r, o ) ( sr, so ) -> ( sr + r, so + o )) ( 0, 0 )
 
@@ -558,27 +546,10 @@ viewActivity isActive isActiveDate levelM activity =
             , row [ style "font-size" "0.8rem" ]
                 [ column []
                     [ text <|
-                        case activity.data of
-                            Activity.Run secs paceM _ ->
-                                String.join " "
-                                    [ Duration.toStringWithUnits secs
-                                    , trainingPaceStr paceM
-                                    ]
-
-                            Activity.Interval secs paceM _ ->
-                                String.join " "
-                                    [ Duration.toStringWithUnits secs
-                                    , trainingPaceStr paceM
-                                    ]
-
-                            Activity.Race secs _ _ ->
-                                Duration.toStringWithUnits secs
-
-                            Activity.Other secs _ ->
-                                Duration.toStringWithUnits secs
-
-                            _ ->
-                                ""
+                        String.join " "
+                            [ Duration.toStringWithUnits activity.data.duration
+                            , trainingPaceStr activity.data.pace
+                            ]
                     ]
                 , compactColumn [ style "align-items" "flex-end" ] [ text activityLevel ]
                 ]

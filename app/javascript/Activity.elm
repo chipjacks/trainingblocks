@@ -1,4 +1,4 @@
-module Activity exposing (Activity, ActivityData(..), Distance(..), Id, Seconds, activityTypeToString, decoder, distance, encoder, mprLevel, newId)
+module Activity exposing (Activity, ActivityData, Distance(..), Effort(..), Id, Seconds, decoder, distance, effort, encoder, mprLevel, newId)
 
 import Date exposing (Date)
 import Emoji
@@ -16,38 +16,18 @@ type alias Activity =
     , date : Date
     , description : String
     , data : ActivityData
+    , sessionData : Maybe (List ActivityData)
     }
 
 
-type ActivityData
-    = Run Seconds (Maybe Pace) Bool
-    | Interval Seconds (Maybe Pace) Bool
-    | Race Seconds Distance Bool
-    | Other Seconds Bool
-    | Note String
-    | Session (List ActivityData)
-
-
-activityTypeToString : ActivityData -> String
-activityTypeToString aType =
-    case aType of
-        Run _ _ _ ->
-            "Run"
-
-        Interval _ _ _ ->
-            "Interval"
-
-        Race _ _ _ ->
-            "Race"
-
-        Other _ _ ->
-            "Other"
-
-        Note _ ->
-            "Note"
-
-        Session _ ->
-            "Session"
+type alias ActivityData =
+    { duration : Seconds
+    , completed : Bool
+    , pace : Maybe Pace
+    , distance : Maybe Distance
+    , effort : Maybe Effort
+    , emoji : Maybe String
+    }
 
 
 newId : Random.Generator String
@@ -63,11 +43,11 @@ newId =
 
 mprLevel : Activity -> Maybe Int
 mprLevel activity =
-    case activity.data of
-        Race seconds distance_ _ ->
+    case activity.data.distance of
+        Just distance_ ->
             MPRLevel.lookup MPRLevel.Neutral
                 (distance.toString distance_)
-                seconds
+                activity.data.duration
                 |> Result.map (\( rt, level ) -> level)
                 |> Result.toMaybe
 
@@ -149,137 +129,84 @@ distance =
         )
 
 
+type Effort
+    = Easy
+    | Moderate
+    | Hard
+
+
+effort : Enum Effort
+effort =
+    Enum.create
+        [ Easy
+        , Moderate
+        , Hard
+        ]
+        (\e ->
+            case e of
+                Easy ->
+                    "Easy"
+
+                Moderate ->
+                    "Moderate"
+
+                Hard ->
+                    "Hard"
+        )
+
+
 
 -- SERIALIZATION
 
 
 decoder : Decode.Decoder Activity
 decoder =
-    Decode.map4 Activity
+    Decode.map5 Activity
         (Decode.field "id" Decode.string)
         (Decode.field "date" dateDecoder)
         (Decode.field "description" Decode.string)
         (Decode.field "data" activityDataDecoder)
+        (Decode.maybe (Decode.field "sessionData" (Decode.list activityDataDecoder)))
 
 
 activityDataDecoder : Decode.Decoder ActivityData
 activityDataDecoder =
-    let
-        runDecoder =
-            Decode.map3 Run
-                (Decode.field "duration" Decode.int)
-                (Decode.maybe (Decode.field "pace" Decode.int))
-                (Decode.field "completed" Decode.bool)
-
-        intervalDecoder =
-            Decode.map3 Interval
-                (Decode.field "duration" Decode.int)
-                (Decode.maybe (Decode.field "pace" Decode.int))
-                (Decode.field "completed" Decode.bool)
-
-        raceDecoder =
-            Decode.map3 Race
-                (Decode.field "duration" Decode.int)
-                (Decode.field "distance" distance.decoder)
-                (Decode.field "completed" Decode.bool)
-
-        otherDecoder =
-            Decode.map2 Other
-                (Decode.field "duration" Decode.int)
-                (Decode.field "completed" Decode.bool)
-
-        noteDecoder =
-            Decode.map Note
-                (Decode.field "emoji" Decode.string)
-
-        sessionDecoder =
-            Decode.map Session
-                (Decode.field "activities" (Decode.list (Decode.lazy (\a -> activityDataDecoder))))
-    in
-    Decode.field "type" Decode.string
-        |> Decode.andThen
-            (\dataType ->
-                case dataType of
-                    "run" ->
-                        runDecoder
-
-                    "interval" ->
-                        intervalDecoder
-
-                    "race" ->
-                        raceDecoder
-
-                    "other" ->
-                        otherDecoder
-
-                    "note" ->
-                        noteDecoder
-
-                    "session" ->
-                        sessionDecoder
-
-                    _ ->
-                        Decode.fail ("Invalid type: " ++ dataType)
-            )
+    Decode.map6 ActivityData
+        (Decode.field "duration" Decode.int)
+        (Decode.field "completed" Decode.bool)
+        (Decode.maybe (Decode.field "pace" Decode.int))
+        (Decode.maybe (Decode.field "distance" distance.decoder))
+        (Decode.maybe (Decode.field "effort" effort.decoder))
+        (Decode.maybe (Decode.field "emoji" Decode.string))
 
 
 encoder : Activity -> Encode.Value
 encoder activity =
     let
+        maybeEncode fieldM encoder_ =
+            case fieldM of
+                Just field ->
+                    encoder_ field
+
+                Nothing ->
+                    Encode.null
+
         dataEncoder data =
-            case data of
-                Run minutes paceM completed ->
-                    Encode.object <|
-                        [ ( "type", Encode.string "run" )
-                        , ( "duration", Encode.int minutes )
-                        , ( "completed", Encode.bool completed )
-                        ]
-                            ++ (Maybe.map (\p -> [ ( "pace", Encode.int p ) ]) paceM
-                                    |> Maybe.withDefault []
-                               )
-
-                Interval seconds paceM completed ->
-                    Encode.object <|
-                        [ ( "type", Encode.string "interval" )
-                        , ( "duration", Encode.int seconds )
-                        , ( "completed", Encode.bool completed )
-                        ]
-                            ++ (Maybe.map (\p -> [ ( "pace", Encode.int p ) ]) paceM
-                                    |> Maybe.withDefault []
-                               )
-
-                Race minutes distance_ completed ->
-                    Encode.object
-                        [ ( "type", Encode.string "race" )
-                        , ( "duration", Encode.int minutes )
-                        , ( "distance", distance.encode distance_ )
-                        , ( "completed", Encode.bool completed )
-                        ]
-
-                Other minutes completed ->
-                    Encode.object
-                        [ ( "type", Encode.string "other" )
-                        , ( "duration", Encode.int minutes )
-                        , ( "completed", Encode.bool completed )
-                        ]
-
-                Note emoji ->
-                    Encode.object
-                        [ ( "type", Encode.string "note" )
-                        , ( "emoji", Encode.string emoji )
-                        ]
-
-                Session activities ->
-                    Encode.object
-                        [ ( "type", Encode.string "session" )
-                        , ( "activities", Encode.list dataEncoder activities )
-                        ]
+            Encode.object
+                [ ( "duration", Encode.int data.duration )
+                , ( "completed", Encode.bool data.completed )
+                , ( "pace", maybeEncode data.pace Encode.int )
+                , ( "distance", maybeEncode data.distance distance.encode )
+                , ( "effort", maybeEncode data.effort effort.encode )
+                , ( "emoji", maybeEncode data.emoji Encode.string )
+                ]
     in
     Encode.object
         [ ( "id", Encode.string activity.id )
         , ( "date", Encode.string (Date.toIsoString activity.date) )
         , ( "description", Encode.string activity.description )
         , ( "data", dataEncoder activity.data )
+        , ( "sessionData", maybeEncode activity.sessionData (Encode.list dataEncoder) )
         ]
 
 

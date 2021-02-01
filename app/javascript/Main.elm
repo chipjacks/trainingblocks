@@ -328,10 +328,6 @@ update msg model =
                     updateActivityForm msg state
                         |> loaded
 
-                SelectedShape _ ->
-                    updateActivityForm msg state
-                        |> loaded
-
                 EditedDescription _ ->
                     updateActivityForm msg state
                         |> loaded
@@ -353,6 +349,10 @@ update msg model =
                         |> loaded
 
                 SelectedDistance _ ->
+                    updateActivityForm msg state
+                        |> loaded
+
+                SelectedEffort _ ->
                     updateActivityForm msg state
                         |> loaded
 
@@ -384,14 +384,14 @@ update msg model =
                         |> loaded
 
                 ClickedUngroup session ->
-                    case session.data of
-                        Activity.Session dataList ->
+                    case session.sessionData of
+                        Just dataList ->
                             ( model
                             , Random.list (List.length dataList) Activity.newId
                                 |> Random.map
                                     (\ids ->
                                         List.map2
-                                            (\id data -> Activity id session.date "" data)
+                                            (\id data -> Activity id session.date "" data Nothing)
                                             ids
                                             dataList
                                     )
@@ -480,14 +480,34 @@ initActivity today dateM =
             Date.compare date today == LT || date == today
     in
     Activity.newId
-        |> Random.map (\id -> Activity id date "" (Activity.Run (30 * 60) Nothing completed))
+        |> Random.map
+            (\id ->
+                Activity id
+                    date
+                    ""
+                    (Activity.ActivityData (30 * 60) completed Nothing Nothing Nothing Nothing)
+                    Nothing
+            )
         |> Random.generate NewActivity
 
 
 initSession : Activity -> List Activity -> Cmd Msg
 initSession head activities =
     Activity.newId
-        |> Random.map (\id -> Activity id head.date "" (Activity.Session (List.map .data activities)))
+        |> Random.map
+            (\id ->
+                Activity id
+                    head.date
+                    ""
+                    (Activity.ActivityData (30 * 60)
+                        head.data.completed
+                        Nothing
+                        Nothing
+                        Nothing
+                        Nothing
+                    )
+                    (Just (List.map .data activities))
+            )
         |> Random.generate (Group activities)
 
 

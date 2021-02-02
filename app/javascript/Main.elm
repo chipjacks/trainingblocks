@@ -15,6 +15,7 @@ import Html.Events exposing (on, onClick)
 import Html.Lazy
 import Http
 import Json.Decode as Decode
+import MonoIcons
 import Msg exposing (ActivityForm, ActivityState(..), Msg(..))
 import Pace
 import Ports
@@ -70,7 +71,7 @@ viewNavbar model =
                             spinner "1.5rem"
 
                           else
-                            i [ class "mi-options-vertical", style "font-size" "1.5rem", style "color" "var(--icon-gray)" ] []
+                            div [ style "font-size" "1.4rem", style "padding-top" "2px" ] [ MonoIcons.icon (MonoIcons.optionsVertical "var(--icon-gray)") ]
                         , div [ class "dropdown-content", style "right" "0" ]
                             [ a [ Html.Attributes.href " /users/sign_out", Html.Attributes.attribute "data-method" "delete" ] [ text "Logout" ] ]
                         ]

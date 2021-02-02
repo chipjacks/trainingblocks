@@ -13,10 +13,12 @@ import Html.Events exposing (on, onClick, onFocus, onInput)
 import Http
 import Json.Decode as Decode
 import MPRLevel
+import MonoIcons
 import Msg exposing (ActivityForm, ActivityState(..), DataForm(..), FormError(..), Msg(..))
 import Pace exposing (Pace)
 import Skeleton exposing (attributeIf, borderStyle, column, compactColumn, expandingRow, row, viewIf, viewMaybe)
 import Store
+import Svg exposing (Svg)
 import Task exposing (Task)
 
 
@@ -342,30 +344,38 @@ viewButtons : Activity -> Bool -> Html Msg
 viewButtons activity editing =
     row []
         [ if editing then
-            toolbarButton ClickedSubmit "mi-check" True
+            toolbarButton ClickedSubmit MonoIcons.check True
 
           else
-            toolbarButton (EditActivity activity) "mi-edit" False
-        , toolbarButton (ClickedCopy activity) "mi-copy" False
-        , toolbarButton (Delete activity) "mi-delete" False
+            toolbarButton (EditActivity activity) MonoIcons.edit False
+        , toolbarButton (ClickedCopy activity) MonoIcons.copy False
+        , toolbarButton (Delete activity) MonoIcons.delete False
         , column [] []
-        , toolbarButton (ClickedMove activity) "mi-calendar" False
-        , toolbarButton (Shift True activity) "mi-arrow-up" False
-        , toolbarButton (Shift False activity) "mi-arrow-down" False
+        , toolbarButton (ClickedMove activity) MonoIcons.calendar False
+        , toolbarButton (Shift True activity) MonoIcons.arrowUp False
+        , toolbarButton (Shift False activity) MonoIcons.arrowDown False
         , column [] []
         , case activity.data of
             Activity.Session activities ->
-                toolbarButton (ClickedUngroup activity) "mi-folder" False
+                toolbarButton (ClickedUngroup activity) MonoIcons.folder False
 
             _ ->
                 Html.text ""
         , column [] []
-        , toolbarButton ClickedClose "mi-close" False
+        , toolbarButton ClickedClose MonoIcons.close False
         ]
 
 
-toolbarButton : Msg -> String -> Bool -> Html Msg
-toolbarButton onClickMsg iconClass primary =
+toolbarButton : Msg -> (String -> Svg Msg) -> Bool -> Html Msg
+toolbarButton onClickMsg icon primary =
+    let
+        iconFill =
+            if primary then
+                "#ffffff"
+
+            else
+                "#3d3d3d"
+    in
     a
         [ class "button small expand"
         , attributeIf primary (class "primary")
@@ -374,13 +384,13 @@ toolbarButton onClickMsg iconClass primary =
         , style "max-width" "3rem"
         , onClick onClickMsg
         ]
-        [ i [ class iconClass ] [] ]
+        [ MonoIcons.icon (icon iconFill) ]
 
 
 viewMultiSelectButtons : List Activity -> Html Msg
 viewMultiSelectButtons activities =
     row []
-        [ toolbarButton ClickedGroup "mi-folder" False
+        [ toolbarButton ClickedGroup MonoIcons.folder False
         ]
 
 

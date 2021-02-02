@@ -12,6 +12,7 @@ import Html.Events exposing (on, onClick, onMouseDown, onMouseOver)
 import Html.Keyed
 import Html.Lazy
 import Json.Decode as Decode
+import MonoIcons
 import Msg exposing (ActivityState(..), Msg(..), Zoom(..))
 import Pace
 import Ports exposing (scrollToSelectedDate)
@@ -125,14 +126,14 @@ viewBackButton model =
             Skeleton.logo
 
         Month ->
-            a [ class "button", style "margin-right" "0.2rem", onClick (ChangeZoom Year Nothing) ]
-                [ i [ class "mi-chevron-left" ] []
+            a [ class "button row", style "margin-right" "0.2rem", style "align-items" "bottom", onClick (ChangeZoom Year Nothing) ]
+                [ MonoIcons.icon (MonoIcons.chevronLeft "#3d3d3d")
                 , text (Date.format "yyyy" selected)
                 ]
 
         Day ->
-            a [ class "button", style "margin-right" "0.2rem", onClick (ChangeZoom Month Nothing) ]
-                [ i [ class "mi-chevron-left" ] []
+            a [ class "button", style "margin-right" "0.2rem", style "align-items" "bottom", onClick (ChangeZoom Month Nothing) ]
+                [ MonoIcons.icon (MonoIcons.chevronLeft "#3d3d3d")
                 , text (Date.format "MMMM yyyy" selected)
                 ]
 
@@ -616,9 +617,8 @@ viewAddButton date =
                 , class "button small"
                 , style "font-size" "0.8rem"
                 , style "padding" "0.05rem 0.25rem"
-                , style "color" "var(--icon-gray)"
                 ]
-                [ i [ class "mi-add" ] [] ]
+                [ MonoIcons.icon (MonoIcons.add "var(--icon-gray)") ]
             ]
         ]
 

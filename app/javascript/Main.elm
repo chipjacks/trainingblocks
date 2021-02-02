@@ -372,10 +372,10 @@ update msg model =
                         |> Random.generate NewActivity
                     )
 
-                ClickedMove activity ->
+                ClickedMove ->
                     let
                         ( calendarState, calendarCmd ) =
-                            updateCalendar (ChangeZoom Msg.Year Nothing) (State calendar store (Editing (ActivityForm.initMove activity)))
+                            updateCalendar (ChangeZoom Msg.Year Nothing) state
 
                         ( activityFormState, activityFormCmd ) =
                             updateActivityForm msg calendarState

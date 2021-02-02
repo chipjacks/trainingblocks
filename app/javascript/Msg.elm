@@ -81,7 +81,7 @@ type Msg
     | SelectedDistance Activity.Distance
     | ClickedSubmit
     | ClickedCopy Activity
-    | ClickedMove Activity
+    | ClickedMove
     | ClickedGroup
     | ClickedUngroup Activity
     | ClickedClose

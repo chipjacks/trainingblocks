@@ -145,6 +145,9 @@ update msg model =
             , Cmd.none
             )
 
+        ClickedMove ->
+            ( updateResult { model | date = Nothing }, Cmd.none )
+
         ClickedSubmit ->
             ( model, Store.cmd (apply Update model) )
 
@@ -164,7 +167,8 @@ view levelM activityM =
             style "margin" "3px 0 0 5px"
 
         dataInputs form result =
-            [ compactColumn [ spacing ] [ completionToggle CheckedCompleted form.completed ]
+            [ compactColumn [ spacing ] [ dateSelect ClickedMove form.date ]
+            , compactColumn [ spacing ] [ completionToggle CheckedCompleted form.completed ]
             , compactColumn [ spacing ] [ durationInput EditedDuration False form.duration ]
             , compactColumn [ spacing ] [ effortSelect SelectedEffort form.effort ]
             , compactColumn [ spacing ] [ paceSelect levelM SelectedPace form.pace ]
@@ -224,9 +228,6 @@ view levelM activityM =
                     , row []
                         [ column []
                             [ row []
-                                [ text (Maybe.map (Date.format "E MMM d") model.date |> Maybe.withDefault "Select Date")
-                                ]
-                            , row []
                                 [ input
                                     [ type_ "text"
                                     , Html.Attributes.autocomplete False
@@ -240,8 +241,6 @@ view levelM activityM =
                                 ]
                             , row [ style "flex-wrap" "wrap", style "margin-left" "-5px" ]
                                 (dataInputs model model.result)
-                            , row []
-                                [ viewError model.result ]
                             ]
                         ]
                     ]
@@ -338,23 +337,28 @@ toActivityData model =
         )
 
 
+dateSelect : Msg -> Maybe Date -> Html Msg
+dateSelect msg date =
+    button [ class "button", onClick msg ]
+        [ text (Maybe.map (Date.format "E MMM d") date |> Maybe.withDefault "Select Date")
+        ]
+
+
 completionToggle : Msg -> Bool -> Html Msg
 completionToggle msg completed =
-    div [ class "row" ]
-        [ button
-            [ class "button"
-            , onClick CheckedCompleted
-            , styleIf (not completed) "background-color" "transparent"
-            , styleIf (not completed) "box-shadow" "0 0 0 2px var(--button-gray) inset"
-            ]
-            [ text
-                (if completed then
-                    "Completed"
+    button
+        [ class "button"
+        , onClick CheckedCompleted
+        , styleIf (not completed) "background-color" "transparent"
+        , styleIf (not completed) "box-shadow" "0 0 0 2px var(--button-gray) inset"
+        ]
+        [ text
+            (if completed then
+                "Completed"
 
-                 else
-                    "Planned"
-                )
-            ]
+             else
+                "Planned"
+            )
         ]
 
 
@@ -374,31 +378,29 @@ emojiSelect msg emoji =
                     [ Html.text data.name ]
                 ]
     in
-    div [ class "row" ]
-        [ div [ class "dropdown" ]
-            [ div [ class "row" ]
-                [ button
-                    [ class "button"
-                    , padding
-                    , style "border-top-right-radius" "0"
-                    , style "border-bottom-right-radius" "0"
-                    ]
-                    [ emojis
-                        |> List.head
-                        |> Maybe.withDefault Emoji.default
-                        |> Emoji.view
-                    ]
-                , input
-                    [ onInput msg
-                    , onFocus (msg "")
-                    , class "input icon"
-                    , style "width" "6rem"
-                    , value emoji
-                    ]
-                    []
+    div [ class "dropdown" ]
+        [ div [ class "row" ]
+            [ button
+                [ class "button"
+                , padding
+                , style "border-top-right-radius" "0"
+                , style "border-bottom-right-radius" "0"
                 ]
-            , div [ class "dropdown-content" ] (List.map emojiItem emojis)
+                [ emojis
+                    |> List.head
+                    |> Maybe.withDefault Emoji.default
+                    |> Emoji.view
+                ]
+            , input
+                [ onInput msg
+                , onFocus (msg "")
+                , class "input icon"
+                , style "width" "6rem"
+                , value emoji
+                ]
+                []
             ]
+        , div [ class "dropdown-content" ] (List.map emojiItem emojis)
         ]
 
 
@@ -438,41 +440,39 @@ paceSelect levelM msg paceStr =
                 Nothing ->
                     []
     in
-    div [ class "row" ]
-        [ div [ class "dropdown" ]
-            [ div [ class "row" ]
-                [ button
-                    [ class "button"
-                    , style "padding-top" "0.6rem"
-                    , style "border-top-right-radius" "0"
-                    , style "border-bottom-right-radius" "0"
-                    ]
-                    [ text trainingPaceStr ]
-                , input
-                    [ onInput msg
-                    , onFocus (msg "")
-                    , class "input"
-                    , style "width" "4rem"
-                    , value paceStr
-                    ]
-                    []
+    div [ class "dropdown" ]
+        [ div [ class "row" ]
+            [ button
+                [ class "button"
+                , style "padding-top" "0.6rem"
+                , style "border-top-right-radius" "0"
+                , style "border-bottom-right-radius" "0"
                 ]
-            , viewMaybe levelM
-                (\_ ->
-                    div [ class "dropdown-content" ]
-                        (List.map2
-                            (\time name ->
-                                a [ onClick (msg time), style "text-align" "left" ]
-                                    [ Html.text name
-                                    , span [ style "color" "var(--accent-blue)", style "margin-left" "0.2rem", style "float" "right" ]
-                                        [ Html.text time ]
-                                    ]
-                            )
-                            paceTimes
-                            paceNames
-                        )
-                )
+                [ text trainingPaceStr ]
+            , input
+                [ onInput msg
+                , onFocus (msg "")
+                , class "input"
+                , style "width" "4rem"
+                , value paceStr
+                ]
+                []
             ]
+        , viewMaybe levelM
+            (\_ ->
+                div [ class "dropdown-content" ]
+                    (List.map2
+                        (\time name ->
+                            a [ onClick (msg time), style "text-align" "left" ]
+                                [ Html.text name
+                                , span [ style "color" "var(--accent-blue)", style "margin-left" "0.2rem", style "float" "right" ]
+                                    [ Html.text time ]
+                                ]
+                        )
+                        paceTimes
+                        paceNames
+                    )
+            )
         ]
 
 
@@ -512,23 +512,3 @@ distanceSelect msg distanceM =
                 Activity.distance.list
             )
         ]
-
-
-viewError : Result FormError Activity -> Html Msg
-viewError errorR =
-    case errorR of
-        Err error ->
-            div [ class "error" ] [ text <| errorMessage error ]
-
-        _ ->
-            div [ class "error" ] []
-
-
-errorMessage : FormError -> String
-errorMessage error =
-    case error of
-        EmptyFieldError field ->
-            "Please fill in " ++ field ++ " field"
-
-        _ ->
-            "There has been an error"

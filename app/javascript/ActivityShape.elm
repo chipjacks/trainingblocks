@@ -2,15 +2,16 @@ module ActivityShape exposing (view)
 
 import Activity exposing (ActivityData)
 import Emoji
+import EmojiData exposing (EmojiData)
 import Html exposing (Html, div)
 import Html.Attributes exposing (class, style)
 import Pace exposing (TrainingPace(..))
-import Skeleton exposing (column, row, styleIf)
+import Skeleton exposing (column, row, styleIf, viewMaybe)
 
 
 type Shape
-    = Block { width : Float, height : Float } Color Bool
-    | Circle Color Bool
+    = Block { width : Float, height : Float } Color Bool (Maybe EmojiData)
+    | Circle Color Bool (Maybe EmojiData)
 
 
 type Color
@@ -48,15 +49,18 @@ view levelM data =
 
                 Just Activity.Hard ->
                     Red
+
+        emoji =
+            Maybe.map Emoji.find data.emoji
     in
-    shape color data.completed
+    shape color data.completed emoji
         |> viewShape
 
 
 viewShape : Shape -> Html msg
 viewShape shape =
     case shape of
-        Block { width, height } color completed ->
+        Block { width, height } color completed emojiM ->
             div
                 [ style "width" <| String.fromFloat (width * 0.3) ++ "rem"
                 , style "height" <| String.fromFloat height ++ "rem"
@@ -69,9 +73,9 @@ viewShape shape =
                   else
                     style "background-color" "white"
                 ]
-                []
+                [ viewMaybe emojiM Emoji.view ]
 
-        Circle color completed ->
+        Circle color completed emojiM ->
             let
                 ( backgroundColor, textColor ) =
                     if completed then
@@ -90,7 +94,7 @@ viewShape shape =
                 , style "background-color" backgroundColor
                 , style "color" textColor
                 ]
-                [ Html.text (Nothing |> Maybe.map Char.toUpper |> Maybe.map String.fromChar |> Maybe.withDefault "") ]
+                [ viewMaybe emojiM (\e -> div [ style "margin-left" "0.5rem", style "margin-top" "-3px" ] [ Emoji.view e ]) ]
 
 
 colorString : Color -> String

@@ -10,7 +10,7 @@
   --icon-gray: rgb(211,211,211);
   --activity-orange: orange;
   --activity-green: limegreen;
-  --activity-gray: gray;
+  --activity-gray: #bbbbbb;
 }
 
 /*
@@ -104,20 +104,6 @@ button:hover, .button:hover { background-color: var(--highlight-gray); }
 .dropdown-content a:hover { background-color: var(--highlight-gray) }
 
 .dropdown:hover .dropdown-content { display: block; }
-
-
-/*
- * EMOJI
-*/
-
-.emoji {
-    display: inline-block;
-    height: 22px;
-    width: 22px;
-    background-image: url(https://cdn.jsdelivr.net/npm/emoji-datasource-twitter@5.0.1/img/twitter/sheets/64.png);
-    background-repeat: no-repeat;
-    background-size: 1254px;
-}
 
 
 /*

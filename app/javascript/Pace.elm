@@ -116,49 +116,17 @@ type TrainingPace
 trainingPace : Enum TrainingPace
 trainingPace =
     Enum.create
-        [ Slow
-        , Easy
-        , Moderate
-        , Steady
-        , Brisk
-        , Aerobic
-        , Lactate
-        , Groove
-        , VO2
-        , Fast
+        [ ( "Slow", Slow )
+        , ( "Easy", Easy )
+        , ( "Moderate", Moderate )
+        , ( "Steady", Steady )
+        , ( "Brisk", Brisk )
+        , ( "Aerobic", Aerobic )
+        , ( "Lactate", Lactate )
+        , ( "Groove", Groove )
+        , ( "VO2", VO2 )
+        , ( "Fast", Fast )
         ]
-        (\a ->
-            case a of
-                Slow ->
-                    "Slow"
-
-                Easy ->
-                    "Easy"
-
-                Moderate ->
-                    "Moderate"
-
-                Steady ->
-                    "Steady"
-
-                Brisk ->
-                    "Brisk"
-
-                Aerobic ->
-                    "Aerobic"
-
-                Lactate ->
-                    "Lactate"
-
-                Groove ->
-                    "Groove"
-
-                VO2 ->
-                    "VO2"
-
-                Fast ->
-                    "Fast"
-        )
 
 
 toTuple : List a -> Maybe ( a, a )

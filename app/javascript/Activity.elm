@@ -80,53 +80,18 @@ type Distance
 distance : Enum Distance
 distance =
     Enum.create
-        [ FiveK
-        , EightK
-        , FiveMile
-        , TenK
-        , FifteenK
-        , TenMile
-        , TwentyK
-        , HalfMarathon
-        , TwentyFiveK
-        , ThirtyK
-        , Marathon
+        [ ( "5k", FiveK )
+        , ( "8k", EightK )
+        , ( "5 mile", FiveMile )
+        , ( "10k", TenK )
+        , ( "15k", FifteenK )
+        , ( "10 mile", TenMile )
+        , ( "20k", TwentyK )
+        , ( "Half Marathon", HalfMarathon )
+        , ( "25k", TwentyFiveK )
+        , ( "30k", ThirtyK )
+        , ( "Marathon", Marathon )
         ]
-        (\a ->
-            case a of
-                FiveK ->
-                    "5k"
-
-                EightK ->
-                    "8k"
-
-                FiveMile ->
-                    "5 mile"
-
-                TenK ->
-                    "10k"
-
-                FifteenK ->
-                    "15k"
-
-                TenMile ->
-                    "10 mile"
-
-                TwentyK ->
-                    "20k"
-
-                HalfMarathon ->
-                    "Half Marathon"
-
-                TwentyFiveK ->
-                    "25k"
-
-                ThirtyK ->
-                    "30k"
-
-                Marathon ->
-                    "Marathon"
-        )
 
 
 type Effort
@@ -138,21 +103,10 @@ type Effort
 effort : Enum Effort
 effort =
     Enum.create
-        [ Easy
-        , Moderate
-        , Hard
+        [ ( "Easy", Easy )
+        , ( "Moderate", Moderate )
+        , ( "Hard", Hard )
         ]
-        (\e ->
-            case e of
-                Easy ->
-                    "Easy"
-
-                Moderate ->
-                    "Moderate"
-
-                Hard ->
-                    "Hard"
-        )
 
 
 

@@ -272,7 +272,7 @@ viewButtons activity editing =
         , toolbarButton (ClickedCopy activity) MonoIcons.copy False
         , toolbarButton (Delete activity) MonoIcons.delete False
         , column [] []
-        , toolbarButton (ClickedMove activity) MonoIcons.calendar False
+        , toolbarButton ClickedMove MonoIcons.calendar False
         , toolbarButton (Shift True activity) MonoIcons.arrowUp False
         , toolbarButton (Shift False activity) MonoIcons.arrowDown False
         , column [] []
@@ -355,17 +355,17 @@ activityTypeSelect msg activityType =
         icon aType =
             case aType of
                 Activity.Run ->
-                    "mi-stop"
+                    MonoIcons.stop
 
                 Activity.Cross ->
-                    "mi-circle"
+                    MonoIcons.circle
 
                 Activity.Note ->
-                    "mi-message"
+                    MonoIcons.message
 
         iconButton aType =
             row []
-                [ i [ class (icon aType) ] []
+                [ MonoIcons.icon (icon aType "#3d3d3d")
                 , compactColumn
                     [ style "margin-left" "0.5rem"
                     , style "margin-top" "0.1rem"

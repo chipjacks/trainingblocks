@@ -21,7 +21,7 @@ type alias Activity =
 
 
 type alias ActivityData =
-    { duration : Seconds
+    { duration : Maybe Seconds
     , completed : Bool
     , pace : Maybe Pace
     , distance : Maybe Distance
@@ -43,11 +43,11 @@ newId =
 
 mprLevel : Activity -> Maybe Int
 mprLevel activity =
-    case activity.data.distance of
-        Just distance_ ->
+    case ( activity.data.distance, activity.data.duration ) of
+        ( Just distance_, Just duration ) ->
             MPRLevel.lookup MPRLevel.Neutral
                 (distance.toString distance_)
-                activity.data.duration
+                duration
                 |> Result.map (\( rt, level ) -> level)
                 |> Result.toMaybe
 
@@ -126,7 +126,7 @@ decoder =
 activityDataDecoder : Decode.Decoder ActivityData
 activityDataDecoder =
     Decode.map6 ActivityData
-        (Decode.field "duration" Decode.int)
+        (Decode.maybe (Decode.field "duration" Decode.int))
         (Decode.field "completed" Decode.bool)
         (Decode.maybe (Decode.field "pace" Decode.int))
         (Decode.maybe (Decode.field "distance" distance.decoder))
@@ -147,7 +147,7 @@ encoder activity =
 
         dataEncoder data =
             Encode.object
-                [ ( "duration", Encode.int data.duration )
+                [ ( "duration", maybeEncode data.duration Encode.int )
                 , ( "completed", Encode.bool data.completed )
                 , ( "pace", maybeEncode data.pace Encode.int )
                 , ( "distance", maybeEncode data.distance distance.encode )

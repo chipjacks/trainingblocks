@@ -38,7 +38,7 @@ init activity =
         (Just activity.date)
         activity.description
         (Ok activity)
-        (Duration.toString data.duration)
+        (Maybe.map Duration.toString data.duration |> Maybe.withDefault "")
         data.completed
         (Maybe.map Pace.paceToString data.pace |> Maybe.withDefault "")
         data.distance
@@ -82,17 +82,16 @@ validateFieldExists fieldM fieldName =
 
 validate : ActivityForm -> Result FormError Activity
 validate model =
-    Result.map2
-        (\date description ->
+    Result.map
+        (\date ->
             Activity
                 model.id
                 date
-                description
+                model.description
                 (toActivityData model)
                 Nothing
         )
         (validateFieldExists model.date "date")
-        (validateFieldExists (Just model.description) "description")
 
 
 update : Msg -> ActivityForm -> ( ActivityForm, Cmd Msg )
@@ -226,7 +225,12 @@ view levelM activityM =
                             )
                         ]
                     , row []
-                        [ column []
+                        [ viewMaybe (Result.toMaybe model.result)
+                            (\activity ->
+                                compactColumn [ style "min-width" "4rem", style "justify-content" "center" ]
+                                    [ ActivityShape.view levelM activity.data ]
+                            )
+                        , column []
                             [ row []
                                 [ input
                                     [ type_ "text"
@@ -306,13 +310,13 @@ defaults =
     Defaults "30" "7:30" Activity.FiveK True Emoji.default.name
 
 
-parseDuration : String -> Int
+parseDuration : String -> Maybe Int
 parseDuration str =
     if String.isEmpty str then
-        0
+        Nothing
 
     else
-        Duration.fromString str |> Maybe.withDefault 0
+        Duration.fromString str
 
 
 parsePace : String -> Maybe Int
@@ -385,6 +389,7 @@ emojiSelect msg emoji =
                 , padding
                 , style "border-top-right-radius" "0"
                 , style "border-bottom-right-radius" "0"
+                , onClick (msg "")
                 ]
                 [ emojis
                     |> List.head
@@ -394,6 +399,7 @@ emojiSelect msg emoji =
             , input
                 [ onInput msg
                 , onFocus (msg "")
+                , Html.Attributes.placeholder "Search"
                 , class "input icon"
                 , style "width" "6rem"
                 , value emoji
@@ -409,6 +415,7 @@ durationInput msg isSeconds duration =
     input
         [ onInput msg
         , onFocus (msg "")
+        , Html.Attributes.placeholder "Time"
         , name "duration"
         , style "width" "4rem"
         , class "input"
@@ -442,31 +449,25 @@ paceSelect levelM msg paceStr =
     in
     div [ class "dropdown" ]
         [ div [ class "row" ]
-            [ button
-                [ class "button"
-                , style "padding-top" "0.6rem"
-                , style "border-top-right-radius" "0"
-                , style "border-bottom-right-radius" "0"
-                ]
-                [ text trainingPaceStr ]
-            , input
+            [ input
                 [ onInput msg
                 , onFocus (msg "")
                 , class "input"
                 , style "width" "4rem"
                 , value paceStr
+                , Html.Attributes.placeholder "Pace"
                 ]
                 []
             ]
         , viewMaybe levelM
             (\_ ->
-                div [ class "dropdown-content" ]
+                div [ class "dropdown-content", style "margin-right" "-4rem" ]
                     (List.map2
                         (\time name ->
                             a [ onClick (msg time), style "text-align" "left" ]
-                                [ Html.text name
+                                [ Html.text time
                                 , span [ style "color" "var(--accent-blue)", style "margin-left" "0.2rem", style "float" "right" ]
-                                    [ Html.text time ]
+                                    [ Html.text name ]
                                 ]
                         )
                         paceTimes

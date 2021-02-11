@@ -27,11 +27,14 @@ view levelM data =
         width paceM =
             Maybe.map2 Pace.secondsToTrainingPace levelM paceM
                 |> Maybe.map toWidth
-                |> Maybe.withDefault 0.5
+                |> Maybe.withDefault 1
+
+        height =
+            Maybe.map toHeight data.duration |> Maybe.withDefault 1
 
         shape =
             if data.pace /= Nothing then
-                Block { width = width data.pace, height = toHeight data.duration }
+                Block { width = width data.pace, height = height }
 
             else
                 Circle

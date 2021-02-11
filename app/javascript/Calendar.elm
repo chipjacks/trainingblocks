@@ -436,10 +436,10 @@ titleWeek activities =
                     (\data ->
                         case data.pace of
                             Just pace ->
-                                ( data.duration, 0 )
+                                ( data.duration |> Maybe.withDefault 0, 0 )
 
                             Nothing ->
-                                ( 0, data.duration )
+                                ( 0, data.duration |> Maybe.withDefault 0 )
                     )
                 |> List.foldl (\( r, o ) ( sr, so ) -> ( sr + r, so + o )) ( 0, 0 )
 
@@ -547,7 +547,7 @@ viewActivity isActive isActiveDate levelM activity =
                 [ column []
                     [ text <|
                         String.join " "
-                            [ Duration.toStringWithUnits activity.data.duration
+                            [ Maybe.map Duration.toStringWithUnits activity.data.duration |> Maybe.withDefault ""
                             , trainingPaceStr activity.data.pace
                             ]
                     ]

@@ -485,7 +485,7 @@ initActivity today dateM =
                 Activity id
                     date
                     ""
-                    (Activity.ActivityData (30 * 60) completed Nothing Nothing Nothing Nothing)
+                    (Activity.ActivityData Nothing completed Nothing Nothing Nothing Nothing)
                     Nothing
             )
         |> Random.generate NewActivity
@@ -499,7 +499,7 @@ initSession head activities =
                 Activity id
                     head.date
                     ""
-                    (Activity.ActivityData (30 * 60)
+                    (Activity.ActivityData Nothing
                         head.data.completed
                         Nothing
                         Nothing

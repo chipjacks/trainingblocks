@@ -116,8 +116,8 @@ update msg model =
             , Cmd.none
             )
 
-        SelectedEffort effort ->
-            ( updateResult { model | effort = Just effort }
+        SelectedEffort effortM ->
+            ( updateResult { model | effort = effortM }
             , Cmd.none
             )
 
@@ -552,21 +552,29 @@ paceSelect levelM msg paceStr =
         ]
 
 
-effortSelect : (Activity.Effort -> Msg) -> Maybe Activity.Effort -> Html Msg
+effortSelect : (Maybe Activity.Effort -> Msg) -> Maybe Activity.Effort -> Html Msg
 effortSelect msg effortM =
-    div [ class "dropdown" ]
-        [ button [ class "button" ]
-            [ text (Maybe.map Activity.effort.toString effortM |> Maybe.withDefault "Effort") ]
-        , div [ class "dropdown-content" ]
+    column []
+        [ text "Effort"
+        , row [ style "margin-top" "0.4rem" ]
             (List.map
-                (\( effortStr, effortOpt ) ->
-                    a
-                        [ onClick (msg effortOpt)
-                        , style "text-align" "left"
+                (\( color, effortOpt ) ->
+                    compactColumn
+                        [ style "background-color" color
+                        , onClick (msg effortOpt)
+                        , style "border-radius" "0.4rem"
+                        , style "width" "0.8rem"
+                        , style "height" "0.8rem"
+                        , style "margin-right" "0.5rem"
+                        , styleIf (effortOpt == effortM) "box-shadow" ("0 0 0 0.1rem #FFFFFF, 0 0 0 0.2rem " ++ color)
                         ]
-                        [ Html.text effortStr ]
+                        []
                 )
-                Activity.effort.list
+                [ ( ActivityShape.colorString ActivityShape.Gray, Nothing )
+                , ( ActivityShape.colorString ActivityShape.Green, Just Activity.Easy )
+                , ( ActivityShape.colorString ActivityShape.Orange, Just Activity.Moderate )
+                , ( ActivityShape.colorString ActivityShape.Red, Just Activity.Hard )
+                ]
             )
         ]
 

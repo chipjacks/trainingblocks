@@ -1,4 +1,4 @@
-module ActivityShape exposing (view)
+module ActivityShape exposing (Color(..), colorString, view)
 
 import Activity exposing (ActivityData)
 import Emoji

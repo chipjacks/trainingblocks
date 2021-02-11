@@ -78,7 +78,7 @@ type Msg
     | CheckedCompleted
     | SelectedActivityType Activity.ActivityType
     | EditedDuration String
-    | SelectedEffort Activity.Effort
+    | SelectedEffort (Maybe Activity.Effort)
     | SelectedPace String
     | SelectedDistance Activity.Distance
     | ClickedSubmit

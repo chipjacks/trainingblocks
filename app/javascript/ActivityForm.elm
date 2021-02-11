@@ -173,13 +173,24 @@ view levelM activityM =
 
         dataInputs form result =
             [ compactColumn [ spacing ] [ dateSelect ClickedMove form.date ]
-            , compactColumn [ spacing ] [ completionToggle CheckedCompleted form.completed ]
             , compactColumn [ spacing ] [ activityTypeSelect SelectedActivityType form.activityType ]
-            , compactColumn [ spacing ] [ durationInput EditedDuration False form.duration ]
-            , compactColumn [ spacing ] [ effortSelect SelectedEffort form.effort ]
-            , compactColumn [ spacing ] [ paceSelect levelM SelectedPace form.pace ]
-            , compactColumn [ spacing ] [ distanceSelect SelectedDistance form.distance ]
+
+            -- Note/cross/run fields
             , compactColumn [ spacing ] [ emojiSelect SelectedEmoji form.emoji ]
+
+            -- Cross/run fields
+            , viewIf (form.activityType == Activity.Cross || form.activityType == Activity.Run)
+                (compactColumn [ spacing ] [ completionToggle CheckedCompleted form.completed ])
+            , viewIf (form.activityType == Activity.Cross || form.activityType == Activity.Run)
+                (compactColumn [ spacing ] [ effortSelect SelectedEffort form.effort ])
+
+            -- Run fields
+            , viewIf (form.activityType == Activity.Run)
+                (compactColumn [ spacing ] [ durationInput EditedDuration False form.duration ])
+            , viewIf (form.activityType == Activity.Run)
+                (compactColumn [ spacing ] [ paceSelect levelM SelectedPace form.pace ])
+            , viewIf (form.activityType == Activity.Run)
+                (compactColumn [ spacing ] [ distanceSelect SelectedDistance form.distance ])
             ]
 
         sharedAttributes =

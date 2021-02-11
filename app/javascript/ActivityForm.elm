@@ -1,6 +1,6 @@
 module ActivityForm exposing (init, initMove, isEditing, update, view)
 
-import Activity exposing (Activity, ActivityData)
+import Activity exposing (Activity, ActivityData, ActivityType)
 import ActivityShape
 import Api
 import Array exposing (Array)
@@ -38,6 +38,7 @@ init activity =
         (Just activity.date)
         activity.description
         (Ok activity)
+        data.activityType
         (Maybe.map Duration.toString data.duration |> Maybe.withDefault "")
         data.completed
         (Maybe.map Pace.paceToString data.pace |> Maybe.withDefault "")
@@ -129,6 +130,11 @@ update msg model =
             , Cmd.none
             )
 
+        SelectedActivityType activityType ->
+            ( updateResult { model | activityType = activityType }
+            , Cmd.none
+            )
+
         EditedDuration str ->
             ( updateResult { model | duration = str }
             , Cmd.none
@@ -168,6 +174,7 @@ view levelM activityM =
         dataInputs form result =
             [ compactColumn [ spacing ] [ dateSelect ClickedMove form.date ]
             , compactColumn [ spacing ] [ completionToggle CheckedCompleted form.completed ]
+            , compactColumn [ spacing ] [ activityTypeSelect SelectedActivityType form.activityType ]
             , compactColumn [ spacing ] [ durationInput EditedDuration False form.duration ]
             , compactColumn [ spacing ] [ effortSelect SelectedEffort form.effort ]
             , compactColumn [ spacing ] [ paceSelect levelM SelectedPace form.pace ]
@@ -327,6 +334,7 @@ parsePace str =
 toActivityData : ActivityForm -> ActivityData
 toActivityData model =
     Activity.ActivityData
+        model.activityType
         (parseDuration model.duration)
         model.completed
         (parsePace model.pace)
@@ -339,6 +347,43 @@ toActivityData model =
             _ ->
                 Just model.emoji
         )
+
+
+activityTypeSelect : (ActivityType -> Msg) -> ActivityType -> Html Msg
+activityTypeSelect msg activityType =
+    let
+        icon aType =
+            case aType of
+                Activity.Run ->
+                    "mi-stop"
+
+                Activity.Cross ->
+                    "mi-circle"
+
+                Activity.Note ->
+                    "mi-message"
+
+        iconButton aType =
+            row []
+                [ i [ class (icon aType) ] []
+                , compactColumn
+                    [ style "margin-left" "0.5rem"
+                    , style "margin-top" "0.1rem"
+                    ]
+                    [ text (Activity.activityType.toString aType) ]
+                ]
+    in
+    div [ class "dropdown" ]
+        [ button [ class "button" ] [ iconButton activityType ]
+        , div [ class "dropdown-content" ]
+            (List.map
+                (\( str, aType ) ->
+                    a [ onClick (SelectedActivityType aType) ]
+                        [ iconButton aType ]
+                )
+                Activity.activityType.list
+            )
+        ]
 
 
 dateSelect : Msg -> Maybe Date -> Html Msg

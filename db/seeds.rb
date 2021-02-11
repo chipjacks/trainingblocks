@@ -32,11 +32,11 @@ def trainingPaceToSeconds(tp)
 end
 
 def migrate_data(data)
-  type = data["type"]
-  duration = data["duration"]
-  if type != "interval" && duration
+  type = data['type']
+  duration = data['duration']
+  if type != 'interval' && duration
     # convert minutes to seconds
-    data["duration"] = duration * 60
+    data['duration'] = duration * 60
   end
   if data['pace']
     data['pace'] = trainingPaceToSeconds(data['pace'])
@@ -48,29 +48,35 @@ def create_activity(obj, order, me)
   obj['data'] = migrate_data(obj['data'])
 
   data = obj['data']
-  if data["type"] == "session"
-    data['activities'] = data["activities"].map do |a|
+  if data['type'] == 'session'
+    data['activities'] = data['activities'].map do |a|
       migrate_data(a['data'])
     end
     return
-  elsif data["type"] == "note"
-    return
+  elsif data['type'] == 'interval' || data['type'] == 'race'
+    data['type'] = 'run'
+  elsif data['type'] == 'other'
+    data['type'] = 'cross'
+  elsif data['type'] == 'note'
+    data['completed'] = true
   end
 
+  data['type'] = data['type'].capitalize
+
   created = Activity.create(
-    id: obj["id"].length == 10 ? obj["id"] : Array.new(10) { |i| rand(10) }.join,
-    date: Date.parse(obj["date"]),
+    id: obj['id'].length == 10 ? obj['id'] : Array.new(10) { |i| rand(10) }.join,
+    date: Date.parse(obj['date']),
     order: order,
-    description: obj["description"],
-    data: obj["data"],
+    description: obj['description'],
+    data: obj['data'],
     user: me
   )
 
 end
 
-me = User.find_by(uid: "2456610")
+me = User.find_by(uid: '2456610')
 
-unless me then raise "Strava uid not found." end
+unless me then raise 'Strava uid not found.' end
 
 me.activities.each{ |a| a.destroy! }
 
@@ -88,4 +94,4 @@ activities.each do |obj|
   end
 end
 
-puts "Success!"
+puts 'Success!'

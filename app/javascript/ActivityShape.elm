@@ -12,6 +12,7 @@ import Skeleton exposing (column, row, styleIf, viewMaybe)
 type Shape
     = Block { width : Float, height : Float } Color Bool (Maybe EmojiData)
     | Circle Color Bool (Maybe EmojiData)
+    | Emoji (Maybe EmojiData)
 
 
 type Color
@@ -32,13 +33,6 @@ view levelM data =
         height =
             Maybe.map toHeight data.duration |> Maybe.withDefault 1
 
-        shape =
-            if data.pace /= Nothing then
-                Block { width = width data.pace, height = height }
-
-            else
-                Circle
-
         color =
             case data.effort of
                 Nothing ->
@@ -55,9 +49,19 @@ view levelM data =
 
         emoji =
             Maybe.map Emoji.find data.emoji
+
+        shape =
+            case data.activityType of
+                Activity.Run ->
+                    Block { width = width data.pace, height = height } color data.completed emoji
+
+                Activity.Cross ->
+                    Circle color data.completed emoji
+
+                Activity.Note ->
+                    Emoji emoji
     in
-    shape color data.completed emoji
-        |> viewShape
+    viewShape shape
 
 
 viewShape : Shape -> Html msg
@@ -98,6 +102,9 @@ viewShape shape =
                 , style "color" textColor
                 ]
                 [ viewMaybe emojiM (\e -> div [ style "margin-left" "0.5rem", style "margin-top" "-3px" ] [ Emoji.view e ]) ]
+
+        Emoji emojiM ->
+            Emoji.view (Maybe.withDefault Emoji.default emojiM)
 
 
 colorString : Color -> String

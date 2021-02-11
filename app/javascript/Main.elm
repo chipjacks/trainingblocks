@@ -340,6 +340,10 @@ update msg model =
                     updateActivityForm msg state
                         |> loaded
 
+                SelectedActivityType _ ->
+                    updateActivityForm msg state
+                        |> loaded
+
                 EditedDuration _ ->
                     updateActivityForm msg state
                         |> loaded
@@ -485,7 +489,7 @@ initActivity today dateM =
                 Activity id
                     date
                     ""
-                    (Activity.ActivityData Nothing completed Nothing Nothing Nothing Nothing)
+                    (Activity.ActivityData Activity.Run Nothing completed Nothing Nothing Nothing Nothing)
                     Nothing
             )
         |> Random.generate NewActivity
@@ -499,7 +503,8 @@ initSession head activities =
                 Activity id
                     head.date
                     ""
-                    (Activity.ActivityData Nothing
+                    (Activity.ActivityData Activity.Run
+                        Nothing
                         head.data.completed
                         Nothing
                         Nothing

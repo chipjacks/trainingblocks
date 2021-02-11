@@ -18,6 +18,7 @@ type alias ActivityForm =
     , date : Maybe Date
     , description : String
     , result : Result FormError Activity
+    , activityType : Activity.ActivityType
     , duration : String
     , completed : Bool
     , pace : String
@@ -75,6 +76,7 @@ type Msg
     | EditedDescription String
     | SelectedEmoji String
     | CheckedCompleted
+    | SelectedActivityType Activity.ActivityType
     | EditedDuration String
     | SelectedEffort Activity.Effort
     | SelectedPace String

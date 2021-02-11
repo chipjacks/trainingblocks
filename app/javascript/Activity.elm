@@ -1,4 +1,4 @@
-module Activity exposing (Activity, ActivityData, Distance(..), Effort(..), Id, Seconds, decoder, distance, effort, encoder, mprLevel, newId)
+module Activity exposing (Activity, ActivityData, ActivityType(..), Distance(..), Effort(..), Id, Seconds, activityType, decoder, distance, effort, encoder, mprLevel, newId)
 
 import Date exposing (Date)
 import Emoji
@@ -21,13 +21,29 @@ type alias Activity =
 
 
 type alias ActivityData =
-    { duration : Maybe Seconds
+    { activityType : ActivityType
+    , duration : Maybe Seconds
     , completed : Bool
     , pace : Maybe Pace
     , distance : Maybe Distance
     , effort : Maybe Effort
     , emoji : Maybe String
     }
+
+
+type ActivityType
+    = Run
+    | Cross
+    | Note
+
+
+activityType : Enum ActivityType
+activityType =
+    Enum.create
+        [ ( "Run", Run )
+        , ( "Cross", Cross )
+        , ( "Note", Note )
+        ]
 
 
 newId : Random.Generator String
@@ -125,7 +141,8 @@ decoder =
 
 activityDataDecoder : Decode.Decoder ActivityData
 activityDataDecoder =
-    Decode.map6 ActivityData
+    Decode.map7 ActivityData
+        (Decode.field "type" activityType.decoder)
         (Decode.maybe (Decode.field "duration" Decode.int))
         (Decode.field "completed" Decode.bool)
         (Decode.maybe (Decode.field "pace" Decode.int))
@@ -147,7 +164,8 @@ encoder activity =
 
         dataEncoder data =
             Encode.object
-                [ ( "duration", maybeEncode data.duration Encode.int )
+                [ ( "type", activityType.encode data.activityType )
+                , ( "duration", maybeEncode data.duration Encode.int )
                 , ( "completed", Encode.bool data.completed )
                 , ( "pace", maybeEncode data.pace Encode.int )
                 , ( "distance", maybeEncode data.distance distance.encode )

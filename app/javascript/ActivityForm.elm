@@ -170,17 +170,18 @@ view : Maybe Int -> ActivityState -> Html Msg
 view levelM activityM =
     let
         spacing =
-            style "margin" "3px 0 0 5px"
+            style "margin" "3px 0 0 10px"
 
         dataInputs form result =
             [ compactColumn [ spacing ] [ dateSelect ClickedMove form.date ]
             , compactColumn [ spacing ] [ activityTypeSelect SelectedActivityType form.activityType ]
-
-            -- Cross/run fields
-            , viewIf (form.activityType == Activity.Cross || form.activityType == Activity.Run)
-                (compactColumn [ spacing ] [ completionToggle CheckedCompleted form.completed ])
             , viewIf (form.activityType == Activity.Cross || form.activityType == Activity.Run)
                 (compactColumn [ spacing ] [ effortSelect SelectedEffort form.effort ])
+            , compactColumn [ spacing ] [ emojiSelect SelectedEmoji form.emoji ]
+            , viewIf (form.activityType == Activity.Cross || form.activityType == Activity.Run)
+                (compactColumn [ spacing ] [ completionToggle CheckedCompleted form.completed ])
+
+            -- Cross/run fields
             , viewIf (form.activityType == Activity.Cross || form.activityType == Activity.Run)
                 (compactColumn [ spacing ] [ durationInput EditedDuration False form.duration ])
 
@@ -189,9 +190,6 @@ view levelM activityM =
                 (compactColumn [ spacing ] [ paceSelect levelM SelectedPace form.pace ])
             , viewIf (form.activityType == Activity.Run)
                 (compactColumn [ spacing ] [ distanceSelect SelectedDistance form.distance ])
-
-            -- Note/cross/run fields
-            , compactColumn [ spacing ] [ emojiSelect SelectedEmoji form.emoji ]
             ]
 
         sharedAttributes =
@@ -403,41 +401,50 @@ activityTypeSelect msg activityType =
                     [ text (Activity.activityType.toString aType) ]
                 ]
     in
-    div [ class "dropdown" ]
-        [ button [ class "button" ] [ iconButton activityType ]
-        , div [ class "dropdown-content" ]
-            (List.map
-                (\( str, aType ) ->
-                    a [ onClick (SelectedActivityType aType) ]
-                        [ iconButton aType ]
+    column []
+        [ Html.label [] [ text "Type" ]
+        , div [ class "dropdown" ]
+            [ button [ class "button" ] [ iconButton activityType ]
+            , div [ class "dropdown-content" ]
+                (List.map
+                    (\( str, aType ) ->
+                        a [ onClick (SelectedActivityType aType) ]
+                            [ iconButton aType ]
+                    )
+                    Activity.activityType.list
                 )
-                Activity.activityType.list
-            )
+            ]
         ]
 
 
 dateSelect : Msg -> Maybe Date -> Html Msg
 dateSelect msg date =
-    button [ class "button", onClick msg ]
-        [ text (Maybe.map (Date.format "E MMM d") date |> Maybe.withDefault "Select Date")
+    column []
+        [ Html.label [] [ text "Date" ]
+        , button [ class "button", onClick msg ]
+            [ text (Maybe.map (Date.format "E MMM d") date |> Maybe.withDefault "Select Date")
+            ]
         ]
 
 
 completionToggle : Msg -> Bool -> Html Msg
 completionToggle msg completed =
-    button
-        [ class "button"
-        , onClick CheckedCompleted
-        , styleIf (not completed) "background-color" "transparent"
-        , styleIf (not completed) "box-shadow" "0 0 0 2px var(--button-gray) inset"
-        ]
-        [ text
-            (if completed then
-                "Completed"
+    column []
+        [ Html.label [] [ text "Completed" ]
+        , Html.input
+            [ onClick CheckedCompleted
+            , Html.Attributes.attribute "type" "checkbox"
+            , style "width" "1.5rem"
+            , style "height" "1.5rem"
+            , Html.Attributes.attribute "checked"
+                (if completed then
+                    "true"
 
-             else
-                "Planned"
-            )
+                 else
+                    "false"
+                )
+            ]
+            []
         ]
 
 
@@ -457,46 +464,52 @@ emojiSelect msg emoji =
                     [ Html.text data.name ]
                 ]
     in
-    div [ class "dropdown" ]
-        [ div [ class "row" ]
-            [ button
-                [ class "button"
-                , padding
-                , style "border-top-right-radius" "0"
-                , style "border-bottom-right-radius" "0"
-                , onClick (msg "")
+    column []
+        [ Html.label [] [ text "Feel" ]
+        , div [ class "dropdown" ]
+            [ div [ class "row" ]
+                [ button
+                    [ class "button"
+                    , padding
+                    , style "border-top-right-radius" "0"
+                    , style "border-bottom-right-radius" "0"
+                    , onClick (msg "")
+                    ]
+                    [ emojis
+                        |> List.head
+                        |> Maybe.withDefault Emoji.default
+                        |> Emoji.view
+                    ]
+                , input
+                    [ onInput msg
+                    , onFocus (msg "")
+                    , Html.Attributes.placeholder "Search"
+                    , class "input icon"
+                    , style "width" "6rem"
+                    , value emoji
+                    ]
+                    []
                 ]
-                [ emojis
-                    |> List.head
-                    |> Maybe.withDefault Emoji.default
-                    |> Emoji.view
-                ]
-            , input
-                [ onInput msg
-                , onFocus (msg "")
-                , Html.Attributes.placeholder "Search"
-                , class "input icon"
-                , style "width" "6rem"
-                , value emoji
-                ]
-                []
+            , div [ class "dropdown-content" ] (List.map emojiItem emojis)
             ]
-        , div [ class "dropdown-content" ] (List.map emojiItem emojis)
         ]
 
 
 durationInput : (String -> Msg) -> Bool -> String -> Html Msg
 durationInput msg isSeconds duration =
-    input
-        [ onInput msg
-        , onFocus (msg "")
-        , Html.Attributes.placeholder "Time"
-        , name "duration"
-        , style "width" "4rem"
-        , class "input"
-        , value duration
+    column []
+        [ Html.label [] [ text "Time" ]
+        , input
+            [ onInput msg
+            , onFocus (msg "")
+            , Html.Attributes.placeholder "Time"
+            , name "duration"
+            , style "width" "4rem"
+            , class "input"
+            , value duration
+            ]
+            []
         ]
-        []
 
 
 paceSelect : Maybe Int -> (String -> Msg) -> String -> Html Msg
@@ -522,40 +535,43 @@ paceSelect levelM msg paceStr =
                 Nothing ->
                     []
     in
-    div [ class "dropdown" ]
-        [ div [ class "row" ]
-            [ input
-                [ onInput msg
-                , onFocus (msg "")
-                , class "input"
-                , style "width" "4rem"
-                , value paceStr
-                , Html.Attributes.placeholder "Pace"
+    column []
+        [ Html.label [] [ text "Pace" ]
+        , div [ class "dropdown" ]
+            [ div [ class "row" ]
+                [ input
+                    [ onInput msg
+                    , onFocus (msg "")
+                    , class "input"
+                    , style "width" "4rem"
+                    , value paceStr
+                    , Html.Attributes.placeholder "Pace"
+                    ]
+                    []
                 ]
-                []
-            ]
-        , viewMaybe levelM
-            (\_ ->
-                div [ class "dropdown-content", style "margin-right" "-4rem" ]
-                    (List.map2
-                        (\time name ->
-                            a [ onClick (msg time), style "text-align" "left" ]
-                                [ Html.text time
-                                , span [ style "color" "var(--accent-blue)", style "margin-left" "0.2rem", style "float" "right" ]
-                                    [ Html.text name ]
-                                ]
+            , viewMaybe levelM
+                (\_ ->
+                    div [ class "dropdown-content", style "margin-right" "-4rem" ]
+                        (List.map2
+                            (\time name ->
+                                a [ onClick (msg time), style "text-align" "left" ]
+                                    [ Html.text time
+                                    , span [ style "color" "var(--accent-blue)", style "margin-left" "0.2rem", style "float" "right" ]
+                                        [ Html.text name ]
+                                    ]
+                            )
+                            paceTimes
+                            paceNames
                         )
-                        paceTimes
-                        paceNames
-                    )
-            )
+                )
+            ]
         ]
 
 
 effortSelect : (Maybe Activity.Effort -> Msg) -> Maybe Activity.Effort -> Html Msg
 effortSelect msg effortM =
     column []
-        [ text "Effort"
+        [ Html.label [] [ text "Effort" ]
         , row [ style "margin-top" "0.4rem" ]
             (List.map
                 (\( color, effortOpt ) ->
@@ -566,6 +582,7 @@ effortSelect msg effortM =
                         , style "width" "0.8rem"
                         , style "height" "0.8rem"
                         , style "margin-right" "0.5rem"
+                        , style "cursor" "pointer"
                         , styleIf (effortOpt == effortM) "box-shadow" ("0 0 0 0.1rem #FFFFFF, 0 0 0 0.2rem " ++ color)
                         ]
                         []
@@ -581,18 +598,21 @@ effortSelect msg effortM =
 
 distanceSelect : (Activity.Distance -> Msg) -> Maybe Activity.Distance -> Html Msg
 distanceSelect msg distanceM =
-    div [ class "dropdown" ]
-        [ button [ class "button" ]
-            [ text (Maybe.map Activity.distance.toString distanceM |> Maybe.withDefault "Distance") ]
-        , div [ class "dropdown-content" ]
-            (List.map
-                (\( distanceStr, distanceOpt ) ->
-                    a
-                        [ onClick (msg distanceOpt)
-                        , style "text-align" "left"
-                        ]
-                        [ Html.text distanceStr ]
+    column []
+        [ Html.label [] [ text "Distance" ]
+        , div [ class "dropdown" ]
+            [ button [ class "button" ]
+                [ text (Maybe.map Activity.distance.toString distanceM |> Maybe.withDefault "Distance") ]
+            , div [ class "dropdown-content" ]
+                (List.map
+                    (\( distanceStr, distanceOpt ) ->
+                        a
+                            [ onClick (msg distanceOpt)
+                            , style "text-align" "left"
+                            ]
+                            [ Html.text distanceStr ]
+                    )
+                    Activity.distance.list
                 )
-                Activity.distance.list
-            )
+            ]
         ]

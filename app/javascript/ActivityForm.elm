@@ -83,6 +83,7 @@ validateFieldExists fieldM fieldName =
 
 validate : ActivityForm -> Result FormError Activity
 validate model =
+    -- TODO : Validate run has two of three fields (pace, distance, time)
     Result.map
         (\date ->
             Activity
@@ -175,22 +176,22 @@ view levelM activityM =
             [ compactColumn [ spacing ] [ dateSelect ClickedMove form.date ]
             , compactColumn [ spacing ] [ activityTypeSelect SelectedActivityType form.activityType ]
 
-            -- Note/cross/run fields
-            , compactColumn [ spacing ] [ emojiSelect SelectedEmoji form.emoji ]
-
             -- Cross/run fields
             , viewIf (form.activityType == Activity.Cross || form.activityType == Activity.Run)
                 (compactColumn [ spacing ] [ completionToggle CheckedCompleted form.completed ])
             , viewIf (form.activityType == Activity.Cross || form.activityType == Activity.Run)
                 (compactColumn [ spacing ] [ effortSelect SelectedEffort form.effort ])
+            , viewIf (form.activityType == Activity.Cross || form.activityType == Activity.Run)
+                (compactColumn [ spacing ] [ durationInput EditedDuration False form.duration ])
 
             -- Run fields
-            , viewIf (form.activityType == Activity.Run)
-                (compactColumn [ spacing ] [ durationInput EditedDuration False form.duration ])
             , viewIf (form.activityType == Activity.Run)
                 (compactColumn [ spacing ] [ paceSelect levelM SelectedPace form.pace ])
             , viewIf (form.activityType == Activity.Run)
                 (compactColumn [ spacing ] [ distanceSelect SelectedDistance form.distance ])
+
+            -- Note/cross/run fields
+            , compactColumn [ spacing ] [ emojiSelect SelectedEmoji form.emoji ]
             ]
 
         sharedAttributes =
@@ -200,40 +201,47 @@ view levelM activityM =
             , style "right" "0"
             , style "background-color" "white"
             , style "z-index" "2"
+            , style "overflow" "hidden"
             ]
 
-        openAttributes minHeight maxHeight =
-            [ style "transition" "max-height 0.5s, min-height 0.5s"
-            , style "max-height" maxHeight
-            , style "min-height" minHeight
+        openAttributes height =
+            [ style "transition" "height 0.5s"
+            , style "height" height
             , style "padding" "0.5rem 0.5rem"
             , style "border-width" "1px"
             ]
                 ++ sharedAttributes
 
         closedAttributes =
-            [ style "transition" "max-height 0.5s, min-height 0.5s, border-width 0.5s 0.1s"
-            , style "min-height" "0"
-            , style "max-height" "0"
+            [ style "transition" "height 0.5s, border-width 0.5s 1s"
+            , style "height" "0"
             , style "border-width" "0"
             ]
                 ++ sharedAttributes
     in
     case activityM of
         Selected [ activity ] ->
-            row (openAttributes "1rem" "2rem")
+            row (openAttributes "1.5rem")
                 [ column []
                     [ viewButtons activity False ]
                 ]
 
         Selected activities ->
-            row (openAttributes "1rem" "2rem")
+            row (openAttributes "1.5rem")
                 [ column []
                     [ viewMultiSelectButtons activities ]
                 ]
 
         Editing model ->
-            row (openAttributes "5rem" "20rem")
+            row
+                (openAttributes
+                    (if model.date /= Nothing then
+                        "100%"
+
+                     else
+                        "fit-content"
+                    )
+                )
                 [ column []
                     [ row []
                         [ viewMaybe (Result.toMaybe model.result)
@@ -243,11 +251,8 @@ view levelM activityM =
                             )
                         ]
                     , row []
-                        [ viewMaybe (Result.toMaybe model.result)
-                            (\activity ->
-                                compactColumn [ style "min-width" "4rem", style "justify-content" "center" ]
-                                    [ ActivityShape.view levelM activity.data ]
-                            )
+                        [ compactColumn [ style "min-width" "4rem", style "justify-content" "center" ]
+                            [ ActivityShape.view levelM (toActivityData model) ]
                         , column []
                             [ row []
                                 [ input
@@ -283,7 +288,6 @@ viewButtons activity editing =
         , toolbarButton (ClickedCopy activity) MonoIcons.copy False
         , toolbarButton (Delete activity) MonoIcons.delete False
         , column [] []
-        , toolbarButton ClickedMove MonoIcons.calendar False
         , toolbarButton (Shift True activity) MonoIcons.arrowUp False
         , toolbarButton (Shift False activity) MonoIcons.arrowDown False
         , column [] []
@@ -346,10 +350,25 @@ toActivityData : ActivityForm -> ActivityData
 toActivityData model =
     Activity.ActivityData
         model.activityType
-        (parseDuration model.duration)
+        (if model.activityType == Activity.Cross || model.activityType == Activity.Run then
+            parseDuration model.duration
+
+         else
+            Nothing
+        )
         model.completed
-        (parsePace model.pace)
-        model.distance
+        (if model.activityType == Activity.Run then
+            parsePace model.pace
+
+         else
+            Nothing
+        )
+        (if model.activityType == Activity.Run then
+            model.distance
+
+         else
+            Nothing
+        )
         model.effort
         (case model.emoji of
             "" ->

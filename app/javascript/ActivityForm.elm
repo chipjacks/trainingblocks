@@ -502,7 +502,7 @@ durationInput msg isSeconds duration =
         , input
             [ onInput msg
             , onFocus (msg "")
-            , Html.Attributes.placeholder "Time"
+            , Html.Attributes.placeholder "h:mm:ss"
             , name "duration"
             , style "width" "4rem"
             , class "input"
@@ -537,33 +537,34 @@ paceSelect levelM msg paceStr =
     in
     column []
         [ Html.label [] [ text "Pace" ]
-        , div [ class "dropdown" ]
-            [ div [ class "row" ]
-                [ input
-                    [ onInput msg
-                    , onFocus (msg "")
-                    , class "input"
-                    , style "width" "4rem"
-                    , value paceStr
-                    , Html.Attributes.placeholder "Pace"
-                    ]
-                    []
-                ]
-            , viewMaybe levelM
+        , column []
+            [ viewMaybe levelM
                 (\_ ->
-                    div [ class "dropdown-content", style "margin-right" "-4rem" ]
-                        (List.map2
-                            (\time name ->
-                                a [ onClick (msg time), style "text-align" "left" ]
-                                    [ Html.text time
-                                    , span [ style "color" "var(--accent-blue)", style "margin-left" "0.2rem", style "float" "right" ]
-                                        [ Html.text name ]
+                    row [ style "margin-top" "0.2rem", style "margin-bottom" "0.2rem", style "border-radius" "4px", style "overflow" "hidden" ]
+                        (List.map
+                            (\time ->
+                                column
+                                    [ style "background-color" (ActivityShape.colorString ActivityShape.Green)
+                                    , onClick (msg time)
+                                    , style "height" "0.5rem"
+                                    , style "margin-right" "1px"
+                                    , style "cursor" "pointer"
+                                    , styleIf ((parsePace time |> Maybe.withDefault 0) < (parsePace paceStr |> Maybe.withDefault 0) || (parsePace paceStr == Nothing)) "background-color" "var(--icon-gray)"
                                     ]
+                                    []
                             )
                             paceTimes
-                            paceNames
                         )
                 )
+            , input
+                [ onInput msg
+                , onFocus (msg "")
+                , class "input"
+                , style "width" "4rem"
+                , value paceStr
+                , Html.Attributes.placeholder "mm:ss"
+                ]
+                []
             ]
         ]
 

@@ -421,6 +421,7 @@ viewWeekDay ( date, activities ) isToday isSelected activeId levelM =
                         , style "margin-bottom" "0.1rem"
                         , style "margin-right" "0.2rem"
                         , attributeIf (isActive a) (style "opacity" "0.5")
+                        , Html.Events.onDoubleClick (EditActivity a)
                         ]
                         [ viewActivityShape a (isActive a) levelM ]
                 )
@@ -530,6 +531,7 @@ viewActivity isActive isActiveDate levelM activity =
     row
         [ style "padding" "0.5rem 0.5rem"
         , styleIf isActive "background-color" "var(--highlight-gray)"
+        , Html.Events.onDoubleClick (EditActivity activity)
         ]
         [ compactColumn
             [ style "flex-basis" "5rem"

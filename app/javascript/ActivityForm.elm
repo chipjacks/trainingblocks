@@ -498,49 +498,51 @@ emojiSelect msg emoji =
 
 durationInput : (( Int, Int, Int ) -> Msg) -> ( Int, Int, Int ) -> Html Msg
 durationInput msg ( hrs, mins, secs ) =
+    let
+        toValue int =
+            if int == 0 then
+                ""
+
+            else
+                String.fromInt int
+
+        numberInput max attrs =
+            input
+                ([ Html.Attributes.type_ "number"
+                 , class "input"
+                 , Html.Attributes.min "0"
+                 , Html.Attributes.max max
+                 , Html.Attributes.step "1"
+                 , Html.Attributes.maxlength (String.length max)
+                 , Html.Attributes.autocomplete False
+                 ]
+                    ++ attrs
+                )
+    in
     column []
         [ Html.label [] [ text "Time" ]
         , row []
-            [ input
-                [ Html.Attributes.type_ "number"
-                , onInput (\h -> msg ( String.toInt h |> Maybe.withDefault hrs, mins, secs ))
-                , name "duration"
-                , style "width" "1.5rem"
-                , class "input"
+            [ numberInput "9"
+                [ onInput (\h -> msg ( String.toInt h |> Maybe.withDefault 0, mins, secs ))
+                , value (toValue hrs)
+                , name "hours"
                 , Html.Attributes.placeholder "h"
-                , Html.Attributes.min "0"
-                , Html.Attributes.max "9"
-                , Html.Attributes.step "1"
-                , Html.Attributes.maxlength 1
-                , Html.Attributes.autocomplete False
+                , style "width" "1.5rem"
                 ]
                 []
-            , input
-                [ Html.Attributes.type_ "number"
-                , onInput (\m -> msg ( hrs, String.toInt m |> Maybe.withDefault mins, secs ))
-                , name "duration"
+            , numberInput "60"
+                [ onInput (\m -> msg ( hrs, String.toInt m |> Maybe.withDefault 0, secs ))
+                , value (toValue mins)
+                , name "minutes"
                 , style "width" "2rem"
-                , class "input"
                 , Html.Attributes.placeholder "mm"
-                , Html.Attributes.min "0"
-                , Html.Attributes.max "60"
-                , Html.Attributes.step "1"
-                , Html.Attributes.maxlength 2
-                , Html.Attributes.autocomplete False
                 ]
                 []
-            , input
-                [ type_ "number"
-                , onInput (\s -> msg ( hrs, mins, String.toInt s |> Maybe.withDefault secs ))
-                , name "duration"
+            , numberInput "60"
+                [ onInput (\s -> msg ( hrs, mins, String.toInt s |> Maybe.withDefault 0 ))
+                , value (toValue secs)
+                , name "seconds"
                 , style "width" "2rem"
-                , class "input"
-                , Html.Attributes.placeholder "ss"
-                , Html.Attributes.min "0"
-                , Html.Attributes.max "60"
-                , Html.Attributes.step "1"
-                , Html.Attributes.maxlength 2
-                , Html.Attributes.autocomplete False
                 ]
                 []
             ]

@@ -218,14 +218,10 @@ view levelM activityM =
                                         [ viewButtons activity True ]
                                 )
                             ]
-                        , row []
+                        , expandingRow [ style "max-height" "30rem" ]
                             [ compactColumn [ style "min-width" "4rem", style "justify-content" "center" ]
                                 [ ActivityShape.view levelM (toActivityData model) ]
-                            , column []
-                                [ row []
-                                    [ descriptionInput EditedDescription model.description ]
-                                , viewFormFields levelM model
-                                ]
+                            , viewFormFields levelM model
                             ]
                         ]
                     ]
@@ -245,27 +241,42 @@ view levelM activityM =
 viewFormFields : Maybe Int -> ActivityForm -> Html Msg
 viewFormFields levelM form =
     let
-        spacing =
-            style "margin" "3px 0 0 10px"
+        wrap =
+            style "flex-wrap" "wrap"
+
+        maxFieldWidth =
+            style "max-width" "20rem"
     in
-    row [ style "flex-wrap" "wrap", style "margin-left" "-5px" ]
-        [ compactColumn [ spacing ] [ dateSelect ClickedMove form.date ]
-        , compactColumn [ spacing ] [ activityTypeSelect SelectedActivityType form.activityType ]
-        , viewIf (form.activityType == Activity.Cross || form.activityType == Activity.Run)
-            (compactColumn [ spacing ] [ effortSelect SelectedEffort form.effort ])
-        , compactColumn [ spacing ] [ emojiSelect SelectedEmoji form.emoji ]
-        , viewIf (form.activityType == Activity.Cross || form.activityType == Activity.Run)
-            (compactColumn [ spacing ] [ completionToggle CheckedCompleted form.completed ])
+    column [ style "justify-content" "space-between" ]
+        [ row []
+            [ column [] [ dateSelect ClickedMove form.date ]
+            ]
+        , row [ style "max-width" "40rem" ]
+            [ descriptionInput EditedDescription form.description
+            ]
+        , row [ wrap ]
+            [ column [ maxFieldWidth ] [ activityTypeSelect SelectedActivityType form.activityType ]
+            , viewIf (form.activityType == Activity.Cross || form.activityType == Activity.Run)
+                (column [ maxFieldWidth ] [ completionToggle CheckedCompleted form.completed ])
+            ]
+        , row [ wrap ]
+            [ viewIf (form.activityType == Activity.Cross || form.activityType == Activity.Run)
+                (column [ maxFieldWidth ] [ effortSelect SelectedEffort form.effort ])
+            , column [ maxFieldWidth ] [ emojiSelect SelectedEmoji form.emoji ]
+            ]
+        , row [ wrap ]
+            -- Cross/run fields
+            [ viewIf (form.activityType == Activity.Cross || form.activityType == Activity.Run)
+                (column [ maxFieldWidth ] [ durationInput EditedDuration form.duration ])
 
-        -- Cross/run fields
-        , viewIf (form.activityType == Activity.Cross || form.activityType == Activity.Run)
-            (compactColumn [ spacing ] [ durationInput EditedDuration form.duration ])
-
-        -- Run fields
-        , viewIf (form.activityType == Activity.Run)
-            (compactColumn [ spacing ] [ paceSelect levelM SelectedPace form.pace ])
-        , viewIf (form.activityType == Activity.Run)
-            (compactColumn [ spacing ] [ distanceSelect SelectedDistance form.distance ])
+            -- Run fields
+            , viewIf (form.activityType == Activity.Run)
+                (column [ maxFieldWidth ] [ paceSelect levelM SelectedPace form.pace ])
+            ]
+        , row [ wrap ]
+            [ viewIf (form.activityType == Activity.Run)
+                (column [ maxFieldWidth ] [ distanceSelect SelectedDistance form.distance ])
+            ]
         ]
 
 
@@ -426,8 +437,10 @@ dateSelect : Msg -> Maybe Date -> Html Msg
 dateSelect msg date =
     column []
         [ Html.label [] [ text "Date" ]
-        , button [ class "button", onClick msg ]
-            [ text (Maybe.map (Date.format "E MMM d") date |> Maybe.withDefault "Select Date")
+        , row []
+            [ button [ class "button", onClick msg ]
+                [ text (Maybe.map (Date.format "E MMM d") date |> Maybe.withDefault "Select Date")
+                ]
             ]
         ]
 
@@ -510,6 +523,10 @@ durationInput msg ( hrs, mins, secs ) =
             else
                 String.fromInt int
 
+        header str =
+            row [ style "font-size" "0.6rem", style "color" "var(--icon-gray)", style "margin-bottom" "2px" ]
+                [ text str ]
+
         numberInput max attrs =
             input
                 ([ Html.Attributes.type_ "number"
@@ -526,29 +543,33 @@ durationInput msg ( hrs, mins, secs ) =
     column []
         [ Html.label [] [ text "Time" ]
         , row []
-            [ numberInput "9"
-                [ onInput (\h -> msg ( String.toInt h |> Maybe.withDefault 0, mins, secs ))
-                , value (toValue hrs)
-                , name "hours"
-                , Html.Attributes.placeholder "h"
-                , style "width" "1.5rem"
+            [ compactColumn [ style "width" "3.5rem" ]
+                [ header "HOURS"
+                , numberInput "9"
+                    [ onInput (\h -> msg ( String.toInt h |> Maybe.withDefault 0, mins, secs ))
+                    , value (toValue hrs)
+                    , name "hours"
+                    ]
+                    []
                 ]
-                []
-            , numberInput "60"
-                [ onInput (\m -> msg ( hrs, String.toInt m |> Maybe.withDefault 0, secs ))
-                , value (toValue mins)
-                , name "minutes"
-                , style "width" "2rem"
-                , Html.Attributes.placeholder "mm"
+            , compactColumn [ style "width" "3.5rem" ]
+                [ header "MINS"
+                , numberInput "60"
+                    [ onInput (\m -> msg ( hrs, String.toInt m |> Maybe.withDefault 0, secs ))
+                    , value (toValue mins)
+                    , name "minutes"
+                    ]
+                    []
                 ]
-                []
-            , numberInput "60"
-                [ onInput (\s -> msg ( hrs, mins, String.toInt s |> Maybe.withDefault 0 ))
-                , value (toValue secs)
-                , name "seconds"
-                , style "width" "2rem"
+            , compactColumn [ style "width" "3.5rem" ]
+                [ header "SECS"
+                , numberInput "60"
+                    [ onInput (\s -> msg ( hrs, mins, String.toInt s |> Maybe.withDefault 0 ))
+                    , value (toValue secs)
+                    , name "seconds"
+                    ]
+                    []
                 ]
-                []
             ]
         ]
 
@@ -581,7 +602,7 @@ paceSelect levelM msg paceStr =
         , column []
             [ viewMaybe levelM
                 (\_ ->
-                    row [ style "margin-top" "0.2rem", style "margin-bottom" "0.2rem", style "border-radius" "4px", style "overflow" "hidden" ]
+                    row [ style "margin-top" "2px", style "margin-bottom" "2px", style "border-radius" "4px", style "overflow" "hidden" ]
                         (List.map
                             (\time ->
                                 column

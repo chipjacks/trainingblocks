@@ -253,17 +253,7 @@ view levelM activityM =
                             [ ActivityShape.view levelM (toActivityData model) ]
                         , column []
                             [ row []
-                                [ input
-                                    [ type_ "text"
-                                    , Html.Attributes.autocomplete False
-                                    , placeholder "Description"
-                                    , onInput EditedDescription
-                                    , name "description"
-                                    , value model.description
-                                    , style "width" "100%"
-                                    ]
-                                    []
-                                ]
+                                [ descriptionInput EditedDescription model.description ]
                             , row [ style "flex-wrap" "wrap", style "margin-left" "-5px" ]
                                 (dataInputs model model.result)
                             ]
@@ -375,6 +365,21 @@ toActivityData model =
             _ ->
                 Just model.emoji
         )
+
+
+descriptionInput : (String -> Msg) -> String -> Html Msg
+descriptionInput msg str =
+    column []
+        [ Html.label [] [ text "Description" ]
+        , input
+            [ type_ "text"
+            , Html.Attributes.autocomplete False
+            , onInput msg
+            , name "description"
+            , value str
+            ]
+            []
+        ]
 
 
 activityTypeSelect : (ActivityType -> Msg) -> ActivityType -> Html Msg
@@ -502,6 +507,7 @@ durationInput msg isSeconds duration =
         , input
             [ onInput msg
             , onFocus (msg "")
+            , Html.Attributes.autocomplete False
             , Html.Attributes.placeholder "h:mm:ss"
             , name "duration"
             , style "width" "4rem"

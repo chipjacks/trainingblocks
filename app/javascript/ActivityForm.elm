@@ -169,29 +169,6 @@ updateResult model =
 view : Maybe Int -> ActivityState -> Html Msg
 view levelM activityM =
     let
-        spacing =
-            style "margin" "3px 0 0 10px"
-
-        dataInputs form result =
-            [ compactColumn [ spacing ] [ dateSelect ClickedMove form.date ]
-            , compactColumn [ spacing ] [ activityTypeSelect SelectedActivityType form.activityType ]
-            , viewIf (form.activityType == Activity.Cross || form.activityType == Activity.Run)
-                (compactColumn [ spacing ] [ effortSelect SelectedEffort form.effort ])
-            , compactColumn [ spacing ] [ emojiSelect SelectedEmoji form.emoji ]
-            , viewIf (form.activityType == Activity.Cross || form.activityType == Activity.Run)
-                (compactColumn [ spacing ] [ completionToggle CheckedCompleted form.completed ])
-
-            -- Cross/run fields
-            , viewIf (form.activityType == Activity.Cross || form.activityType == Activity.Run)
-                (compactColumn [ spacing ] [ durationInput EditedDuration form.duration ])
-
-            -- Run fields
-            , viewIf (form.activityType == Activity.Run)
-                (compactColumn [ spacing ] [ paceSelect levelM SelectedPace form.pace ])
-            , viewIf (form.activityType == Activity.Run)
-                (compactColumn [ spacing ] [ distanceSelect SelectedDistance form.distance ])
-            ]
-
         sharedAttributes =
             [ borderStyle "border-bottom"
             , style "position" "absolute"
@@ -247,8 +224,7 @@ view levelM activityM =
                             , column []
                                 [ row []
                                     [ descriptionInput EditedDescription model.description ]
-                                , row [ style "flex-wrap" "wrap", style "margin-left" "-5px" ]
-                                    (dataInputs model model.result)
+                                , viewFormFields levelM model
                                 ]
                             ]
                         ]
@@ -264,6 +240,33 @@ view levelM activityM =
 
         _ ->
             row closedAttributes []
+
+
+viewFormFields : Maybe Int -> ActivityForm -> Html Msg
+viewFormFields levelM form =
+    let
+        spacing =
+            style "margin" "3px 0 0 10px"
+    in
+    row [ style "flex-wrap" "wrap", style "margin-left" "-5px" ]
+        [ compactColumn [ spacing ] [ dateSelect ClickedMove form.date ]
+        , compactColumn [ spacing ] [ activityTypeSelect SelectedActivityType form.activityType ]
+        , viewIf (form.activityType == Activity.Cross || form.activityType == Activity.Run)
+            (compactColumn [ spacing ] [ effortSelect SelectedEffort form.effort ])
+        , compactColumn [ spacing ] [ emojiSelect SelectedEmoji form.emoji ]
+        , viewIf (form.activityType == Activity.Cross || form.activityType == Activity.Run)
+            (compactColumn [ spacing ] [ completionToggle CheckedCompleted form.completed ])
+
+        -- Cross/run fields
+        , viewIf (form.activityType == Activity.Cross || form.activityType == Activity.Run)
+            (compactColumn [ spacing ] [ durationInput EditedDuration form.duration ])
+
+        -- Run fields
+        , viewIf (form.activityType == Activity.Run)
+            (compactColumn [ spacing ] [ paceSelect levelM SelectedPace form.pace ])
+        , viewIf (form.activityType == Activity.Run)
+            (compactColumn [ spacing ] [ distanceSelect SelectedDistance form.distance ])
+        ]
 
 
 viewButtons : Activity -> Bool -> Html Msg

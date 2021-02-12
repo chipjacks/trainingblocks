@@ -39,7 +39,7 @@ init activity =
         activity.description
         (Ok activity)
         data.activityType
-        (Maybe.map Duration.toString data.duration |> Maybe.withDefault "")
+        (Maybe.map Duration.toHrsMinsSecs data.duration |> Maybe.withDefault ( 0, 0, 0 ))
         data.completed
         (Maybe.map Pace.paceToString data.pace |> Maybe.withDefault "")
         data.distance
@@ -136,8 +136,8 @@ update msg model =
             , Cmd.none
             )
 
-        EditedDuration str ->
-            ( updateResult { model | duration = str }
+        EditedDuration hms ->
+            ( updateResult { model | duration = hms }
             , Cmd.none
             )
 
@@ -183,7 +183,7 @@ view levelM activityM =
 
             -- Cross/run fields
             , viewIf (form.activityType == Activity.Cross || form.activityType == Activity.Run)
-                (compactColumn [ spacing ] [ durationInput EditedDuration False form.duration ])
+                (compactColumn [ spacing ] [ durationInput EditedDuration form.duration ])
 
             -- Run fields
             , viewIf (form.activityType == Activity.Run)
@@ -320,13 +320,9 @@ defaults =
     Defaults "30" "7:30" Activity.FiveK True Emoji.default.name
 
 
-parseDuration : String -> Maybe Int
-parseDuration str =
-    if String.isEmpty str then
-        Nothing
-
-    else
-        Duration.fromString str
+parseDuration : ( Int, Int, Int ) -> Maybe Int
+parseDuration ( hrs, mins, secs ) =
+    Just (hrs * 60 * 60 + mins * 60 + secs)
 
 
 parsePace : String -> Maybe Int
@@ -500,21 +496,54 @@ emojiSelect msg emoji =
         ]
 
 
-durationInput : (String -> Msg) -> Bool -> String -> Html Msg
-durationInput msg isSeconds duration =
+durationInput : (( Int, Int, Int ) -> Msg) -> ( Int, Int, Int ) -> Html Msg
+durationInput msg ( hrs, mins, secs ) =
     column []
         [ Html.label [] [ text "Time" ]
-        , input
-            [ onInput msg
-            , onFocus (msg "")
-            , Html.Attributes.autocomplete False
-            , Html.Attributes.placeholder "h:mm:ss"
-            , name "duration"
-            , style "width" "4rem"
-            , class "input"
-            , value duration
+        , row []
+            [ input
+                [ Html.Attributes.type_ "number"
+                , onInput (\h -> msg ( String.toInt h |> Maybe.withDefault hrs, mins, secs ))
+                , name "duration"
+                , style "width" "1.5rem"
+                , class "input"
+                , Html.Attributes.placeholder "h"
+                , Html.Attributes.min "0"
+                , Html.Attributes.max "9"
+                , Html.Attributes.step "1"
+                , Html.Attributes.maxlength 1
+                , Html.Attributes.autocomplete False
+                ]
+                []
+            , input
+                [ Html.Attributes.type_ "number"
+                , onInput (\m -> msg ( hrs, String.toInt m |> Maybe.withDefault mins, secs ))
+                , name "duration"
+                , style "width" "2rem"
+                , class "input"
+                , Html.Attributes.placeholder "mm"
+                , Html.Attributes.min "0"
+                , Html.Attributes.max "60"
+                , Html.Attributes.step "1"
+                , Html.Attributes.maxlength 2
+                , Html.Attributes.autocomplete False
+                ]
+                []
+            , input
+                [ type_ "number"
+                , onInput (\s -> msg ( hrs, mins, String.toInt s |> Maybe.withDefault secs ))
+                , name "duration"
+                , style "width" "2rem"
+                , class "input"
+                , Html.Attributes.placeholder "ss"
+                , Html.Attributes.min "0"
+                , Html.Attributes.max "60"
+                , Html.Attributes.step "1"
+                , Html.Attributes.maxlength 2
+                , Html.Attributes.autocomplete False
+                ]
+                []
             ]
-            []
         ]
 
 

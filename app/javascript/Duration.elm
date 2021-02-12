@@ -1,4 +1,4 @@
-module Duration exposing (formatSeconds, fromString, parser, stripTimeStr, timeStrToHrsMinsSecs, timeStrToSeconds, timeToSeconds, toString, toStringWithUnits)
+module Duration exposing (formatSeconds, fromString, parser, stripTimeStr, timeStrToHrsMinsSecs, timeStrToSeconds, timeToSeconds, toHrsMinsSecs, toString, toStringWithUnits)
 
 import Parser exposing ((|.), (|=), Parser)
 

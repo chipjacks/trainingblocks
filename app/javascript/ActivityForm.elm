@@ -200,18 +200,18 @@ view levelM activityM =
             , style "background-color" "white"
             , style "z-index" "2"
             , style "overflow" "hidden"
+            , style "transition" "height 0.5s"
             ]
 
         openAttributes height =
-            [ style "transition" "height 0.5s"
-            , style "height" height
+            [ style "height" height
             , style "padding" "0.5rem 0.5rem"
             , style "border-width" "1px"
             ]
                 ++ sharedAttributes
 
         closedAttributes =
-            [ style "transition" "height 0.5s, border-width 0.5s 1s"
+            [ style "transition" "border-width 0.5s 1s"
             , style "height" "0"
             , style "border-width" "0"
             ]
@@ -231,35 +231,36 @@ view levelM activityM =
                 ]
 
         Editing model ->
-            row
-                (openAttributes
-                    (if model.date /= Nothing then
-                        "100%"
-
-                     else
-                        "fit-content"
-                    )
-                )
-                [ column []
-                    [ row []
-                        [ viewMaybe (Result.toMaybe model.result)
-                            (\activity ->
-                                column [ style "margin-bottom" "1rem" ]
-                                    [ viewButtons activity True ]
-                            )
-                        ]
-                    , row []
-                        [ compactColumn [ style "min-width" "4rem", style "justify-content" "center" ]
-                            [ ActivityShape.view levelM (toActivityData model) ]
-                        , column []
-                            [ row []
-                                [ descriptionInput EditedDescription model.description ]
-                            , row [ style "flex-wrap" "wrap", style "margin-left" "-5px" ]
-                                (dataInputs model model.result)
+            if model.date /= Nothing then
+                row (openAttributes "100%")
+                    [ column []
+                        [ row []
+                            [ viewMaybe (Result.toMaybe model.result)
+                                (\activity ->
+                                    column [ style "margin-bottom" "1rem" ]
+                                        [ viewButtons activity True ]
+                                )
+                            ]
+                        , row []
+                            [ compactColumn [ style "min-width" "4rem", style "justify-content" "center" ]
+                                [ ActivityShape.view levelM (toActivityData model) ]
+                            , column []
+                                [ row []
+                                    [ descriptionInput EditedDescription model.description ]
+                                , row [ style "flex-wrap" "wrap", style "margin-left" "-5px" ]
+                                    (dataInputs model model.result)
+                                ]
                             ]
                         ]
                     ]
-                ]
+
+            else
+                row (openAttributes "1.5rem")
+                    [ row []
+                        [ MonoIcons.icon (MonoIcons.circleInformation "var(--accent-blue)")
+                        , column [ style "margin-left" "1rem" ] [ text "Select Date" ]
+                        ]
+                    ]
 
         _ ->
             row closedAttributes []

@@ -16,15 +16,10 @@ default =
 recommended : List EmojiData
 recommended =
     [ find "smiley"
-    , find "sweat smile"
-    , find "relieved"
+    , find "slightly_smiling_face"
+    , find "neutral_face"
     , find "disappointed"
-    , find "worried"
-    , find "tired face"
-    , find "grimacing"
-    , find "dizzy face"
-    , find "mask"
-    , find "face with head bandage"
+    , find "tired_face"
     ]
 
 

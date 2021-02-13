@@ -152,8 +152,8 @@ update msg model =
             , Cmd.none
             )
 
-        SelectedDistance dist ->
-            ( updateResult { model | distance = Just dist }
+        SelectedDistance distM ->
+            ( updateResult { model | distance = distM }
             , Cmd.none
             )
 
@@ -384,10 +384,23 @@ toActivityData model =
         )
 
 
+label : String -> Bool -> Msg -> Html Msg
+label name showClear onClear =
+    row []
+        [ Html.label [] [ text name ]
+        , viewIf showClear
+            (compactColumn
+                [ style "margin-left" "0.2rem", style "cursor" "pointer", onClick onClear ]
+                [ MonoIcons.icon (MonoIcons.close "var(--icon-gray)")
+                ]
+            )
+        ]
+
+
 descriptionInput : (String -> Msg) -> String -> Html Msg
 descriptionInput msg str =
     column []
-        [ Html.label [] [ text "Description" ]
+        [ label "Description" (str /= "") (msg "")
         , input
             [ type_ "text"
             , Html.Attributes.autocomplete False
@@ -460,13 +473,7 @@ completionToggle msg completed =
             , Html.Attributes.attribute "type" "checkbox"
             , style "width" "1.5rem"
             , style "height" "1.5rem"
-            , Html.Attributes.attribute "checked"
-                (if completed then
-                    "true"
-
-                 else
-                    "false"
-                )
+            , attributeIf completed (Html.Attributes.attribute "checked" "")
             ]
             []
         ]
@@ -498,15 +505,7 @@ emojiSelect msg name search =
                 [ Emoji.view data ]
     in
     column []
-        [ row []
-            [ Html.label [] [ text "Feel" ]
-            , viewIf (name /= "")
-                (compactColumn
-                    [ style "margin-left" "0.5rem", style "cursor" "pointer", onClick (msg "") ]
-                    [ MonoIcons.icon (MonoIcons.close "var(--icon-gray)")
-                    ]
-                )
-            ]
+        [ label "Feel" (name /= "") (msg "")
         , row [ style "height" "30px", style "margin-top" "4px" ]
             (List.map emojiItem (emojis |> List.take 5))
         , row []
@@ -550,7 +549,7 @@ durationInput msg ( hrs, mins, secs ) =
                 )
     in
     column []
-        [ Html.label [] [ text "Time" ]
+        [ label "Time" (hrs /= 0 || mins /= 0 || secs /= 0) (msg ( 0, 0, 0 ))
         , row []
             [ compactColumn [ style "width" "3.5rem" ]
                 [ header "HOURS"
@@ -607,7 +606,7 @@ paceSelect levelM msg paceStr =
                     []
     in
     column []
-        [ Html.label [] [ text "Pace" ]
+        [ label "Pace" (paceStr /= "") (msg "")
         , column []
             [ viewMaybe levelM
                 (\_ ->
@@ -643,24 +642,23 @@ paceSelect levelM msg paceStr =
 effortSelect : (Maybe Activity.Effort -> Msg) -> Maybe Activity.Effort -> Html Msg
 effortSelect msg effortM =
     column []
-        [ Html.label [] [ text "Effort" ]
+        [ label "Effort" (effortM /= Nothing) (msg Nothing)
         , row [ style "margin-top" "0.4rem" ]
             (List.map
                 (\( color, effortOpt ) ->
                     compactColumn
                         [ style "background-color" color
                         , onClick (msg effortOpt)
-                        , style "border-radius" "0.4rem"
-                        , style "width" "0.8rem"
-                        , style "height" "0.8rem"
-                        , style "margin-right" "0.5rem"
+                        , style "border-radius" "9px"
+                        , style "width" "18px"
+                        , style "height" "18px"
+                        , style "margin-right" "8px"
                         , style "cursor" "pointer"
-                        , styleIf (effortOpt == effortM) "box-shadow" ("0 0 0 0.1rem #FFFFFF, 0 0 0 0.2rem " ++ color)
+                        , styleIf (effortOpt == effortM) "box-shadow" ("0 0 0 2px #FFFFFF, 0 0 0 4px " ++ color)
                         ]
                         []
                 )
-                [ ( ActivityShape.colorString ActivityShape.Gray, Nothing )
-                , ( ActivityShape.colorString ActivityShape.Green, Just Activity.Easy )
+                [ ( ActivityShape.colorString ActivityShape.Green, Just Activity.Easy )
                 , ( ActivityShape.colorString ActivityShape.Orange, Just Activity.Moderate )
                 , ( ActivityShape.colorString ActivityShape.Red, Just Activity.Hard )
                 ]
@@ -668,10 +666,10 @@ effortSelect msg effortM =
         ]
 
 
-distanceSelect : (Activity.Distance -> Msg) -> Maybe Activity.Distance -> Html Msg
+distanceSelect : (Maybe Activity.Distance -> Msg) -> Maybe Activity.Distance -> Html Msg
 distanceSelect msg distanceM =
     column []
-        [ Html.label [] [ text "Distance" ]
+        [ label "Distance" (distanceM /= Nothing) (msg Nothing)
         , div [ class "dropdown" ]
             [ button [ class "button" ]
                 [ text (Maybe.map Activity.distance.toString distanceM |> Maybe.withDefault "Distance") ]
@@ -679,7 +677,7 @@ distanceSelect msg distanceM =
                 (List.map
                     (\( distanceStr, distanceOpt ) ->
                         a
-                            [ onClick (msg distanceOpt)
+                            [ onClick (msg (Just distanceOpt))
                             , style "text-align" "left"
                             ]
                             [ Html.text distanceStr ]

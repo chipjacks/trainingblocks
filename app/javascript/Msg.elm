@@ -82,7 +82,7 @@ type Msg
     | EditedDuration ( Int, Int, Int )
     | SelectedEffort (Maybe Activity.Effort)
     | SelectedPace String
-    | SelectedDistance Activity.Distance
+    | SelectedDistance (Maybe Activity.Distance)
     | ClickedSubmit
     | ClickedCopy Activity
     | ClickedMove

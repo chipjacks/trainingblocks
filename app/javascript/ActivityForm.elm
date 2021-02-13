@@ -45,6 +45,7 @@ init activity =
         data.distance
         data.effort
         (Maybe.withDefault "" data.emoji)
+        ""
 
 
 initMove : Activity -> ActivityForm
@@ -118,6 +119,11 @@ update msg model =
 
         SelectedEffort effortM ->
             ( updateResult { model | effort = effortM }
+            , Cmd.none
+            )
+
+        SearchedEmojis search ->
+            ( updateResult { model | emojiSearch = search }
             , Cmd.none
             )
 
@@ -260,9 +266,9 @@ viewFormFields levelM form =
                 (column [ maxFieldWidth ] [ completionToggle CheckedCompleted form.completed ])
             ]
         , row [ wrap ]
-            [ viewIf (form.activityType == Activity.Cross || form.activityType == Activity.Run)
+            [ column [ maxFieldWidth ] [ emojiSelect SelectedEmoji form.emoji form.emojiSearch ]
+            , viewIf (form.activityType == Activity.Cross || form.activityType == Activity.Run)
                 (column [ maxFieldWidth ] [ effortSelect SelectedEffort form.effort ])
-            , column [ maxFieldWidth ] [ emojiSelect SelectedEmoji form.emoji ]
             ]
         , row [ wrap ]
             -- Cross/run fields
@@ -466,49 +472,52 @@ completionToggle msg completed =
         ]
 
 
-emojiSelect : (String -> Msg) -> String -> Html Msg
-emojiSelect msg emoji =
+emojiSelect : (String -> Msg) -> String -> String -> Html Msg
+emojiSelect msg name search =
     let
-        emojis =
-            Emoji.filter (String.toLower emoji) |> List.take 10
+        selected =
+            Emoji.find name
 
-        padding =
-            style "padding" "8px 0.5rem 2px 0.5rem"
+        emojis =
+            if String.isEmpty search then
+                Emoji.recommended
+
+            else
+                Emoji.filter (String.toLower search)
 
         emojiItem data =
-            a [ onClick (msg data.name), style "text-align" "left", padding, style "white-space" "nowrap" ]
-                [ Emoji.view data
-                , div [ style "display" "inline-block", style "vertical-align" "top", style "margin-left" "0.5rem" ]
-                    [ Html.text data.name ]
+            compactColumn
+                [ onClick (msg data.name)
+                , style "border-radius" "11px"
+                , style "width" "22px"
+                , style "height" "22px"
+                , style "margin-right" "10px"
+                , style "cursor" "pointer"
+                , styleIf (data.name == name) "box-shadow" "0 0 0 0.2rem var(--icon-gray)"
                 ]
+                [ Emoji.view data ]
     in
     column []
-        [ Html.label [] [ text "Feel" ]
-        , div [ class "dropdown" ]
-            [ div [ class "row" ]
-                [ button
-                    [ class "button"
-                    , padding
-                    , style "border-top-right-radius" "0"
-                    , style "border-bottom-right-radius" "0"
-                    , onClick (msg "")
+        [ row []
+            [ Html.label [] [ text "Feel" ]
+            , viewIf (name /= "")
+                (compactColumn
+                    [ style "margin-left" "0.5rem", style "cursor" "pointer", onClick (msg "") ]
+                    [ MonoIcons.icon (MonoIcons.close "var(--icon-gray)")
                     ]
-                    [ emojis
-                        |> List.head
-                        |> Maybe.withDefault Emoji.default
-                        |> Emoji.view
-                    ]
-                , input
-                    [ onInput msg
-                    , onFocus (msg "")
-                    , Html.Attributes.placeholder "Search"
-                    , class "input icon"
-                    , style "width" "6rem"
-                    , value emoji
-                    ]
-                    []
+                )
+            ]
+        , row [ style "height" "30px", style "margin-top" "4px" ]
+            (List.map emojiItem (emojis |> List.take 5))
+        , row []
+            [ input
+                [ onInput SearchedEmojis
+                , onFocus (SearchedEmojis "")
+                , Html.Attributes.placeholder "Search"
+                , style "width" "6rem"
+                , value search
                 ]
-            , div [ class "dropdown-content" ] (List.map emojiItem emojis)
+                []
             ]
         ]
 

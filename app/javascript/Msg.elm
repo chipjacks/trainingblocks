@@ -19,12 +19,13 @@ type alias ActivityForm =
     , description : String
     , result : Result FormError Activity
     , activityType : Activity.ActivityType
-    , duration : (Int, Int, Int)
+    , duration : ( Int, Int, Int )
     , completed : Bool
     , pace : String
     , distance : Maybe Activity.Distance
     , effort : Maybe Activity.Effort
     , emoji : String
+    , emojiSearch : String
     }
 
 
@@ -75,6 +76,7 @@ type Msg
     | SelectedDate Date
     | EditedDescription String
     | SelectedEmoji String
+    | SearchedEmojis String
     | CheckedCompleted
     | SelectedActivityType Activity.ActivityType
     | EditedDuration ( Int, Int, Int )

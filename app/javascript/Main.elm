@@ -332,6 +332,10 @@ update msg model =
                     updateActivityForm msg state
                         |> loaded
 
+                SearchedEmojis _ ->
+                    updateActivityForm msg state
+                        |> loaded
+
                 SelectedEmoji _ ->
                     updateActivityForm msg state
                         |> loaded

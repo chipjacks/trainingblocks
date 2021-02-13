@@ -1,4 +1,4 @@
-module Emoji exposing (default, filter, find, view)
+module Emoji exposing (default, filter, find, recommended, view)
 
 import EmojiData exposing (EmojiData)
 import EmojiData.Category
@@ -30,12 +30,8 @@ recommended =
 
 filter : String -> List EmojiData
 filter name =
-    if String.isEmpty name then
-        recommended
-
-    else
-        EmojiData.search emojis name
-            |> List.sortBy (\e -> String.length e.name)
+    EmojiData.search emojis name
+        |> List.sortBy (\e -> String.length e.name)
 
 
 find : String -> EmojiData

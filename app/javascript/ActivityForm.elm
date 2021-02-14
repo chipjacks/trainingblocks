@@ -224,7 +224,7 @@ view levelM activityM =
                                         [ viewButtons activity True ]
                                 )
                             ]
-                        , expandingRow [ style "max-height" "30rem" ]
+                        , expandingRow [ style "max-height" "35rem" ]
                             [ compactColumn [ style "min-width" "4rem", style "justify-content" "center" ]
                                 [ ActivityShape.view levelM (toActivityData model) ]
                             , viewFormFields levelM model
@@ -247,33 +247,28 @@ view levelM activityM =
 viewFormFields : Maybe Int -> ActivityForm -> Html Msg
 viewFormFields levelM form =
     let
-        wrap =
-            style "flex-wrap" "wrap"
-
         maxFieldWidth =
             style "max-width" "20rem"
     in
     column [ style "justify-content" "space-between" ]
         [ row []
-            [ column [] [ dateSelect ClickedMove form.date ]
+            [ column [ maxFieldWidth ] [ dateSelect ClickedMove form.date ]
+            , column [ maxFieldWidth ] [ completionToggle CheckedCompleted form.completed ]
             ]
         , row [ style "max-width" "40rem" ]
             [ descriptionInput EditedDescription form.description
             ]
-        , row [ wrap ]
+        , row []
             [ column [ maxFieldWidth ] [ activityTypeSelect SelectedActivityType form.activityType ]
-            , column [ maxFieldWidth ] [ completionToggle CheckedCompleted form.completed ]
+            , column [ maxFieldWidth ] [ durationInput EditedDuration form.duration ]
             ]
-        , row [ wrap ]
-            [ column [ maxFieldWidth ] [ durationInput EditedDuration form.duration ]
-            , viewIf (form.activityType == Activity.Run)
-                (column [ maxFieldWidth ] [ paceSelect levelM SelectedPace form.pace ])
-            ]
-
-        -- , row [ wrap ] [ viewIf (form.activityType == Activity.Run) (column [ maxFieldWidth ] [ distanceSelect SelectedDistance form.distance ]) ]
-        , row [ wrap ]
+        , row []
             [ column [ maxFieldWidth ] [ effortSelect SelectedEffort form.effort ]
             , column [ maxFieldWidth ] [ emojiSelect SelectedEmoji form.emoji form.emojiSearch ]
+            ]
+        , row [ styleIf (form.activityType /= Activity.Run) "visibility" "hidden" ]
+            [ column [ maxFieldWidth ] [ paceSelect levelM SelectedPace form.pace ]
+            , column [ maxFieldWidth ] [ distanceSelect SelectedDistance form.distance ]
             ]
         ]
 
@@ -422,10 +417,9 @@ activityTypeSelect msg activityType =
             button
                 [ class "button"
                 , onClick (SelectedActivityType aType)
+                , style "margin-top" "3px"
                 , style "margin-right" "3px"
-                , style "width" "4rem"
-                , style "height" "4rem"
-                , style "padding" "0"
+                , style "width" "6rem"
                 , style "justify-content" "center"
                 , styleIf (activityType == aType) "border" "1px solid var(--accent-blue)"
                 ]
@@ -438,7 +432,7 @@ activityTypeSelect msg activityType =
     in
     column []
         [ Html.label [] [ text "Type" ]
-        , row []
+        , row [ style "flex-wrap" "wrap" ]
             (List.map
                 (\( str, aType ) ->
                     iconButton aType
@@ -549,7 +543,7 @@ durationInput msg ( hrs, mins, secs ) =
     column []
         [ label "Time" (hrs /= 0 || mins /= 0 || secs /= 0) (msg ( 0, 0, 0 ))
         , row []
-            [ compactColumn [ style "width" "3.5rem" ]
+            [ compactColumn [ style "width" "2.5rem" ]
                 [ header "HOURS"
                 , numberInput "9"
                     [ onInput (\h -> msg ( String.toInt h |> Maybe.withDefault 0, mins, secs ))
@@ -608,7 +602,7 @@ paceSelect levelM msg paceStr =
         , column []
             [ viewMaybe levelM
                 (\_ ->
-                    row [ style "margin-top" "2px", style "margin-bottom" "2px", style "border-radius" "4px", style "overflow" "hidden" ]
+                    row [ style "margin-top" "2px", style "margin-bottom" "2px", style "border-radius" "4px", style "overflow" "hidden", style "max-width" "10rem", style "margin-right" "10px" ]
                         (List.map
                             (\time ->
                                 column

@@ -27,11 +27,11 @@ view levelM data =
     let
         width paceM =
             Maybe.map2 Pace.secondsToTrainingPace levelM paceM
-                |> Maybe.map toWidth
-                |> Maybe.withDefault 1
+                |> Maybe.withDefault Pace.Easy
+                |> toWidth
 
         height =
-            Maybe.map toHeight data.duration |> Maybe.withDefault 1
+            Maybe.withDefault (30 * 60) data.duration |> toHeight
 
         color =
             case data.effort of

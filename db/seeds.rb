@@ -55,10 +55,9 @@ def create_activity(obj, order, me)
     return
   elsif data['type'] == 'interval' || data['type'] == 'race'
     data['type'] = 'run'
-  elsif data['type'] == 'other'
-    data['type'] = 'cross'
-  elsif data['type'] == 'note'
-    data['completed'] = true
+  elsif data['type'] == 'other' || data['type'] == 'note'
+    data['type'] = 'other'
+    data['completed'] = data['completed'] ? data['completed'] : true
   end
 
   data['type'] = data['type'].capitalize

@@ -33,16 +33,14 @@ type alias ActivityData =
 
 type ActivityType
     = Run
-    | Cross
-    | Note
+    | Other
 
 
 activityType : Enum ActivityType
 activityType =
     Enum.create
         [ ( "Run", Run )
-        , ( "Cross", Cross )
-        , ( "Note", Note )
+        , ( "Other", Other )
         ]
 
 

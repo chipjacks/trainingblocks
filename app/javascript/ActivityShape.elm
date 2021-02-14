@@ -55,11 +55,12 @@ view levelM data =
                 Activity.Run ->
                     Block { width = width data.pace, height = height } color data.completed emoji
 
-                Activity.Cross ->
-                    Circle color data.completed emoji
+                Activity.Other ->
+                    if data.emoji /= Nothing && data.effort == Nothing && data.duration == Nothing then
+                        Emoji emoji
 
-                Activity.Note ->
-                    Emoji emoji
+                    else
+                        Circle color data.completed emoji
     in
     viewShape shape
 

@@ -262,26 +262,18 @@ viewFormFields levelM form =
             ]
         , row [ wrap ]
             [ column [ maxFieldWidth ] [ activityTypeSelect SelectedActivityType form.activityType ]
-            , viewIf (form.activityType == Activity.Cross || form.activityType == Activity.Run)
-                (column [ maxFieldWidth ] [ completionToggle CheckedCompleted form.completed ])
+            , column [ maxFieldWidth ] [ completionToggle CheckedCompleted form.completed ]
             ]
         , row [ wrap ]
-            [ column [ maxFieldWidth ] [ emojiSelect SelectedEmoji form.emoji form.emojiSearch ]
-            , viewIf (form.activityType == Activity.Cross || form.activityType == Activity.Run)
-                (column [ maxFieldWidth ] [ effortSelect SelectedEffort form.effort ])
-            ]
-        , row [ wrap ]
-            -- Cross/run fields
-            [ viewIf (form.activityType == Activity.Cross || form.activityType == Activity.Run)
-                (column [ maxFieldWidth ] [ durationInput EditedDuration form.duration ])
-
-            -- Run fields
+            [ column [ maxFieldWidth ] [ durationInput EditedDuration form.duration ]
             , viewIf (form.activityType == Activity.Run)
                 (column [ maxFieldWidth ] [ paceSelect levelM SelectedPace form.pace ])
             ]
+
+        -- , row [ wrap ] [ viewIf (form.activityType == Activity.Run) (column [ maxFieldWidth ] [ distanceSelect SelectedDistance form.distance ]) ]
         , row [ wrap ]
-            [ viewIf (form.activityType == Activity.Run)
-                (column [ maxFieldWidth ] [ distanceSelect SelectedDistance form.distance ])
+            [ column [ maxFieldWidth ] [ effortSelect SelectedEffort form.effort ]
+            , column [ maxFieldWidth ] [ emojiSelect SelectedEmoji form.emoji form.emojiSearch ]
             ]
         ]
 
@@ -343,7 +335,15 @@ defaults =
 
 parseDuration : ( Int, Int, Int ) -> Maybe Int
 parseDuration ( hrs, mins, secs ) =
-    Just (hrs * 60 * 60 + mins * 60 + secs)
+    let
+        seconds =
+            hrs * 60 * 60 + mins * 60 + secs
+    in
+    if seconds == 0 then
+        Nothing
+
+    else
+        Just seconds
 
 
 parsePace : String -> Maybe Int
@@ -355,12 +355,7 @@ toActivityData : ActivityForm -> ActivityData
 toActivityData model =
     Activity.ActivityData
         model.activityType
-        (if model.activityType == Activity.Cross || model.activityType == Activity.Run then
-            parseDuration model.duration
-
-         else
-            Nothing
-        )
+        (parseDuration model.duration)
         model.completed
         (if model.activityType == Activity.Run then
             parsePace model.pace
@@ -420,35 +415,36 @@ activityTypeSelect msg activityType =
                 Activity.Run ->
                     MonoIcons.stop
 
-                Activity.Cross ->
+                Activity.Other ->
                     MonoIcons.circle
 
-                Activity.Note ->
-                    MonoIcons.message
-
         iconButton aType =
-            row []
+            button
+                [ class "button"
+                , onClick (SelectedActivityType aType)
+                , style "margin-right" "3px"
+                , style "width" "4rem"
+                , style "height" "4rem"
+                , style "padding" "0"
+                , style "justify-content" "center"
+                , styleIf (activityType == aType) "border" "1px solid var(--accent-blue)"
+                ]
                 [ MonoIcons.icon (icon aType "#3d3d3d")
                 , compactColumn
-                    [ style "margin-left" "0.5rem"
-                    , style "margin-top" "0.1rem"
+                    [ style "margin-top" "0.1rem"
                     ]
                     [ text (Activity.activityType.toString aType) ]
                 ]
     in
     column []
         [ Html.label [] [ text "Type" ]
-        , div [ class "dropdown" ]
-            [ button [ class "button" ] [ iconButton activityType ]
-            , div [ class "dropdown-content" ]
-                (List.map
-                    (\( str, aType ) ->
-                        a [ onClick (SelectedActivityType aType) ]
-                            [ iconButton aType ]
-                    )
-                    Activity.activityType.list
+        , row []
+            (List.map
+                (\( str, aType ) ->
+                    iconButton aType
                 )
-            ]
+                Activity.activityType.list
+            )
         ]
 
 
@@ -499,14 +495,16 @@ emojiSelect msg name search =
                 , style "width" "22px"
                 , style "height" "22px"
                 , style "margin-right" "10px"
+                , style "margin-top" "5px"
+                , style "margin-bottom" "5px"
                 , style "cursor" "pointer"
                 , styleIf (data.name == name) "box-shadow" "0 0 0 0.2rem var(--icon-gray)"
                 ]
                 [ Emoji.view data ]
     in
     column []
-        [ label "Feel" (name /= "") (msg "")
-        , row [ style "height" "30px", style "margin-top" "4px" ]
+        [ label "Emoji" (name /= "") (msg "")
+        , row [ style "margin-top" "4px", style "flex-wrap" "wrap" ]
             (List.map emojiItem (emojis |> List.take 5))
         , row []
             [ input

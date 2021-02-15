@@ -16,7 +16,7 @@ type alias Activity =
     , date : Date
     , description : String
     , data : ActivityData
-    , sessionData : Maybe (List ActivityData)
+    , laps : Maybe (List ActivityData)
     }
 
 
@@ -134,7 +134,7 @@ decoder =
         (Decode.field "date" dateDecoder)
         (Decode.field "description" Decode.string)
         (Decode.field "data" activityDataDecoder)
-        (Decode.maybe (Decode.field "sessionData" (Decode.list activityDataDecoder)))
+        (Decode.maybe (Decode.field "laps" (Decode.list activityDataDecoder)))
 
 
 activityDataDecoder : Decode.Decoder ActivityData
@@ -176,7 +176,7 @@ encoder activity =
         , ( "date", Encode.string (Date.toIsoString activity.date) )
         , ( "description", Encode.string activity.description )
         , ( "data", dataEncoder activity.data )
-        , ( "sessionData", maybeEncode activity.sessionData (Encode.list dataEncoder) )
+        , ( "laps", maybeEncode activity.laps (Encode.list dataEncoder) )
         ]
 
 

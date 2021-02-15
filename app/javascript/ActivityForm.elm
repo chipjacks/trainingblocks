@@ -1,4 +1,4 @@
-module ActivityForm exposing (init, initMove, isEditing, update, view)
+module ActivityForm exposing (init, initMove, update, view)
 
 import Activity exposing (Activity, ActivityData, ActivityType)
 import ActivityShape
@@ -31,13 +31,24 @@ import Task exposing (Task)
 init : Activity -> ActivityForm
 init activity =
     let
-        data =
-            activity.data
+        ( lap, data ) =
+            case activity.laps of
+                Just (first :: rest) ->
+                    ( Just 0, first )
+
+                _ ->
+                    ( Nothing, activity.data )
     in
-    ActivityForm activity.id
+    initFromData activity lap data
+
+
+initFromData : Activity -> Maybe Int -> ActivityData -> ActivityForm
+initFromData activity lapM data =
+    ActivityForm activity
         (Just activity.date)
         activity.description
         (Ok activity)
+        lapM
         data.activityType
         (Maybe.map Duration.toHrsMinsSecs data.duration |> Maybe.withDefault ( 0, 0, 0 ))
         data.completed
@@ -67,11 +78,6 @@ apply toMsg { result } =
             NoOp
 
 
-isEditing : Activity -> ActivityForm -> Bool
-isEditing activity { id } =
-    activity.id == id
-
-
 validateFieldExists : Maybe a -> String -> Result FormError a
 validateFieldExists fieldM fieldName =
     case fieldM of
@@ -84,17 +90,58 @@ validateFieldExists fieldM fieldName =
 
 validate : ActivityForm -> Result FormError Activity
 validate model =
+    let
+        activity =
+            model.activity
+
+        lapsM =
+            Maybe.map2
+                (\index laps ->
+                    Array.fromList laps
+                        |> Array.set index (toActivityData model)
+                        |> Array.toList
+                )
+                model.lap
+                activity.laps
+
+        data =
+            case lapsM of
+                Just laps ->
+                    sumLapData laps
+
+                Nothing ->
+                    toActivityData model
+    in
     -- TODO : Validate run has two of three fields (pace, distance, time)
     Result.map
         (\date ->
-            Activity
-                model.id
-                date
-                model.description
-                (toActivityData model)
-                Nothing
+            { activity
+                | date = date
+                , description = model.description
+                , data = data
+                , laps = lapsM
+            }
         )
         (validateFieldExists model.date "date")
+
+
+sumLapData : List ActivityData -> ActivityData
+sumLapData laps =
+    let
+        duration =
+            List.filterMap .duration laps |> List.sum
+
+        completed =
+            List.all .completed laps
+    in
+    ActivityData
+        Activity.Run
+        (Just duration)
+        completed
+        Nothing
+        Nothing
+        Nothing
+        Nothing
 
 
 update : Msg -> ActivityForm -> ( ActivityForm, Cmd Msg )
@@ -114,6 +161,24 @@ update msg model =
 
         EditedDescription desc ->
             ( updateResult { model | description = desc }
+            , Cmd.none
+            )
+
+        SelectedLap index ->
+            let
+                lapDataM =
+                    model.activity.laps
+                        |> Maybe.map (\laps -> Array.fromList laps |> Array.get index)
+
+                newModel =
+                    case lapDataM of
+                        Just (Just lap) ->
+                            initFromData model.activity (Just index) lap
+
+                        _ ->
+                            model
+            in
+            ( updateResult newModel
             , Cmd.none
             )
 
@@ -225,7 +290,9 @@ view levelM activityM =
                             ]
                         , expandingRow [ style "max-height" "35rem" ]
                             [ compactColumn [ style "min-width" "4rem", style "justify-content" "center" ]
-                                [ ActivityShape.view levelM (toActivityData model) ]
+                                (Maybe.withDefault [ model.activity.data ] model.activity.laps
+                                    |> List.indexedMap (\i a -> viewActivityShape levelM i a)
+                                )
                             , viewFormFields levelM model
                             ]
                         ]
@@ -241,6 +308,11 @@ view levelM activityM =
 
         _ ->
             row closedAttributes []
+
+
+viewActivityShape : Maybe Int -> Int -> ActivityData -> Html Msg
+viewActivityShape levelM lapIndex activityData =
+    row [ onClick (SelectedLap lapIndex) ] [ ActivityShape.view levelM activityData ]
 
 
 viewFormFields : Maybe Int -> ActivityForm -> Html Msg

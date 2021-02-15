@@ -332,6 +332,10 @@ update msg model =
                     updateActivityForm msg state
                         |> loaded
 
+                SelectedLap _ ->
+                    updateActivityForm msg state
+                        |> loaded
+
                 SearchedEmojis _ ->
                     updateActivityForm msg state
                         |> loaded
@@ -392,7 +396,7 @@ update msg model =
                         |> loaded
 
                 ClickedUngroup session ->
-                    case session.sessionData of
+                    case session.laps of
                         Just dataList ->
                             ( model
                             , Random.list (List.length dataList) Activity.newId
@@ -563,8 +567,8 @@ view model =
                             Selected list ->
                                 List.map .id list |> String.join " "
 
-                            Editing { id } ->
-                                id
+                            Editing { activity } ->
+                                activity.id
 
                             Moving { id } _ _ ->
                                 id

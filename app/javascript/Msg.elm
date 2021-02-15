@@ -14,10 +14,11 @@ type Zoom
 
 
 type alias ActivityForm =
-    { id : Activity.Id
+    { activity : Activity
     , date : Maybe Date
     , description : String
     , result : Result FormError Activity
+    , lap : Maybe Int
     , activityType : Activity.ActivityType
     , duration : ( Int, Int, Int )
     , completed : Bool
@@ -75,6 +76,7 @@ type Msg
     | EditActivity Activity
     | SelectedDate Date
     | EditedDescription String
+    | SelectedLap Int
     | SelectedEmoji String
     | SearchedEmojis String
     | CheckedCompleted

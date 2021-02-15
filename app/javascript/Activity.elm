@@ -134,7 +134,7 @@ decoder =
         (Decode.field "date" dateDecoder)
         (Decode.field "description" Decode.string)
         (Decode.field "data" activityDataDecoder)
-        (Decode.maybe (Decode.field "laps" (Decode.list activityDataDecoder)))
+        (Decode.maybe (Decode.at [ "data", "laps" ] (Decode.list activityDataDecoder)))
 
 
 activityDataDecoder : Decode.Decoder ActivityData
@@ -160,7 +160,19 @@ encoder activity =
                 Nothing ->
                     Encode.null
 
-        dataEncoder data =
+        dataEncoder data laps =
+            Encode.object
+                [ ( "type", activityType.encode data.activityType )
+                , ( "duration", maybeEncode data.duration Encode.int )
+                , ( "completed", Encode.bool data.completed )
+                , ( "pace", maybeEncode data.pace Encode.int )
+                , ( "race", maybeEncode data.race raceDistance.encode )
+                , ( "effort", maybeEncode data.effort effort.encode )
+                , ( "emoji", maybeEncode data.emoji Encode.string )
+                , ( "laps", maybeEncode laps (Encode.list lapEncoder) )
+                ]
+
+        lapEncoder data =
             Encode.object
                 [ ( "type", activityType.encode data.activityType )
                 , ( "duration", maybeEncode data.duration Encode.int )
@@ -175,8 +187,7 @@ encoder activity =
         [ ( "id", Encode.string activity.id )
         , ( "date", Encode.string (Date.toIsoString activity.date) )
         , ( "description", Encode.string activity.description )
-        , ( "data", dataEncoder activity.data )
-        , ( "laps", maybeEncode activity.laps (Encode.list dataEncoder) )
+        , ( "data", dataEncoder activity.data activity.laps )
         ]
 
 

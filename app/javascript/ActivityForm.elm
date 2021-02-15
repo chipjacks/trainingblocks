@@ -234,7 +234,14 @@ update msg model =
 
 updateResult : ActivityForm -> ActivityForm
 updateResult model =
-    { model | result = validate model }
+    let
+        result =
+            validate model
+
+        activity =
+            Result.withDefault model.activity result
+    in
+    { model | result = validate model, activity = activity }
 
 
 view : Maybe Int -> ActivityState -> Html Msg

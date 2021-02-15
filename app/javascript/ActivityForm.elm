@@ -194,9 +194,8 @@ view levelM activityM =
                 ++ sharedAttributes
 
         closedAttributes =
-            [ style "transition" "border-width 0.5s 1s"
+            [ style "border-width" "0"
             , style "height" "0"
-            , style "border-width" "0"
             ]
                 ++ sharedAttributes
     in

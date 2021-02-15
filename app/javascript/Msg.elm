@@ -22,7 +22,7 @@ type alias ActivityForm =
     , duration : ( Int, Int, Int )
     , completed : Bool
     , pace : String
-    , distance : Maybe Activity.Distance
+    , race : Maybe Activity.RaceDistance
     , effort : Maybe Activity.Effort
     , emoji : String
     , emojiSearch : String
@@ -82,7 +82,7 @@ type Msg
     | EditedDuration ( Int, Int, Int )
     | SelectedEffort (Maybe Activity.Effort)
     | SelectedPace String
-    | SelectedDistance (Maybe Activity.Distance)
+    | SelectedRace (Maybe Activity.RaceDistance)
     | ClickedSubmit
     | ClickedCopy Activity
     | ClickedMove

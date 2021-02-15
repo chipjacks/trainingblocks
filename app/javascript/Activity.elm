@@ -1,4 +1,4 @@
-module Activity exposing (Activity, ActivityData, ActivityType(..), Distance(..), Effort(..), Id, Seconds, activityType, decoder, distance, effort, encoder, mprLevel, newId)
+module Activity exposing (Activity, ActivityData, ActivityType(..), Effort(..), Id, RaceDistance(..), Seconds, activityType, decoder, effort, encoder, mprLevel, newId, raceDistance)
 
 import Date exposing (Date)
 import Emoji
@@ -25,7 +25,7 @@ type alias ActivityData =
     , duration : Maybe Seconds
     , completed : Bool
     , pace : Maybe Pace
-    , distance : Maybe Distance
+    , race : Maybe RaceDistance
     , effort : Maybe Effort
     , emoji : Maybe String
     }
@@ -57,10 +57,10 @@ newId =
 
 mprLevel : Activity -> Maybe Int
 mprLevel activity =
-    case ( activity.data.distance, activity.data.duration ) of
+    case ( activity.data.race, activity.data.duration ) of
         ( Just distance_, Just duration ) ->
             MPRLevel.lookup MPRLevel.Neutral
-                (distance.toString distance_)
+                (raceDistance.toString distance_)
                 duration
                 |> Result.map (\( rt, level ) -> level)
                 |> Result.toMaybe
@@ -77,7 +77,7 @@ type alias Seconds =
     Int
 
 
-type Distance
+type RaceDistance
     = FiveK
     | EightK
     | FiveMile
@@ -91,8 +91,8 @@ type Distance
     | Marathon
 
 
-distance : Enum Distance
-distance =
+raceDistance : Enum RaceDistance
+raceDistance =
     Enum.create
         [ ( "5k", FiveK )
         , ( "8k", EightK )
@@ -144,7 +144,7 @@ activityDataDecoder =
         (Decode.maybe (Decode.field "duration" Decode.int))
         (Decode.field "completed" Decode.bool)
         (Decode.maybe (Decode.field "pace" Decode.int))
-        (Decode.maybe (Decode.field "distance" distance.decoder))
+        (Decode.maybe (Decode.field "race" raceDistance.decoder))
         (Decode.maybe (Decode.field "effort" effort.decoder))
         (Decode.maybe (Decode.field "emoji" Decode.string))
 
@@ -166,7 +166,7 @@ encoder activity =
                 , ( "duration", maybeEncode data.duration Encode.int )
                 , ( "completed", Encode.bool data.completed )
                 , ( "pace", maybeEncode data.pace Encode.int )
-                , ( "distance", maybeEncode data.distance distance.encode )
+                , ( "race", maybeEncode data.race raceDistance.encode )
                 , ( "effort", maybeEncode data.effort effort.encode )
                 , ( "emoji", maybeEncode data.emoji Encode.string )
                 ]

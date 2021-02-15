@@ -53,8 +53,15 @@ def create_activity(obj, order, me)
       migrate_data(a['data'])
     end
     return
-  elsif data['type'] == 'interval' || data['type'] == 'race'
+  elsif data['type'] == 'run'
+    data['effort'] = 'Easy'
+  elsif data['type'] == 'interval'
     data['type'] = 'run'
+    data['effort'] = 'Moderate'
+  elsif data['type'] == 'race'
+    data['type'] = 'run'
+    data['effort'] = 'Hard'
+    data['race'] = data['distance']
   elsif data['type'] == 'other' || data['type'] == 'note'
     data['type'] = 'other'
     data['completed'] = data['completed'] ? data['completed'] : true

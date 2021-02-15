@@ -42,7 +42,7 @@ init activity =
         (Maybe.map Duration.toHrsMinsSecs data.duration |> Maybe.withDefault ( 0, 0, 0 ))
         data.completed
         (Maybe.map Pace.paceToString data.pace |> Maybe.withDefault "")
-        data.distance
+        data.race
         data.effort
         (Maybe.withDefault "" data.emoji)
         ""
@@ -152,8 +152,8 @@ update msg model =
             , Cmd.none
             )
 
-        SelectedDistance distM ->
-            ( updateResult { model | distance = distM }
+        SelectedRace distM ->
+            ( updateResult { model | race = distM }
             , Cmd.none
             )
 
@@ -268,7 +268,7 @@ viewFormFields levelM form =
             ]
         , row [ styleIf (form.activityType /= Activity.Run) "visibility" "hidden" ]
             [ column [ maxFieldWidth ] [ paceSelect levelM SelectedPace form.pace ]
-            , column [ maxFieldWidth ] [ distanceSelect SelectedDistance form.distance ]
+            , column [ maxFieldWidth ] [ raceSelect SelectedRace form.race ]
             ]
         ]
 
@@ -319,15 +319,6 @@ viewMultiSelectButtons activities =
         ]
 
 
-type alias Defaults =
-    { duration : String, pace : String, distance : Activity.Distance, completed : Bool, emoji : String }
-
-
-defaults : Defaults
-defaults =
-    Defaults "30" "7:30" Activity.FiveK True Emoji.default.name
-
-
 parseDuration : ( Int, Int, Int ) -> Maybe Int
 parseDuration ( hrs, mins, secs ) =
     let
@@ -359,7 +350,7 @@ toActivityData model =
             Nothing
         )
         (if model.activityType == Activity.Run then
-            model.distance
+            model.race
 
          else
             Nothing
@@ -658,13 +649,13 @@ effortSelect msg effortM =
         ]
 
 
-distanceSelect : (Maybe Activity.Distance -> Msg) -> Maybe Activity.Distance -> Html Msg
-distanceSelect msg distanceM =
+raceSelect : (Maybe Activity.RaceDistance -> Msg) -> Maybe Activity.RaceDistance -> Html Msg
+raceSelect msg distanceM =
     column []
-        [ label "Distance" (distanceM /= Nothing) (msg Nothing)
+        [ label "Race" (distanceM /= Nothing) (msg Nothing)
         , div [ class "dropdown" ]
             [ button [ class "button" ]
-                [ text (Maybe.map Activity.distance.toString distanceM |> Maybe.withDefault "Distance") ]
+                [ text (Maybe.map Activity.raceDistance.toString distanceM |> Maybe.withDefault "Select") ]
             , div [ class "dropdown-content" ]
                 (List.map
                     (\( distanceStr, distanceOpt ) ->
@@ -674,7 +665,7 @@ distanceSelect msg distanceM =
                             ]
                             [ Html.text distanceStr ]
                     )
-                    Activity.distance.list
+                    Activity.raceDistance.list
                 )
             ]
         ]

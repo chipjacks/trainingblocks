@@ -356,7 +356,7 @@ update msg model =
                     updateActivityForm msg state
                         |> loaded
 
-                SelectedDistance _ ->
+                SelectedRace _ ->
                     updateActivityForm msg state
                         |> loaded
 

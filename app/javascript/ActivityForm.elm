@@ -295,8 +295,8 @@ view levelM activityM =
                                         [ viewButtons activity True ]
                                 )
                             ]
-                        , expandingRow [ style "max-height" "35rem" ]
-                            [ compactColumn [ style "min-width" "4rem", style "justify-content" "center" ]
+                        , expandingRow [ style "overflow" "hidden" ]
+                            [ compactColumn [ style "min-width" "4rem", style "overflow-y" "scroll", class "hide-scrollbars", style "padding-left" "3px" ]
                                 (Maybe.withDefault [ model.activity.data ] model.activity.laps
                                     |> List.indexedMap (\i a -> viewActivityShape levelM model.lap i a)
                                 )
@@ -334,7 +334,7 @@ viewFormFields levelM form =
         maxFieldWidth =
             style "max-width" "20rem"
     in
-    column [ style "justify-content" "space-between" ]
+    column [ style "justify-content" "space-between", style "max-height" "35rem" ]
         [ row []
             [ column [ maxFieldWidth ] [ dateSelect ClickedMove form.date ]
             , column [ maxFieldWidth ] [ completionToggle CheckedCompleted form.completed ]

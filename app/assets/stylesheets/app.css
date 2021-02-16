@@ -124,3 +124,15 @@ button:hover, .button:hover { background-color: var(--highlight-gray); }
 
 @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
+
+/*
+ * HIDE SCROLLBARS
+*/
+
+.hide-scrollbars::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
+}
+.hide-scrollbars {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}

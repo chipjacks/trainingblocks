@@ -1,4 +1,4 @@
-module Skeleton exposing (attributeIf, borderStyle, column, compactColumn, expandingRow, layout, logo, row, spinner, styleIf, viewIf, viewMaybe)
+module Skeleton exposing (attributeIf, borderStyle, column, compactColumn, expandingRow, iconButton, layout, logo, row, spinner, styleIf, viewIf, viewMaybe)
 
 import Html exposing (Html, div, i, img, text)
 import Html.Attributes exposing (class, src, style)
@@ -54,6 +54,20 @@ compactColumn attributes children =
 spinner : String -> Html msg
 spinner fontSize =
     div [ class "spinner", style "width" fontSize, style "height" fontSize ] []
+
+
+iconButton : List (Html.Attribute msg) -> List (Html msg) -> Html msg
+iconButton attributes children =
+    compactColumn []
+        [ Html.a
+            (attributes
+                ++ [ class "button small"
+                   , style "font-size" "0.8rem"
+                   , style "padding" "0.05rem 0.25rem"
+                   ]
+            )
+            children
+        ]
 
 
 styleIf : Bool -> String -> String -> Html.Attribute msg

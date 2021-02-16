@@ -1,4 +1,4 @@
-module Activity exposing (Activity, ActivityData, ActivityType(..), Effort(..), Id, RaceDistance(..), Seconds, activityType, decoder, effort, encoder, mprLevel, newId, raceDistance)
+module Activity exposing (Activity, ActivityData, ActivityType(..), Effort(..), Id, RaceDistance(..), Seconds, activityType, decoder, effort, encoder, mprLevel, newId, raceDistance, initActivityData)
 
 import Date exposing (Date)
 import Emoji
@@ -30,6 +30,16 @@ type alias ActivityData =
     , emoji : Maybe String
     }
 
+initActivityData : ActivityData
+initActivityData =
+    ActivityData
+        Run
+        Nothing
+        True
+        Nothing
+        Nothing
+        Nothing
+        Nothing
 
 type ActivityType
     = Run

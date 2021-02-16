@@ -341,6 +341,10 @@ update msg model =
                     updateActivityForm msg state
                         |> loaded
 
+                ClickedAddLap ->
+                    updateActivityForm msg state
+                        |> loaded
+
                 SearchedEmojis _ ->
                     updateActivityForm msg state
                         |> loaded
@@ -495,6 +499,9 @@ initActivity today dateM =
 
         completed =
             Date.compare date today == LT || date == today
+
+        activityData =
+            Activity.initActivityData
     in
     Activity.newId
         |> Random.map
@@ -502,7 +509,7 @@ initActivity today dateM =
                 Activity id
                     date
                     ""
-                    (Activity.ActivityData Activity.Run Nothing completed Nothing Nothing Nothing Nothing)
+                    { activityData | completed = completed }
                     Nothing
             )
         |> Random.generate NewActivity
@@ -510,20 +517,17 @@ initActivity today dateM =
 
 initSession : Activity -> List Activity -> Cmd Msg
 initSession head activities =
+    let
+        activityData =
+            Activity.initActivityData
+    in
     Activity.newId
         |> Random.map
             (\id ->
                 Activity id
                     head.date
                     ""
-                    (Activity.ActivityData Activity.Run
-                        Nothing
-                        head.data.completed
-                        Nothing
-                        Nothing
-                        Nothing
-                        Nothing
-                    )
+                    { activityData | completed = head.data.completed }
                     (Just (List.map .data activities))
             )
         |> Random.generate (Group activities)

@@ -77,6 +77,7 @@ type Msg
     | SelectedDate Date
     | EditedDescription String
     | SelectedLap Int
+    | ClickedAddLap
     | SelectedEmoji String
     | SearchedEmojis String
     | CheckedCompleted

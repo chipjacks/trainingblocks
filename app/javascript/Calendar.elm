@@ -17,7 +17,7 @@ import Msg exposing (ActivityState(..), Msg(..), Zoom(..))
 import Pace
 import Ports exposing (scrollToSelectedDate)
 import Process
-import Skeleton exposing (attributeIf, borderStyle, column, compactColumn, expandingRow, row, spinner, styleIf, viewIf, viewMaybe)
+import Skeleton exposing (attributeIf, borderStyle, column, compactColumn, expandingRow, iconButton, row, spinner, styleIf, viewIf, viewMaybe)
 import Task
 import Time exposing (Month(..))
 
@@ -594,15 +594,9 @@ pointerDownDecoder activity =
 viewAddButton : Date -> Html Msg
 viewAddButton date =
     row [ style "padding" "0.5rem 0.5rem" ]
-        [ compactColumn []
-            [ a
-                [ onClick (ClickedNewActivity date)
-                , class "button small"
-                , style "font-size" "0.8rem"
-                , style "padding" "0.05rem 0.25rem"
-                ]
-                [ MonoIcons.icon (MonoIcons.add "var(--icon-gray)") ]
-            ]
+        [ iconButton
+            [ onClick (ClickedNewActivity date) ]
+            [ MonoIcons.icon (MonoIcons.add "var(--icon-gray)") ]
         ]
 
 

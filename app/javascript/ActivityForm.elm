@@ -16,7 +16,7 @@ import MPRLevel
 import MonoIcons
 import Msg exposing (ActivityForm, ActivityState(..), FormError(..), Msg(..))
 import Pace exposing (Pace)
-import Skeleton exposing (attributeIf, borderStyle, column, compactColumn, expandingRow, row, styleIf, viewIf, viewMaybe)
+import Skeleton exposing (attributeIf, borderStyle, column, compactColumn, expandingRow, iconButton, row, styleIf, viewIf, viewMaybe)
 import Store
 import Svg exposing (Svg)
 import Task exposing (Task)
@@ -182,6 +182,25 @@ update msg model =
             , Cmd.none
             )
 
+        ClickedAddLap ->
+            let
+                newLap =
+                    Activity.initActivityData
+                        |> (\a -> { a | completed = model.completed })
+
+                newActivity =
+                    addLap newLap model.activity
+
+                newModel =
+                    initFromData
+                        newActivity
+                        (Maybe.map (\l -> List.length l - 1) newActivity.laps)
+                        newLap
+            in
+            ( updateResult newModel
+            , Cmd.none
+            )
+
         SelectedEffort effortM ->
             ( updateResult { model | effort = effortM }
             , Cmd.none
@@ -244,6 +263,20 @@ updateResult model =
     { model | result = validate model, activity = activity }
 
 
+addLap : ActivityData -> Activity -> Activity
+addLap lap activity =
+    let
+        newLaps =
+            case activity.laps of
+                Nothing ->
+                    [ activity.data, lap ]
+
+                Just laps ->
+                    laps ++ [ lap ]
+    in
+    { activity | laps = Just newLaps }
+
+
 view : Maybe Int -> ActivityState -> Html Msg
 view levelM activityM =
     let
@@ -297,8 +330,11 @@ view levelM activityM =
                             ]
                         , expandingRow [ style "overflow" "hidden" ]
                             [ compactColumn [ style "min-width" "4rem", style "overflow-y" "scroll", class "hide-scrollbars", style "padding-left" "3px" ]
-                                (Maybe.withDefault [ model.activity.data ] model.activity.laps
-                                    |> List.indexedMap (\i a -> viewActivityShape levelM model.lap i a)
+                                (List.concat
+                                    [ Maybe.withDefault [ model.activity.data ] model.activity.laps
+                                        |> List.indexedMap (\i a -> viewActivityShape levelM model.lap i a)
+                                    , [ viewAddButton ]
+                                    ]
                                 )
                             , viewFormFields levelM model
                             ]
@@ -326,6 +362,13 @@ viewActivityShape levelM selectedLapM lapIndex activityData =
         , style "padding-bottom" "1rem"
         ]
         [ ActivityShape.view levelM activityData ]
+
+
+viewAddButton : Html Msg
+viewAddButton =
+    row []
+        [ iconButton [ onClick ClickedAddLap ] [ MonoIcons.icon (MonoIcons.add "var(--icon-gray)") ]
+        ]
 
 
 viewFormFields : Maybe Int -> ActivityForm -> Html Msg

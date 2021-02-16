@@ -420,7 +420,7 @@ viewWeekDay ( date, activities ) isToday isSelected activeId levelM =
                         , class "no-select"
                         , style "margin-bottom" "0.1rem"
                         , style "margin-right" "0.2rem"
-                        , attributeIf (isActive a) (style "opacity" "0.5")
+                        , attributeIf (isActive a) (class "selected-shape")
                         , Html.Events.onDoubleClick (EditActivity a)
                         ]
                         [ viewActivityShape a (isActive a) levelM ]

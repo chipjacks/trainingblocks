@@ -76,6 +76,7 @@ button:hover, .button:hover { background-color: var(--highlight-gray); }
 
 .no-select { user-select: none; -webkit-user-select: none; }
 .dynamic-shape > .block { transition: height 0.5s, width 0.5s; }
+.selected-shape > div { box-shadow: 0 0 0 1px #ffffff, 0 0 0 3px var(--accent-blue); }
 
 /*
  * DROPDOWN

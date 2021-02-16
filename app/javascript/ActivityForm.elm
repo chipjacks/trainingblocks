@@ -298,7 +298,7 @@ view levelM activityM =
                         , expandingRow [ style "max-height" "35rem" ]
                             [ compactColumn [ style "min-width" "4rem", style "justify-content" "center" ]
                                 (Maybe.withDefault [ model.activity.data ] model.activity.laps
-                                    |> List.indexedMap (\i a -> viewActivityShape levelM i a)
+                                    |> List.indexedMap (\i a -> viewActivityShape levelM model.lap i a)
                                 )
                             , viewFormFields levelM model
                             ]
@@ -317,9 +317,15 @@ view levelM activityM =
             row closedAttributes []
 
 
-viewActivityShape : Maybe Int -> Int -> ActivityData -> Html Msg
-viewActivityShape levelM lapIndex activityData =
-    row [ onClick (SelectedLap lapIndex) ] [ ActivityShape.view levelM activityData ]
+viewActivityShape : Maybe Int -> Maybe Int -> Int -> ActivityData -> Html Msg
+viewActivityShape levelM selectedLapM lapIndex activityData =
+    row
+        [ onClick (SelectedLap lapIndex)
+        , attributeIf (selectedLapM == Just lapIndex) (class "selected-shape")
+        , style "padding-top" "1rem"
+        , style "padding-bottom" "1rem"
+        ]
+        [ ActivityShape.view levelM activityData ]
 
 
 viewFormFields : Maybe Int -> ActivityForm -> Html Msg

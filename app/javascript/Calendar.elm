@@ -94,23 +94,31 @@ update msg model =
 -- VIEW MENU
 
 
-viewMenu : Model -> Html Msg
-viewMenu model =
+viewMenu : Bool -> Model -> Html Msg
+viewMenu disabled model =
     let
         (Model zoom start end selected today scrollCompleted) =
             model
     in
     row []
-        [ compactColumn [ style "justify-content" "center" ] [ viewBackButton model ]
+        [ compactColumn [ style "justify-content" "center" ]
+            [ if disabled then
+                Skeleton.logo
+
+              else
+                viewBackButton model
+            ]
         , column []
-            [ row [ style "justify-content" "center" ]
-                [ viewDatePicker model
-                , button
-                    [ style "margin-left" "0.2rem"
-                    , onClick (Jump today)
+            [ viewIf (not disabled)
+                (row [ style "justify-content" "center" ]
+                    [ viewDatePicker model
+                    , button
+                        [ style "margin-left" "0.2rem"
+                        , onClick (Jump today)
+                        ]
+                        [ text "Today" ]
                     ]
-                    [ text "Today" ]
-                ]
+                )
             ]
         ]
 

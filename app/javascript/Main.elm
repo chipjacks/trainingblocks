@@ -62,9 +62,14 @@ init { csrfToken } =
 viewNavbar : Model -> Html Msg
 viewNavbar model =
     case model of
-        Loaded (State calendar store _) ->
+        Loaded (State calendar store activityState) ->
             row [ style "padding" "0.5rem" ]
-                [ column [] [ Calendar.viewMenu calendar ]
+                [ case activityState of
+                    Editing _ ->
+                        column [] [ Calendar.viewMenu True calendar ]
+
+                    _ ->
+                        column [] [ Calendar.viewMenu False calendar ]
                 , compactColumn [ style "min-width" "1.5rem", style "justify-content" "center" ]
                     [ div [ class "dropdown" ]
                         [ if Store.needsFlush store then

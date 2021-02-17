@@ -246,7 +246,7 @@ update msg model =
                 Delete _ ->
                     case activityM of
                         Editing form ->
-                            if form.lap == Nothing then
+                            if List.length (Tuple.second form.laps) == 1 then
                                 updateStore msg (State calendar store None) |> loaded
 
                             else

@@ -31,24 +31,33 @@ import Task exposing (Task)
 init : Activity -> ActivityForm
 init activity =
     let
-        ( lap, data ) =
+        ( index, laps ) =
             case activity.laps of
-                Just (first :: rest) ->
-                    ( Just 0, first )
+                Just list ->
+                    ( 0, list )
 
-                _ ->
-                    ( Nothing, activity.data )
+                Nothing ->
+                    ( 0, [ activity.data ] )
     in
-    initFromData activity lap data
+    initFromLaps activity ( index, laps )
 
 
-initFromData : Activity -> Maybe Int -> ActivityData -> ActivityForm
-initFromData activity lapM data =
+initFromLaps : Activity -> ( Int, List ActivityData ) -> ActivityForm
+initFromLaps activity laps =
+    let
+        data =
+            laps
+                |> (\( index, list ) ->
+                        Array.fromList list
+                            |> Array.get index
+                            |> Maybe.withDefault activity.data
+                   )
+    in
     ActivityForm activity
         (Just activity.date)
         activity.description
         (Ok activity)
-        lapM
+        laps
         data.activityType
         (Maybe.map Duration.toHrsMinsSecs data.duration |> Maybe.withDefault ( 0, 0, 0 ))
         data.completed
@@ -78,92 +87,35 @@ apply toMsg { result } =
             NoOp
 
 
-validateFieldExists : Maybe a -> String -> Result FormError a
-validateFieldExists fieldM fieldName =
-    case fieldM of
-        Just field ->
-            Ok field
-
-        Nothing ->
-            Err <| EmptyFieldError fieldName
-
-
-validate : ActivityForm -> Result FormError Activity
-validate model =
-    let
-        activity =
-            model.activity
-
-        lapsM =
-            Maybe.map2
-                (\index laps ->
-                    Array.fromList laps
-                        |> Array.set index (toActivityData model)
-                        |> Array.toList
-                )
-                model.lap
-                activity.laps
-
-        data =
-            case lapsM of
-                Just laps ->
-                    sumLapData laps
-
-                Nothing ->
-                    toActivityData model
-    in
-    -- TODO : Validate run has two of three fields (pace, distance, time)
-    Result.map
-        (\date ->
-            { activity
-                | date = date
-                , description = model.description
-                , data = data
-                , laps = lapsM
-            }
-        )
-        (validateFieldExists model.date "date")
-
-
-sumLapData : List ActivityData -> ActivityData
-sumLapData laps =
-    let
-        duration =
-            List.filterMap .duration laps |> List.sum
-
-        completed =
-            List.all .completed laps
-    in
-    ActivityData
-        Activity.Run
-        (Just duration)
-        completed
-        Nothing
-        Nothing
-        Nothing
-        Nothing
-
-
 update : Msg -> ActivityForm -> ( ActivityForm, Cmd Msg )
 update msg model =
     case msg of
         ClickedCopy _ ->
             let
-                newLap =
-                    Maybe.map2
-                        (\laps index -> Array.fromList laps |> Array.get index |> Maybe.withDefault Activity.initActivityData)
-                        model.activity.laps
-                        model.lap
-                        |> Maybe.withDefault model.activity.data
+                newLaps =
+                    model.laps
+                        |> (\( index, laps ) ->
+                                let
+                                    tail =
+                                        List.drop index laps
 
-                newActivity =
-                    addLap newLap model.activity
+                                    copied =
+                                        case List.head tail of
+                                            Just lap ->
+                                                [ lap ]
+
+                                            _ ->
+                                                []
+                                in
+                                ( index + 1
+                                , List.take index laps ++ copied ++ tail
+                                )
+                           )
 
                 newModel =
-                    initFromData
-                        newActivity
-                        (Maybe.map (\l -> List.length l - 1) newActivity.laps)
-                        newLap
+                    initFromLaps
+                        model.activity
+                        newLaps
             in
             ( updateResult newModel
             , Cmd.none
@@ -174,40 +126,42 @@ update msg model =
 
         Delete _ ->
             let
-                newLapsM =
-                    Maybe.map2
-                        (\laps index ->
-                            List.take index laps ++ List.drop (index + 1) laps
-                        )
-                        model.activity.laps
-                        model.lap
+                newLaps =
+                    model.laps
+                        |> (\( index, laps ) ->
+                                ( if index < (List.length laps - 1) then
+                                    index
 
-                ( newActivity, newLapIndex, newLap ) =
-                    case newLapsM of
-                        Just [ lap ] ->
-                            ( model.activity |> (\a -> { a | data = lap, laps = Nothing }), Nothing, lap )
-
-                        Just newLaps ->
-                            let
-                                ( indexM, lapM ) =
-                                    List.indexedMap Tuple.pair newLaps
-                                        |> List.filter (\( i, l ) -> Just i == model.lap)
-                                        |> List.head
-                                        |> Maybe.map (\( i, l ) -> ( Just i, l ))
-                                        |> Maybe.withDefault ( Just (List.length newLaps - 1), List.reverse newLaps |> List.head |> Maybe.withDefault Activity.initActivityData )
-                            in
-                            ( model.activity |> (\a -> { a | laps = newLapsM }), indexM, lapM )
-
-                        _ ->
-                            ( model.activity, Nothing, model.activity.data )
-
-                newModel =
-                    initFromData
-                        newActivity
-                        newLapIndex
-                        newLap
+                                  else
+                                    index - 1
+                                , List.take index laps ++ List.drop (index + 1) laps
+                                )
+                           )
             in
-            ( updateResult newModel
+            ( updateResult (initFromLaps model.activity newLaps)
+            , Cmd.none
+            )
+
+        SelectedLap index ->
+            let
+                newLaps =
+                    model.laps
+                        |> Tuple.mapFirst (\_ -> index)
+            in
+            ( updateResult (initFromLaps model.activity newLaps)
+            , Cmd.none
+            )
+
+        ClickedAddLap ->
+            let
+                newLap =
+                    Activity.initActivityData
+                        |> (\a -> { a | completed = model.completed })
+
+                newLaps =
+                    ( List.length laps, laps ++ [ lap ] )
+            in
+            ( updateResult (initFromLaps model.activity newLaps)
             , Cmd.none
             )
 
@@ -225,43 +179,6 @@ update msg model =
 
         EditedDescription desc ->
             ( updateResult { model | description = desc }
-            , Cmd.none
-            )
-
-        SelectedLap index ->
-            let
-                lapDataM =
-                    model.activity.laps
-                        |> Maybe.map (\laps -> Array.fromList laps |> Array.get index)
-
-                newModel =
-                    case lapDataM of
-                        Just (Just lap) ->
-                            initFromData model.activity (Just index) lap
-
-                        _ ->
-                            model
-            in
-            ( updateResult newModel
-            , Cmd.none
-            )
-
-        ClickedAddLap ->
-            let
-                newLap =
-                    Activity.initActivityData
-                        |> (\a -> { a | completed = model.completed })
-
-                newActivity =
-                    addLap newLap model.activity
-
-                newModel =
-                    initFromData
-                        newActivity
-                        (Maybe.map (\l -> List.length l - 1) newActivity.laps)
-                        newLap
-            in
-            ( updateResult newModel
             , Cmd.none
             )
 
@@ -318,27 +235,74 @@ update msg model =
 updateResult : ActivityForm -> ActivityForm
 updateResult model =
     let
-        result =
-            validate model
+        laps =
+            model.laps
+                |> (\( index, list ) ->
+                        ( index
+                        , Array.fromList list
+                            |> Array.set index (toActivityData model)
+                            |> Array.toList
+                        )
+                   )
+
+        ( data, activityLaps ) =
+            case laps of
+                ( _, [] ) ->
+                    ( toActivityData model, Nothing )
+
+                ( _, [ lap ] ) ->
+                    ( toActivityData model, Nothing )
+
+                ( _, list ) ->
+                    ( sumLapData list, Just list )
 
         activity =
-            Result.withDefault model.activity result
+            model.activity
+                |> (\a ->
+                        { a | data = data, laps = activityLaps }
+                   )
     in
-    { model | result = validate model, activity = activity }
+    { model | laps = laps, result = validate model, activity = activity }
 
 
-addLap : ActivityData -> Activity -> Activity
-addLap lap activity =
+validateFieldExists : Maybe a -> String -> Result FormError a
+validateFieldExists fieldM fieldName =
+    case fieldM of
+        Just field ->
+            Ok field
+
+        Nothing ->
+            Err <| EmptyFieldError fieldName
+
+
+validate : ActivityForm -> Result FormError Activity
+validate model =
     let
-        newLaps =
-            case activity.laps of
-                Nothing ->
-                    [ activity.data, lap ]
-
-                Just laps ->
-                    laps ++ [ lap ]
+        activity =
+            model.activity
     in
-    { activity | laps = Just newLaps }
+    Result.map
+        (\date -> { activity | date = date })
+        (validateFieldExists model.date "date")
+
+
+sumLapData : List ActivityData -> ActivityData
+sumLapData laps =
+    let
+        duration =
+            List.filterMap .duration laps |> List.sum
+
+        completed =
+            List.all .completed laps
+    in
+    ActivityData
+        Activity.Run
+        (Just duration)
+        completed
+        Nothing
+        Nothing
+        Nothing
+        Nothing
 
 
 view : Maybe Int -> ActivityState -> Html Msg
@@ -395,8 +359,8 @@ view levelM activityM =
                         , expandingRow [ style "overflow" "hidden" ]
                             [ compactColumn [ style "min-width" "4rem", style "overflow-y" "scroll", class "hide-scrollbars", style "padding-left" "3px" ]
                                 (List.concat
-                                    [ Maybe.withDefault [ model.activity.data ] model.activity.laps
-                                        |> List.indexedMap (\i a -> viewActivityShape levelM model.lap i a)
+                                    [ Tuple.second model.laps
+                                        |> List.indexedMap (\i a -> viewActivityShape levelM (Tuple.first model.laps) i a)
                                     , [ viewAddButton ]
                                     ]
                                 )
@@ -417,11 +381,11 @@ view levelM activityM =
             row closedAttributes []
 
 
-viewActivityShape : Maybe Int -> Maybe Int -> Int -> ActivityData -> Html Msg
-viewActivityShape levelM selectedLapM lapIndex activityData =
+viewActivityShape : Maybe Int -> Int -> Int -> ActivityData -> Html Msg
+viewActivityShape levelM selectedLap lapIndex activityData =
     row
         [ onClick (SelectedLap lapIndex)
-        , attributeIf (selectedLapM == Just lapIndex) (class "selected-shape")
+        , attributeIf (selectedLap == lapIndex) (class "selected-shape")
         , style "padding-top" "1rem"
         , style "padding-bottom" "1rem"
         ]

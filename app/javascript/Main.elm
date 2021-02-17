@@ -235,10 +235,22 @@ update msg model =
                     updateStore msg state |> loaded
 
                 Shift _ _ ->
-                    updateStore msg state |> loaded
+                    case activityM of
+                        Editing form ->
+                            updateActivityForm msg state
+                                |> loaded
+
+                        _ ->
+                            updateStore msg state |> loaded
 
                 Delete _ ->
-                    updateStore msg (State calendar store None) |> loaded
+                    case activityM of
+                        Editing form ->
+                            updateActivityForm msg state
+                                |> loaded
+
+                        _ ->
+                            updateStore msg (State calendar store None) |> loaded
 
                 Posted _ _ ->
                     updateStore msg state |> loaded
@@ -387,11 +399,17 @@ update msg model =
                             ( Loaded (State calendar store None), Cmd.none )
 
                 ClickedCopy activity ->
-                    ( model
-                    , Activity.newId
-                        |> Random.map (\id -> { activity | id = id })
-                        |> Random.generate NewActivity
-                    )
+                    case activityM of
+                        Editing form ->
+                            updateActivityForm msg state
+                                |> loaded
+
+                        _ ->
+                            ( model
+                            , Activity.newId
+                                |> Random.map (\id -> { activity | id = id })
+                                |> Random.generate NewActivity
+                            )
 
                 ClickedMove ->
                     let

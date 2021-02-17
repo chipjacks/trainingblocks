@@ -147,6 +147,65 @@ sumLapData laps =
 update : Msg -> ActivityForm -> ( ActivityForm, Cmd Msg )
 update msg model =
     case msg of
+        ClickedCopy _ ->
+            let
+                newLap =
+                    Maybe.map2
+                        (\laps index -> Array.fromList laps |> Array.get index |> Maybe.withDefault Activity.initActivityData)
+                        model.activity.laps
+                        model.lap
+                        |> Maybe.withDefault model.activity.data
+
+                newActivity =
+                    addLap newLap model.activity
+
+                newModel =
+                    initFromData
+                        newActivity
+                        (Maybe.map (\l -> List.length l - 1) newActivity.laps)
+                        newLap
+            in
+            ( updateResult newModel
+            , Cmd.none
+            )
+
+        Shift up _ ->
+            ( model, Cmd.none )
+
+        Delete _ ->
+            let
+                newLapsM =
+                    case ( model.activity.laps, model.lap ) of
+                        ( Just laps, Just index ) ->
+                            Just (List.take index laps ++ List.drop (index + 1) laps)
+
+                        _ ->
+                            Nothing
+
+                ( newActivity, newLapIndex, newLap ) =
+                    case newLapsM of
+                        Just (first :: rest :: more) ->
+                            ( model.activity |> (\a -> { a | laps = newLapsM }), Just 0, first )
+
+                        Just [ lap ] ->
+                            ( model.activity |> (\a -> { a | data = lap, laps = Nothing }), Nothing, lap )
+
+                        Just [] ->
+                            ( model.activity, Nothing, model.activity.data )
+
+                        Nothing ->
+                            ( model.activity, Nothing, model.activity.data )
+
+                newModel =
+                    initFromData
+                        newActivity
+                        newLapIndex
+                        newLap
+            in
+            ( updateResult newModel
+            , Cmd.none
+            )
+
         SelectedDate date ->
             case model.date of
                 Nothing ->

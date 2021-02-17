@@ -1,6 +1,7 @@
 module ActivityForm exposing (init, initMove, update, view)
 
 import Activity exposing (Activity, ActivityData, ActivityType)
+import ActivityForm.Laps as Laps exposing (Laps)
 import ActivityShape
 import Api
 import Array exposing (Array)
@@ -31,27 +32,22 @@ import Task exposing (Task)
 init : Activity -> ActivityForm
 init activity =
     let
-        ( index, laps ) =
+        laps =
             case activity.laps of
                 Just list ->
-                    ( 0, list )
+                    Laps.init list
 
                 Nothing ->
-                    ( 0, [ activity.data ] )
+                    Laps.init [ activity.data ]
     in
-    initFromLaps activity ( index, laps )
+    initFromLaps activity laps
 
 
-initFromLaps : Activity -> ( Int, List ActivityData ) -> ActivityForm
+initFromLaps : Activity -> Laps -> ActivityForm
 initFromLaps activity laps =
     let
         data =
-            laps
-                |> (\( index, list ) ->
-                        Array.fromList list
-                            |> Array.get index
-                            |> Maybe.withDefault activity.data
-                   )
+            Laps.get laps
     in
     ActivityForm activity
         (Just activity.date)
@@ -93,24 +89,7 @@ update msg model =
         ClickedCopy _ ->
             let
                 newLaps =
-                    model.laps
-                        |> (\( index, laps ) ->
-                                let
-                                    tail =
-                                        List.drop index laps
-
-                                    copied =
-                                        case List.head tail of
-                                            Just lap ->
-                                                [ lap ]
-
-                                            _ ->
-                                                []
-                                in
-                                ( index + 1
-                                , List.take index laps ++ copied ++ tail
-                                )
-                           )
+                    Laps.copy model.laps
 
                 newModel =
                     initFromLaps
@@ -124,42 +103,7 @@ update msg model =
         Shift up _ ->
             let
                 newLaps =
-                    model.laps
-                        |> (\( index, laps ) ->
-                                let
-                                    ( indexA, indexB ) =
-                                        if up then
-                                            ( index - 1, index )
-
-                                        else
-                                            ( index, index + 1 )
-
-                                    lapsArray =
-                                        Array.fromList laps
-
-                                    shiftedLaps =
-                                        [ Array.slice 0 indexA lapsArray
-                                        , Array.slice indexB (indexB + 1) lapsArray
-                                        , Array.slice indexA (indexA + 1) lapsArray
-                                        , Array.slice (indexB + 1) (Array.length lapsArray) lapsArray
-                                        ]
-                                            |> List.map Array.toList
-                                            |> List.concat
-                                in
-                                if indexA < 0 || indexB >= List.length laps then
-                                    ( index
-                                    , laps
-                                    )
-
-                                else
-                                    ( if up then
-                                        index - 1
-
-                                      else
-                                        index + 1
-                                    , shiftedLaps
-                                    )
-                           )
+                    Laps.shift up model.laps
 
                 newModel =
                     initFromLaps
@@ -173,16 +117,7 @@ update msg model =
         Delete _ ->
             let
                 newLaps =
-                    model.laps
-                        |> (\( index, laps ) ->
-                                ( if index < (List.length laps - 1) then
-                                    index
-
-                                  else
-                                    index - 1
-                                , List.take index laps ++ List.drop (index + 1) laps
-                                )
-                           )
+                    Laps.delete model.laps
             in
             ( updateResult (initFromLaps model.activity newLaps)
             , Cmd.none
@@ -191,8 +126,7 @@ update msg model =
         SelectedLap index ->
             let
                 newLaps =
-                    model.laps
-                        |> Tuple.mapFirst (\_ -> index)
+                    Laps.select index model.laps
             in
             ( updateResult (initFromLaps model.activity newLaps)
             , Cmd.none
@@ -204,11 +138,8 @@ update msg model =
                     Activity.initActivityData
                         |> (\a -> { a | completed = model.completed })
 
-                laps =
-                    Tuple.second model.laps
-
                 newLaps =
-                    ( List.length laps, laps ++ [ newLap ] )
+                    Laps.add newLap model.laps
             in
             ( updateResult (initFromLaps model.activity newLaps)
             , Cmd.none
@@ -285,25 +216,10 @@ updateResult : ActivityForm -> ActivityForm
 updateResult model =
     let
         laps =
-            model.laps
-                |> (\( index, list ) ->
-                        ( index
-                        , Array.fromList list
-                            |> Array.set index (toActivityData model)
-                            |> Array.toList
-                        )
-                   )
+            Laps.set (toActivityData model) model.laps
 
         ( data, activityLaps ) =
-            case laps of
-                ( _, [] ) ->
-                    ( toActivityData model, Nothing )
-
-                ( _, [ lap ] ) ->
-                    ( toActivityData model, Nothing )
-
-                ( _, list ) ->
-                    ( sumLapData list, Just list )
+            Laps.toActivityLaps laps
 
         activity =
             model.activity
@@ -311,7 +227,8 @@ updateResult model =
                         { a | data = data, laps = activityLaps }
                    )
     in
-    { model | laps = laps, result = validate model, activity = activity }
+    { model | laps = laps, activity = activity }
+        |> (\m -> { m | result = validate m })
 
 
 validateFieldExists : Maybe a -> String -> Result FormError a
@@ -333,25 +250,6 @@ validate model =
     Result.map
         (\date -> { activity | date = date })
         (validateFieldExists model.date "date")
-
-
-sumLapData : List ActivityData -> ActivityData
-sumLapData laps =
-    let
-        duration =
-            List.filterMap .duration laps |> List.sum
-
-        completed =
-            List.all .completed laps
-    in
-    ActivityData
-        Activity.Run
-        (Just duration)
-        completed
-        Nothing
-        Nothing
-        Nothing
-        Nothing
 
 
 view : Maybe Int -> ActivityState -> Html Msg

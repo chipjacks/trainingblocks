@@ -246,8 +246,12 @@ update msg model =
                 Delete _ ->
                     case activityM of
                         Editing form ->
-                            updateActivityForm msg state
-                                |> loaded
+                            if form.lap == Nothing then
+                                updateStore msg (State calendar store None) |> loaded
+
+                            else
+                                updateActivityForm msg state
+                                    |> loaded
 
                         _ ->
                             updateStore msg (State calendar store None) |> loaded

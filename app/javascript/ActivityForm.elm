@@ -175,25 +175,30 @@ update msg model =
         Delete _ ->
             let
                 newLapsM =
-                    case ( model.activity.laps, model.lap ) of
-                        ( Just laps, Just index ) ->
-                            Just (List.take index laps ++ List.drop (index + 1) laps)
-
-                        _ ->
-                            Nothing
+                    Maybe.map2
+                        (\laps index ->
+                            List.take index laps ++ List.drop (index + 1) laps
+                        )
+                        model.activity.laps
+                        model.lap
 
                 ( newActivity, newLapIndex, newLap ) =
                     case newLapsM of
-                        Just (first :: rest :: more) ->
-                            ( model.activity |> (\a -> { a | laps = newLapsM }), Just 0, first )
-
                         Just [ lap ] ->
                             ( model.activity |> (\a -> { a | data = lap, laps = Nothing }), Nothing, lap )
 
-                        Just [] ->
-                            ( model.activity, Nothing, model.activity.data )
+                        Just newLaps ->
+                            let
+                                ( indexM, lapM ) =
+                                    List.indexedMap Tuple.pair newLaps
+                                        |> List.filter (\( i, l ) -> Just i == model.lap)
+                                        |> List.head
+                                        |> Maybe.map (\( i, l ) -> ( Just i, l ))
+                                        |> Maybe.withDefault ( Just (List.length newLaps - 1), List.reverse newLaps |> List.head |> Maybe.withDefault Activity.initActivityData )
+                            in
+                            ( model.activity |> (\a -> { a | laps = newLapsM }), indexM, lapM )
 
-                        Nothing ->
+                        _ ->
                             ( model.activity, Nothing, model.activity.data )
 
                 newModel =

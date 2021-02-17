@@ -122,7 +122,53 @@ update msg model =
             )
 
         Shift up _ ->
-            ( model, Cmd.none )
+            let
+                newLaps =
+                    model.laps
+                        |> (\( index, laps ) ->
+                                let
+                                    ( indexA, indexB ) =
+                                        if up then
+                                            ( index - 1, index )
+
+                                        else
+                                            ( index, index + 1 )
+
+                                    lapsArray =
+                                        Array.fromList laps
+
+                                    shiftedLaps =
+                                        [ Array.slice 0 indexA lapsArray
+                                        , Array.slice indexB (indexB + 1) lapsArray
+                                        , Array.slice indexA (indexA + 1) lapsArray
+                                        , Array.slice (indexB + 1) (Array.length lapsArray) lapsArray
+                                        ]
+                                            |> List.map Array.toList
+                                            |> List.concat
+                                in
+                                if indexA < 0 || indexB >= List.length laps then
+                                    ( index
+                                    , laps
+                                    )
+
+                                else
+                                    ( if up then
+                                        index - 1
+
+                                      else
+                                        index + 1
+                                    , shiftedLaps
+                                    )
+                           )
+
+                newModel =
+                    initFromLaps
+                        model.activity
+                        newLaps
+            in
+            ( updateResult newModel
+            , Cmd.none
+            )
 
         Delete _ ->
             let
@@ -158,8 +204,11 @@ update msg model =
                     Activity.initActivityData
                         |> (\a -> { a | completed = model.completed })
 
+                laps =
+                    Tuple.second model.laps
+
                 newLaps =
-                    ( List.length laps, laps ++ [ lap ] )
+                    ( List.length laps, laps ++ [ newLap ] )
             in
             ( updateResult (initFromLaps model.activity newLaps)
             , Cmd.none

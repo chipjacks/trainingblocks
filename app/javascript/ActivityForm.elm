@@ -763,21 +763,23 @@ effortSelect msg effortM =
 
 raceSelect : (Maybe Activity.RaceDistance -> Msg) -> Maybe Activity.RaceDistance -> Html Msg
 raceSelect msg distanceM =
-    column []
+    let
+        eventDecoder =
+            Decode.at [ "target", "value" ] Decode.string
+                |> Decode.map Activity.raceDistance.fromString
+                |> Decode.map msg
+    in
+    column [ style "max-width" "10rem" ]
         [ label "Race" (distanceM /= Nothing) (msg Nothing)
-        , div [ class "dropdown" ]
-            [ button [ class "button" ]
-                [ text (Maybe.map Activity.raceDistance.toString distanceM |> Maybe.withDefault "Select") ]
-            , div [ class "dropdown-content" ]
-                (List.map
-                    (\( distanceStr, distanceOpt ) ->
-                        a
-                            [ onClick (msg (Just distanceOpt))
-                            , style "text-align" "left"
-                            ]
-                            [ Html.text distanceStr ]
-                    )
-                    Activity.raceDistance.list
+        , Html.select [ Html.Events.on "change" eventDecoder ]
+            (List.map
+                (\( distanceStr, distanceOpt ) ->
+                    Html.option
+                        [ Html.Attributes.value distanceStr
+                        , Html.Attributes.selected (distanceOpt == distanceM)
+                        ]
+                        [ Html.text distanceStr ]
                 )
-            ]
+                (( "Select", Nothing ) :: (Activity.raceDistance.list |> List.map (Tuple.mapSecond Just)))
+            )
         ]

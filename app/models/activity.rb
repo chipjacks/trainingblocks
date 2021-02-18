@@ -3,6 +3,9 @@ class Activity < ApplicationRecord
   belongs_to :import, optional: true
   default_scope { order(date: :asc, order: :asc) }
 
+  RUN = "Run"
+  OTHER = "Other"
+
   def match_or_create
     match = Activity.where(date: self.date, user: self.user).find { |a| self.match?(a) }
     if !match
@@ -18,17 +21,17 @@ class Activity < ApplicationRecord
   def self.from_strava_activity(import)
     activity = import.data.deep_symbolize_keys
     type =
-      if activity[:type] === "Run"
-        "run"
+      if activity[:type] === RUN
+        RUN
       else
-        "other"
+        OTHER
       end
 
     date = Date.parse(activity[:start_date_local]).to_s
     description = activity[:name]
     duration = activity[:moving_time]
     data =
-      if type === "run"
+      if type === RUN
         pace = to_seconds_per_mile(activity[:average_speed])
         { type: type, pace: pace, duration: duration, completed: true }
       else

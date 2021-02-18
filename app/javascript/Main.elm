@@ -65,8 +65,8 @@ viewNavbar model =
         Loaded (State calendar store activityState) ->
             row [ style "padding" "0.5rem" ]
                 [ case activityState of
-                    Editing _ ->
-                        column [] [ Calendar.viewMenu True calendar ]
+                    Editing { date } ->
+                        column [] [ Calendar.viewMenu (date /= Nothing) calendar ]
 
                     _ ->
                         column [] [ Calendar.viewMenu False calendar ]

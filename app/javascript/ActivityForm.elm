@@ -516,16 +516,18 @@ activityTypeSelect msg activityType =
 
         iconButton aType =
             button
-                [ class "button"
+                [ class "button column expand"
                 , onClick (SelectedActivityType aType)
                 , style "margin-top" "3px"
                 , style "margin-right" "3px"
-                , style "width" "6rem"
-                , style "justify-content" "center"
+                , style "max-width" "6rem"
+                , style "padding-left" "0"
+                , style "padding-right" "0"
+                , style "align-items" "center"
                 , styleIf (activityType == aType) "border" "1px solid var(--accent-blue)"
                 ]
                 [ MonoIcons.icon (icon aType "#3d3d3d")
-                , compactColumn
+                , row
                     [ style "margin-top" "0.1rem"
                     ]
                     [ text (Activity.activityType.toString aType) ]

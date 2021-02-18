@@ -7,6 +7,13 @@
 #   Character.create(name: 'Luke', movie: movies.first)
 
 def migrate_data(data)
+  if data['type'] == 'session'
+    data['laps'] = data['activities'].map do |a|
+      migrate_data(a)
+    end
+    data.delete('activities')
+  end
+
   type = data['type']
   duration = data['duration']
 
@@ -33,15 +40,7 @@ def migrate_data(data)
 end
 
 def create_activity(obj, me)
-  data = obj['data']
-  if data['type'] == 'session'
-    data['laps'] = data['activities'].map do |a|
-      migrate_data(a)
-    end
-    data.delete('activities')
-  end
-
-  obj['data'] = migrate_data(data)
+  obj['data'] = migrate_data(obj['data'])
 
   created = Activity.create(
     id: obj['id'],

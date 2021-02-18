@@ -311,6 +311,10 @@ view levelM activityM =
                                         [ viewButtons activity True ]
                                 )
                             ]
+                        , row []
+                            [ viewActivityFields model ]
+                        , row [ style "margin-top" "10px", style "margin-bottom" "10px", borderStyle "border-bottom" ]
+                            []
                         , expandingRow [ style "overflow" "hidden" ]
                             [ compactColumn [ style "min-width" "4rem", style "overflow-y" "scroll", class "hide-scrollbars", style "padding-left" "3px" ]
                                 (List.concat
@@ -319,7 +323,7 @@ view levelM activityM =
                                     , [ viewAddButton ]
                                     ]
                                 )
-                            , viewFormFields levelM model
+                            , viewLapFields levelM model
                             ]
                         ]
                     ]
@@ -354,21 +358,31 @@ viewAddButton =
         ]
 
 
-viewFormFields : Maybe Int -> ActivityForm -> Html Msg
-viewFormFields levelM form =
+viewActivityFields : ActivityForm -> Html Msg
+viewActivityFields form =
     let
         maxFieldWidth =
             style "max-width" "20rem"
     in
-    column [ style "justify-content" "space-between", style "max-height" "35rem" ]
-        [ row []
+    column []
+        [ row [ style "margin-bottom" "10px" ]
             [ column [ maxFieldWidth ] [ dateSelect ClickedMove form.date ]
             , column [ maxFieldWidth ] [ completionToggle CheckedCompleted form.completed ]
             ]
         , row [ style "max-width" "40rem" ]
             [ descriptionInput EditedDescription form.description
             ]
-        , row []
+        ]
+
+
+viewLapFields : Maybe Int -> ActivityForm -> Html Msg
+viewLapFields levelM form =
+    let
+        maxFieldWidth =
+            style "max-width" "20rem"
+    in
+    column [ style "justify-content" "space-between", style "max-height" "20rem", style "margin-bottom" "10px", style "margin-top" "10px" ]
+        [ row []
             [ column [ maxFieldWidth ] [ activityTypeSelect SelectedActivityType form.activityType ]
             , column [ maxFieldWidth ] [ durationInput EditedDuration form.duration ]
             ]

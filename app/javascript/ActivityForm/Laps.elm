@@ -1,4 +1,4 @@
-module ActivityForm.Laps exposing (Laps, add, copy, delete, get, init, select, set, shift, sum, toActivityLaps)
+module ActivityForm.Laps exposing (Laps, add, copy, delete, get, init, select, set, shift, sum, toActivityLaps, updateAll)
 
 import Activity exposing (ActivityData)
 import Array
@@ -31,6 +31,13 @@ set data ( index, laps ) =
     , Array.fromList laps
         |> Array.set index data
         |> Array.toList
+    )
+
+
+updateAll : (ActivityData -> ActivityData) -> Laps -> Laps
+updateAll transform (index, laps) =
+    ( index
+    , List.map transform laps
     )
 
 

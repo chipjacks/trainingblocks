@@ -178,7 +178,11 @@ update msg model =
             )
 
         CheckedCompleted ->
-            ( updateResult { model | completed = not model.completed }
+            let
+                newLaps =
+                    Laps.updateAll (\l -> { l | completed = not model.completed }) model.laps
+            in
+            ( updateResult (initFromLaps model.activity newLaps)
             , Cmd.none
             )
 
@@ -224,7 +228,11 @@ updateResult model =
         activity =
             model.activity
                 |> (\a ->
-                        { a | data = data, laps = activityLaps }
+                        { a
+                            | description = model.description
+                            , data = data
+                            , laps = activityLaps
+                        }
                    )
     in
     { model | laps = laps, activity = activity }

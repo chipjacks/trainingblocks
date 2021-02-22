@@ -76,11 +76,17 @@ trainingPaceToSeconds level tp =
     trainingPaces ( MPRLevel.Neutral, level )
         |> Result.map
             (\l ->
-                List.filter (\( name, _ ) -> name == tp) l
-                    |> List.head
-                    |> Maybe.map
-                        (\( _, ( minPace, maxPace ) ) -> paceFromString maxPace |> Maybe.withDefault 0)
-                    |> Maybe.withDefault 0
+                if tp == Slow then
+                    List.head l
+                        |> Maybe.map (\( _, ( minPace, maxPace ) ) -> (paceFromString maxPace |> Maybe.withDefault 0) + 1)
+                        |> Maybe.withDefault 0
+
+                else
+                    List.filter (\( name, _ ) -> name == tp) l
+                        |> List.head
+                        |> Maybe.map
+                            (\( _, ( minPace, maxPace ) ) -> paceFromString maxPace |> Maybe.withDefault 0)
+                        |> Maybe.withDefault 0
             )
         |> Result.withDefault 0
 

@@ -67,6 +67,7 @@ RSpec.configure do |config|
     :uid => '123545',
     info: {
       email: "example@example.com"
-    }
+    },
+    credentials: { token: 'asdfghjkl' }
   })
 end

@@ -13,7 +13,8 @@ RSpec.feature "User authentication", type: :feature do
 
   scenario 'User signs in to a Strava account' do
     visit root_path
+    expect_any_instance_of(InitialStravaImportJob).to receive(:perform)
     click_link "Sign in with Strava"
-    expect(page).to have_content("Successfully authenticated from Strava account.")
+    expect(page).to have_selector("#elm-main")
   end
 end

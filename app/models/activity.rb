@@ -12,6 +12,7 @@ class Activity < ApplicationRecord
       self.save!
     elsif !match.import
       match.import = self.import
+      match.data['completed'] = true
       match.save!
     else
       nil

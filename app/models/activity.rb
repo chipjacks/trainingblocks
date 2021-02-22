@@ -60,8 +60,6 @@ class Activity < ApplicationRecord
     same_duration =
       if self.data['duration'] && activity.data['duration']
         (self.data['duration'] - activity.data['duration']).abs < ten_minutes
-      elsif activity.data['type'] == 'session' && self.data['duration']
-        (self.data['duration'] - activity.data['activities'].map{ |d| d['duration'] || 0 }.sum).abs < ten_minutes
       else
         true
       end

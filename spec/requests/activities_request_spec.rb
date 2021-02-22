@@ -2,25 +2,21 @@ require 'rails_helper'
 
 RSpec.describe "Activities", type: :request do
   before :each do
-    @user = FactoryBot.create(:user)
+    @user = create(:user)
     sign_in @user
-    @activity = FactoryBot.build(:activity)
-    @entries = [ { date: Date.today, id: @activity.id } ]
+    @activity = build(:activity)
   end
 
   it "updates activities and entries" do
-    post "/activities", :params => { changes: [ { msg: 'create', activity: @activity } ],
-                                     entries: @entries,
-                                     rev: Digest::MD5.hexdigest(@user.entries.to_json)
+    post "/activities", :params => { activityUpdates: [ { msg: 'create', activity: @activity } ],
+                                     rev: @user.last_activity_update
                                    }.as_json
     expect(response).to have_http_status(200)
     expect(@user.activities).to include(@activity)
-    expect(@user.entries.to_json).to eq(@entries.to_json)
   end
 
   it "rejects stale updates" do
-    post "/activities", :params => { changes: [ { msg: 'create', activity: @activity } ],
-                                     entries: @entries,
+    post "/activities", :params => { activityUpdates: [ { msg: 'create', activity: @activity } ],
                                      rev: 'incorrect_revision'
                                    }.as_json
     expect(response).to have_http_status(:conflict)
@@ -29,11 +25,10 @@ RSpec.describe "Activities", type: :request do
 
   it "aborts invalid updates" do
     invalid_activity = { duration: 10 }
-    post "/activities", :params => { changes: [ { msg: 'create', activity: invalid_activity } ],
-                                     entries: @entries,
-                                     rev: Digest::MD5.hexdigest(@user.entries.to_json)
+    post "/activities", :params => { activityUpdates: [ { msg: 'create', activity: invalid_activity } ],
+                                     rev: @user.last_activity_update
                                    }.as_json
     expect(response).to have_http_status(:bad_request)
-    expect(@user.entries.to_json).to_not eq(@entries.to_json)
+    expect(@user.activities).to_not include(invalid_activity)
   end
 end

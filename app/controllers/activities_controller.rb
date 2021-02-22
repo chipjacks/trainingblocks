@@ -36,7 +36,7 @@ class ActivitiesController < ApplicationController
 
       end
 
-      params[:orderUpdates].each do |change|
+      (params[:orderUpdates] || []).each do |change|
         activity = Activity.find(change['id'])
         if !activity
           raise ActiveRecord::StatementInvalid.new("Invalid order #{change}")

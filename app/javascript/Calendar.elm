@@ -444,11 +444,11 @@ titleWeek activities =
             datas
                 |> List.map
                     (\data ->
-                        case data.pace of
-                            Just pace ->
+                        case data.activityType of
+                            Activity.Run ->
                                 ( data.duration |> Maybe.withDefault 0, 0 )
 
-                            Nothing ->
+                            _ ->
                                 ( 0, data.duration |> Maybe.withDefault 0 )
                     )
                 |> List.foldl (\( r, o ) ( sr, so ) -> ( sr + r, so + o )) ( 0, 0 )

@@ -71,13 +71,7 @@ class Activity < ApplicationRecord
 
   def run?
     case self.data['type']
-    when 'run'
-      true
-    when 'interval'
-      true
-    when 'race'
-      true
-    when 'session'
+    when Activity::RUN
       true
     else
       false

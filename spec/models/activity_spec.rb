@@ -11,19 +11,18 @@ RSpec.describe Activity, type: :model do
     expect(subject.data).to be_truthy
   end
 
-  describe "#list" do
+  describe "#from_strava_activity" do
     before :each do
-      @user = create(:user, :activities)
+      @user = create(:user)
+      @import = create(:import, user: @user)
     end
 
-    it "adds dates to activities" do
-      result = Activity.list(@user)
-      expect(result.first["date"]).to be_truthy
-    end
-
-    it "orders them chronologically" do
-      result = Activity.list(@user)
-      expect(result.map { |r| r["date"] }).to eq(result.map{ |r| r["date"] }.sort)
+    it "sets activity data" do
+      result = Activity.from_strava_activity(@import)
+      expect(result.data['duration']).to eq(@import.data['moving_time'])
+      expect(result.data['pace']).to be_truthy
+      expect(result.data['completed']).to be_truthy
+      expect(result.data['type']).to eq(Activity::RUN)
     end
   end
 end

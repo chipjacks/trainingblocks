@@ -9,20 +9,18 @@ import Browser.Dom as Dom
 import Browser.Events as Events
 import Calendar
 import Date exposing (Date)
-import Html exposing (Html, a, button, div, i, text)
+import Html exposing (Html, a, div, text)
 import Html.Attributes exposing (attribute, class, href, id, style)
-import Html.Events exposing (on, onClick)
+import Html.Events exposing (on)
 import Html.Lazy
-import Http
 import Json.Decode as Decode
 import MonoIcons
 import Msg exposing (ActivityForm, ActivityState(..), Msg(..))
-import Pace
 import Ports
 import Random
 import Skeleton exposing (borderStyle, column, compactColumn, expandingRow, row, spinner, styleIf, viewIf, viewMaybe)
 import Store
-import Task exposing (Task)
+import Task
 import Time
 
 
@@ -475,12 +473,6 @@ updateLoading model =
 
         _ ->
             ( model, Cmd.none )
-
-
-andThenUpdate : (State -> ( State, Cmd Msg )) -> ( State, Cmd Msg ) -> ( State, Cmd Msg )
-andThenUpdate updateFunc ( state, cmd ) =
-    updateFunc state
-        |> Tuple.mapSecond (\cmd2 -> Cmd.batch [ cmd, cmd2 ])
 
 
 updateActivityForm : Msg -> State -> ( State, Cmd Msg )

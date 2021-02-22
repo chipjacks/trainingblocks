@@ -1,14 +1,13 @@
 module Calendar exposing (Model, get, init, update, view, viewHeader, viewMenu)
 
 import Activity exposing (Activity)
-import ActivityForm
 import ActivityShape
 import Browser.Dom as Dom
 import Date exposing (Date)
 import Duration
-import Html exposing (Html, a, button, div, i, text)
-import Html.Attributes exposing (attribute, class, href, id, style)
-import Html.Events exposing (on, onClick, onMouseDown, onMouseOver)
+import Html exposing (Html, a, button, div, text)
+import Html.Attributes exposing (attribute, class, id, style)
+import Html.Events exposing (on, onClick)
 import Html.Keyed
 import Html.Lazy
 import Json.Decode as Decode

@@ -1,14 +1,12 @@
-module Activity exposing (Activity, ActivityData, ActivityType(..), Effort(..), Id, RaceDistance(..), Seconds, activityType, decoder, effort, encoder, mprLevel, newId, raceDistance, initActivityData)
+module Activity exposing (Activity, ActivityData, ActivityType(..), Effort(..), Id, RaceDistance(..), Seconds, activityType, decoder, effort, encoder, initActivityData, mprLevel, newId, raceDistance)
 
 import Date exposing (Date)
-import Emoji
 import Enum exposing (Enum)
 import Json.Decode as Decode
 import Json.Encode as Encode
 import MPRLevel
 import Pace exposing (Pace)
 import Random
-import Task exposing (Task)
 
 
 type alias Activity =
@@ -30,6 +28,7 @@ type alias ActivityData =
     , emoji : Maybe String
     }
 
+
 initActivityData : ActivityData
 initActivityData =
     ActivityData
@@ -40,6 +39,7 @@ initActivityData =
         Nothing
         Nothing
         Nothing
+
 
 type ActivityType
     = Run
@@ -72,7 +72,7 @@ mprLevel activity =
             MPRLevel.lookup MPRLevel.Neutral
                 (raceDistance.toString distance_)
                 duration
-                |> Result.map (\( rt, level ) -> level)
+                |> Result.map (\( _, level ) -> level)
                 |> Result.toMaybe
 
         _ ->

@@ -1,13 +1,11 @@
 module Api exposing (errorString, getActivities, postActivities)
 
 import Activity exposing (Activity)
-import Date
 import Http
 import Json.Decode as Decode
 import Json.Encode as Encode
-import Random
 import Task exposing (Task)
-import Time exposing (Month(..), utc)
+import Time exposing (Month(..))
 
 
 

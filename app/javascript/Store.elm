@@ -7,7 +7,7 @@ import Http
 import Msg exposing (Msg(..))
 import Process
 import Set
-import Task exposing (Task)
+import Task
 
 
 type Model
@@ -15,7 +15,10 @@ type Model
 
 
 type alias State =
-    { activities : List Activity, revision : String, level : Maybe Int }
+    { activities : List Activity
+    , revision : String
+    , level : Maybe Int
+    }
 
 
 init : String -> String -> List Activity -> Model

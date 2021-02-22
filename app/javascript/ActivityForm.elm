@@ -3,24 +3,20 @@ module ActivityForm exposing (init, initMove, update, view)
 import Activity exposing (Activity, ActivityData, ActivityType)
 import ActivityForm.Laps as Laps exposing (Laps)
 import ActivityShape
-import Api
-import Array exposing (Array)
 import Date exposing (Date)
 import Duration
 import Emoji
-import Html exposing (Html, a, button, div, i, input, span, text)
-import Html.Attributes exposing (class, href, id, name, placeholder, style, type_, value)
+import Html exposing (Html, a, button, input, text)
+import Html.Attributes exposing (class, name, placeholder, style, type_, value)
 import Html.Events exposing (on, onClick, onFocus, onInput)
-import Http
 import Json.Decode as Decode
 import MPRLevel
 import MonoIcons
 import Msg exposing (ActivityForm, ActivityState(..), FormError(..), Msg(..))
-import Pace exposing (Pace)
+import Pace
 import Skeleton exposing (attributeIf, borderStyle, column, compactColumn, expandingRow, iconButton, row, styleIf, viewIf, viewMaybe)
 import Store
 import Svg exposing (Svg)
-import Task exposing (Task)
 
 
 
@@ -294,10 +290,10 @@ view levelM activityM =
                     [ viewButtons activity False ]
                 ]
 
-        Selected activities ->
+        Selected _ ->
             row (openAttributes "1.5rem")
                 [ column []
-                    [ viewMultiSelectButtons activities ]
+                    [ viewMultiSelectButtons ]
                 ]
 
         Editing model ->
@@ -436,8 +432,8 @@ toolbarButton onClickMsg icon primary =
         [ MonoIcons.icon (icon iconFill) ]
 
 
-viewMultiSelectButtons : List Activity -> Html Msg
-viewMultiSelectButtons activities =
+viewMultiSelectButtons : Html Msg
+viewMultiSelectButtons =
     row []
         [ toolbarButton ClickedGroup MonoIcons.folder False
         ]
@@ -531,7 +527,7 @@ activityTypeSelect msg activityType =
         iconButton aType =
             button
                 [ class "button column expand"
-                , onClick (SelectedActivityType aType)
+                , onClick (msg aType)
                 , style "margin-top" "3px"
                 , style "margin-right" "3px"
                 , style "max-width" "6rem"
@@ -551,7 +547,7 @@ activityTypeSelect msg activityType =
         [ Html.label [] [ text "Type" ]
         , row [ style "flex-wrap" "wrap" ]
             (List.map
-                (\( str, aType ) ->
+                (\( _, aType ) ->
                     iconButton aType
                 )
                 Activity.activityType.list
@@ -576,7 +572,7 @@ completionToggle msg completed =
     column []
         [ Html.label [] [ text "Completed" ]
         , Html.input
-            [ onClick CheckedCompleted
+            [ onClick msg
             , Html.Attributes.attribute "type" "checkbox"
             , style "width" "1.5rem"
             , style "height" "1.5rem"
@@ -589,9 +585,6 @@ completionToggle msg completed =
 emojiSelect : (String -> Msg) -> String -> String -> Html Msg
 emojiSelect msg name search =
     let
-        selected =
-            Emoji.find name
-
         emojis =
             if String.isEmpty search then
                 Emoji.recommended
@@ -694,16 +687,6 @@ durationInput msg ( hrs, mins, secs ) =
 paceSelect : Maybe Int -> (String -> Msg) -> String -> Html Msg
 paceSelect levelM msg paceStr =
     let
-        trainingPaceStr =
-            parsePace paceStr
-                |> Maybe.map2 (\level paceSecs -> Pace.secondsToTrainingPace level paceSecs) levelM
-                |> Maybe.map Pace.trainingPace.toString
-                |> Maybe.withDefault "Pace"
-
-        paceNames =
-            List.drop 1 Pace.trainingPace.list
-                |> List.map Tuple.first
-
         paceTimes =
             case levelM of
                 Just level ->

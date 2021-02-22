@@ -63,7 +63,8 @@ viewNavbar : Model -> Html Msg
 viewNavbar model =
     case model of
         Loaded (State calendar store activityState) ->
-            row [ style "padding" "0.5rem" ]
+            row
+                [ style "padding" "0.5rem" ]
                 [ case activityState of
                     Editing { date } ->
                         column [] [ Calendar.viewMenu (date /= Nothing) calendar ]

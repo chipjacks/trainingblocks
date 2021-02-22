@@ -4,13 +4,9 @@ Training Blocks is a fitness platform for runners.
 
 ## Setup
 
-Dependencies:
-- Ruby 2.5
-- Rails 5.1
-- Elm 0.18
-
 ```
 bundle install
+yarn
 ```
 
 ## Run
@@ -19,8 +15,18 @@ bundle install
 rails server
 ```
 
+For live reload:
+```
+yarn dev
+```
+
 ## Test
 
 ```
 rspec
+```
+
+Front-end:
+```
+yarn test
 ```

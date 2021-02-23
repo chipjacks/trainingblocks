@@ -696,6 +696,12 @@ paceSelect levelM msg paceStr =
 
                 Nothing ->
                     []
+
+        trainingPaceStr =
+            parsePace paceStr
+                |> Maybe.map2 (\level paceSecs -> Pace.secondsToTrainingPace level paceSecs) levelM
+                |> Maybe.map Pace.trainingPace.toString
+                |> Maybe.withDefault ""
     in
     column []
         [ label "Pace" (paceStr /= "") (msg "")
@@ -718,15 +724,17 @@ paceSelect levelM msg paceStr =
                             paceTimes
                         )
                 )
-            , input
-                [ onInput msg
-                , onFocus (msg "")
-                , class "input"
-                , style "width" "4rem"
-                , value paceStr
-                , Html.Attributes.placeholder "mm:ss"
+            , row []
+                [ input
+                    [ onInput msg
+                    , class "input"
+                    , style "width" "4rem"
+                    , value paceStr
+                    , Html.Attributes.placeholder "mm:ss"
+                    ]
+                    []
+                , compactColumn [ style "margin-left" "5px", style "justify-content" "center" ] [ text trainingPaceStr ]
                 ]
-                []
             ]
         ]
 

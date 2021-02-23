@@ -5,6 +5,7 @@ import ActivityForm.Laps as Laps exposing (Laps)
 import ActivityShape
 import Date exposing (Date)
 import Duration
+import Effect exposing (Effect)
 import Emoji
 import Html exposing (Html, a, button, input, text)
 import Html.Attributes exposing (class, name, placeholder, style, type_, value)
@@ -79,7 +80,7 @@ apply toMsg { result } =
             NoOp
 
 
-update : Msg -> ActivityForm -> ( ActivityForm, Cmd Msg )
+update : Msg -> ActivityForm -> ( ActivityForm, Effect )
 update msg model =
     case msg of
         ClickedCopy _ ->
@@ -93,7 +94,7 @@ update msg model =
                         newLaps
             in
             ( updateResult newModel
-            , Cmd.none
+            , Effect.None
             )
 
         Shift up _ ->
@@ -107,7 +108,7 @@ update msg model =
                         newLaps
             in
             ( updateResult newModel
-            , Cmd.none
+            , Effect.None
             )
 
         Delete _ ->
@@ -116,7 +117,7 @@ update msg model =
                     Laps.delete model.laps
             in
             ( updateResult (initFromLaps model.activity newLaps)
-            , Cmd.none
+            , Effect.None
             )
 
         SelectedLap index ->
@@ -125,7 +126,7 @@ update msg model =
                     Laps.select index model.laps
             in
             ( updateResult (initFromLaps model.activity newLaps)
-            , Cmd.none
+            , Effect.None
             )
 
         ClickedAddLap ->
@@ -138,7 +139,7 @@ update msg model =
                     Laps.add newLap model.laps
             in
             ( updateResult (initFromLaps model.activity newLaps)
-            , Cmd.none
+            , Effect.None
             )
 
         SelectedDate date ->
@@ -151,26 +152,26 @@ update msg model =
                     ( newModel, Store.cmd (apply (Move date) newModel) )
 
                 _ ->
-                    ( model, Cmd.none )
+                    ( model, Effect.None )
 
         EditedDescription desc ->
             ( updateResult { model | description = desc }
-            , Cmd.none
+            , Effect.None
             )
 
         SelectedEffort effortM ->
             ( updateResult { model | effort = effortM }
-            , Cmd.none
+            , Effect.None
             )
 
         SearchedEmojis search ->
             ( updateResult { model | emojiSearch = search }
-            , Cmd.none
+            , Effect.None
             )
 
         SelectedEmoji name ->
             ( updateResult { model | emoji = name }
-            , Cmd.none
+            , Effect.None
             )
 
         CheckedCompleted ->
@@ -179,37 +180,37 @@ update msg model =
                     Laps.updateAll (\l -> { l | completed = not model.completed }) model.laps
             in
             ( updateResult (initFromLaps model.activity newLaps)
-            , Cmd.none
+            , Effect.None
             )
 
         SelectedActivityType activityType ->
             ( updateResult { model | activityType = activityType }
-            , Cmd.none
+            , Effect.None
             )
 
         EditedDuration hms ->
             ( updateResult { model | duration = hms }
-            , Cmd.none
+            , Effect.None
             )
 
         SelectedPace str ->
             ( updateResult { model | pace = str }
-            , Cmd.none
+            , Effect.None
             )
 
         SelectedRace distM ->
             ( updateResult { model | race = distM }
-            , Cmd.none
+            , Effect.None
             )
 
         ClickedMove ->
-            ( updateResult { model | date = Nothing }, Cmd.none )
+            ( updateResult { model | date = Nothing }, Effect.None )
 
         ClickedSubmit ->
             ( model, Store.cmd (apply Update model) )
 
         _ ->
-            ( model, Cmd.none )
+            ( model, Effect.None )
 
 
 updateResult : ActivityForm -> ActivityForm
@@ -274,6 +275,7 @@ view levelM activityM =
             [ style "height" height
             , style "padding" "0.5rem 0.5rem"
             , style "border-width" "1px"
+            , Html.Attributes.id "activity-form"
             ]
                 ++ sharedAttributes
 
@@ -397,22 +399,22 @@ viewButtons : Activity -> Bool -> Html Msg
 viewButtons activity editing =
     row []
         [ if editing then
-            toolbarButton ClickedSubmit MonoIcons.check True
+            toolbarButton ClickedSubmit MonoIcons.check "Save" True
 
           else
-            toolbarButton (EditActivity activity) MonoIcons.edit False
-        , toolbarButton (ClickedCopy activity) MonoIcons.copy False
-        , toolbarButton (Delete activity) MonoIcons.delete False
+            toolbarButton (EditActivity activity) MonoIcons.edit "Edit" False
+        , toolbarButton (ClickedCopy activity) MonoIcons.copy "Copy" False
+        , toolbarButton (Delete activity) MonoIcons.delete "Delete" False
         , column [] []
-        , toolbarButton (Shift True activity) MonoIcons.arrowUp False
-        , toolbarButton (Shift False activity) MonoIcons.arrowDown False
+        , toolbarButton (Shift True activity) MonoIcons.arrowUp "Shift Up" False
+        , toolbarButton (Shift False activity) MonoIcons.arrowDown "Shift Down" False
         , column [] []
-        , toolbarButton ClickedClose MonoIcons.close False
+        , toolbarButton ClickedClose MonoIcons.close "Close" False
         ]
 
 
-toolbarButton : Msg -> (String -> Svg Msg) -> Bool -> Html Msg
-toolbarButton onClickMsg icon primary =
+toolbarButton : Msg -> (String -> Svg Msg) -> String -> Bool -> Html Msg
+toolbarButton onClickMsg icon labelStr primary =
     let
         iconFill =
             if primary then
@@ -421,9 +423,10 @@ toolbarButton onClickMsg icon primary =
             else
                 "#3d3d3d"
     in
-    a
+    Html.button
         [ class "button small expand"
         , attributeIf primary (class "primary")
+        , Html.Attributes.attribute "aria-label" labelStr
         , style "margin-right" "0.2rem"
         , style "text-align" "center"
         , style "max-width" "3rem"
@@ -435,7 +438,7 @@ toolbarButton onClickMsg icon primary =
 viewMultiSelectButtons : Html Msg
 viewMultiSelectButtons =
     row []
-        [ toolbarButton ClickedGroup MonoIcons.folder False
+        [ toolbarButton ClickedGroup MonoIcons.folder "Group" False
         ]
 
 
@@ -504,6 +507,8 @@ descriptionInput msg str =
         [ label "Description" (str /= "") (msg "")
         , input
             [ type_ "text"
+            , Html.Attributes.id "description"
+            , Html.Attributes.attribute "aria-label" "Description"
             , Html.Attributes.autocomplete False
             , onInput msg
             , name "description"
@@ -637,7 +642,7 @@ durationInput msg ( hrs, mins, secs ) =
             row [ style "font-size" "0.6rem", style "color" "var(--icon-gray)", style "margin-bottom" "2px" ]
                 [ text str ]
 
-        numberInput max attrs =
+        numberInput nameStr max attrs =
             input
                 ([ Html.Attributes.type_ "number"
                  , class "input"
@@ -646,6 +651,9 @@ durationInput msg ( hrs, mins, secs ) =
                  , Html.Attributes.step "1"
                  , Html.Attributes.maxlength (String.length max)
                  , Html.Attributes.autocomplete False
+                 , name nameStr
+                 , Html.Attributes.attribute "aria-label" nameStr
+                 , Html.Attributes.id nameStr
                  ]
                     ++ attrs
                 )
@@ -655,28 +663,28 @@ durationInput msg ( hrs, mins, secs ) =
         , row []
             [ compactColumn [ style "width" "2.5rem" ]
                 [ header "HOURS"
-                , numberInput "9"
+                , numberInput "hours"
+                    "9"
                     [ onInput (\h -> msg ( String.toInt h |> Maybe.withDefault 0, mins, secs ))
                     , value (toValue hrs)
-                    , name "hours"
                     ]
                     []
                 ]
             , compactColumn [ style "width" "3.5rem" ]
                 [ header "MINS"
-                , numberInput "60"
+                , numberInput "minutes"
+                    "60"
                     [ onInput (\m -> msg ( hrs, String.toInt m |> Maybe.withDefault 0, secs ))
                     , value (toValue mins)
-                    , name "minutes"
                     ]
                     []
                 ]
             , compactColumn [ style "width" "3.5rem" ]
                 [ header "SECS"
-                , numberInput "60"
+                , numberInput "seconds"
+                    "60"
                     [ onInput (\s -> msg ( hrs, mins, String.toInt s |> Maybe.withDefault 0 ))
                     , value (toValue secs)
-                    , name "seconds"
                     ]
                     []
                 ]
@@ -728,12 +736,12 @@ paceSelect levelM msg paceStr =
                 [ input
                     [ onInput msg
                     , class "input"
-                    , style "width" "4rem"
+                    , style "width" "3rem"
                     , value paceStr
                     , Html.Attributes.placeholder "mm:ss"
                     ]
                     []
-                , compactColumn [ style "margin-left" "5px", style "justify-content" "center" ] [ text trainingPaceStr ]
+                , compactColumn [ style "margin-left" "5px", style "font-size" "0.8rem", style "justify-content" "center" ] [ text trainingPaceStr ]
                 ]
             ]
         ]

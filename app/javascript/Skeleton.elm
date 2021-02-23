@@ -58,16 +58,14 @@ spinner fontSize =
 
 iconButton : List (Html.Attribute msg) -> List (Html msg) -> Html msg
 iconButton attributes children =
-    compactColumn []
-        [ Html.a
-            (attributes
-                ++ [ class "button small"
-                   , style "font-size" "0.8rem"
-                   , style "padding" "0.05rem 0.25rem"
-                   ]
-            )
-            children
-        ]
+    Html.button
+        (attributes
+            ++ [ class "button"
+               , style "font-size" "0.8rem"
+               , style "padding" "0.05rem 0.25rem"
+               ]
+        )
+        children
 
 
 styleIf : Bool -> String -> String -> Html.Attribute msg

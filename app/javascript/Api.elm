@@ -1,4 +1,4 @@
-module Api exposing (errorString, getActivities, postActivities)
+module Api exposing (errorString, getActivities, getActivitiesResolver, postActivities)
 
 import Activity exposing (Activity)
 import Http
@@ -20,6 +20,13 @@ storeUrl =
 -- ROUTES
 
 
+getActivitiesResolver =
+    handleJsonResponse <|
+        Decode.map2 Tuple.pair
+            (Decode.field "rev" Decode.string)
+            (Decode.field "activities" (Decode.list Activity.decoder))
+
+
 getActivities : Task Http.Error ( String, List Activity )
 getActivities =
     Http.task
@@ -27,12 +34,7 @@ getActivities =
         , headers = [ Http.header "Content-Type" "application/json" ]
         , url = storeUrl
         , body = Http.emptyBody
-        , resolver =
-            Http.stringResolver <|
-                handleJsonResponse <|
-                    Decode.map2 Tuple.pair
-                        (Decode.field "rev" Decode.string)
-                        (Decode.field "activities" (Decode.list Activity.decoder))
+        , resolver = Http.stringResolver <| getActivitiesResolver
         , timeout = Nothing
         }
 

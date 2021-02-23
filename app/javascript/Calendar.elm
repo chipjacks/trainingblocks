@@ -5,6 +5,7 @@ import ActivityShape
 import Browser.Dom as Dom
 import Date exposing (Date)
 import Duration
+import Effect exposing (Effect)
 import Html exposing (Html, a, button, div, text)
 import Html.Attributes exposing (attribute, class, id, style)
 import Html.Events exposing (on, onClick)
@@ -37,7 +38,7 @@ init zoom selected today =
     Model zoom (Date.add Date.Months -3 selected) (Date.add Date.Months 3 selected) selected today True
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
+update : Msg -> Model -> ( Model, Effect )
 update msg model =
     let
         (Model zoom start end selected today scrollCompleted) =
@@ -45,19 +46,19 @@ update msg model =
     in
     case msg of
         LoadToday date ->
-            ( Model zoom start end selected date scrollCompleted, Cmd.none )
+            ( Model zoom start end selected date scrollCompleted, Effect.None )
 
         Jump date ->
-            ( init zoom date today, scrollToSelectedDate () )
+            ( init zoom date today, Effect.ScrollToSelectedDate )
 
         ChangeZoom newZoom dateM ->
             ( init newZoom (Maybe.withDefault selected dateM) today
-            , scrollToSelectedDate ()
+            , Effect.ScrollToSelectedDate
             )
 
         Scroll up date currentHeight ->
             if not scrollCompleted then
-                ( model, Cmd.none )
+                ( model, Effect.None )
 
             else if up then
                 ( Model zoom date end selected today False
@@ -66,12 +67,12 @@ update msg model =
 
             else
                 ( Model zoom start date selected today scrollCompleted
-                , Cmd.none
+                , Effect.None
                 )
 
         ScrollCompleted result ->
             ( Model zoom start end selected today True
-            , Cmd.none
+            , Effect.None
             )
 
         ReceiveSelectDate selectDate ->
@@ -80,13 +81,13 @@ update msg model =
                     Date.fromIsoString selectDate |> Result.withDefault selected
             in
             if newSelected == selected then
-                ( model, Cmd.none )
+                ( model, Effect.None )
 
             else
-                ( Model zoom start end newSelected today scrollCompleted, Cmd.none )
+                ( Model zoom start end newSelected today scrollCompleted, Effect.None )
 
         _ ->
-            ( model, Cmd.none )
+            ( model, Effect.None )
 
 
 
@@ -328,7 +329,7 @@ onScroll ( loadPrevious, loadNext ) =
         )
 
 
-returnScroll : Int -> Cmd Msg
+returnScroll : Int -> Effect
 returnScroll previousHeight =
     Dom.getViewportOf "calendar"
         |> Task.andThen
@@ -341,6 +342,7 @@ returnScroll previousHeight =
             )
         |> Task.andThen (\_ -> Dom.getElement "calendar")
         |> Task.attempt (\result -> ScrollCompleted result)
+        |> Effect.Cmd
 
 
 scrollHandler : Model -> ( Int -> Msg, Int -> Msg )
@@ -592,9 +594,9 @@ pointerDownDecoder activity =
 
 viewAddButton : Date -> Html Msg
 viewAddButton date =
-    row [ style "padding" "0.5rem 0.5rem" ]
+    row [ Html.Attributes.class "add-button", style "margin-left" "0.5rem" ]
         [ iconButton
-            [ onClick (ClickedNewActivity date) ]
+            [ onClick (ClickedNewActivity date), Html.Attributes.attribute "aria-label" "Add" ]
             [ MonoIcons.icon (MonoIcons.add "var(--icon-gray)") ]
         ]
 

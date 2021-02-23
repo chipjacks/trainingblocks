@@ -1,4 +1,4 @@
-module Main exposing (main)
+module Main exposing (Model, init, main, update, view)
 
 import Activity exposing (Activity)
 import ActivityForm
@@ -9,6 +9,7 @@ import Browser.Dom as Dom
 import Browser.Events as Events
 import Calendar
 import Date exposing (Date)
+import Effect exposing (Effect)
 import Html exposing (Html, a, div, text)
 import Html.Attributes exposing (attribute, class, href, id, style)
 import Html.Events exposing (on)
@@ -30,9 +31,9 @@ import Time
 
 main =
     Browser.document
-        { init = init
+        { init = \x -> init x |> Tuple.mapSecond Effect.perform
         , view = \model -> { title = "Rhino Log", body = [ Skeleton.layout (viewNavbar model) (view model) ] }
-        , update = update
+        , update = \model msg -> update model msg |> Tuple.mapSecond Effect.perform
         , subscriptions = subscriptions
         }
 
@@ -47,12 +48,12 @@ type State
     = State Calendar.Model Store.Model ActivityState
 
 
-init : { csrfToken : String } -> ( Model, Cmd Msg )
+init : { csrfToken : String } -> ( Model, Effect )
 init { csrfToken } =
     ( Loading Nothing Nothing csrfToken
-    , Cmd.batch
-        [ Task.perform Jump Date.today
-        , Task.attempt GotActivities Api.getActivities
+    , Effect.Batch
+        [ Effect.DateToday Jump
+        , Effect.GetActivities
         ]
     )
 
@@ -94,7 +95,7 @@ viewNavbar model =
 -- UPDATING MODEL
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
+update : Msg -> Model -> ( Model, Effect )
 update msg model =
     case model of
         Loading dateM activitiesM token ->
@@ -112,13 +113,13 @@ update msg model =
                                 |> updateLoading
 
                         Err err ->
-                            ( Error (Api.errorString err), Cmd.none )
+                            ( Error (Api.errorString err), Effect.None )
 
                 _ ->
-                    ( model, Cmd.none )
+                    ( model, Effect.None )
 
         Error _ ->
-            ( model, Cmd.none )
+            ( model, Effect.None )
 
         Loaded state ->
             let
@@ -132,7 +133,7 @@ update msg model =
                 VisibilityChange visibility ->
                     case visibility of
                         Events.Visible ->
-                            ( model, Cmd.batch [ Task.perform LoadToday Date.today, Task.attempt GotActivities Api.getActivities ] )
+                            ( model, Effect.Batch [ Effect.DateToday LoadToday, Effect.GetActivities ] )
 
                         Events.Hidden ->
                             ( model, Store.flush store )
@@ -144,7 +145,7 @@ update msg model =
                                 |> loaded
 
                         _ ->
-                            ( model, Cmd.none )
+                            ( model, Effect.None )
 
                 MouseMoved x y ->
                     let
@@ -157,7 +158,7 @@ update msg model =
                                     activityM
                     in
                     ( Loaded (State calendar store newActivityM)
-                    , Cmd.none
+                    , Effect.None
                     )
 
                 AutoScrollCalendar y ->
@@ -185,7 +186,7 @@ update msg model =
                                             Task.succeed ()
                                     )
                     in
-                    ( model, Task.attempt (\_ -> NoOp) autoScrollCalendar )
+                    ( model, Effect.Cmd (Task.attempt (\_ -> NoOp) autoScrollCalendar) )
 
                 MouseReleased ->
                     let
@@ -197,13 +198,13 @@ update msg model =
                                 _ ->
                                     activityM
                     in
-                    ( Loaded (State calendar store newActivityM), Cmd.none )
+                    ( Loaded (State calendar store newActivityM), Effect.None )
 
                 MoveTo date ->
                     case activityM of
                         Moving activity x y ->
                             if activity.date == date then
-                                ( model, Cmd.none )
+                                ( model, Effect.None )
 
                             else
                                 let
@@ -213,10 +214,10 @@ update msg model =
                                 updateStore (Move date activity) (State calendar store newActivityM) |> loaded
 
                         _ ->
-                            ( model, Cmd.none )
+                            ( model, Effect.None )
 
                 NoOp ->
-                    ( model, Cmd.none )
+                    ( model, Effect.None )
 
                 Create activity ->
                     updateStore msg (State calendar store (Selected [ activity ])) |> loaded
@@ -277,7 +278,7 @@ update msg model =
                         ( activityFormState, activityFormCmd ) =
                             updateActivityForm (Maybe.map SelectedDate dateM |> Maybe.withDefault NoOp) calendarState
                     in
-                    ( activityFormState, Cmd.batch [ calendarCmd, activityFormCmd ] )
+                    ( activityFormState, Effect.Batch [ calendarCmd, activityFormCmd ] )
                         |> loaded
 
                 Scroll _ _ _ ->
@@ -308,7 +309,7 @@ update msg model =
                         form =
                             ActivityForm.init activity
                     in
-                    ( Loaded <| State calendar store (Editing form), Cmd.none )
+                    ( Loaded <| State calendar store (Editing form), Effect.None )
 
                 SelectActivity activity shiftKey ->
                     case ( activityM, shiftKey ) of
@@ -336,13 +337,13 @@ update msg model =
                                         _ ->
                                             [ activity ]
                             in
-                            ( Loaded <| State calendar store (Selected list), Cmd.none )
+                            ( Loaded <| State calendar store (Selected list), Effect.None )
 
                         _ ->
-                            ( Loaded <| State calendar store (Selected [ activity ]), Cmd.none )
+                            ( Loaded <| State calendar store (Selected [ activity ]), Effect.None )
 
                 MoveActivity activity ->
-                    ( Loaded <| State calendar store (Moving activity -100 -100), Cmd.none )
+                    ( Loaded <| State calendar store (Moving activity -100 -100), Effect.None )
 
                 SelectedDate _ ->
                     updateActivityForm msg state
@@ -399,7 +400,7 @@ update msg model =
                                 |> loaded
 
                         _ ->
-                            ( Loaded (State calendar store None), Cmd.none )
+                            ( Loaded (State calendar store None), Effect.None )
 
                 ClickedCopy activity ->
                     case activityM of
@@ -412,6 +413,7 @@ update msg model =
                             , Activity.newId
                                 |> Random.map (\id -> { activity | id = id })
                                 |> Random.generate NewActivity
+                                |> Effect.Cmd
                             )
 
                 ClickedMove ->
@@ -422,7 +424,7 @@ update msg model =
                         ( activityFormState, activityFormCmd ) =
                             updateActivityForm msg calendarState
                     in
-                    ( activityFormState, Cmd.batch [ calendarCmd, activityFormCmd ] )
+                    ( activityFormState, Effect.Batch [ calendarCmd, activityFormCmd ] )
                         |> loaded
 
                 ClickedUngroup session ->
@@ -438,10 +440,11 @@ update msg model =
                                             dataList
                                     )
                                 |> Random.generate (\activities -> Ungroup activities session)
+                                |> Effect.Cmd
                             )
 
                         _ ->
-                            ( model, Cmd.none )
+                            ( model, Effect.None )
 
                 ClickedGroup ->
                     case activityM of
@@ -449,17 +452,17 @@ update msg model =
                             ( model, initSession a (a :: tail) )
 
                         _ ->
-                            ( model, Cmd.none )
+                            ( model, Effect.None )
 
                 ClickedClose ->
-                    ( Loaded (State calendar store None), Cmd.none )
+                    ( Loaded (State calendar store None), Effect.None )
 
                 NewId _ ->
                     updateActivityForm msg state
                         |> loaded
 
 
-updateLoading : Model -> ( Model, Cmd Msg )
+updateLoading : Model -> ( Model, Effect )
 updateLoading model =
     case model of
         Loading (Just date) (Just store) csrfToken ->
@@ -472,10 +475,10 @@ updateLoading model =
                 |> update (Jump date)
 
         _ ->
-            ( model, Cmd.none )
+            ( model, Effect.None )
 
 
-updateActivityForm : Msg -> State -> ( State, Cmd Msg )
+updateActivityForm : Msg -> State -> ( State, Effect )
 updateActivityForm msg (State calendar store activityM) =
     let
         ( newActivityM, cmd ) =
@@ -484,29 +487,29 @@ updateActivityForm msg (State calendar store activityM) =
                     ActivityForm.update msg form |> Tuple.mapFirst Editing
 
                 _ ->
-                    ( activityM, Cmd.none )
+                    ( activityM, Effect.None )
     in
     ( State calendar store newActivityM, cmd )
 
 
-updateCalendar : Msg -> State -> ( State, Cmd Msg )
+updateCalendar : Msg -> State -> ( State, Effect )
 updateCalendar msg (State calendar store activityM) =
     Calendar.update msg calendar
         |> Tuple.mapFirst (\updated -> State updated store activityM)
 
 
-updateStore : Msg -> State -> ( State, Cmd Msg )
+updateStore : Msg -> State -> ( State, Effect )
 updateStore msg (State calendar store activityM) =
     Store.update msg store
         |> Tuple.mapFirst (\updated -> State calendar updated activityM)
 
 
-loaded : ( State, Cmd Msg ) -> ( Model, Cmd Msg )
+loaded : ( State, Effect ) -> ( Model, Effect )
 loaded stateTuple =
     Tuple.mapFirst Loaded stateTuple
 
 
-initActivity : Date -> Maybe Date -> Cmd Msg
+initActivity : Date -> Maybe Date -> Effect
 initActivity today dateM =
     let
         date =
@@ -527,10 +530,10 @@ initActivity today dateM =
                     { activityData | completed = completed }
                     Nothing
             )
-        |> Random.generate NewActivity
+        |> Effect.GenerateActivity NewActivity
 
 
-initSession : Activity -> List Activity -> Cmd Msg
+initSession : Activity -> List Activity -> Effect
 initSession head activities =
     let
         activityData =
@@ -545,7 +548,7 @@ initSession head activities =
                     { activityData | completed = head.data.completed }
                     (Just (List.map .data activities))
             )
-        |> Random.generate (Group activities)
+        |> Effect.GenerateActivity (Group activities)
 
 
 

@@ -3,6 +3,7 @@ module Store exposing (Model, cmd, flush, get, init, needsFlush, update)
 import Activity exposing (Activity)
 import Api
 import Date exposing (Date)
+import Effect exposing (Effect)
 import Http
 import Msg exposing (Msg(..))
 import Process
@@ -31,9 +32,9 @@ get (Model state _ _) f =
     f state
 
 
-cmd : Msg -> Cmd Msg
+cmd : Msg -> Effect
 cmd msg =
-    Task.perform (\_ -> msg) (Task.succeed ())
+    Effect.StoreCmd msg
 
 
 needsFlush : Model -> Bool
@@ -95,7 +96,7 @@ updateLevel state =
     { state | level = calculateLevel state.activities }
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
+update : Msg -> Model -> ( Model, Effect )
 update msg (Model state msgs csrfToken) =
     let
         model =
@@ -106,17 +107,17 @@ update msg (Model state msgs csrfToken) =
             case result of
                 Ok ( rev, True ) ->
                     ( Model { state | revision = rev } msgs csrfToken
-                    , Cmd.none
+                    , Effect.None
                     )
 
                 Err (Http.BadStatus 409) ->
                     ( Model state (msgs ++ sentMsgs) csrfToken
-                    , Task.attempt GotActivities Api.getActivities
+                    , Effect.Cmd (Task.attempt GotActivities Api.getActivities)
                     )
 
                 _ ->
                     ( Model state (msgs ++ sentMsgs) csrfToken
-                    , Cmd.none
+                    , Effect.None
                     )
 
         DebounceFlush length ->
@@ -126,7 +127,7 @@ update msg (Model state msgs csrfToken) =
                 )
 
             else
-                ( model, Cmd.none )
+                ( model, Effect.None )
 
         GotActivities result ->
             case result of
@@ -141,7 +142,7 @@ update msg (Model state msgs csrfToken) =
                     )
 
                 Err _ ->
-                    ( model, Cmd.none )
+                    ( model, Effect.None )
 
         _ ->
             ( Model (updateState msg state) (msg :: msgs) csrfToken
@@ -149,20 +150,24 @@ update msg (Model state msgs csrfToken) =
             )
 
 
-debounceFlush : Int -> Cmd Msg
+debounceFlush : Int -> Effect
 debounceFlush length =
-    Task.perform (\_ -> DebounceFlush length) (Process.sleep 5000)
+    Effect.Cmd (Task.perform (\_ -> DebounceFlush length) (Process.sleep 5000))
 
 
-flush : Model -> Cmd Msg
+flush : Model -> Effect
 flush model =
     case model of
         Model state [] _ ->
-            Cmd.none
+            Effect.None
 
         Model state msgs csrfToken ->
-            Api.postActivities csrfToken state.revision (orderUpdates state.activities msgs) (activityUpdates msgs)
-                |> Task.attempt (Posted msgs)
+            Effect.PostActivities msgs
+                { token = csrfToken
+                , revision = state.revision
+                , orderUpdates = orderUpdates state.activities msgs
+                , activityUpdates = activityUpdates msgs
+                }
 
 
 updateActivity : Activity -> Bool -> List Activity -> List Activity

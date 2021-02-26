@@ -11,7 +11,7 @@ RSpec.describe Activity, type: :model do
     expect(subject.data).to be_truthy
   end
 
-  describe "#from_strava_activity" do
+  describe ".from_strava_activity" do
     before :each do
       @user = create(:user)
       @import = create(:import, user: @user)

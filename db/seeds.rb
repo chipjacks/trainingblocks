@@ -24,7 +24,7 @@ unless me then raise 'Strava uid not found.' end
 
 me.activities.each{ |a| a.destroy! }
 
-activities = JSON.parse(%x(cat db/activities.json | jq -cr '.').chomp)
+activities = JSON.parse(IO.read(File.join(Rails.root, 'db/activities.json')).chomp)
 activities.each do |obj|
   create_activity(obj, me)
 end

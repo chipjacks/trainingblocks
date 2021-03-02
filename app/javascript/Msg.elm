@@ -1,6 +1,6 @@
 module Msg exposing (ActivityForm, ActivityState(..), FormError(..), Msg(..), Zoom(..))
 
-import Activity exposing (Activity)
+import Activity.Types exposing (Activity)
 import Browser.Dom as Dom
 import Browser.Events as Events
 import Date exposing (Date)
@@ -18,13 +18,13 @@ type alias ActivityForm =
     , date : Maybe Date
     , description : String
     , result : Result FormError Activity
-    , laps : ( Int, List Activity.LapData )
-    , activityType : Activity.ActivityType
+    , laps : ( Int, List Activity.Types.LapData )
+    , activityType : Activity.Types.ActivityType
     , duration : ( Int, Int, Int )
-    , completed : Activity.Completion
+    , completed : Activity.Types.Completion
     , pace : String
-    , race : Maybe Activity.RaceDistance
-    , effort : Maybe Activity.Effort
+    , race : Maybe Activity.Types.RaceDistance
+    , effort : Maybe Activity.Types.Effort
     , emoji : String
     , emojiSearch : String
     }
@@ -81,11 +81,11 @@ type Msg
     | SelectedEmoji String
     | SearchedEmojis String
     | CheckedCompleted
-    | SelectedActivityType Activity.ActivityType
+    | SelectedActivityType Activity.Types.ActivityType
     | EditedDuration ( Int, Int, Int )
-    | SelectedEffort (Maybe Activity.Effort)
+    | SelectedEffort (Maybe Activity.Types.Effort)
     | SelectedPace String
-    | SelectedRace (Maybe Activity.RaceDistance)
+    | SelectedRace (Maybe Activity.Types.RaceDistance)
     | ClickedSubmit
     | ClickedEdit
     | ClickedCopy

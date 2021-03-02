@@ -1,6 +1,6 @@
 module Effect exposing (Effect(..), perform)
 
-import Activity exposing (Activity)
+import Activity.Types exposing (Activity)
 import Api
 import Date
 import Msg exposing (Msg(..))

@@ -1,6 +1,7 @@
 module Api exposing (errorString, getActivities, getActivitiesResolver, postActivities)
 
-import Activity exposing (Activity)
+import Activity
+import Activity.Types exposing (Activity)
 import Http
 import Json.Decode as Decode
 import Json.Encode as Encode

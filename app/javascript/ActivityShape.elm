@@ -1,17 +1,18 @@
 module ActivityShape exposing (Color(..), colorString, view)
 
-import Activity exposing (ActivityData)
+import Activity
+import Activity.Types exposing (ActivityData, ActivityType(..), Completion(..), Effort(..), Seconds)
 import Emoji
 import EmojiData exposing (EmojiData)
 import Html exposing (Html, div)
 import Html.Attributes exposing (class, style)
-import Pace exposing (TrainingPace(..))
+import Pace exposing (TrainingPace)
 import Skeleton exposing (column, row, styleIf, viewMaybe)
 
 
 type Shape
-    = Block { width : Float, height : Float } Color Activity.Completion (Maybe EmojiData)
-    | Circle Color Activity.Completion (Maybe EmojiData)
+    = Block { width : Float, height : Float } Color Completion (Maybe EmojiData)
+    | Circle Color Completion (Maybe EmojiData)
     | Emoji (Maybe EmojiData)
 
 
@@ -38,13 +39,13 @@ view levelM data =
                 Nothing ->
                     Gray
 
-                Just Activity.Easy ->
+                Just Easy ->
                     Green
 
-                Just Activity.Moderate ->
+                Just Moderate ->
                     Orange
 
-                Just Activity.Hard ->
+                Just Hard ->
                     Red
 
         emoji =
@@ -52,10 +53,10 @@ view levelM data =
 
         shape =
             case data.activityType of
-                Activity.Run ->
+                Run ->
                     Block { width = width data.pace, height = height } color data.completed emoji
 
-                Activity.Other ->
+                Other ->
                     if data.emoji /= Nothing && data.effort == Nothing && data.duration == Nothing then
                         Emoji emoji
 
@@ -76,10 +77,10 @@ viewShape shape =
                 , style "border-radius" "2px"
                 , class "block"
                 , case completed of
-                    Activity.Completed ->
+                    Completed ->
                         style "background-color" (colorString color)
 
-                    Activity.Planned ->
+                    Planned ->
                         style "background-color" "white"
                 ]
                 [ viewMaybe emojiM Emoji.view ]
@@ -88,10 +89,10 @@ viewShape shape =
             let
                 ( backgroundColor, textColor ) =
                     case completed of
-                        Activity.Completed ->
+                        Completed ->
                             ( colorString color, "white" )
 
-                        Activity.Planned ->
+                        Planned ->
                             ( "white", colorString color )
             in
             div
@@ -126,7 +127,7 @@ colorString color =
             "var(--activity-gray)"
 
 
-toHeight : Activity.Seconds -> Float
+toHeight : Seconds -> Float
 toHeight duration =
     toFloat duration / 600
 
@@ -134,32 +135,32 @@ toHeight duration =
 toWidth : TrainingPace -> Float
 toWidth pace =
     case pace of
-        Slow ->
+        Pace.Slow ->
             0.5
 
-        Easy ->
+        Pace.Easy ->
             1
 
-        Moderate ->
+        Pace.Moderate ->
             2
 
-        Steady ->
+        Pace.Steady ->
             3
 
-        Brisk ->
+        Pace.Brisk ->
             4
 
-        Aerobic ->
+        Pace.Aerobic ->
             5
 
-        Lactate ->
+        Pace.Lactate ->
             6
 
-        Groove ->
+        Pace.Groove ->
             7
 
-        VO2 ->
+        Pace.VO2 ->
             8
 
-        Fast ->
+        Pace.Fast ->
             9

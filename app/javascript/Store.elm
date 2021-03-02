@@ -1,6 +1,7 @@
 module Store exposing (Model, cmd, flush, get, init, needsFlush, update)
 
-import Activity exposing (Activity)
+import Activity
+import Activity.Types exposing (Activity, Id)
 import Api
 import Date exposing (Date)
 import Effect exposing (Effect)
@@ -212,7 +213,7 @@ shiftActivity activity moveUp activities =
         List.concat [ before, shiftUp activity.id (List.reverse on) |> List.reverse, after ]
 
 
-shiftUp : Activity.Id -> List Activity -> List Activity
+shiftUp : Id -> List Activity -> List Activity
 shiftUp id activities =
     case activities of
         a :: b :: tail ->

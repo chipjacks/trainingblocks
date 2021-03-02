@@ -1,6 +1,8 @@
 module ActivityForm exposing (init, initMove, update, view)
 
-import Activity exposing (Activity, ActivityData, ActivityType)
+import Activity
+import Activity.Laps
+import Activity.Types exposing (Activity, ActivityData, ActivityType, LapData(..))
 import ActivityForm.Laps as Laps exposing (Laps)
 import ActivityShape
 import Date exposing (Date)
@@ -35,7 +37,7 @@ init activity =
                     Laps.init list
 
                 Nothing ->
-                    Laps.init [ Activity.Individual activity.data ]
+                    Laps.init [ Individual activity.data ]
     in
     initFromLaps activity laps
 
@@ -181,11 +183,11 @@ update msg model =
             let
                 newCompletion =
                     case model.completed of
-                        Activity.Completed ->
-                            Activity.Planned
+                        Activity.Types.Completed ->
+                            Activity.Types.Planned
 
-                        Activity.Planned ->
-                            Activity.Completed
+                        Activity.Types.Planned ->
+                            Activity.Types.Completed
 
                 newLaps =
                     Laps.updateAll (\l -> { l | completed = newCompletion }) model.laps
@@ -230,16 +232,11 @@ updateResult model =
         laps =
             Laps.set (toActivityData model) model.laps
 
-        ( data, activityLaps ) =
-            Laps.toActivityLaps laps
-
         activity =
-            model.activity
+            Activity.Laps.set model.activity (Tuple.second laps)
                 |> (\a ->
                         { a
                             | description = model.description
-                            , data = data
-                            , laps = activityLaps
                         }
                    )
     in
@@ -327,7 +324,7 @@ view levelM activityM =
                         , expandingRow [ style "overflow" "hidden" ]
                             [ compactColumn [ style "min-width" "4rem", style "overflow-y" "scroll", class "hide-scrollbars", style "padding-left" "3px" ]
                                 (List.concat
-                                    [ Activity.listLapData model.activity
+                                    [ Activity.Laps.listData model.activity
                                         |> List.indexedMap (\i a -> viewActivityShape levelM (Tuple.first model.laps) i a)
                                     , [ viewAddButton ]
                                     ]
@@ -399,7 +396,7 @@ viewLapFields levelM form =
             [ column [ maxFieldWidth ] [ effortSelect SelectedEffort form.effort ]
             , column [ maxFieldWidth ] [ emojiSelect SelectedEmoji form.emoji form.emojiSearch ]
             ]
-        , row [ styleIf (form.activityType /= Activity.Run) "visibility" "hidden" ]
+        , row [ styleIf (form.activityType /= Activity.Types.Run) "visibility" "hidden" ]
             [ column [ maxFieldWidth ] [ paceSelect levelM SelectedPace form.pace ]
             , column [ maxFieldWidth ] [ raceSelect SelectedRace form.race ]
             ]
@@ -475,17 +472,17 @@ parsePace str =
 
 toActivityData : ActivityForm -> ActivityData
 toActivityData model =
-    Activity.ActivityData
+    Activity.Types.ActivityData
         model.activityType
         (parseDuration model.duration)
         model.completed
-        (if model.activityType == Activity.Run then
+        (if model.activityType == Activity.Types.Run then
             parsePace model.pace
 
          else
             Nothing
         )
-        (if model.activityType == Activity.Run then
+        (if model.activityType == Activity.Types.Run then
             model.race
 
          else
@@ -536,10 +533,10 @@ activityTypeSelect msg activityType =
     let
         icon aType =
             case aType of
-                Activity.Run ->
+                Activity.Types.Run ->
                     MonoIcons.stop
 
-                Activity.Other ->
+                Activity.Types.Other ->
                     MonoIcons.circle
 
         iconButton aType =
@@ -585,7 +582,7 @@ dateSelect msg date =
         ]
 
 
-completionToggle : Msg -> Activity.Completion -> Html Msg
+completionToggle : Msg -> Activity.Types.Completion -> Html Msg
 completionToggle msg completed =
     column []
         [ Html.label [] [ text "Completed" ]
@@ -594,7 +591,7 @@ completionToggle msg completed =
             , Html.Attributes.attribute "type" "checkbox"
             , style "width" "1.5rem"
             , style "height" "1.5rem"
-            , attributeIf (completed == Activity.Completed) (Html.Attributes.attribute "checked" "")
+            , attributeIf (completed == Activity.Types.Completed) (Html.Attributes.attribute "checked" "")
             ]
             []
         ]
@@ -760,7 +757,7 @@ paceSelect levelM msg paceStr =
         ]
 
 
-effortSelect : (Maybe Activity.Effort -> Msg) -> Maybe Activity.Effort -> Html Msg
+effortSelect : (Maybe Activity.Types.Effort -> Msg) -> Maybe Activity.Types.Effort -> Html Msg
 effortSelect msg effortM =
     column []
         [ label "Effort" (effortM /= Nothing) (msg Nothing)
@@ -779,15 +776,15 @@ effortSelect msg effortM =
                         ]
                         []
                 )
-                [ ( ActivityShape.colorString ActivityShape.Green, Just Activity.Easy )
-                , ( ActivityShape.colorString ActivityShape.Orange, Just Activity.Moderate )
-                , ( ActivityShape.colorString ActivityShape.Red, Just Activity.Hard )
+                [ ( ActivityShape.colorString ActivityShape.Green, Just Activity.Types.Easy )
+                , ( ActivityShape.colorString ActivityShape.Orange, Just Activity.Types.Moderate )
+                , ( ActivityShape.colorString ActivityShape.Red, Just Activity.Types.Hard )
                 ]
             )
         ]
 
 
-raceSelect : (Maybe Activity.RaceDistance -> Msg) -> Maybe Activity.RaceDistance -> Html Msg
+raceSelect : (Maybe Activity.Types.RaceDistance -> Msg) -> Maybe Activity.Types.RaceDistance -> Html Msg
 raceSelect msg distanceM =
     let
         eventDecoder =

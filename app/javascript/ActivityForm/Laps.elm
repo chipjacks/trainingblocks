@@ -1,6 +1,7 @@
-module ActivityForm.Laps exposing (Laps, add, copy, delete, get, init, select, set, shift, sum, toActivityLaps, updateAll)
+module ActivityForm.Laps exposing (Laps, add, copy, delete, get, init, select, set, shift, updateAll)
 
-import Activity exposing (ActivityData, LapData(..))
+import Activity
+import Activity.Types exposing (Activity, ActivityData, LapData(..))
 import Array
 
 
@@ -119,6 +120,7 @@ shift up ( index, laps ) =
         , shiftedLaps
         )
 
+
 delete : Laps -> Laps
 delete ( index, laps ) =
     ( if index < (List.length laps - 1) then
@@ -128,63 +130,3 @@ delete ( index, laps ) =
         index - 1
     , List.take index laps ++ List.drop (index + 1) laps
     )
-
-
-toActivityLaps : Laps -> ( ActivityData, Maybe (List LapData) )
-toActivityLaps ( _, laps ) =
-    case laps of
-        [] ->
-            ( Activity.initActivityData, Nothing )
-
-        list ->
-            ( sum list, Just list )
-
-
-duration : List LapData -> Int
-duration laps =
-    laps
-        |> List.map
-            (\lap ->
-                case lap of
-                    Individual data ->
-                        .duration data |> Maybe.withDefault 0
-
-                    Repeats _ list ->
-                        List.filterMap .duration list |> List.sum
-            )
-        |> List.sum
-
-
-completed : List LapData -> Activity.Completion
-completed laps =
-    let
-        aggregator list =
-            if List.all (\c -> c == Activity.Completed) list then
-                Activity.Completed
-
-            else
-                Activity.Planned
-    in
-    laps
-        |> List.map
-            (\lap ->
-                case lap of
-                    Individual data ->
-                        .completed data
-
-                    Repeats _ list ->
-                        aggregator (List.map .completed list)
-            )
-        |> aggregator
-
-
-sum : List LapData -> ActivityData
-sum laps =
-    Activity.ActivityData
-        Activity.Run
-        (Just (duration laps))
-        (completed laps)
-        Nothing
-        Nothing
-        Nothing
-        Nothing

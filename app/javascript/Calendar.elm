@@ -1,6 +1,8 @@
 module Calendar exposing (Model, get, init, update, view, viewHeader, viewMenu)
 
-import Activity exposing (Activity)
+import Activity
+import Activity.Laps
+import Activity.Types exposing (Activity)
 import ActivityShape
 import Browser.Dom as Dom
 import Date exposing (Date)
@@ -295,7 +297,7 @@ viewActivityShape activity isActive levelM =
         , attributeIf isActive (class "dynamic-shape")
         , style "touch-action" "none"
         ]
-        (Activity.listLapData activity
+        (Activity.Laps.listData activity
             |> List.map (\a -> ActivityShape.view levelM a)
         )
 
@@ -447,7 +449,7 @@ titleWeek activities =
                 |> List.map
                     (\data ->
                         case data.activityType of
-                            Activity.Run ->
+                            Activity.Types.Run ->
                                 ( data.duration |> Maybe.withDefault 0, 0 )
 
                             _ ->

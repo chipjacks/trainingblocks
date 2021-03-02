@@ -1,6 +1,8 @@
 module Main exposing (Model, init, main, update, view)
 
-import Activity exposing (Activity)
+import Activity
+import Activity.Laps
+import Activity.Types exposing (Activity)
 import ActivityForm
 import ActivityShape
 import Api
@@ -467,13 +469,13 @@ update msg model =
                     case activityM of
                         Selected [ session ] ->
                             ( model
-                            , Random.list (List.length (Activity.listLapData session)) Activity.newId
+                            , Random.list (List.length (Activity.Laps.listData session)) Activity.newId
                                 |> Random.map
                                     (\ids ->
                                         List.map2
                                             (\id data -> Activity id session.date "" data Nothing)
                                             ids
-                                            (Activity.listLapData session)
+                                            (Activity.Laps.listData session)
                                     )
                                 |> Random.generate (\activities -> Ungroup activities session)
                                 |> Effect.Cmd
@@ -553,10 +555,10 @@ initActivity today dateM =
 
         completed =
             if Date.compare date today == LT || date == today then
-                Activity.Completed
+                Activity.Types.Completed
 
             else
-                Activity.Planned
+                Activity.Types.Planned
 
         activityData =
             Activity.initActivityData
@@ -586,7 +588,7 @@ initSession head activities =
                     head.date
                     ""
                     { activityData | completed = head.data.completed }
-                    (Just (List.map .data activities |> List.map Activity.Individual))
+                    (Just (List.map .data activities |> List.map Activity.Types.Individual))
             )
         |> Effect.GenerateActivity (Group activities)
 

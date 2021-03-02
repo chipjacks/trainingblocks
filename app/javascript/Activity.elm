@@ -1,5 +1,6 @@
-module Activity exposing (Activity, ActivityData, ActivityType(..), Completion(..), Effort(..), Id, LapData(..), RaceDistance(..), Seconds, activityType, decoder, effort, encoder, initActivityData, listLapData, mprLevel, newId, raceDistance)
+module Activity exposing (activityType, decoder, effort, encoder, initActivityData, mprLevel, newId, raceDistance)
 
+import Activity.Types exposing (Activity, ActivityData, ActivityType(..), Completion(..), Effort(..), Id, LapData(..), RaceDistance(..), Seconds)
 import Date exposing (Date)
 import Enum exposing (Enum)
 import Json.Decode as Decode
@@ -8,31 +9,6 @@ import Json.Encode as Encode
 import MPRLevel
 import Pace exposing (Pace)
 import Random
-
-
-type alias Activity =
-    { id : Id
-    , date : Date
-    , description : String
-    , data : ActivityData
-    , laps : Maybe (List LapData)
-    }
-
-
-type alias ActivityData =
-    { activityType : ActivityType
-    , duration : Maybe Seconds
-    , completed : Completion
-    , pace : Maybe Pace
-    , race : Maybe RaceDistance
-    , effort : Maybe Effort
-    , emoji : Maybe String
-    }
-
-
-type LapData
-    = Individual ActivityData
-    | Repeats Int (List ActivityData)
 
 
 initActivityData : ActivityData
@@ -47,16 +23,6 @@ initActivityData =
         Nothing
 
 
-type Completion
-    = Completed
-    | Planned
-
-
-type ActivityType
-    = Run
-    | Other
-
-
 activityType : Enum ActivityType
 activityType =
     Enum.create
@@ -65,19 +31,30 @@ activityType =
         ]
 
 
-listLapData : Activity -> List ActivityData
-listLapData activity =
-    activity.laps
-        |> Maybe.withDefault [ Individual activity.data ]
-        |> List.concatMap
-            (\lap ->
-                case lap of
-                    Individual data ->
-                        List.singleton data
+raceDistance : Enum RaceDistance
+raceDistance =
+    Enum.create
+        [ ( "5k", FiveK )
+        , ( "8k", EightK )
+        , ( "5 mile", FiveMile )
+        , ( "10k", TenK )
+        , ( "15k", FifteenK )
+        , ( "10 mile", TenMile )
+        , ( "20k", TwentyK )
+        , ( "Half Marathon", HalfMarathon )
+        , ( "25k", TwentyFiveK )
+        , ( "30k", ThirtyK )
+        , ( "Marathon", Marathon )
+        ]
 
-                    Repeats _ list ->
-                        []
-            )
+
+effort : Enum Effort
+effort =
+    Enum.create
+        [ ( "Easy", Easy )
+        , ( "Moderate", Moderate )
+        , ( "Hard", Hard )
+        ]
 
 
 newId : Random.Generator String
@@ -103,60 +80,6 @@ mprLevel activity =
 
         _ ->
             Nothing
-
-
-type alias Id =
-    String
-
-
-type alias Seconds =
-    Int
-
-
-type RaceDistance
-    = FiveK
-    | EightK
-    | FiveMile
-    | TenK
-    | FifteenK
-    | TenMile
-    | TwentyK
-    | HalfMarathon
-    | TwentyFiveK
-    | ThirtyK
-    | Marathon
-
-
-raceDistance : Enum RaceDistance
-raceDistance =
-    Enum.create
-        [ ( "5k", FiveK )
-        , ( "8k", EightK )
-        , ( "5 mile", FiveMile )
-        , ( "10k", TenK )
-        , ( "15k", FifteenK )
-        , ( "10 mile", TenMile )
-        , ( "20k", TwentyK )
-        , ( "Half Marathon", HalfMarathon )
-        , ( "25k", TwentyFiveK )
-        , ( "30k", ThirtyK )
-        , ( "Marathon", Marathon )
-        ]
-
-
-type Effort
-    = Easy
-    | Moderate
-    | Hard
-
-
-effort : Enum Effort
-effort =
-    Enum.create
-        [ ( "Easy", Easy )
-        , ( "Moderate", Moderate )
-        , ( "Hard", Hard )
-        ]
 
 
 

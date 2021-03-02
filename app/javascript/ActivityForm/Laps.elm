@@ -1,14 +1,14 @@
 module ActivityForm.Laps exposing (Laps, add, copy, delete, get, init, select, set, shift, sum, toActivityLaps, updateAll)
 
-import Activity exposing (ActivityData)
+import Activity exposing (ActivityData, LapData(..))
 import Array
 
 
 type alias Laps =
-    ( Int, List ActivityData )
+    ( Int, List LapData )
 
 
-init : List ActivityData -> Laps
+init : List LapData -> Laps
 init laps =
     ( 0, laps )
 
@@ -22,6 +22,15 @@ get : Laps -> ActivityData
 get ( index, laps ) =
     Array.fromList laps
         |> Array.get index
+        |> Maybe.map
+            (\lap ->
+                case lap of
+                    Individual data ->
+                        data
+
+                    _ ->
+                        Activity.initActivityData
+            )
         |> Maybe.withDefault Activity.initActivityData
 
 
@@ -29,21 +38,30 @@ set : ActivityData -> Laps -> Laps
 set data ( index, laps ) =
     ( index
     , Array.fromList laps
-        |> Array.set index data
+        |> Array.set index (Individual data)
         |> Array.toList
     )
 
 
 updateAll : (ActivityData -> ActivityData) -> Laps -> Laps
 updateAll transform ( index, laps ) =
+    let
+        nestedTransform lap =
+            case lap of
+                Individual data ->
+                    Individual (transform data)
+
+                Repeats count list ->
+                    Repeats count (List.map transform list)
+    in
     ( index
-    , List.map transform laps
+    , List.map nestedTransform laps
     )
 
 
 add : ActivityData -> Laps -> Laps
 add lap ( index, laps ) =
-    ( List.length laps, laps ++ [ lap ] )
+    ( List.length laps, laps ++ [ Individual lap ] )
 
 
 copy : Laps -> Laps
@@ -101,7 +119,6 @@ shift up ( index, laps ) =
         , shiftedLaps
         )
 
-
 delete : Laps -> Laps
 delete ( index, laps ) =
     ( if index < (List.length laps - 1) then
@@ -113,36 +130,60 @@ delete ( index, laps ) =
     )
 
 
-toActivityLaps : Laps -> ( ActivityData, Maybe (List ActivityData) )
+toActivityLaps : Laps -> ( ActivityData, Maybe (List LapData) )
 toActivityLaps ( _, laps ) =
     case laps of
         [] ->
             ( Activity.initActivityData, Nothing )
 
-        [ lap ] ->
-            ( lap, Nothing )
-
         list ->
             ( sum list, Just list )
 
 
-sum : List ActivityData -> ActivityData
-sum laps =
-    let
-        duration =
-            List.filterMap .duration laps |> List.sum
+duration : List LapData -> Int
+duration laps =
+    laps
+        |> List.map
+            (\lap ->
+                case lap of
+                    Individual data ->
+                        .duration data |> Maybe.withDefault 0
 
-        completed =
-            if List.all (\a -> a.completed == Activity.Completed) laps then
+                    Repeats _ list ->
+                        List.filterMap .duration list |> List.sum
+            )
+        |> List.sum
+
+
+completed : List LapData -> Activity.Completion
+completed laps =
+    let
+        aggregator list =
+            if List.all (\c -> c == Activity.Completed) list then
                 Activity.Completed
 
             else
                 Activity.Planned
     in
+    laps
+        |> List.map
+            (\lap ->
+                case lap of
+                    Individual data ->
+                        .completed data
+
+                    Repeats _ list ->
+                        aggregator (List.map .completed list)
+            )
+        |> aggregator
+
+
+sum : List LapData -> ActivityData
+sum laps =
     Activity.ActivityData
         Activity.Run
-        (Just duration)
-        completed
+        (Just (duration laps))
+        (completed laps)
         Nothing
         Nothing
         Nothing

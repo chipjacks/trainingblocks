@@ -428,23 +428,18 @@ update msg model =
                         |> loaded
 
                 ClickedUngroup session ->
-                    case session.laps of
-                        Just dataList ->
-                            ( model
-                            , Random.list (List.length dataList) Activity.newId
-                                |> Random.map
-                                    (\ids ->
-                                        List.map2
-                                            (\id data -> Activity id session.date "" data Nothing)
-                                            ids
-                                            dataList
-                                    )
-                                |> Random.generate (\activities -> Ungroup activities session)
-                                |> Effect.Cmd
+                    ( model
+                    , Random.list (List.length (Activity.listLapData session)) Activity.newId
+                        |> Random.map
+                            (\ids ->
+                                List.map2
+                                    (\id data -> Activity id session.date "" data Nothing)
+                                    ids
+                                    (Activity.listLapData session)
                             )
-
-                        _ ->
-                            ( model, Effect.None )
+                        |> Random.generate (\activities -> Ungroup activities session)
+                        |> Effect.Cmd
+                    )
 
                 ClickedGroup ->
                     case activityM of
@@ -550,7 +545,7 @@ initSession head activities =
                     head.date
                     ""
                     { activityData | completed = head.data.completed }
-                    (Just (List.map .data activities))
+                    (Just (List.map .data activities |> List.map Activity.Individual))
             )
         |> Effect.GenerateActivity (Group activities)
 

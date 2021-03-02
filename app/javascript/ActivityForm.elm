@@ -35,7 +35,7 @@ init activity =
                     Laps.init list
 
                 Nothing ->
-                    Laps.init [ activity.data ]
+                    Laps.init [ Activity.Individual activity.data ]
     in
     initFromLaps activity laps
 
@@ -324,7 +324,7 @@ view levelM activityM =
                         , expandingRow [ style "overflow" "hidden" ]
                             [ compactColumn [ style "min-width" "4rem", style "overflow-y" "scroll", class "hide-scrollbars", style "padding-left" "3px" ]
                                 (List.concat
-                                    [ Tuple.second model.laps
+                                    [ Activity.listLapData model.activity
                                         |> List.indexedMap (\i a -> viewActivityShape levelM (Tuple.first model.laps) i a)
                                     , [ viewAddButton ]
                                     ]

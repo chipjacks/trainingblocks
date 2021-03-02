@@ -1,4 +1,4 @@
-module Activity exposing (Activity, ActivityData, ActivityType(..), Completion(..), Effort(..), Id, RaceDistance(..), Seconds, activityType, decoder, effort, encoder, initActivityData, mprLevel, newId, raceDistance)
+module Activity exposing (Activity, ActivityData, ActivityType(..), Completion(..), Effort(..), Id, LapData(..), RaceDistance(..), Seconds, activityType, decoder, effort, encoder, initActivityData, listLapData, mprLevel, newId, raceDistance)
 
 import Date exposing (Date)
 import Enum exposing (Enum)
@@ -15,7 +15,7 @@ type alias Activity =
     , date : Date
     , description : String
     , data : ActivityData
-    , laps : Maybe (List ActivityData)
+    , laps : Maybe (List LapData)
     }
 
 
@@ -28,6 +28,11 @@ type alias ActivityData =
     , effort : Maybe Effort
     , emoji : Maybe String
     }
+
+
+type LapData
+    = Individual ActivityData
+    | Repeats Int (List ActivityData)
 
 
 initActivityData : ActivityData
@@ -58,6 +63,21 @@ activityType =
         [ ( "Run", Run )
         , ( "Other", Other )
         ]
+
+
+listLapData : Activity -> List ActivityData
+listLapData activity =
+    activity.laps
+        |> Maybe.withDefault [ Individual activity.data ]
+        |> List.concatMap
+            (\lap ->
+                case lap of
+                    Individual data ->
+                        List.singleton data
+
+                    Repeats _ list ->
+                        []
+            )
 
 
 newId : Random.Generator String
@@ -150,7 +170,15 @@ decoder =
         |> required "date" dateDecoder
         |> required "description" Decode.string
         |> required "data" activityDataDecoder
-        |> custom (Decode.maybe (Decode.at [ "data", "laps" ] (Decode.list activityDataDecoder)))
+        |> custom (Decode.maybe (Decode.at [ "data", "laps" ] (Decode.list lapDataDecoder)))
+
+
+lapDataDecoder : Decode.Decoder LapData
+lapDataDecoder =
+    Decode.oneOf
+        [ Decode.map Individual activityDataDecoder
+        , Decode.map2 Repeats (Decode.field "repeats" Decode.int) (Decode.field "laps" (Decode.list activityDataDecoder))
+        ]
 
 
 activityDataDecoder : Decode.Decoder ActivityData
@@ -170,12 +198,12 @@ activityDataDecoder =
     in
     Decode.succeed ActivityData
         |> required "type" activityType.decoder
-        |> required "duration" (Decode.nullable Decode.int)
+        |> optional "duration" (Decode.map Just Decode.int) Nothing
         |> required "completed" completedDecoder
-        |> required "pace" (Decode.nullable Decode.int)
-        |> required "race" (Decode.nullable raceDistance.decoder)
-        |> required "effort" (Decode.nullable effort.decoder)
-        |> required "emoji" (Decode.nullable Decode.string)
+        |> optional "pace" (Decode.map Just Decode.int) Nothing
+        |> optional "race" (Decode.map Just raceDistance.decoder) Nothing
+        |> optional "effort" (Decode.map Just effort.decoder) Nothing
+        |> optional "emoji" (Decode.map Just Decode.string) Nothing
 
 
 encoder : Activity -> Encode.Value
@@ -197,28 +225,32 @@ encoder activity =
                 Planned ->
                     Encode.bool False
 
-        dataEncoder data laps =
-            Encode.object
-                [ ( "type", activityType.encode data.activityType )
-                , ( "duration", maybeEncode data.duration Encode.int )
-                , ( "completed", encodeCompleted data.completed )
-                , ( "pace", maybeEncode data.pace Encode.int )
-                , ( "race", maybeEncode data.race raceDistance.encode )
-                , ( "effort", maybeEncode data.effort effort.encode )
-                , ( "emoji", maybeEncode data.emoji Encode.string )
-                , ( "laps", maybeEncode laps (Encode.list lapEncoder) )
-                ]
+        activityDataFields data =
+            [ ( "type", activityType.encode data.activityType )
+            , ( "duration", maybeEncode data.duration Encode.int )
+            , ( "completed", encodeCompleted data.completed )
+            , ( "pace", maybeEncode data.pace Encode.int )
+            , ( "race", maybeEncode data.race raceDistance.encode )
+            , ( "effort", maybeEncode data.effort effort.encode )
+            , ( "emoji", maybeEncode data.emoji Encode.string )
+            ]
 
-        lapEncoder data =
-            Encode.object
-                [ ( "type", activityType.encode data.activityType )
-                , ( "duration", maybeEncode data.duration Encode.int )
-                , ( "completed", encodeCompleted data.completed )
-                , ( "pace", maybeEncode data.pace Encode.int )
-                , ( "race", maybeEncode data.race raceDistance.encode )
-                , ( "effort", maybeEncode data.effort effort.encode )
-                , ( "emoji", maybeEncode data.emoji Encode.string )
-                ]
+        dataEncoder data laps =
+            Encode.object <|
+                activityDataFields data
+                    ++ [ ( "laps", maybeEncode laps (Encode.list lapEncoder) ) ]
+
+        lapEncoder lapData =
+            case lapData of
+                Individual data ->
+                    Encode.object
+                        (activityDataFields data)
+
+                Repeats count laps ->
+                    Encode.object
+                        [ ( "repeats", Encode.int count )
+                        , ( "laps", Encode.list (\l -> Encode.object (activityDataFields l)) laps )
+                        ]
     in
     Encode.object
         [ ( "id", Encode.string activity.id )

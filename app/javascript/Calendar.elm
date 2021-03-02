@@ -295,7 +295,7 @@ viewActivityShape activity isActive levelM =
         , attributeIf isActive (class "dynamic-shape")
         , style "touch-action" "none"
         ]
-        (Maybe.withDefault [ activity.data ] activity.laps
+        (Activity.listLapData activity
             |> List.map (\a -> ActivityShape.view levelM a)
         )
 

@@ -3,6 +3,7 @@ module Activity exposing (Activity, ActivityData, ActivityType(..), Completion(.
 import Date exposing (Date)
 import Enum exposing (Enum)
 import Json.Decode as Decode
+import Json.Decode.Pipeline exposing (custom, optional, required)
 import Json.Encode as Encode
 import MPRLevel
 import Pace exposing (Pace)
@@ -144,12 +145,12 @@ effort =
 
 decoder : Decode.Decoder Activity
 decoder =
-    Decode.map5 Activity
-        (Decode.field "id" Decode.string)
-        (Decode.field "date" dateDecoder)
-        (Decode.field "description" Decode.string)
-        (Decode.field "data" activityDataDecoder)
-        (Decode.maybe (Decode.at [ "data", "laps" ] (Decode.list activityDataDecoder)))
+    Decode.succeed Activity
+        |> required "id" Decode.string
+        |> required "date" dateDecoder
+        |> required "description" Decode.string
+        |> required "data" activityDataDecoder
+        |> custom (Decode.maybe (Decode.at [ "data", "laps" ] (Decode.list activityDataDecoder)))
 
 
 activityDataDecoder : Decode.Decoder ActivityData
@@ -167,14 +168,14 @@ activityDataDecoder =
                                 Decode.succeed Planned
                     )
     in
-    Decode.map7 ActivityData
-        (Decode.field "type" activityType.decoder)
-        (Decode.maybe (Decode.field "duration" Decode.int))
-        (Decode.field "completed" completedDecoder)
-        (Decode.maybe (Decode.field "pace" Decode.int))
-        (Decode.maybe (Decode.field "race" raceDistance.decoder))
-        (Decode.maybe (Decode.field "effort" effort.decoder))
-        (Decode.maybe (Decode.field "emoji" Decode.string))
+    Decode.succeed ActivityData
+        |> required "type" activityType.decoder
+        |> required "duration" (Decode.nullable Decode.int)
+        |> required "completed" completedDecoder
+        |> required "pace" (Decode.nullable Decode.int)
+        |> required "race" (Decode.nullable raceDistance.decoder)
+        |> required "effort" (Decode.nullable effort.decoder)
+        |> required "emoji" (Decode.nullable Decode.string)
 
 
 encoder : Activity -> Encode.Value

@@ -10,8 +10,8 @@ import Skeleton exposing (column, row, styleIf, viewMaybe)
 
 
 type Shape
-    = Block { width : Float, height : Float } Color Bool (Maybe EmojiData)
-    | Circle Color Bool (Maybe EmojiData)
+    = Block { width : Float, height : Float } Color Activity.Completion (Maybe EmojiData)
+    | Circle Color Activity.Completion (Maybe EmojiData)
     | Emoji (Maybe EmojiData)
 
 
@@ -75,22 +75,24 @@ viewShape shape =
                 , style "border" ("2px solid " ++ colorString color)
                 , style "border-radius" "2px"
                 , class "block"
-                , if completed then
-                    style "background-color" (colorString color)
+                , case completed of
+                    Activity.Completed ->
+                        style "background-color" (colorString color)
 
-                  else
-                    style "background-color" "white"
+                    Activity.Planned ->
+                        style "background-color" "white"
                 ]
                 [ viewMaybe emojiM Emoji.view ]
 
         Circle color completed emojiM ->
             let
                 ( backgroundColor, textColor ) =
-                    if completed then
-                        ( colorString color, "white" )
+                    case completed of
+                        Activity.Completed ->
+                            ( colorString color, "white" )
 
-                    else
-                        ( "white", colorString color )
+                        Activity.Planned ->
+                            ( "white", colorString color )
             in
             div
                 [ style "width" "1rem"

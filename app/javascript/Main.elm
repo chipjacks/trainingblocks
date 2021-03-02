@@ -516,7 +516,11 @@ initActivity today dateM =
             dateM |> Maybe.withDefault today
 
         completed =
-            Date.compare date today == LT || date == today
+            if Date.compare date today == LT || date == today then
+                Activity.Completed
+
+            else
+                Activity.Planned
 
         activityData =
             Activity.initActivityData

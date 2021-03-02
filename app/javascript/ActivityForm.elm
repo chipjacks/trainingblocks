@@ -176,8 +176,16 @@ update msg model =
 
         CheckedCompleted ->
             let
+                newCompletion =
+                    case model.completed of
+                        Activity.Completed ->
+                            Activity.Planned
+
+                        Activity.Planned ->
+                            Activity.Completed
+
                 newLaps =
-                    Laps.updateAll (\l -> { l | completed = not model.completed }) model.laps
+                    Laps.updateAll (\l -> { l | completed = newCompletion }) model.laps
             in
             ( updateResult (initFromLaps model.activity newLaps)
             , Effect.None
@@ -572,7 +580,7 @@ dateSelect msg date =
         ]
 
 
-completionToggle : Msg -> Bool -> Html Msg
+completionToggle : Msg -> Activity.Completion -> Html Msg
 completionToggle msg completed =
     column []
         [ Html.label [] [ text "Completed" ]
@@ -581,7 +589,7 @@ completionToggle msg completed =
             , Html.Attributes.attribute "type" "checkbox"
             , style "width" "1.5rem"
             , style "height" "1.5rem"
-            , attributeIf completed (Html.Attributes.attribute "checked" "")
+            , attributeIf (completed == Activity.Completed) (Html.Attributes.attribute "checked" "")
             ]
             []
         ]

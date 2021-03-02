@@ -1,4 +1,4 @@
-module Activity exposing (Activity, ActivityData, ActivityType(..), Effort(..), Id, RaceDistance(..), Seconds, activityType, decoder, effort, encoder, initActivityData, mprLevel, newId, raceDistance)
+module Activity exposing (Activity, ActivityData, ActivityType(..), Completion(..), Effort(..), Id, RaceDistance(..), Seconds, activityType, decoder, effort, encoder, initActivityData, mprLevel, newId, raceDistance)
 
 import Date exposing (Date)
 import Enum exposing (Enum)
@@ -21,7 +21,7 @@ type alias Activity =
 type alias ActivityData =
     { activityType : ActivityType
     , duration : Maybe Seconds
-    , completed : Bool
+    , completed : Completion
     , pace : Maybe Pace
     , race : Maybe RaceDistance
     , effort : Maybe Effort
@@ -34,11 +34,16 @@ initActivityData =
     ActivityData
         Run
         Nothing
-        True
+        Completed
         Nothing
         Nothing
         Nothing
         Nothing
+
+
+type Completion
+    = Completed
+    | Planned
 
 
 type ActivityType
@@ -149,10 +154,23 @@ decoder =
 
 activityDataDecoder : Decode.Decoder ActivityData
 activityDataDecoder =
+    let
+        completedDecoder =
+            Decode.bool
+                |> Decode.andThen
+                    (\c ->
+                        case c of
+                            True ->
+                                Decode.succeed Completed
+
+                            False ->
+                                Decode.succeed Planned
+                    )
+    in
     Decode.map7 ActivityData
         (Decode.field "type" activityType.decoder)
         (Decode.maybe (Decode.field "duration" Decode.int))
-        (Decode.field "completed" Decode.bool)
+        (Decode.field "completed" completedDecoder)
         (Decode.maybe (Decode.field "pace" Decode.int))
         (Decode.maybe (Decode.field "race" raceDistance.decoder))
         (Decode.maybe (Decode.field "effort" effort.decoder))
@@ -170,11 +188,19 @@ encoder activity =
                 Nothing ->
                     Encode.null
 
+        encodeCompleted c =
+            case c of
+                Completed ->
+                    Encode.bool True
+
+                Planned ->
+                    Encode.bool False
+
         dataEncoder data laps =
             Encode.object
                 [ ( "type", activityType.encode data.activityType )
                 , ( "duration", maybeEncode data.duration Encode.int )
-                , ( "completed", Encode.bool data.completed )
+                , ( "completed", encodeCompleted data.completed )
                 , ( "pace", maybeEncode data.pace Encode.int )
                 , ( "race", maybeEncode data.race raceDistance.encode )
                 , ( "effort", maybeEncode data.effort effort.encode )
@@ -186,7 +212,7 @@ encoder activity =
             Encode.object
                 [ ( "type", activityType.encode data.activityType )
                 , ( "duration", maybeEncode data.duration Encode.int )
-                , ( "completed", Encode.bool data.completed )
+                , ( "completed", encodeCompleted data.completed )
                 , ( "pace", maybeEncode data.pace Encode.int )
                 , ( "race", maybeEncode data.race raceDistance.encode )
                 , ( "effort", maybeEncode data.effort effort.encode )

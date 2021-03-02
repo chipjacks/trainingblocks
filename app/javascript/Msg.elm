@@ -21,7 +21,7 @@ type alias ActivityForm =
     , laps : ( Int, List Activity.ActivityData )
     , activityType : Activity.ActivityType
     , duration : ( Int, Int, Int )
-    , completed : Bool
+    , completed : Activity.Completion
     , pace : String
     , race : Maybe Activity.RaceDistance
     , effort : Maybe Activity.Effort

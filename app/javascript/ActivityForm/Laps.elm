@@ -35,7 +35,7 @@ set data ( index, laps ) =
 
 
 updateAll : (ActivityData -> ActivityData) -> Laps -> Laps
-updateAll transform (index, laps) =
+updateAll transform ( index, laps ) =
     ( index
     , List.map transform laps
     )
@@ -133,7 +133,11 @@ sum laps =
             List.filterMap .duration laps |> List.sum
 
         completed =
-            List.all .completed laps
+            if List.all (\a -> a.completed == Activity.Completed) laps then
+                Activity.Completed
+
+            else
+                Activity.Planned
     in
     Activity.ActivityData
         Activity.Run

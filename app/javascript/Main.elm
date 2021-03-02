@@ -415,6 +415,15 @@ update msg model =
                         _ ->
                             ( model, Effect.None )
 
+                ClickedRepeat ->
+                    case activityM of
+                        Editing form ->
+                            updateActivityForm msg state
+                                |> loaded
+
+                        _ ->
+                            ( model, Effect.None )
+
                 ClickedDelete ->
                     case activityM of
                         Editing form ->

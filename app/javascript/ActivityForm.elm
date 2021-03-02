@@ -97,6 +97,9 @@ update msg model =
             , Effect.None
             )
 
+        ClickedRepeat ->
+            ( model, Effect.None )
+
         ClickedShift up ->
             let
                 newLaps =
@@ -412,7 +415,7 @@ viewButtons activity editing =
           else
             toolbarButton ClickedEdit MonoIcons.edit "Edit" False
         , toolbarButton ClickedCopy MonoIcons.copy "Copy" False
-        , toolbarButton ClickedCopy MonoIcons.repeat "Repeat" False
+        , viewIf editing (toolbarButton ClickedRepeat MonoIcons.repeat "Repeat" False)
         , toolbarButton ClickedDelete MonoIcons.delete "Delete" False
         , column [] []
         , toolbarButton (ClickedShift True) MonoIcons.arrowUp "Shift Up" False

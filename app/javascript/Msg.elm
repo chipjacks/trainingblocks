@@ -89,6 +89,7 @@ type Msg
     | ClickedSubmit
     | ClickedEdit
     | ClickedCopy
+    | ClickedRepeat
     | ClickedDelete
     | ClickedShift Bool
     | ClickedMove

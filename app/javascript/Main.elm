@@ -235,26 +235,10 @@ update msg model =
                     updateStore msg state |> loaded
 
                 Shift _ _ ->
-                    case activityM of
-                        Editing form ->
-                            updateActivityForm msg state
-                                |> loaded
-
-                        _ ->
-                            updateStore msg state |> loaded
+                    updateStore msg state |> loaded
 
                 Delete _ ->
-                    case activityM of
-                        Editing form ->
-                            if List.length (Tuple.second form.laps) == 1 then
-                                updateStore msg (State calendar store None) |> loaded
-
-                            else
-                                updateActivityForm msg state
-                                    |> loaded
-
-                        _ ->
-                            updateStore msg (State calendar store None) |> loaded
+                    updateStore msg (State calendar store None) |> loaded
 
                 Posted _ _ ->
                     updateStore msg state |> loaded
@@ -402,19 +386,62 @@ update msg model =
                         _ ->
                             ( Loaded (State calendar store None), Effect.None )
 
-                ClickedCopy activity ->
+                ClickedEdit ->
+                    case activityM of
+                        Selected [ activity ] ->
+                            let
+                                form =
+                                    ActivityForm.init activity
+                            in
+                            ( Loaded <| State calendar store (Editing form), Effect.None )
+
+                        _ ->
+                            ( model, Effect.None )
+
+                ClickedCopy ->
                     case activityM of
                         Editing form ->
                             updateActivityForm msg state
                                 |> loaded
 
-                        _ ->
+                        Selected [ activity ] ->
                             ( model
                             , Activity.newId
                                 |> Random.map (\id -> { activity | id = id })
                                 |> Random.generate NewActivity
                                 |> Effect.Cmd
                             )
+
+                        _ ->
+                            ( model, Effect.None )
+
+                ClickedDelete ->
+                    case activityM of
+                        Editing form ->
+                            updateActivityForm msg state
+                                |> loaded
+
+                        Selected list ->
+                            ( Loaded <| State calendar store None
+                            , Effect.Batch (List.map (\a -> Store.cmd (Delete a)) list)
+                            )
+
+                        _ ->
+                            ( model, Effect.None )
+
+                ClickedShift up ->
+                    case activityM of
+                        Editing form ->
+                            updateActivityForm msg state
+                                |> loaded
+
+                        Selected [ activity ] ->
+                            ( model
+                            , Store.cmd (Shift up activity)
+                            )
+
+                        _ ->
+                            ( model, Effect.None )
 
                 ClickedMove ->
                     let
@@ -427,19 +454,24 @@ update msg model =
                     ( activityFormState, Effect.Batch [ calendarCmd, activityFormCmd ] )
                         |> loaded
 
-                ClickedUngroup session ->
-                    ( model
-                    , Random.list (List.length (Activity.listLapData session)) Activity.newId
-                        |> Random.map
-                            (\ids ->
-                                List.map2
-                                    (\id data -> Activity id session.date "" data Nothing)
-                                    ids
-                                    (Activity.listLapData session)
+                ClickedUngroup ->
+                    case activityM of
+                        Selected [ session ] ->
+                            ( model
+                            , Random.list (List.length (Activity.listLapData session)) Activity.newId
+                                |> Random.map
+                                    (\ids ->
+                                        List.map2
+                                            (\id data -> Activity id session.date "" data Nothing)
+                                            ids
+                                            (Activity.listLapData session)
+                                    )
+                                |> Random.generate (\activities -> Ungroup activities session)
+                                |> Effect.Cmd
                             )
-                        |> Random.generate (\activities -> Ungroup activities session)
-                        |> Effect.Cmd
-                    )
+
+                        _ ->
+                            ( model, Effect.None )
 
                 ClickedGroup ->
                     case activityM of

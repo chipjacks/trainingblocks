@@ -87,9 +87,12 @@ type Msg
     | SelectedPace String
     | SelectedRace (Maybe Activity.RaceDistance)
     | ClickedSubmit
-    | ClickedCopy Activity
+    | ClickedEdit
+    | ClickedCopy
+    | ClickedDelete
+    | ClickedShift Bool
     | ClickedMove
     | ClickedGroup
-    | ClickedUngroup Activity
+    | ClickedUngroup
     | ClickedClose
     | NewId String

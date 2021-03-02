@@ -83,7 +83,7 @@ apply toMsg { result } =
 update : Msg -> ActivityForm -> ( ActivityForm, Effect )
 update msg model =
     case msg of
-        ClickedCopy _ ->
+        ClickedCopy ->
             let
                 newLaps =
                     Laps.copy model.laps
@@ -97,7 +97,7 @@ update msg model =
             , Effect.None
             )
 
-        Shift up _ ->
+        ClickedShift up ->
             let
                 newLaps =
                     Laps.shift up model.laps
@@ -111,7 +111,7 @@ update msg model =
             , Effect.None
             )
 
-        Delete _ ->
+        ClickedDelete ->
             let
                 newLaps =
                     Laps.delete model.laps
@@ -410,12 +410,13 @@ viewButtons activity editing =
             toolbarButton ClickedSubmit MonoIcons.check "Save" True
 
           else
-            toolbarButton (EditActivity activity) MonoIcons.edit "Edit" False
-        , toolbarButton (ClickedCopy activity) MonoIcons.copy "Copy" False
-        , toolbarButton (Delete activity) MonoIcons.delete "Delete" False
+            toolbarButton ClickedEdit MonoIcons.edit "Edit" False
+        , toolbarButton ClickedCopy MonoIcons.copy "Copy" False
+        , toolbarButton ClickedCopy MonoIcons.repeat "Repeat" False
+        , toolbarButton ClickedDelete MonoIcons.delete "Delete" False
         , column [] []
-        , toolbarButton (Shift True activity) MonoIcons.arrowUp "Shift Up" False
-        , toolbarButton (Shift False activity) MonoIcons.arrowDown "Shift Down" False
+        , toolbarButton (ClickedShift True) MonoIcons.arrowUp "Shift Up" False
+        , toolbarButton (ClickedShift False) MonoIcons.arrowDown "Shift Down" False
         , column [] []
         , toolbarButton ClickedClose MonoIcons.close "Close" False
         ]
@@ -446,7 +447,8 @@ toolbarButton onClickMsg icon labelStr primary =
 viewMultiSelectButtons : Html Msg
 viewMultiSelectButtons =
     row []
-        [ toolbarButton ClickedGroup MonoIcons.folder "Group" False
+        [ toolbarButton ClickedDelete MonoIcons.delete "Delete" False
+        , toolbarButton ClickedGroup MonoIcons.folder "Group" False
         ]
 
 

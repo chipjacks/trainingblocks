@@ -81,6 +81,7 @@ type Msg
     | SelectedLap Int
     | SelectedRepeatLap Int
     | ClickedAddLap
+    | ClickedAddRepeat
     | SelectedEmoji String
     | SearchedEmojis String
     | CheckedCompleted

@@ -211,12 +211,27 @@ update msg model =
                         |> (\a -> { a | completed = model.completed })
 
                 ( newLaps, newRepeat ) =
+                    ( Selection.add (Individual newData) model.laps
+                    , Nothing
+                    )
+            in
+            ( updateResult (initFromSelection model.activity newLaps newRepeat)
+            , Effect.None
+            )
+
+        ClickedAddRepeat ->
+            let
+                newData =
+                    Activity.initActivityData
+                        |> (\a -> { a | completed = model.completed })
+
+                ( newLaps, newRepeat ) =
                     case model.repeat of
                         Just repeat ->
                             ( model.laps, Just (Selection.add newData repeat) )
 
                         Nothing ->
-                            ( Selection.add (Individual newData) model.laps
+                            ( model.laps
                             , model.repeat
                             )
             in
@@ -432,7 +447,7 @@ view levelM activityM =
                                 (List.concat
                                     [ Selection.toList model.laps
                                         |> List.indexedMap (\i l -> viewActivityShape levelM (Selection.selectedIndex model.laps) i l model.repeat)
-                                    , [ viewAddButton ]
+                                    , [ viewAddButton ClickedAddLap ]
                                     ]
                                 )
                             , viewLapFields levelM model
@@ -457,26 +472,34 @@ viewActivityShape levelM selectedLap lapIndex lap repeatM =
     row
         [ onClick (SelectedLap lapIndex)
         , attributeIf (selectedLap == lapIndex && repeatM == Nothing) (class "selected-shape")
-        , style "padding-top" "1rem"
-        , style "padding-bottom" "1rem"
+        , style "padding-top" "0.5rem"
+        , style "padding-bottom" "0.5rem"
+        , style "min-height" "1rem"
         ]
         (case ( selectedLap == lapIndex, lap, repeatM ) of
             ( True, Repeats count list, Just repeat ) ->
-                [ compactColumn []
-                    (List.indexedMap
-                        (\i data ->
-                            row
-                                [ onClick (SelectedRepeatLap i)
-                                , attributeIf (i == Selection.selectedIndex repeat) (class "selected-shape")
-                                , style "padding-top" "1rem"
-                                , style "padding-bottom" "1rem"
+                [ compactColumn [] <|
+                    List.concat
+                        [ List.indexedMap
+                            (\i data ->
+                                row
+                                    [ onClick (SelectedRepeatLap i)
+                                    , attributeIf (i == Selection.selectedIndex repeat) (class "selected-shape")
+                                    , style "padding-top" "0.5rem"
+                                    , style "padding-bottom" "0.5rem"
+                                    , style "min-height" "1rem"
+                                    ]
+                                    [ ActivityShape.view levelM data ]
+                            )
+                            (Selection.toList repeat)
+                        , [ row
+                                [ style "padding-top" "0.5rem"
+                                , style "padding-bottom" "0.5rem"
                                 ]
-                                [ ActivityShape.view levelM data ]
-                        )
-                        (Selection.toList repeat)
-                        |> List.repeat count
-                        |> List.concat
-                    )
+                                [ viewAddButton ClickedAddRepeat ]
+                          ]
+                        , List.map (\data -> row [ style "opacity" "0.5" ] [ ActivityShape.view levelM data ]) (List.repeat (count - 1) list |> List.concat)
+                        ]
                 ]
 
             _ ->
@@ -494,10 +517,10 @@ viewActivityShape levelM selectedLap lapIndex lap repeatM =
         )
 
 
-viewAddButton : Html Msg
-viewAddButton =
+viewAddButton : Msg -> Html Msg
+viewAddButton msg =
     row []
-        [ iconButton [ onClick ClickedAddLap ] [ MonoIcons.icon (MonoIcons.add "var(--icon-gray)") ]
+        [ iconButton [ onClick msg ] [ MonoIcons.icon (MonoIcons.add "var(--icon-gray)") ]
         ]
 
 

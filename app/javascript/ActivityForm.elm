@@ -305,7 +305,7 @@ updateResult model =
                         selection =
                             Selection.set (toActivityData model) repeat
                     in
-                    ( Selection.set (Repeats 2 (Tuple.second selection)) model.laps
+                    ( Selection.set (Repeats 2 (Selection.toList selection)) model.laps
                     , Just selection
                     )
 
@@ -315,7 +315,7 @@ updateResult model =
                     )
 
         activity =
-            Activity.Laps.set model.activity (Tuple.second newLaps)
+            Activity.Laps.set model.activity (Selection.toList newLaps)
                 |> (\a ->
                         { a
                             | description = model.description
@@ -406,8 +406,8 @@ view levelM activityM =
                         , expandingRow [ style "overflow" "hidden" ]
                             [ compactColumn [ style "min-width" "4rem", style "overflow-y" "scroll", class "hide-scrollbars", style "padding-left" "3px" ]
                                 (List.concat
-                                    [ Tuple.second model.laps
-                                        |> List.indexedMap (\i l -> viewActivityShape levelM (Tuple.first model.laps) i l model.repeat)
+                                    [ Selection.toList model.laps
+                                        |> List.indexedMap (\i l -> viewActivityShape levelM (Selection.selectedIndex model.laps) i l model.repeat)
                                     , [ viewAddButton ]
                                     ]
                                 )
@@ -443,13 +443,13 @@ viewActivityShape levelM selectedLap lapIndex lap repeatM =
                         (\i data ->
                             row
                                 [ onClick (SelectedRepeatLap i)
-                                , attributeIf (i == Tuple.first repeat) (class "selected-shape")
+                                , attributeIf (i == Selection.selectedIndex repeat) (class "selected-shape")
                                 , style "padding-top" "1rem"
                                 , style "padding-bottom" "1rem"
                                 ]
                                 [ ActivityShape.view levelM data ]
                         )
-                        (Tuple.second repeat)
+                        (Selection.toList repeat)
                         |> List.repeat count
                         |> List.concat
                     )

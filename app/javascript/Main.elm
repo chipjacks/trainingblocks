@@ -343,6 +343,10 @@ update msg model =
                     updateActivityForm msg state
                         |> loaded
 
+                SelectedRepeatLap _ ->
+                    updateActivityForm msg state
+                        |> loaded
+
                 ClickedAddLap ->
                     updateActivityForm msg state
                         |> loaded

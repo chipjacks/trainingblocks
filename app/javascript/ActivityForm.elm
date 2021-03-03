@@ -32,23 +32,39 @@ init : Activity -> ActivityForm
 init activity =
     let
         laps =
-            Selection.init (Activity.Laps.listData activity)
+            Selection.init (activity.laps |> Maybe.withDefault [ Individual activity.data ])
     in
-    initFromLaps activity laps
+    initFromSelection activity laps Nothing
 
 
-initFromLaps : Activity -> Selection ActivityData -> ActivityForm
-initFromLaps activity laps =
+initFromSelection : Activity -> Selection LapData -> Maybe (Selection ActivityData) -> ActivityForm
+initFromSelection activity laps repeatM =
     let
-        data =
+        lap =
             Selection.get laps
-                |> Maybe.withDefault Activity.initActivityData
+                |> Maybe.withDefault (Individual Activity.initActivityData)
+
+        ( data, newRepeatM ) =
+            case ( lap, repeatM ) of
+                ( Individual d, _ ) ->
+                    ( d, Nothing )
+
+                ( Repeats count list, Nothing ) ->
+                    ( List.head list |> Maybe.withDefault Activity.initActivityData
+                    , Just (Selection.init list)
+                    )
+
+                ( Repeats count list, Just repeat ) ->
+                    ( Selection.get repeat |> Maybe.withDefault Activity.initActivityData
+                    , Just repeat
+                    )
     in
     ActivityForm activity
         (Just activity.date)
         activity.description
         (Ok activity)
         laps
+        newRepeatM
         data.activityType
         (Maybe.map Duration.toHrsMinsSecs data.duration |> Maybe.withDefault ( 0, 0, 0 ))
         data.completed
@@ -83,30 +99,61 @@ update msg model =
     case msg of
         ClickedCopy ->
             let
-                newLaps =
-                    Selection.copy model.laps
+                ( newLaps, newRepeat ) =
+                    case model.repeat of
+                        Just repeat ->
+                            ( model.laps, Just (Selection.copy repeat) )
+
+                        Nothing ->
+                            ( Selection.copy model.laps, model.repeat )
 
                 newModel =
-                    initFromLaps
+                    initFromSelection
                         model.activity
                         newLaps
+                        newRepeat
             in
             ( updateResult newModel
             , Effect.None
             )
 
         ClickedRepeat ->
-            ( model, Effect.None )
+            let
+                ( newLaps, newRepeat ) =
+                    case Selection.get model.laps of
+                        Just (Individual data) ->
+                            ( Selection.set (Repeats 2 [ data ]) model.laps
+                            , Just (Selection.init [ data ])
+                            )
+
+                        _ ->
+                            ( model.laps, model.repeat )
+
+                newModel =
+                    initFromSelection
+                        model.activity
+                        newLaps
+                        newRepeat
+            in
+            ( updateResult newModel
+            , Effect.None
+            )
 
         ClickedShift up ->
             let
-                newLaps =
-                    Selection.shift up model.laps
+                ( newLaps, newRepeat ) =
+                    case model.repeat of
+                        Just repeat ->
+                            ( model.laps, Just (Selection.shift up repeat) )
+
+                        Nothing ->
+                            ( Selection.shift up model.laps, model.repeat )
 
                 newModel =
-                    initFromLaps
+                    initFromSelection
                         model.activity
                         newLaps
+                        newRepeat
             in
             ( updateResult newModel
             , Effect.None
@@ -114,10 +161,15 @@ update msg model =
 
         ClickedDelete ->
             let
-                newLaps =
-                    Selection.delete model.laps
+                ( newLaps, newRepeat ) =
+                    case model.repeat of
+                        Just repeat ->
+                            ( model.laps, Just (Selection.delete repeat) )
+
+                        Nothing ->
+                            ( Selection.delete model.laps, model.repeat )
             in
-            ( updateResult (initFromLaps model.activity newLaps)
+            ( updateResult (initFromSelection model.activity newLaps newRepeat)
             , Effect.None
             )
 
@@ -126,20 +178,41 @@ update msg model =
                 newLaps =
                     Selection.select index model.laps
             in
-            ( updateResult (initFromLaps model.activity newLaps)
+            ( updateResult (initFromSelection model.activity newLaps model.repeat)
+            , Effect.None
+            )
+
+        SelectedRepeatLap index ->
+            let
+                newRepeat =
+                    case model.repeat of
+                        Just repeat ->
+                            Just (Selection.select index repeat)
+
+                        Nothing ->
+                            model.repeat
+            in
+            ( updateResult (initFromSelection model.activity model.laps newRepeat)
             , Effect.None
             )
 
         ClickedAddLap ->
             let
-                newLap =
+                newData =
                     Activity.initActivityData
                         |> (\a -> { a | completed = model.completed })
 
-                newLaps =
-                    Selection.add newLap model.laps
+                ( newLaps, newRepeat ) =
+                    case model.repeat of
+                        Just repeat ->
+                            ( model.laps, Just (Selection.add newData repeat) )
+
+                        Nothing ->
+                            ( Selection.add (Individual newData) model.laps
+                            , model.repeat
+                            )
             in
-            ( updateResult (initFromLaps model.activity newLaps)
+            ( updateResult (initFromSelection model.activity newLaps newRepeat)
             , Effect.None
             )
 
@@ -186,9 +259,9 @@ update msg model =
                             Activity.Types.Completed
 
                 newLaps =
-                    Selection.updateAll (\l -> { l | completed = newCompletion }) model.laps
+                    Selection.updateAll (Activity.Laps.updateField (\l -> { l | completed = newCompletion })) model.laps
             in
-            ( updateResult (initFromLaps model.activity newLaps)
+            ( updateResult (initFromSelection model.activity newLaps model.repeat)
             , Effect.None
             )
 
@@ -225,18 +298,31 @@ update msg model =
 updateResult : ActivityForm -> ActivityForm
 updateResult model =
     let
-        laps =
-            Selection.set (toActivityData model) model.laps
+        ( newLaps, newRepeat ) =
+            case model.repeat of
+                Just repeat ->
+                    let
+                        selection =
+                            Selection.set (toActivityData model) repeat
+                    in
+                    ( Selection.set (Repeats 2 (Tuple.second selection)) model.laps
+                    , Just selection
+                    )
+
+                Nothing ->
+                    ( Selection.set (Individual <| toActivityData model) model.laps
+                    , model.repeat
+                    )
 
         activity =
-            Activity.Laps.set model.activity (Tuple.second laps |> List.map Individual)
+            Activity.Laps.set model.activity (Tuple.second newLaps)
                 |> (\a ->
                         { a
                             | description = model.description
                         }
                    )
     in
-    { model | laps = laps, activity = activity }
+    { model | laps = newLaps, repeat = newRepeat, activity = activity }
         |> (\m -> { m | result = validate m })
 
 
@@ -320,8 +406,8 @@ view levelM activityM =
                         , expandingRow [ style "overflow" "hidden" ]
                             [ compactColumn [ style "min-width" "4rem", style "overflow-y" "scroll", class "hide-scrollbars", style "padding-left" "3px" ]
                                 (List.concat
-                                    [ Activity.Laps.listData model.activity
-                                        |> List.indexedMap (\i a -> viewActivityShape levelM (Tuple.first model.laps) i a)
+                                    [ Tuple.second model.laps
+                                        |> List.indexedMap (\i l -> viewActivityShape levelM (Tuple.first model.laps) i l model.repeat)
                                     , [ viewAddButton ]
                                     ]
                                 )
@@ -342,15 +428,46 @@ view levelM activityM =
             row closedAttributes []
 
 
-viewActivityShape : Maybe Int -> Int -> Int -> ActivityData -> Html Msg
-viewActivityShape levelM selectedLap lapIndex activityData =
+viewActivityShape : Maybe Int -> Int -> Int -> LapData -> Maybe (Selection ActivityData) -> Html Msg
+viewActivityShape levelM selectedLap lapIndex lap repeatM =
     row
         [ onClick (SelectedLap lapIndex)
-        , attributeIf (selectedLap == lapIndex) (class "selected-shape")
+        , attributeIf (selectedLap == lapIndex && repeatM == Nothing) (class "selected-shape")
         , style "padding-top" "1rem"
         , style "padding-bottom" "1rem"
         ]
-        [ ActivityShape.view levelM activityData ]
+        (case ( selectedLap == lapIndex, lap, repeatM ) of
+            ( True, Repeats count list, Just repeat ) ->
+                [ compactColumn []
+                    (List.indexedMap
+                        (\i data ->
+                            row
+                                [ onClick (SelectedRepeatLap i)
+                                , attributeIf (i == Tuple.first repeat) (class "selected-shape")
+                                , style "padding-top" "1rem"
+                                , style "padding-bottom" "1rem"
+                                ]
+                                [ ActivityShape.view levelM data ]
+                        )
+                        (Tuple.second repeat)
+                        |> List.repeat count
+                        |> List.concat
+                    )
+                ]
+
+            _ ->
+                case lap of
+                    Individual data ->
+                        [ ActivityShape.view levelM data ]
+
+                    Repeats count list ->
+                        [ compactColumn []
+                            (List.map (\data -> row [] [ ActivityShape.view levelM data ]) list
+                                |> List.repeat count
+                                |> List.concat
+                            )
+                        ]
+        )
 
 
 viewAddButton : Html Msg

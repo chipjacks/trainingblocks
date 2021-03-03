@@ -1,4 +1,4 @@
-module Activity.Laps exposing (listData, set)
+module Activity.Laps exposing (listData, set, updateField)
 
 import Activity.Types exposing (Activity, ActivityData, ActivityType(..), Completion(..), LapData(..))
 
@@ -26,6 +26,16 @@ set activity laps =
 
         list ->
             { activity | data = sum list, laps = Just list }
+
+
+updateField : (ActivityData -> ActivityData) -> LapData -> LapData
+updateField transform lap =
+    case lap of
+        Individual data ->
+            Individual (transform data)
+
+        Repeats count list ->
+            Repeats count (List.map transform list)
 
 
 sum : List LapData -> ActivityData

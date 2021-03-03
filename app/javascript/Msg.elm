@@ -18,7 +18,8 @@ type alias ActivityForm =
     , date : Maybe Date
     , description : String
     , result : Result FormError Activity
-    , laps : ( Int, List Activity.Types.ActivityData )
+    , laps : ( Int, List Activity.Types.LapData )
+    , repeat : Maybe ( Int, List Activity.Types.ActivityData )
     , activityType : Activity.Types.ActivityType
     , duration : ( Int, Int, Int )
     , completed : Activity.Types.Completion
@@ -77,6 +78,7 @@ type Msg
     | SelectedDate Date
     | EditedDescription String
     | SelectedLap Int
+    | SelectedRepeatLap Int
     | ClickedAddLap
     | SelectedEmoji String
     | SearchedEmojis String

@@ -3,7 +3,7 @@ module ActivityForm exposing (init, initMove, update, view)
 import Activity
 import Activity.Laps
 import Activity.Types exposing (Activity, ActivityData, ActivityType, LapData(..))
-import ActivityForm.Laps as Laps exposing (Laps)
+import ActivityForm.Selection as Selection exposing (Selection)
 import ActivityShape
 import Date exposing (Date)
 import Duration
@@ -32,21 +32,17 @@ init : Activity -> ActivityForm
 init activity =
     let
         laps =
-            case activity.laps of
-                Just list ->
-                    Laps.init list
-
-                Nothing ->
-                    Laps.init [ Individual activity.data ]
+            Selection.init (Activity.Laps.listData activity)
     in
     initFromLaps activity laps
 
 
-initFromLaps : Activity -> Laps -> ActivityForm
+initFromLaps : Activity -> Selection ActivityData -> ActivityForm
 initFromLaps activity laps =
     let
         data =
-            Laps.get laps
+            Selection.get laps
+                |> Maybe.withDefault Activity.initActivityData
     in
     ActivityForm activity
         (Just activity.date)
@@ -88,7 +84,7 @@ update msg model =
         ClickedCopy ->
             let
                 newLaps =
-                    Laps.copy model.laps
+                    Selection.copy model.laps
 
                 newModel =
                     initFromLaps
@@ -105,7 +101,7 @@ update msg model =
         ClickedShift up ->
             let
                 newLaps =
-                    Laps.shift up model.laps
+                    Selection.shift up model.laps
 
                 newModel =
                     initFromLaps
@@ -119,7 +115,7 @@ update msg model =
         ClickedDelete ->
             let
                 newLaps =
-                    Laps.delete model.laps
+                    Selection.delete model.laps
             in
             ( updateResult (initFromLaps model.activity newLaps)
             , Effect.None
@@ -128,7 +124,7 @@ update msg model =
         SelectedLap index ->
             let
                 newLaps =
-                    Laps.select index model.laps
+                    Selection.select index model.laps
             in
             ( updateResult (initFromLaps model.activity newLaps)
             , Effect.None
@@ -141,7 +137,7 @@ update msg model =
                         |> (\a -> { a | completed = model.completed })
 
                 newLaps =
-                    Laps.add newLap model.laps
+                    Selection.add newLap model.laps
             in
             ( updateResult (initFromLaps model.activity newLaps)
             , Effect.None
@@ -190,7 +186,7 @@ update msg model =
                             Activity.Types.Completed
 
                 newLaps =
-                    Laps.updateAll (\l -> { l | completed = newCompletion }) model.laps
+                    Selection.updateAll (\l -> { l | completed = newCompletion }) model.laps
             in
             ( updateResult (initFromLaps model.activity newLaps)
             , Effect.None
@@ -230,10 +226,10 @@ updateResult : ActivityForm -> ActivityForm
 updateResult model =
     let
         laps =
-            Laps.set (toActivityData model) model.laps
+            Selection.set (toActivityData model) model.laps
 
         activity =
-            Activity.Laps.set model.activity (Tuple.second laps)
+            Activity.Laps.set model.activity (Tuple.second laps |> List.map Individual)
                 |> (\a ->
                         { a
                             | description = model.description

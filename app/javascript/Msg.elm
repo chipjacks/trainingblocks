@@ -18,7 +18,7 @@ type alias ActivityForm =
     , date : Maybe Date
     , description : String
     , result : Result FormError Activity
-    , laps : ( Int, List Activity.Types.LapData )
+    , laps : ( Int, List Activity.Types.ActivityData )
     , activityType : Activity.Types.ActivityType
     , duration : ( Int, Int, Int )
     , completed : Activity.Types.Completion

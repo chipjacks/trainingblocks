@@ -1,4 +1,4 @@
-module Activity.Laps exposing (listData, set, sum)
+module Activity.Laps exposing (listData, set)
 
 import Activity.Types exposing (Activity, ActivityData, ActivityType(..), Completion(..), LapData(..))
 
@@ -13,8 +13,8 @@ listData activity =
                     Individual data ->
                         List.singleton data
 
-                    Repeats _ list ->
-                        []
+                    Repeats count list ->
+                        List.concat (List.repeat count list)
             )
 
 
@@ -49,8 +49,8 @@ duration laps =
                     Individual data ->
                         .duration data |> Maybe.withDefault 0
 
-                    Repeats _ list ->
-                        List.filterMap .duration list |> List.sum
+                    Repeats count list ->
+                        (List.filterMap .duration list |> List.sum) * count
             )
         |> List.sum
 

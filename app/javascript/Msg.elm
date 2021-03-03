@@ -20,6 +20,7 @@ type alias ActivityForm =
     , result : Result FormError Activity
     , laps : ( Int, List Activity.Types.LapData )
     , repeat : Maybe ( Int, List Activity.Types.ActivityData )
+    , repeats : Maybe Int
     , activityType : Activity.Types.ActivityType
     , duration : ( Int, Int, Int )
     , completed : Activity.Types.Completion
@@ -83,6 +84,7 @@ type Msg
     | SelectedEmoji String
     | SearchedEmojis String
     | CheckedCompleted
+    | EditedRepeats Int
     | SelectedActivityType Activity.Types.ActivityType
     | EditedDuration ( Int, Int, Int )
     | SelectedEffort (Maybe Activity.Types.Effort)

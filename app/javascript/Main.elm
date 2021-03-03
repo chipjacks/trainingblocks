@@ -363,6 +363,10 @@ update msg model =
                     updateActivityForm msg state
                         |> loaded
 
+                EditedRepeats _ ->
+                    updateActivityForm msg state
+                        |> loaded
+
                 SelectedActivityType _ ->
                     updateActivityForm msg state
                         |> loaded

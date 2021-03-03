@@ -44,19 +44,21 @@ initFromSelection activity laps repeatM =
             Selection.get laps
                 |> Maybe.withDefault (Individual Activity.initActivityData)
 
-        ( data, newRepeatM ) =
+        ( data, newRepeatM, countM ) =
             case ( lap, repeatM ) of
                 ( Individual d, _ ) ->
-                    ( d, Nothing )
+                    ( d, Nothing, Nothing )
 
                 ( Repeats count list, Nothing ) ->
                     ( List.head list |> Maybe.withDefault Activity.initActivityData
                     , Just (Selection.init list)
+                    , Just count
                     )
 
                 ( Repeats count list, Just repeat ) ->
                     ( Selection.get repeat |> Maybe.withDefault Activity.initActivityData
                     , Just repeat
+                    , Just count
                     )
     in
     ActivityForm activity
@@ -65,6 +67,7 @@ initFromSelection activity laps repeatM =
         (Ok activity)
         laps
         newRepeatM
+        countM
         data.activityType
         (Maybe.map Duration.toHrsMinsSecs data.duration |> Maybe.withDefault ( 0, 0, 0 ))
         data.completed
@@ -124,6 +127,11 @@ update msg model =
                         Just (Individual data) ->
                             ( Selection.set (Repeats 2 [ data ]) model.laps
                             , Just (Selection.init [ data ])
+                            )
+
+                        Just (Repeats count list) ->
+                            ( Selection.set (Individual (List.head list |> Maybe.withDefault Activity.initActivityData)) model.laps
+                            , Nothing
                             )
 
                         _ ->
@@ -233,6 +241,22 @@ update msg model =
             , Effect.None
             )
 
+        EditedRepeats newCount ->
+            let
+                ( newLaps, newRepeat ) =
+                    case Selection.get model.laps of
+                        Just (Repeats count list) ->
+                            ( Selection.set (Repeats newCount list) model.laps
+                            , model.repeat
+                            )
+
+                        _ ->
+                            ( model.laps, model.repeat )
+            in
+            ( updateResult (initFromSelection model.activity newLaps newRepeat)
+            , Effect.None
+            )
+
         SelectedEffort effortM ->
             ( updateResult { model | effort = effortM }
             , Effect.None
@@ -299,17 +323,17 @@ updateResult : ActivityForm -> ActivityForm
 updateResult model =
     let
         ( newLaps, newRepeat ) =
-            case model.repeat of
-                Just repeat ->
+            case ( Selection.get model.laps, model.repeat ) of
+                ( Just (Repeats count list), Just repeat ) ->
                     let
                         selection =
                             Selection.set (toActivityData model) repeat
                     in
-                    ( Selection.set (Repeats 2 (Selection.toList selection)) model.laps
+                    ( Selection.set (Repeats count (Selection.toList selection)) model.laps
                     , Just selection
                     )
 
-                Nothing ->
+                ( _, _ ) ->
                     ( Selection.set (Individual <| toActivityData model) model.laps
                     , model.repeat
                     )
@@ -506,7 +530,10 @@ viewLapFields levelM form =
             , column [ maxFieldWidth ] [ durationInput EditedDuration form.duration ]
             ]
         , row []
-            [ column [ maxFieldWidth ] [ effortSelect SelectedEffort form.effort ]
+            [ column [ maxFieldWidth ]
+                [ repeatsInput EditedRepeats form.repeats
+                , effortSelect SelectedEffort form.effort
+                ]
             , column [ maxFieldWidth ] [ emojiSelect SelectedEmoji form.emoji form.emojiSearch ]
             ]
         , row [ styleIf (form.activityType /= Activity.Types.Run) "visibility" "hidden" ]
@@ -525,7 +552,6 @@ viewButtons activity editing =
           else
             toolbarButton ClickedEdit MonoIcons.edit "Edit" False
         , toolbarButton ClickedCopy MonoIcons.copy "Copy" False
-        , viewIf editing (toolbarButton ClickedRepeat MonoIcons.repeat "Repeat" False)
         , toolbarButton ClickedDelete MonoIcons.delete "Delete" False
         , column [] []
         , toolbarButton (ClickedShift True) MonoIcons.arrowUp "Shift Up" False
@@ -710,6 +736,37 @@ completionToggle msg completed =
         ]
 
 
+repeatsInput : (Int -> Msg) -> Maybe Int -> Html Msg
+repeatsInput msg countM =
+    case countM of
+        Just count ->
+            let
+                valueAttr =
+                    if count == 1 then
+                        ""
+
+                    else
+                        String.fromInt count
+            in
+            column []
+                [ label "Repeats" (countM /= Nothing) ClickedRepeat
+                , row []
+                    [ numberInput "repeats"
+                        99
+                        [ onInput (\s -> String.toInt s |> Maybe.withDefault 1 |> msg)
+                        , style "width" "6rem"
+                        , value valueAttr
+                        ]
+                        []
+                    ]
+                ]
+
+        Nothing ->
+            compactColumn []
+                [ button [ style "width" "fit-content", onClick ClickedRepeat ] [ text "Repeat" ]
+                ]
+
+
 emojiSelect : (String -> Msg) -> String -> String -> Html Msg
 emojiSelect msg name search =
     let
@@ -764,22 +821,6 @@ durationInput msg ( hrs, mins, secs ) =
         header str =
             row [ style "font-size" "0.6rem", style "color" "var(--icon-gray)", style "margin-bottom" "2px" ]
                 [ text str ]
-
-        numberInput nameStr max attrs =
-            input
-                ([ Html.Attributes.type_ "number"
-                 , class "input"
-                 , Html.Attributes.min "0"
-                 , Html.Attributes.max max
-                 , Html.Attributes.step "1"
-                 , Html.Attributes.maxlength (String.length max)
-                 , Html.Attributes.autocomplete False
-                 , name nameStr
-                 , Html.Attributes.attribute "aria-label" nameStr
-                 , Html.Attributes.id nameStr
-                 ]
-                    ++ attrs
-                )
     in
     column []
         [ label "Time" (hrs /= 0 || mins /= 0 || secs /= 0) (msg ( 0, 0, 0 ))
@@ -787,7 +828,7 @@ durationInput msg ( hrs, mins, secs ) =
             [ compactColumn [ style "width" "2.5rem" ]
                 [ header "HOURS"
                 , numberInput "hours"
-                    "9"
+                    9
                     [ onInput (\h -> msg ( String.toInt h |> Maybe.withDefault 0, mins, secs ))
                     , value (toValue hrs)
                     ]
@@ -796,7 +837,7 @@ durationInput msg ( hrs, mins, secs ) =
             , compactColumn [ style "width" "3.5rem" ]
                 [ header "MINS"
                 , numberInput "minutes"
-                    "60"
+                    60
                     [ onInput (\m -> msg ( hrs, String.toInt m |> Maybe.withDefault 0, secs ))
                     , value (toValue mins)
                     ]
@@ -805,7 +846,7 @@ durationInput msg ( hrs, mins, secs ) =
             , compactColumn [ style "width" "3.5rem" ]
                 [ header "SECS"
                 , numberInput "seconds"
-                    "60"
+                    60
                     [ onInput (\s -> msg ( hrs, mins, String.toInt s |> Maybe.withDefault 0 ))
                     , value (toValue secs)
                     ]
@@ -813,6 +854,23 @@ durationInput msg ( hrs, mins, secs ) =
                 ]
             ]
         ]
+
+
+numberInput : String -> Int -> List (Html.Attribute Msg) -> (List (Html Msg) -> Html Msg)
+numberInput nameStr max attrs =
+    input
+        ([ Html.Attributes.type_ "number"
+         , class "input"
+         , Html.Attributes.min "0"
+         , Html.Attributes.max (String.fromInt max)
+         , Html.Attributes.step "1"
+         , Html.Attributes.maxlength (String.length (String.fromInt max))
+         , Html.Attributes.autocomplete False
+         , name nameStr
+         , Html.Attributes.attribute "aria-label" nameStr
+         ]
+            ++ attrs
+        )
 
 
 paceSelect : Maybe Int -> (String -> Msg) -> String -> Html Msg

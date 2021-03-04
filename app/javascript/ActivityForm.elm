@@ -297,10 +297,16 @@ update msg model =
                         Activity.Types.Planned ->
                             Activity.Types.Completed
 
+                markCompleted data =
+                    { data | completed = newCompletion }
+
                 newLaps =
-                    Selection.updateAll (Activity.Laps.updateField (\l -> { l | completed = newCompletion })) model.laps
+                    Selection.updateAll (Activity.Laps.updateField markCompleted) model.laps
+
+                newRepeats =
+                    Maybe.map (Selection.updateAll markCompleted) model.repeat
             in
-            ( updateResult (initFromSelection model.activity newLaps model.repeat)
+            ( updateResult (initFromSelection model.activity newLaps newRepeats)
             , Effect.None
             )
 

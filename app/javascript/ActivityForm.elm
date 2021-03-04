@@ -440,7 +440,7 @@ view levelM activityM =
                             ]
                         , row []
                             [ viewActivityFields model ]
-                        , row [ style "margin-top" "10px", style "margin-bottom" "10px", borderStyle "border-bottom" ]
+                        , row [ style "margin-top" "10px", style "margin-bottom" "5px", borderStyle "border-bottom" ]
                             []
                         , expandingRow [ style "overflow" "hidden" ]
                             [ compactColumn [ style "min-width" "4rem", style "overflow-y" "scroll", class "hide-scrollbars", style "padding-left" "3px" ]
@@ -531,12 +531,12 @@ viewActivityFields form =
             style "max-width" "20rem"
     in
     column []
-        [ row [ style "margin-bottom" "10px" ]
-            [ column [ maxFieldWidth ] [ dateSelect ClickedMove form.date ]
-            , column [ maxFieldWidth ] [ completionToggle CheckedCompleted form.completed ]
-            ]
-        , row [ style "max-width" "40rem" ]
+        [ row [ style "margin-bottom" "10px", style "max-width" "40rem" ]
             [ descriptionInput EditedDescription form.description
+            ]
+        , row []
+            [ column [ maxFieldWidth ] [ completionToggle CheckedCompleted form.completed ]
+            , column [ maxFieldWidth ] [ emojiSelect SelectedEmoji form.emoji form.emojiSearch ]
             ]
         ]
 
@@ -550,14 +550,11 @@ viewLapFields levelM form =
     column [ style "justify-content" "space-between", style "max-height" "20rem", style "margin-bottom" "10px", style "margin-top" "10px" ]
         [ row []
             [ column [ maxFieldWidth ] [ activityTypeSelect SelectedActivityType form.activityType ]
-            , column [ maxFieldWidth ] [ durationInput EditedDuration form.duration ]
+            , column [ maxFieldWidth ] [ repeatsInput EditedRepeats form.repeats ]
             ]
         , row []
-            [ column [ maxFieldWidth ]
-                [ repeatsInput EditedRepeats form.repeats
-                , effortSelect SelectedEffort form.effort
-                ]
-            , column [ maxFieldWidth ] [ emojiSelect SelectedEmoji form.emoji form.emojiSearch ]
+            [ column [ maxFieldWidth ] [ durationInput EditedDuration form.duration ]
+            , column [ maxFieldWidth ] [ effortSelect SelectedEffort form.effort ]
             ]
         , row [ styleIf (form.activityType /= Activity.Types.Run) "visibility" "hidden" ]
             [ column [ maxFieldWidth ] [ paceSelect levelM SelectedPace form.pace ]
@@ -807,27 +804,32 @@ emojiSelect msg name search =
                 , style "width" "22px"
                 , style "height" "22px"
                 , style "margin-right" "10px"
-                , style "margin-top" "5px"
                 , style "margin-bottom" "5px"
                 , style "cursor" "pointer"
                 , styleIf (data.name == name) "box-shadow" "0 0 0 0.2rem var(--icon-gray)"
                 ]
                 [ Emoji.view data ]
     in
-    column []
-        [ label "Emoji" (name /= "") (msg "")
-        , row [ style "margin-top" "4px", style "flex-wrap" "wrap" ]
-            (List.map emojiItem (emojis |> List.take 5))
-        , row []
-            [ input
-                [ onInput SearchedEmojis
-                , onFocus (SearchedEmojis "")
-                , Html.Attributes.placeholder "Search"
-                , style "width" "6rem"
-                , value search
+    column [ style "width" "150px" ]
+        [ row [ style "justify-content" "space-between" ]
+            [ label "Feel" (name /= "") (msg "")
+            , compactColumn [ borderStyle "border-bottom" ]
+                [ row []
+                    [ MonoIcons.icon (MonoIcons.search "var(--icon-gray)")
+                    , input
+                        [ onInput SearchedEmojis
+                        , onFocus (SearchedEmojis "")
+                        , style "width" "4rem"
+                        , style "padding" "0"
+                        , style "border" "none"
+                        , value search
+                        ]
+                        []
+                    ]
                 ]
-                []
             ]
+        , row [ style "margin-top" "4px", style "height" "27px" ]
+            (List.map emojiItem (emojis |> List.take 5))
         ]
 
 

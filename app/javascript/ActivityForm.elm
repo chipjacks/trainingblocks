@@ -223,7 +223,7 @@ update msg model =
             let
                 newData =
                     Activity.initActivityData
-                        |> (\a -> { a | completed = model.completed })
+                        |> (\a -> { a | completed = model.completed, duration = Just 120 })
 
                 ( newLaps, newRepeat ) =
                     case model.repeat of

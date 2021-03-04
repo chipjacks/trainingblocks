@@ -549,16 +549,16 @@ viewLapFields levelM form =
     in
     column [ style "justify-content" "space-between", style "max-height" "20rem", style "margin-bottom" "10px", style "margin-top" "10px" ]
         [ row []
-            [ column [ maxFieldWidth ] [ activityTypeSelect SelectedActivityType form.activityType ]
-            , column [ maxFieldWidth ] [ repeatsInput EditedRepeats form.repeats ]
+            [ column [ maxFieldWidth, style "flex-grow" "2" ] [ activityTypeSelect SelectedActivityType form.activityType ]
+            , column [ maxFieldWidth, style "flex-grow" "1" ] [ repeatsInput EditedRepeats form.repeats ]
             ]
         , row []
-            [ column [ maxFieldWidth ] [ durationInput EditedDuration form.duration ]
-            , column [ maxFieldWidth ] [ effortSelect SelectedEffort form.effort ]
+            [ column [ maxFieldWidth, style "flex-grow" "2" ] [ durationInput EditedDuration form.duration ]
+            , column [ maxFieldWidth, style "flex-grow" "1" ] [ effortSelect SelectedEffort form.effort ]
             ]
         , row [ styleIf (form.activityType /= Activity.Types.Run) "visibility" "hidden" ]
-            [ column [ maxFieldWidth ] [ paceSelect levelM SelectedPace form.pace ]
-            , column [ maxFieldWidth ] [ raceSelect SelectedRace form.race ]
+            [ column [ maxFieldWidth, style "flex-grow" "2" ] [ paceSelect levelM SelectedPace form.pace ]
+            , column [ maxFieldWidth, style "flex-grow" "1" ] [ raceSelect SelectedRace form.race ]
             ]
         ]
 
@@ -687,6 +687,27 @@ descriptionInput msg str =
         ]
 
 
+squareIconButton : Html msg -> String -> List (Html.Attribute msg) -> Html msg
+squareIconButton icon name attributes =
+    button
+        ([ class "button column expand"
+         , style "margin-top" "3px"
+         , style "margin-right" "3px"
+         , style "max-width" "6rem"
+         , style "padding-left" "0"
+         , style "padding-right" "0"
+         , style "align-items" "center"
+         ]
+            ++ attributes
+        )
+        [ MonoIcons.icon icon
+        , row
+            [ style "margin-top" "0.1rem"
+            ]
+            [ text name ]
+        ]
+
+
 activityTypeSelect : (ActivityType -> Msg) -> ActivityType -> Html Msg
 activityTypeSelect msg activityType =
     let
@@ -699,27 +720,16 @@ activityTypeSelect msg activityType =
                     MonoIcons.circle
 
         iconButton aType =
-            button
-                [ class "button column expand"
-                , onClick (msg aType)
-                , style "margin-top" "3px"
-                , style "margin-right" "3px"
-                , style "max-width" "6rem"
-                , style "padding-left" "0"
-                , style "padding-right" "0"
-                , style "align-items" "center"
+            squareIconButton
+                (icon aType "#3d3d3d")
+                (Activity.activityType.toString aType)
+                [ onClick (msg aType)
                 , styleIf (activityType == aType) "border" "1px solid var(--accent-blue)"
-                ]
-                [ MonoIcons.icon (icon aType "#3d3d3d")
-                , row
-                    [ style "margin-top" "0.1rem"
-                    ]
-                    [ text (Activity.activityType.toString aType) ]
                 ]
     in
     column []
         [ Html.label [] [ text "Type" ]
-        , row [ style "flex-wrap" "wrap" ]
+        , row []
             (List.map
                 (\( _, aType ) ->
                     iconButton aType
@@ -758,33 +768,30 @@ completionToggle msg completed =
 
 repeatsInput : (Int -> Msg) -> Maybe Int -> Html Msg
 repeatsInput msg countM =
-    case countM of
-        Just count ->
-            let
-                valueAttr =
-                    if count == 1 then
-                        ""
+    column [ style "width" "6rem" ]
+        [ label "Repeats" (countM /= Nothing) ClickedRepeat
+        , case countM of
+            Just count ->
+                let
+                    valueAttr =
+                        if count == 1 then
+                            ""
 
-                    else
-                        String.fromInt count
-            in
-            column []
-                [ label "Repeats" (countM /= Nothing) ClickedRepeat
-                , row []
+                        else
+                            String.fromInt count
+                in
+                row []
                     [ numberInput "repeats"
                         99
                         [ onInput (\s -> String.toInt s |> Maybe.withDefault 1 |> msg)
-                        , style "width" "6rem"
                         , value valueAttr
                         ]
                         []
                     ]
-                ]
 
-        Nothing ->
-            compactColumn []
-                [ button [ style "width" "fit-content", onClick ClickedRepeat ] [ text "Repeat" ]
-                ]
+            Nothing ->
+                row [] [ squareIconButton (MonoIcons.repeat "#3d3d3d") "Repeat" [ onClick ClickedRepeat ] ]
+        ]
 
 
 emojiSelect : (String -> Msg) -> String -> String -> Html Msg

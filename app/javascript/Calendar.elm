@@ -596,7 +596,7 @@ pointerDownDecoder activity =
 
 viewAddButton : Date -> Html Msg
 viewAddButton date =
-    row [ Html.Attributes.class "add-button", style "margin-left" "0.5rem" ]
+    row [ Html.Attributes.class "add-button", style "margin-left" "0.5rem", style "margin-top" "0.5rem" ]
         [ iconButton
             [ onClick (ClickedNewActivity date), Html.Attributes.attribute "aria-label" "Add" ]
             [ MonoIcons.icon (MonoIcons.add "var(--icon-gray)") ]

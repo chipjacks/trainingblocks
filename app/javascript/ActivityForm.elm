@@ -4,6 +4,8 @@ import Activity
 import Activity.Laps
 import Activity.Types exposing (Activity, ActivityData, ActivityType, LapData(..))
 import ActivityForm.Selection as Selection exposing (Selection)
+import ActivityForm.Types exposing (ActivityForm, FieldError(..), ValidatedFields)
+import ActivityForm.Validate as Validate exposing (validate)
 import ActivityShape
 import Date exposing (Date)
 import Duration
@@ -15,7 +17,7 @@ import Html.Events exposing (on, onClick, onFocus, onInput)
 import Json.Decode as Decode
 import MPRLevel
 import MonoIcons
-import Msg exposing (ActivityForm, ActivityState(..), FormError(..), Msg(..))
+import Msg exposing (ActivityState(..), Msg(..))
 import Pace
 import Skeleton exposing (attributeIf, borderStyle, column, compactColumn, expandingRow, iconButton, row, styleIf, viewIf, viewMaybe)
 import Store
@@ -64,12 +66,12 @@ initFromSelection activity laps repeatM =
     ActivityForm activity
         (Just activity.date)
         activity.description
-        (Ok activity)
+        Validate.init
         laps
         newRepeatM
-        countM
+        (Maybe.map String.fromInt countM)
         data.activityType
-        (Maybe.map Duration.toHrsMinsSecs data.duration |> Maybe.withDefault ( 0, 0, 0 ))
+        (Maybe.map Duration.toHrsMinsSecs data.duration |> Maybe.map (\( h, m, s ) -> ( String.fromInt h, String.fromInt m, String.fromInt s )) |> Maybe.withDefault ( "", "", "" ))
         data.completed
         (Maybe.map Pace.paceToString data.pace |> Maybe.withDefault "")
         data.race
@@ -85,16 +87,6 @@ initMove activity =
             init activity
     in
     { model | date = Nothing }
-
-
-apply : (Activity -> Msg) -> ActivityForm -> Msg
-apply toMsg { result } =
-    case result of
-        Ok activity ->
-            toMsg activity
-
-        _ ->
-            NoOp
 
 
 update : Msg -> ActivityForm -> ( ActivityForm, Effect )
@@ -246,7 +238,7 @@ update msg model =
                         newModel =
                             updateResult { model | date = Just date }
                     in
-                    ( newModel, Store.cmd (apply (Move date) newModel) )
+                    ( newModel, Store.cmd (Move date newModel.activity) )
 
                 _ ->
                     ( model, Effect.None )
@@ -256,12 +248,15 @@ update msg model =
             , Effect.None
             )
 
-        EditedRepeats newCount ->
+        EditedRepeats newCountStr ->
             let
+                newCount =
+                    String.toInt newCountStr
+
                 ( newLaps, newRepeat ) =
                     case Selection.get model.laps of
                         Just (Repeats count list) ->
-                            ( Selection.set (Repeats newCount list) model.laps
+                            ( Selection.set (Repeats (newCount |> Maybe.withDefault count) list) model.laps
                             , model.repeat
                             )
 
@@ -334,7 +329,7 @@ update msg model =
             ( updateResult { model | date = Nothing }, Effect.None )
 
         ClickedSubmit ->
-            ( model, Store.cmd (apply Update model) )
+            ( model, Store.cmd (Update model.activity) )
 
         _ ->
             ( model, Effect.None )
@@ -343,6 +338,9 @@ update msg model =
 updateResult : ActivityForm -> ActivityForm
 updateResult model =
     let
+        validated =
+            { model | validated = validate model }
+
         ( newLaps, newRepeat ) =
             case ( Selection.get model.laps, model.repeat ) of
                 ( Just (Repeats count list), Just repeat ) ->
@@ -367,29 +365,7 @@ updateResult model =
                         }
                    )
     in
-    { model | laps = newLaps, repeat = newRepeat, activity = activity }
-        |> (\m -> { m | result = validate m })
-
-
-validateFieldExists : Maybe a -> String -> Result FormError a
-validateFieldExists fieldM fieldName =
-    case fieldM of
-        Just field ->
-            Ok field
-
-        Nothing ->
-            Err <| EmptyFieldError fieldName
-
-
-validate : ActivityForm -> Result FormError Activity
-validate model =
-    let
-        activity =
-            model.activity
-    in
-    Result.map
-        (\date -> { activity | date = date })
-        (validateFieldExists model.date "date")
+    { validated | laps = newLaps, repeat = newRepeat, activity = activity }
 
 
 view : Maybe Int -> ActivityState -> Html Msg
@@ -438,11 +414,8 @@ view levelM activityM =
                 row (openAttributes "100%")
                     [ column []
                         [ row []
-                            [ viewMaybe (Result.toMaybe model.result)
-                                (\activity ->
-                                    column [ style "margin-bottom" "1rem" ]
-                                        [ viewButtons activity True ]
-                                )
+                            [ column [ style "margin-bottom" "1rem" ]
+                                [ viewButtons model.activity True ]
                             ]
                         , row []
                             [ viewActivityFields model ]
@@ -556,14 +529,14 @@ viewLapFields levelM form =
     column [ style "justify-content" "space-between", style "max-height" "20rem", style "margin-bottom" "10px", style "margin-top" "10px" ]
         [ row []
             [ column [ maxFieldWidth, style "flex-grow" "2" ] [ activityTypeSelect SelectedActivityType form.activityType ]
-            , column [ maxFieldWidth, style "flex-grow" "1" ] [ repeatsInput EditedRepeats form.repeats ]
+            , column [ maxFieldWidth, style "flex-grow" "1" ] [ repeatsInput EditedRepeats form.repeats form.validated.repeats ]
             ]
         , row []
             [ column [ maxFieldWidth, style "flex-grow" "2" ] [ durationInput EditedDuration form.duration ]
             , column [ maxFieldWidth, style "flex-grow" "1" ] [ effortSelect SelectedEffort form.effort ]
             ]
         , row [ styleIf (form.activityType /= Activity.Types.Run) "visibility" "hidden" ]
-            [ column [ maxFieldWidth, style "flex-grow" "2" ] [ paceSelect levelM SelectedPace form.pace ]
+            [ column [ maxFieldWidth, style "flex-grow" "2" ] [ paceSelect levelM SelectedPace form.pace form.validated.pace ]
             , column [ maxFieldWidth, style "flex-grow" "1" ] [ raceSelect SelectedRace form.race ]
             ]
         ]
@@ -617,32 +590,20 @@ viewMultiSelectButtons =
         ]
 
 
-parseDuration : ( Int, Int, Int ) -> Maybe Int
-parseDuration ( hrs, mins, secs ) =
-    let
-        seconds =
-            hrs * 60 * 60 + mins * 60 + secs
-    in
-    if seconds == 0 then
-        Nothing
-
-    else
-        Just seconds
-
-
-parsePace : String -> Maybe Int
-parsePace str =
-    Pace.paceFromString str
-
-
 toActivityData : ActivityForm -> ActivityData
 toActivityData model =
     Activity.Types.ActivityData
         model.activityType
-        (parseDuration model.duration)
+        (case model.duration of
+            ( "", "", "" ) ->
+                Nothing
+
+            _ ->
+                model.validated.duration |> Result.toMaybe
+        )
         model.completed
         (if model.activityType == Activity.Types.Run then
-            parsePace model.pace
+            model.validated.pace |> Result.toMaybe
 
          else
             Nothing
@@ -659,7 +620,7 @@ toActivityData model =
                 Nothing
 
             _ ->
-                Just model.emoji
+                model.validated.emoji |> Result.toMaybe
         )
 
 
@@ -772,25 +733,17 @@ completionToggle msg completed =
         ]
 
 
-repeatsInput : (Int -> Msg) -> Maybe Int -> Html Msg
-repeatsInput msg countM =
+repeatsInput : (String -> Msg) -> Maybe String -> Result FieldError Int -> Html Msg
+repeatsInput msg countStrM result =
     column [ style "width" "6rem" ]
-        [ label "Repeats" (countM /= Nothing) ClickedRepeat
-        , case countM of
-            Just count ->
-                let
-                    valueAttr =
-                        if count == 1 then
-                            ""
-
-                        else
-                            String.fromInt count
-                in
+        [ label "Repeats" (countStrM /= Just "") ClickedRepeat
+        , case countStrM of
+            Just countStr ->
                 row []
                     [ numberInput "repeats"
                         99
-                        [ onInput (\s -> String.toInt s |> Maybe.withDefault 1 |> msg)
-                        , value valueAttr
+                        [ onInput msg
+                        , value countStr
                         ]
                         []
                     ]
@@ -846,29 +799,22 @@ emojiSelect msg name search =
         ]
 
 
-durationInput : (( Int, Int, Int ) -> Msg) -> ( Int, Int, Int ) -> Html Msg
+durationInput : (( String, String, String ) -> Msg) -> ( String, String, String ) -> Html Msg
 durationInput msg ( hrs, mins, secs ) =
     let
-        toValue int =
-            if int == 0 then
-                ""
-
-            else
-                String.fromInt int
-
         header str =
             row [ style "font-size" "0.6rem", style "color" "var(--icon-gray)", style "margin-bottom" "2px" ]
                 [ text str ]
     in
     column []
-        [ label "Time" (hrs /= 0 || mins /= 0 || secs /= 0) (msg ( 0, 0, 0 ))
+        [ label "Time" (hrs /= "" || mins /= "" || secs /= "") (msg ( "", "", "" ))
         , row []
             [ compactColumn [ style "width" "2.5rem" ]
                 [ header "HOURS"
                 , numberInput "hours"
                     9
-                    [ onInput (\h -> msg ( String.toInt h |> Maybe.withDefault 0, mins, secs ))
-                    , value (toValue hrs)
+                    [ onInput (\h -> msg ( h, mins, secs ))
+                    , value hrs
                     ]
                     []
                 ]
@@ -876,8 +822,8 @@ durationInput msg ( hrs, mins, secs ) =
                 [ header "MINS"
                 , numberInput "minutes"
                     60
-                    [ onInput (\m -> msg ( hrs, String.toInt m |> Maybe.withDefault 0, secs ))
-                    , value (toValue mins)
+                    [ onInput (\m -> msg ( hrs, m, secs ))
+                    , value mins
                     ]
                     []
                 ]
@@ -885,8 +831,8 @@ durationInput msg ( hrs, mins, secs ) =
                 [ header "SECS"
                 , numberInput "seconds"
                     60
-                    [ onInput (\s -> msg ( hrs, mins, String.toInt s |> Maybe.withDefault 0 ))
-                    , value (toValue secs)
+                    [ onInput (\s -> msg ( hrs, mins, s ))
+                    , value secs
                     ]
                     []
                 ]
@@ -911,8 +857,8 @@ numberInput nameStr max attrs =
         )
 
 
-paceSelect : Maybe Int -> (String -> Msg) -> String -> Html Msg
-paceSelect levelM msg paceStr =
+paceSelect : Maybe Int -> (String -> Msg) -> String -> Result FieldError Int -> Html Msg
+paceSelect levelM msg paceStr result =
     let
         paceTimes =
             case levelM of
@@ -925,10 +871,18 @@ paceSelect levelM msg paceStr =
                     []
 
         trainingPaceStr =
-            parsePace paceStr
+            Result.toMaybe result
                 |> Maybe.map2 (\level paceSecs -> Pace.secondsToTrainingPace level paceSecs) levelM
                 |> Maybe.map Pace.trainingPace.toString
                 |> Maybe.withDefault ""
+
+        isSlowerThan time =
+            case result of
+                Err _ ->
+                    False
+
+                Ok pace ->
+                    (Pace.paceFromString time |> Maybe.withDefault 0) < pace
     in
     column []
         [ label "Pace" (paceStr /= "") (msg "")
@@ -944,7 +898,9 @@ paceSelect levelM msg paceStr =
                                     , style "height" "0.5rem"
                                     , style "margin-right" "1px"
                                     , style "cursor" "pointer"
-                                    , styleIf ((parsePace time |> Maybe.withDefault 0) < (parsePace paceStr |> Maybe.withDefault 0) || (parsePace paceStr == Nothing)) "background-color" "var(--icon-gray)"
+                                    , styleIf (isSlowerThan time)
+                                        "background-color"
+                                        "var(--icon-gray)"
                                     ]
                                     []
                             )

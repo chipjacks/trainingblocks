@@ -1,5 +1,6 @@
-module Emoji exposing (default, filter, find, recommended, view)
+module Emoji exposing (default, filter, find, get, recommended, view)
 
+import Dict
 import EmojiData exposing (EmojiData)
 import EmojiData.Category
 import EmojiData.List exposing (emojis)
@@ -32,6 +33,13 @@ filter name =
 find : String -> EmojiData
 find name =
     filter name |> List.head |> Maybe.withDefault default
+
+
+get : String -> Maybe EmojiData
+get name =
+    List.map (\e -> ( e.name, e )) emojis
+        |> Dict.fromList
+        |> Dict.get name
 
 
 view : EmojiData -> Html msg

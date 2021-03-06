@@ -4,6 +4,7 @@ import Activity
 import Activity.Laps
 import Activity.Types exposing (Activity)
 import ActivityForm
+import ActivityForm.Types exposing (ActivityForm)
 import ActivityShape
 import Api
 import Browser
@@ -18,7 +19,7 @@ import Html.Events exposing (on)
 import Html.Lazy
 import Json.Decode as Decode
 import MonoIcons
-import Msg exposing (ActivityForm, ActivityState(..), Msg(..))
+import Msg exposing (ActivityState(..), Msg(..))
 import Ports
 import Random
 import Skeleton exposing (borderStyle, column, compactColumn, expandingRow, row, spinner, styleIf, viewIf, viewMaybe)

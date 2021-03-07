@@ -1,4 +1,4 @@
-module ActivityForm.Validate exposing (validate, init)
+module ActivityForm.Validate exposing (init, validate)
 
 import ActivityForm.Types exposing (ActivityForm, FieldError(..), ValidatedFields)
 import Date exposing (Date)
@@ -9,6 +9,7 @@ import Pace
 init : ValidatedFields
 init =
     ValidatedFields (Err MissingError) (Err MissingError) (Err MissingError) (Err MissingError) (Err MissingError)
+
 
 validate : ActivityForm -> ValidatedFields
 validate model =
@@ -22,12 +23,19 @@ validate model =
 
 parseDuration : ( String, String, String ) -> Result FieldError Int
 parseDuration ( hrs, mins, secs ) =
-    Maybe.map3
+    let
+        toIntResult str =
+            if str == "" then
+                Ok 0
+
+            else
+                String.toInt str |> Result.fromMaybe ParseError
+    in
+    Result.map3
         (\h m s -> h * 60 * 60 + m * 60 + s)
-        (String.toInt hrs)
-        (String.toInt mins)
-        (String.toInt secs)
-        |> Result.fromMaybe ParseError
+        (toIntResult hrs)
+        (toIntResult mins)
+        (toIntResult secs)
 
 
 parsePace : String -> Result FieldError Int

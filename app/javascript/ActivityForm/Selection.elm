@@ -1,12 +1,9 @@
-module ActivityForm.Selection exposing (Selection, add, copy, delete, get, init, select, selectedIndex, set, shift, toList, updateAll)
+module ActivityForm.Selection exposing (add, copy, delete, get, init, select, selectedIndex, set, shift, toList, updateAll)
 
 import Activity
 import Activity.Types exposing (Activity, ActivityData)
+import ActivityForm.Types exposing (Selection)
 import Array
-
-
-type alias Selection a =
-    ( Int, List a )
 
 
 init : List a -> Selection a

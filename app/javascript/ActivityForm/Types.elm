@@ -1,6 +1,6 @@
-module ActivityForm.Types exposing (ActivityForm, FieldError(..), ValidatedFields)
+module ActivityForm.Types exposing (ActivityForm, FieldError(..), Selection, ValidatedFields)
 
-import Activity.Types exposing (Activity)
+import Activity.Types exposing (Activity, ActivityData, ActivityType, Completion, Effort, LapData, RaceDistance)
 import Date exposing (Date)
 
 
@@ -9,18 +9,22 @@ type alias ActivityForm =
     , date : Maybe Date
     , description : String
     , validated : ValidatedFields
-    , laps : ( Int, List Activity.Types.LapData )
-    , repeat : Maybe ( Int, List Activity.Types.ActivityData )
+    , laps : Selection LapData
+    , repeat : Maybe (Selection ActivityData)
     , repeats : Maybe String
-    , activityType : Activity.Types.ActivityType
+    , activityType : ActivityType
     , duration : ( String, String, String )
-    , completed : Activity.Types.Completion
+    , completed : Completion
     , pace : String
-    , race : Maybe Activity.Types.RaceDistance
-    , effort : Maybe Activity.Types.Effort
+    , race : Maybe RaceDistance
+    , effort : Maybe Effort
     , emoji : String
     , emojiSearch : String
     }
+
+
+type alias Selection a =
+    ( Int, List a )
 
 
 type alias ValidatedFields =

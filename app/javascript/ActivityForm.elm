@@ -3,8 +3,8 @@ module ActivityForm exposing (init, initMove, update, view)
 import Activity
 import Activity.Laps
 import Activity.Types exposing (Activity, ActivityData, ActivityType, LapData(..))
-import ActivityForm.Selection as Selection exposing (Selection)
-import ActivityForm.Types exposing (ActivityForm, FieldError(..), ValidatedFields)
+import ActivityForm.Selection as Selection
+import ActivityForm.Types exposing (ActivityForm, FieldError(..), Selection, ValidatedFields)
 import ActivityForm.Validate as Validate exposing (validate)
 import ActivityShape
 import Date exposing (Date)

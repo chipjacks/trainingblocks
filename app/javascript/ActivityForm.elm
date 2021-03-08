@@ -92,6 +92,7 @@ initFromSelection activity laps repeatM =
     , emoji = Maybe.withDefault "" data.emoji
     , emojiSearch = ""
     }
+        |> updateValidated
 
 
 initMove : Activity -> ActivityForm
@@ -249,7 +250,7 @@ update msg model =
             let
                 newModel =
                     { model | repeats = Just newCountStr }
-                        |> (\m -> { m | validated = validate m })
+                        |> updateValidated
             in
             ( updateLaps
                 (\lap laps ->
@@ -371,6 +372,11 @@ updateFromSelection model =
     initFromSelection model.activity model.laps model.repeat
 
 
+updateValidated : ActivityForm -> ActivityForm
+updateValidated model =
+    { model | validated = validate model }
+
+
 updateActivity : ActivityForm -> ActivityForm
 updateActivity model =
     let
@@ -380,7 +386,7 @@ updateActivity model =
         updateActivityDescription description activity =
             { activity | description = description }
     in
-    { model | validated = validate model }
+    updateValidated model
         |> updateActiveSelection
             (\m ->
                 case ( Selection.get m.laps, m.repeat ) of

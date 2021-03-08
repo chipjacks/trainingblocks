@@ -160,14 +160,28 @@ update msg model =
             )
 
         SelectedLap index ->
-            ( updateLaps (\_ laps -> Selection.select index laps) model
-                |> updateResult
+            ( updateActiveSelection
+                (\m ->
+                    let
+                        newLaps =
+                            Selection.select index m.laps
+
+                        newRepeat =
+                            case Selection.get newLaps of
+                                Just (Repeats count list) ->
+                                    Just (Selection.init list)
+
+                                _ ->
+                                    Nothing
+                    in
+                    ( newLaps, newRepeat )
+                )
+                model
             , Effect.None
             )
 
         SelectedRepeatLap index ->
             ( updateRepeat (\repeat -> Selection.select index repeat) model
-                |> updateResult
             , Effect.None
             )
 
@@ -212,19 +226,20 @@ update msg model =
 
         EditedRepeats newCountStr ->
             let
-                newCount =
-                    String.toInt newCountStr
+                newModel =
+                    { model | repeats = Just newCountStr }
+                        |> (\m -> { m | validated = validate m })
             in
             ( updateLaps
                 (\lap laps ->
                     case lap of
                         Repeats count list ->
-                            Selection.set (Repeats (newCount |> Maybe.withDefault count) list) laps
+                            Selection.set (Repeats (newModel.validated.repeats |> Result.withDefault count) list) laps
 
                         _ ->
                             laps
                 )
-                model
+                newModel
                 |> updateResult
             , Effect.None
             )
@@ -409,13 +424,7 @@ view levelM activityM =
                         , row [ style "margin-top" "10px", style "margin-bottom" "5px", borderStyle "border-bottom" ]
                             []
                         , expandingRow [ style "overflow" "hidden" ]
-                            [ compactColumn [ style "min-width" "4rem", style "overflow-y" "scroll", class "hide-scrollbars", style "padding-left" "3px" ]
-                                (List.concat
-                                    [ Selection.toList model.laps
-                                        |> List.indexedMap (\i l -> viewActivityShape levelM (Selection.selectedIndex model.laps) i l model.repeat)
-                                    , [ viewAddButton ClickedAddLap ]
-                                    ]
-                                )
+                            [ viewLapShapes levelM model.laps model.repeat
                             , viewLapFields levelM model
                             ]
                         ]
@@ -433,54 +442,61 @@ view levelM activityM =
             row closedAttributes []
 
 
-viewActivityShape : Maybe Int -> Int -> Int -> LapData -> Maybe (Selection ActivityData) -> Html Msg
+viewLapShapes : Maybe Int -> Selection LapData -> Maybe (Selection ActivityData) -> Html Msg
+viewLapShapes levelM lapSelection repeatSelectionM =
+    compactColumn [ style "min-width" "4rem", style "overflow-y" "scroll", class "hide-scrollbars", style "padding-left" "3px" ]
+        (List.concat
+            [ Selection.toList lapSelection
+                |> List.indexedMap (\i lap -> viewActivityShape levelM (Selection.selectedIndex lapSelection) i lap repeatSelectionM)
+                |> List.concat
+            , [ viewAddButton ClickedAddLap ]
+            ]
+        )
+
+
+viewActivityShape : Maybe Int -> Int -> Int -> LapData -> Maybe (Selection ActivityData) -> List (Html Msg)
 viewActivityShape levelM selectedLap lapIndex lap repeatM =
-    row
-        [ onClick (SelectedLap lapIndex)
-        , attributeIf (selectedLap == lapIndex && repeatM == Nothing) (class "selected-shape")
-        , style "padding-top" "0.5rem"
-        , style "padding-bottom" "0.5rem"
-        , style "min-height" "1rem"
-        ]
-        (case ( selectedLap == lapIndex, lap, repeatM ) of
-            ( True, Repeats count list, Just repeat ) ->
-                [ compactColumn [] <|
-                    List.concat
-                        [ List.indexedMap
-                            (\i data ->
-                                row
-                                    [ onClick (SelectedRepeatLap i)
-                                    , attributeIf (i == Selection.selectedIndex repeat) (class "selected-shape")
-                                    , style "padding-top" "0.5rem"
-                                    , style "padding-bottom" "0.5rem"
-                                    , style "min-height" "1rem"
-                                    ]
-                                    [ ActivityShape.view levelM data ]
-                            )
-                            (Selection.toList repeat)
-                        , [ row
-                                [ style "padding-top" "0.5rem"
-                                , style "padding-bottom" "0.5rem"
-                                ]
-                                [ viewAddButton ClickedAddRepeat ]
-                          ]
-                        , List.map (\data -> row [ style "opacity" "0.5" ] [ ActivityShape.view levelM data ]) (List.repeat (count - 1) list |> List.concat)
+    case ( selectedLap == lapIndex, lap, repeatM ) of
+        ( True, Repeats count list, Just repeat ) ->
+            List.concat
+                [ List.indexedMap
+                    (\i data ->
+                        row
+                            [ onClick (SelectedRepeatLap i)
+                            , attributeIf (i == Selection.selectedIndex repeat) (class "selected-shape")
+                            , style "padding-top" "0.5rem"
+                            , style "padding-bottom" "0.5rem"
+                            , style "min-height" "1rem"
+                            ]
+                            [ ActivityShape.view levelM data ]
+                    )
+                    (Selection.toList repeat)
+                , [ row
+                        [ style "padding-top" "0.5rem"
+                        , style "padding-bottom" "0.5rem"
                         ]
+                        [ viewAddButton ClickedAddRepeat ]
+                  ]
+                , List.map (\data -> row [ style "opacity" "0.5" ] [ ActivityShape.view levelM data ]) (List.repeat (count - 1) list |> List.concat)
                 ]
 
-            _ ->
-                case lap of
-                    Individual data ->
-                        [ ActivityShape.view levelM data ]
+        _ ->
+            case lap of
+                Individual data ->
+                    List.singleton <|
+                        row
+                            [ onClick (SelectedLap lapIndex)
+                            , attributeIf (selectedLap == lapIndex && repeatM == Nothing) (class "selected-shape")
+                            , style "padding-top" "0.5rem"
+                            , style "padding-bottom" "0.5rem"
+                            , style "min-height" "1rem"
+                            ]
+                            [ ActivityShape.view levelM data ]
 
-                    Repeats count list ->
-                        [ compactColumn []
-                            (List.map (\data -> row [] [ ActivityShape.view levelM data ]) list
-                                |> List.repeat count
-                                |> List.concat
-                            )
-                        ]
-        )
+                Repeats count list ->
+                    List.map (\data -> row [ onClick (SelectedLap lapIndex) ] [ ActivityShape.view levelM data ]) list
+                        |> List.repeat count
+                        |> List.concat
 
 
 viewAddButton : Msg -> Html Msg
@@ -866,7 +882,7 @@ paceSelect levelM msg paceStr result =
         isSlowerThan time =
             case result of
                 Err _ ->
-                    False
+                    True
 
                 Ok pace ->
                     (Pace.paceFromString time |> Maybe.withDefault 0) < pace

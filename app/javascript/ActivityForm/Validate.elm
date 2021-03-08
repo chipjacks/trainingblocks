@@ -15,7 +15,7 @@ validate : ActivityForm -> ValidatedFields
 validate model =
     ValidatedFields
         (Result.fromMaybe MissingError model.date)
-        (Ok 2)
+        (Maybe.withDefault "" model.repeats |> String.toInt |> Result.fromMaybe ParseError)
         (parseDuration model.duration)
         (parsePace model.pace)
         (validateEmojiName model.emoji)

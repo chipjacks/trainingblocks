@@ -63,9 +63,16 @@ initFromSelection activity laps repeatM =
                     , Just count
                     )
 
+        stringFromInt int =
+            if int == 0 then
+                ""
+
+            else
+                String.fromInt int
+
         duration =
             Maybe.map Duration.toHrsMinsSecs data.duration
-                |> Maybe.map (\( h, m, s ) -> ( String.fromInt h, String.fromInt m, String.fromInt s ))
+                |> Maybe.map (\( h, m, s ) -> ( stringFromInt h, stringFromInt m, stringFromInt s ))
                 |> Maybe.withDefault ( "", "", "" )
     in
     { activity = activity
@@ -366,6 +373,13 @@ updateFromSelection model =
 
 updateActivity : ActivityForm -> ActivityForm
 updateActivity model =
+    let
+        updateActivityLaps laps activity =
+            Activity.Laps.set activity (Selection.toList laps)
+
+        updateActivityDescription description activity =
+            { activity | description = description }
+    in
     { model | validated = validate model }
         |> updateActiveSelection
             (\m ->
@@ -384,8 +398,9 @@ updateActivity model =
             )
         |> (\m ->
                 { m
-                    | activity = Activity.Laps.set m.activity (Selection.toList m.laps)
-                    , description = m.description
+                    | activity =
+                        updateActivityLaps m.laps m.activity
+                            |> updateActivityDescription m.description
                 }
            )
 

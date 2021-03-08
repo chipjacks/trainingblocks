@@ -62,22 +62,29 @@ initFromSelection activity laps repeatM =
                     , Just repeat
                     , Just count
                     )
+
+        duration =
+            Maybe.map Duration.toHrsMinsSecs data.duration
+                |> Maybe.map (\( h, m, s ) -> ( String.fromInt h, String.fromInt m, String.fromInt s ))
+                |> Maybe.withDefault ( "", "", "" )
     in
-    ActivityForm activity
-        (Just activity.date)
-        activity.description
-        Validate.init
-        laps
-        newRepeatM
-        (Maybe.map String.fromInt countM)
-        data.activityType
-        (Maybe.map Duration.toHrsMinsSecs data.duration |> Maybe.map (\( h, m, s ) -> ( String.fromInt h, String.fromInt m, String.fromInt s )) |> Maybe.withDefault ( "", "", "" ))
-        data.completed
-        (Maybe.map Pace.paceToString data.pace |> Maybe.withDefault "")
-        data.race
-        data.effort
-        (Maybe.withDefault "" data.emoji)
-        ""
+    { activity = activity
+    , laps = laps
+    , repeat = newRepeatM
+    , validated = Validate.init
+    , date = Just activity.date
+    , description = activity.description
+    , repeats = Maybe.map String.fromInt countM
+    , activityType = data.activityType
+    , duration = duration
+    , completed = data.completed
+    , pace =
+        Maybe.map Pace.paceToString data.pace |> Maybe.withDefault ""
+    , race = data.race
+    , effort = data.effort
+    , emoji = Maybe.withDefault "" data.emoji
+    , emojiSearch = ""
+    }
 
 
 initMove : Activity -> ActivityForm
@@ -595,36 +602,36 @@ viewMultiSelectButtons =
 
 toActivityData : ActivityForm -> ActivityData
 toActivityData model =
-    Activity.Types.ActivityData
-        model.activityType
-        (case model.duration of
+    { activityType = model.activityType
+    , duration =
+        case model.duration of
             ( "", "", "" ) ->
                 Nothing
 
             _ ->
                 model.validated.duration |> Result.toMaybe
-        )
-        model.completed
-        (if model.activityType == Activity.Types.Run then
+    , completed = model.completed
+    , pace =
+        if model.activityType == Activity.Types.Run then
             model.validated.pace |> Result.toMaybe
 
-         else
+        else
             Nothing
-        )
-        (if model.activityType == Activity.Types.Run then
+    , race =
+        if model.activityType == Activity.Types.Run then
             model.race
 
-         else
+        else
             Nothing
-        )
-        model.effort
-        (case model.emoji of
+    , effort = model.effort
+    , emoji =
+        case model.emoji of
             "" ->
                 Nothing
 
             _ ->
                 model.validated.emoji |> Result.toMaybe
-        )
+    }
 
 
 label : String -> Bool -> Msg -> Html Msg

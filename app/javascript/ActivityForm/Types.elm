@@ -6,11 +6,11 @@ import Date exposing (Date)
 
 type alias ActivityForm =
     { activity : Activity
-    , date : Maybe Date
-    , description : String
-    , validated : ValidatedFields
     , laps : Selection LapData
     , repeat : Maybe (Selection ActivityData)
+    , validated : ValidatedFields
+    , date : Maybe Date
+    , description : String
     , repeats : Maybe String
     , activityType : ActivityType
     , duration : ( String, String, String )

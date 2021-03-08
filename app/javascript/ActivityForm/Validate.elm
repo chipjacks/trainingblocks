@@ -8,17 +8,22 @@ import Pace
 
 init : ValidatedFields
 init =
-    ValidatedFields (Err MissingError) (Err MissingError) (Err MissingError) (Err MissingError) (Err MissingError)
+    { date = Err MissingError
+    , repeats = Err MissingError
+    , duration = Err MissingError
+    , pace = Err MissingError
+    , emoji = Err MissingError
+    }
 
 
 validate : ActivityForm -> ValidatedFields
 validate model =
-    ValidatedFields
-        (Result.fromMaybe MissingError model.date)
-        (Maybe.withDefault "" model.repeats |> String.toInt |> Result.fromMaybe ParseError)
-        (parseDuration model.duration)
-        (parsePace model.pace)
-        (validateEmojiName model.emoji)
+    { date = Result.fromMaybe MissingError model.date
+    , repeats = Maybe.withDefault "" model.repeats |> String.toInt |> Result.fromMaybe ParseError
+    , duration = parseDuration model.duration
+    , pace = parsePace model.pace
+    , emoji = validateEmojiName model.emoji
+    }
 
 
 parseDuration : ( String, String, String ) -> Result FieldError Int

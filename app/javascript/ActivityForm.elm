@@ -110,7 +110,8 @@ update msg model =
                             ( Selection.copy m.laps, model.repeat )
                 )
                 model
-                |> updateResult
+                |> updateFromSelection
+                |> updateActivity
             , Effect.None
             )
 
@@ -132,7 +133,8 @@ update msg model =
                             ( m.laps, m.repeat )
                 )
                 model
-                |> updateResult
+                |> updateFromSelection
+                |> updateActivity
             , Effect.None
             )
 
@@ -147,7 +149,7 @@ update msg model =
                             ( Selection.shift up m.laps, m.repeat )
                 )
                 model
-                |> updateResult
+                |> updateActivity
             , Effect.None
             )
 
@@ -162,7 +164,8 @@ update msg model =
                             ( Selection.delete m.laps, m.repeat )
                 )
                 model
-                |> updateResult
+                |> updateFromSelection
+                |> updateActivity
             , Effect.None
             )
 
@@ -184,11 +187,13 @@ update msg model =
                     ( newLaps, newRepeat )
                 )
                 model
+                |> updateFromSelection
             , Effect.None
             )
 
         SelectedRepeatLap index ->
             ( updateRepeat (\repeat -> Selection.select index repeat) model
+                |> updateFromSelection
             , Effect.None
             )
 
@@ -199,7 +204,8 @@ update msg model =
                         |> (\a -> { a | completed = model.completed })
             in
             ( updateLaps (\_ laps -> Selection.add (Individual newData) laps) model
-                |> updateResult
+                |> updateFromSelection
+                |> updateActivity
             , Effect.None
             )
 
@@ -210,7 +216,8 @@ update msg model =
                         |> (\a -> { a | completed = model.completed, duration = Just 120 })
             in
             ( updateRepeat (\repeat -> Selection.add newData repeat) model
-                |> updateResult
+                |> updateFromSelection
+                |> updateActivity
             , Effect.None
             )
 
@@ -219,7 +226,7 @@ update msg model =
                 Nothing ->
                     let
                         newModel =
-                            updateResult { model | date = Just date }
+                            updateActivity { model | date = Just date }
                     in
                     ( newModel, Store.cmd (Move date newModel.activity) )
 
@@ -227,7 +234,7 @@ update msg model =
                     ( model, Effect.None )
 
         EditedDescription desc ->
-            ( updateResult { model | description = desc }
+            ( updateActivity { model | description = desc }
             , Effect.None
             )
 
@@ -247,22 +254,22 @@ update msg model =
                             laps
                 )
                 newModel
-                |> updateResult
+                |> updateActivity
             , Effect.None
             )
 
         SelectedEffort effortM ->
-            ( updateResult { model | effort = effortM }
+            ( updateActivity { model | effort = effortM }
             , Effect.None
             )
 
         SearchedEmojis search ->
-            ( updateResult { model | emojiSearch = search }
+            ( updateActivity { model | emojiSearch = search }
             , Effect.None
             )
 
         SelectedEmoji name ->
-            ( updateResult { model | emoji = name }
+            ( updateActivity { model | emoji = name }
             , Effect.None
             )
 
@@ -281,32 +288,33 @@ update msg model =
             in
             ( updateLaps (\_ laps -> Selection.updateAll (Activity.Laps.updateField markCompleted) laps) model
                 |> updateRepeat (\repeat -> Selection.updateAll markCompleted repeat)
-                |> updateResult
+                |> updateFromSelection
+                |> updateActivity
             , Effect.None
             )
 
         SelectedActivityType activityType ->
-            ( updateResult { model | activityType = activityType }
+            ( updateActivity { model | activityType = activityType }
             , Effect.None
             )
 
         EditedDuration hms ->
-            ( updateResult { model | duration = hms }
+            ( updateActivity { model | duration = hms }
             , Effect.None
             )
 
         SelectedPace str ->
-            ( updateResult { model | pace = str }
+            ( updateActivity { model | pace = str }
             , Effect.None
             )
 
         SelectedRace distM ->
-            ( updateResult { model | race = distM }
+            ( updateActivity { model | race = distM }
             , Effect.None
             )
 
         ClickedMove ->
-            ( updateResult { model | date = Nothing }, Effect.None )
+            ( updateActivity { model | date = Nothing }, Effect.None )
 
         ClickedSubmit ->
             ( model, Store.cmd (Update model.activity) )
@@ -321,7 +329,7 @@ updateActiveSelection transform model =
         ( newLaps, newRepeat ) =
             transform model
     in
-    initFromSelection model.activity newLaps newRepeat
+    { model | laps = newLaps, repeat = newRepeat }
 
 
 updateLaps : (LapData -> Selection LapData -> Selection LapData) -> ActivityForm -> ActivityForm
@@ -334,7 +342,7 @@ updateLaps transform model =
         newLaps =
             transform selectedLap model.laps
     in
-    initFromSelection model.activity newLaps model.repeat
+    { model | laps = newLaps }
 
 
 updateRepeat : (Selection ActivityData -> Selection ActivityData) -> ActivityForm -> ActivityForm
@@ -348,27 +356,32 @@ updateRepeat transform model =
                 Nothing ->
                     model.repeat
     in
-    initFromSelection model.activity model.laps newRepeat
+    { model | repeat = newRepeat }
 
 
-updateResult : ActivityForm -> ActivityForm
-updateResult model =
+updateFromSelection : ActivityForm -> ActivityForm
+updateFromSelection model =
+    initFromSelection model.activity model.laps model.repeat
+
+
+updateActivity : ActivityForm -> ActivityForm
+updateActivity model =
     { model | validated = validate model }
-        |> (\m ->
+        |> updateActiveSelection
+            (\m ->
                 case ( Selection.get m.laps, m.repeat ) of
                     ( Just (Repeats count list), Just repeat ) ->
                         let
                             selection =
                                 Selection.set (toActivityData m) repeat
                         in
-                        { m
-                            | laps = Selection.set (Repeats count (Selection.toList selection)) m.laps
-                            , repeat = Just selection
-                        }
+                        ( Selection.set (Repeats count (Selection.toList selection)) m.laps
+                        , Just selection
+                        )
 
-                    ( _, _ ) ->
-                        { m | laps = Selection.set (Individual <| toActivityData m) m.laps }
-           )
+                    ( _, repeatM ) ->
+                        ( Selection.set (Individual <| toActivityData m) m.laps, repeatM )
+            )
         |> (\m ->
                 { m
                     | activity = Activity.Laps.set m.activity (Selection.toList m.laps)

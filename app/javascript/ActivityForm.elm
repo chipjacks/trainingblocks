@@ -485,7 +485,13 @@ view levelM activityM =
 
 viewLapShapes : Maybe Int -> Selection LapData -> Maybe (Selection ActivityData) -> Html Msg
 viewLapShapes levelM lapSelection repeatSelectionM =
-    compactColumn [ style "min-width" "4rem", style "overflow-y" "scroll", class "hide-scrollbars", style "padding-left" "3px" ]
+    column
+        [ style "min-width" "4rem"
+        , style "overflow-y" "scroll"
+        , class "hide-scrollbars"
+        , style "padding-left" "3px"
+        , style "flex-grow" "1"
+        ]
         (List.concat
             [ Selection.toList lapSelection
                 |> List.indexedMap (\i lap -> viewActivityShape levelM (Selection.selectedIndex lapSelection) i lap repeatSelectionM)
@@ -586,7 +592,13 @@ viewLapFields levelM form =
         maxFieldWidth =
             style "max-width" "20rem"
     in
-    column [ style "justify-content" "space-between", style "max-height" "20rem", style "margin-bottom" "10px", style "margin-top" "10px" ]
+    column
+        [ style "justify-content" "space-between"
+        , style "max-height" "20rem"
+        , style "margin-bottom" "10px"
+        , style "margin-top" "10px"
+        , style "flex-grow" "5"
+        ]
         [ row []
             [ column [ maxFieldWidth, style "flex-grow" "2" ] [ activityTypeSelect SelectedActivityType form.activityType ]
             , column [ maxFieldWidth, style "flex-grow" "1" ] [ repeatsInput EditedRepeats form.repeats form.validated.repeats ]
@@ -796,7 +808,7 @@ completionToggle msg completed =
 repeatsInput : (String -> Msg) -> Maybe String -> Result FieldError Int -> Html Msg
 repeatsInput msg countStrM result =
     column [ style "width" "6rem" ]
-        [ label "Repeats" (countStrM /= Just "") ClickedRepeat
+        [ label "Repeats" (countStrM /= Just "" && countStrM /= Nothing) ClickedRepeat
         , case countStrM of
             Just countStr ->
                 row []

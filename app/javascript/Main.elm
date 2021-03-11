@@ -63,6 +63,20 @@ init { csrfToken } =
 
 viewNavbar : Model -> Html Msg
 viewNavbar model =
+    let
+        dropdown storeM =
+            compactColumn [ style "min-width" "1.5rem", style "justify-content" "center" ]
+                [ div [ class "dropdown" ]
+                    [ if Maybe.map Store.needsFlush storeM |> Maybe.withDefault False then
+                        spinner "1.5rem"
+
+                      else
+                        div [ style "font-size" "1.4rem", style "padding-top" "2px" ] [ MonoIcons.icon (MonoIcons.optionsVertical "var(--icon-gray)") ]
+                    , div [ class "dropdown-content", style "right" "0" ]
+                        [ a [ Html.Attributes.href " /users/sign_out", Html.Attributes.attribute "data-method" "delete" ] [ text "Logout" ] ]
+                    ]
+                ]
+    in
     case model of
         Loaded (State calendar store activityState) ->
             row
@@ -73,24 +87,14 @@ viewNavbar model =
 
                     _ ->
                         column [] [ Calendar.viewMenu False calendar ]
-                , compactColumn [ style "min-width" "1.5rem", style "justify-content" "center" ]
-                    [ div [ class "dropdown" ]
-                        [ if Store.needsFlush store then
-                            spinner "1.5rem"
-
-                          else
-                            div [ style "font-size" "1.4rem", style "padding-top" "2px" ] [ MonoIcons.icon (MonoIcons.optionsVertical "var(--icon-gray)") ]
-                        , div [ class "dropdown-content", style "right" "0" ]
-                            [ a [ Html.Attributes.href " /users/sign_out", Html.Attributes.attribute "data-method" "delete" ] [ text "Logout" ] ]
-                        ]
-                    ]
+                , dropdown (Just store)
                 ]
 
         _ ->
             row [ style "padding" "0.5rem" ]
                 [ compactColumn [ style "justify-content" "center" ] [ Skeleton.logo ]
                 , column [] []
-                , compactColumn [ style "justify-content" "center" ] [ spinner "1.5rem" ]
+                , dropdown Nothing
                 ]
 
 
@@ -619,7 +623,7 @@ view model =
         ]
         [ case model of
             Loading _ _ _ ->
-                column [] [ text "Loading" ]
+                column [ style "justify-content" "center", style "align-items" "center" ] [ spinner "10rem" ]
 
             Error errorString ->
                 column [] [ text errorString ]

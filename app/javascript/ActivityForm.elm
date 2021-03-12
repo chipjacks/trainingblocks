@@ -972,7 +972,7 @@ paceSelect levelM msg paceStr result =
                                     , style "cursor" "pointer"
                                     , styleIf (isSlowerThan time)
                                         "background-color"
-                                        "var(--icon-gray)"
+                                        "var(--highlight-gray)"
                                     ]
                                     []
                             )

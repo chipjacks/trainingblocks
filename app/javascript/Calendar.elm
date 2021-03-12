@@ -468,7 +468,7 @@ titleWeek activities =
     in
     column
         [ style "min-width" "4rem" ]
-        [ row [ style "color" "var(--activity-green)" ]
+        [ row [ style "color" "var(--activity-yellow)" ]
             [ text <|
                 if runDuration /= 0 then
                     List.foldr (++) "" [ String.fromInt (hours runDuration), "h ", String.fromInt (minutes runDuration), "m" ]
@@ -543,7 +543,7 @@ viewActivity isActive isActiveDate levelM activity =
     in
     row
         [ style "padding" "0.5rem 0.5rem"
-        , styleIf isActive "background-color" "var(--highlight-gray)"
+        , styleIf isActive "background-color" "var(--button-gray)"
         , Html.Events.onDoubleClick (EditActivity activity)
         ]
         [ compactColumn

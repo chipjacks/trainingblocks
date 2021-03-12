@@ -1,16 +1,18 @@
 /*
  * COLORS
+ * https://coolors.co/ed4040-f58766-f4cf66-d7d7d5-528fb7-e6ecf0-f9f9f9-f1f1f1-d3d3d3
 */
 :root {
-  --header-blue: #4183c4;
-  --accent-blue: #4183c4;
-  --border-gray: rgb(230, 236, 240);;
-  --button-gray: rgb(249, 249, 249);
-  --highlight-gray: rgb(241, 241, 241);
-  --icon-gray: rgb(211,211,211);
-  --activity-orange: orange;
-  --activity-green: limegreen;
-  --activity-gray: #bbbbbb;
+  --activity-red: #ED4040;
+  --activity-orange: #F58766;
+  --activity-yellow: #F4CF66;
+  --activity-gray: #D7D7D5;
+  --header-blue: #528FB7;
+  --accent-blue: #528FB7;
+  --border-gray: #E6ECF0;;
+  --button-gray: #F9F9F9;
+  --highlight-gray: #F1F1F1;
+  --icon-gray: #D3D3D3;
 }
 
 /*

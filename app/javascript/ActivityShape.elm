@@ -115,13 +115,13 @@ colorString : Color -> String
 colorString color =
     case color of
         Green ->
-            "var(--activity-green)"
+            "var(--activity-yellow)"
 
         Orange ->
             "var(--activity-orange)"
 
         Red ->
-            "red"
+            "var(--activity-red)"
 
         Gray ->
             "var(--activity-gray)"

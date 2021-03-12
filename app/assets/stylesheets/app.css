@@ -1,11 +1,11 @@
 /*
  * COLORS
- * https://coolors.co/ed4040-f58766-f4cf66-d7d7d5-528fb7-e6ecf0-f9f9f9-f1f1f1-d3d3d3
+ * https://coolors.co/ff7538-f3c853-c5e384-d7d7d5-528fb7-e6ecf0-f9f9f9-f1f1f1-d3d3d3
 */
 :root {
-  --activity-red: #ED4040;
-  --activity-orange: #F58766;
-  --activity-yellow: #F4CF66;
+  --activity-red: #FF7538;
+  --activity-orange: #F3C853;
+  --activity-yellow: #C5E384;
   --activity-gray: #D7D7D5;
   --header-blue: #528FB7;
   --accent-blue: #528FB7;

@@ -465,25 +465,42 @@ titleWeek activities =
 
         minutes duration =
             remainderBy 60 (duration // 60)
+
+        durationPillBox seconds tag =
+            row
+                [ style "color" "var(--black-100)"
+                , style "margin-bottom" "0.5rem"
+                , style "margin-right" "0.2rem"
+                , style "margin-left" "-3px"
+                , style "flex-wrap" "wrap"
+                ]
+                [ compactColumn
+                    [ style "background-color" "var(--grey-500)"
+                    , styleIf (tag == "Other") "border-radius" "50%"
+                    , styleIf (tag == "Run") "border-radius" "0.2rem"
+                    , style "width" "1rem"
+                    , style "height" "1rem"
+                    , style "margin-top" "2px"
+                    , style "margin-right" "3px"
+                    , style "margin-bottom" "3px"
+                    ]
+                    []
+                , div
+                    [ style "background-color" "var(--grey-100)"
+                    , style "padding-left" "0.3rem"
+                    , style "padding-right" "0.3rem"
+                    , style "border-radius" "0.7rem"
+                    , style "white-space" "nowrap"
+                    ]
+                    [ text <|
+                        List.foldr (++) "" [ String.fromInt (hours seconds), "h ", String.fromInt (minutes seconds), "m" ]
+                    ]
+                ]
     in
     column
         [ style "min-width" "4rem" ]
-        [ row [ style "color" "var(--activity-yellow)" ]
-            [ text <|
-                if runDuration /= 0 then
-                    List.foldr (++) "" [ String.fromInt (hours runDuration), "h ", String.fromInt (minutes runDuration), "m" ]
-
-                else
-                    ""
-            ]
-        , row [ style "color" "var(--activity-gray)" ]
-            [ text <|
-                if otherDuration /= 0 then
-                    List.foldr (++) "" [ String.fromInt (hours otherDuration), "h ", String.fromInt (minutes otherDuration), "m" ]
-
-                else
-                    ""
-            ]
+        [ viewIf (runDuration /= 0) (durationPillBox runDuration "Run")
+        , viewIf (otherDuration /= 0) (durationPillBox otherDuration "Other")
         ]
 
 

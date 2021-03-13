@@ -115,16 +115,16 @@ colorString : Color -> String
 colorString color =
     case color of
         Green ->
-            "var(--activity-yellow)"
+            "var(--yellow-300)"
 
         Orange ->
-            "var(--activity-orange)"
+            "var(--orange-300)"
 
         Red ->
-            "var(--activity-red)"
+            "var(--red-300)"
 
         Gray ->
-            "var(--activity-gray)"
+            "var(--grey-900)"
 
 
 toHeight : Seconds -> Float

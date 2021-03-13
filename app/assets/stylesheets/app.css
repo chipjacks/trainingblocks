@@ -3,10 +3,48 @@
  * https://coolors.co/ff7538-f3c853-c5e384-d7d7d5-528fb7-e6ecf0-f9f9f9-f1f1f1-d3d3d3
 */
 :root {
-  --activity-red: #FF7538;
-  --activity-orange: #F3C853;
-  --activity-yellow: #C5E384;
-  --activity-gray: #D7D7D5;
+  --blue-100: #CDE7F9;
+  --blue-300: #9FCAF4;
+  --blue-500: #4183C4;
+  --blue-700: #1D5D9C;
+  --blue-900: #084069;
+
+  --black-100: #ADB5BD;
+  --black-300: #868E96;
+  --black-500: #495058;
+  --black-700: #343A40;
+  --black-900: #21252A;
+
+  --grey-100: #F8F9FA;
+  --grey-300: #F1F3F5;
+  --grey-500: #EAEDEF;
+  --grey-700: #DEE2E6;
+  --grey-900: #CFD4DA;
+
+  --green-100: #E9FBC2;
+  --green-300: #DAF69C;
+  --green-500: #C5E384;
+  --green-700: #93C723;
+  --green-900: #74A900;
+
+  --yellow-100: #FFEFC3;
+  --yellow-300: #F6D26F;
+  --yellow-500: #F3C853;
+  --yellow-700: #E7B01A;
+  --yellow-900: #CB9501;
+
+  --orange-100: #FAAE8C;
+  --orange-300: #FD9161;
+  --orange-500: #FF7538;
+  --orange-700: #F35109;
+  --orange-900: #D25016;
+
+  --red-100: #FF4343;
+  --red-300: #E32E2E;
+  --red-500: #BE1A1A;
+  --red-700: #FA5959;
+  --red-900: #FD8D8D;
+
   --header-blue: #528FB7;
   --accent-blue: #528FB7;
   --border-gray: #E6ECF0;;

@@ -1,6 +1,7 @@
 module Tests.Effects exposing (simulateEffects)
 
-import Activity exposing (Activity)
+import Activity
+import Activity.Types exposing (Activity)
 import Api
 import Date
 import Effect exposing (Effect)

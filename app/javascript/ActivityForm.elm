@@ -923,6 +923,7 @@ numberInput nameStr max attrs =
          , Html.Attributes.maxlength (String.length (String.fromInt max))
          , Html.Attributes.autocomplete False
          , name nameStr
+         , Html.Attributes.id nameStr
          , Html.Attributes.attribute "aria-label" nameStr
          ]
             ++ attrs

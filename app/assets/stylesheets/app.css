@@ -44,13 +44,6 @@
   --red-500: #BE1A1A;
   --red-700: #FA5959;
   --red-900: #FD8D8D;
-
-  --header-blue: #528FB7;
-  --accent-blue: #528FB7;
-  --border-gray: #E6ECF0;;
-  --button-gray: #F9F9F9;
-  --highlight-gray: #F1F1F1;
-  --icon-gray: #D3D3D3;
 }
 
 /*
@@ -63,7 +56,7 @@ html, body { height: 100%; margin: 0; }
 @media screen and (max-width: 390px) { html { font-size: 15px; } }
 .container-x { max-width: 1000px; min-width: 320px; margin-left: auto; margin-right: auto;}
 .container-y {  min-height: 450px; height: 100%; overflow: hidden; }
-.navbar { border-bottom: 1px solid var(--border-gray) }
+.navbar { border-bottom: 1px solid var(--grey-500) }
 
 @keyframes slidein-left { from { transform: translate(-100%); } to { transform: translate(0%); } }
 @keyframes slidein-right { from { transform: translate(100%); } to { transform: translate(0%); opacity: 1; } }
@@ -82,19 +75,19 @@ html, body { height: 100%; margin: 0; }
  * STYLING
 */
 body { font-family: Lato,'Helvetica Neue',Arial,Helvetica,sans-serif; }
-a { text-decoration: none; color: var(--accent-blue); }
-input { border: 1px solid var(--highlight-gray); border-radius: 0.25rem; padding: 0.45rem; font-size: 1rem; }
+a { text-decoration: none; color: var(--blue-500); }
+input { border: 1px solid var(--grey-300); border-radius: 0.25rem; padding: 0.45rem; font-size: 1rem; }
 .input.small { padding: 0.4rem; font-size: 0.8rem; }
-input:focus { border-color: var(--accent-blue); outline: 0; }
+input:focus { border-color: var(--blue-500); outline: 0; }
 .input.icon { border-top-left-radius: 0; border-bottom-left-radius: 0; }
-.input.icon:focus { border-top-left-radius: 0; border-bottom-left-radius: 0; border-left-color: var(--accent-blue); }
+.input.icon:focus { border-top-left-radius: 0; border-bottom-left-radius: 0; border-left-color: var(--blue-500); }
 
-select { border: 1px solid var(--highlight-gray); border-radius: 0.25rem; padding: 0.5rem; font-size: 1rem; }
+select { border: 1px solid var(--grey-300); border-radius: 0.25rem; padding: 0.5rem; font-size: 1rem; }
 select.input-small { padding: 0.3rem; }
-select:focus { border-color: var(--accent-blue); }
+select:focus { border-color: var(--blue-500); }
 button, .button {
   height: min-content;
-  background-color: var(--button-gray);
+  background-color: var(--grey-100);
   padding: 0.5rem 1rem;
   border-radius: 0.25rem;
   border: none;
@@ -105,18 +98,18 @@ button, .button {
 }
 .button.small { padding: 0rem 0.6rem; }
 .button.medium { padding: 0.45rem 1rem; }
-button:hover, .button:hover { background-color: var(--highlight-gray); }
+button:hover, .button:hover { background-color: var(--grey-300); }
 .primary { background-color: #2185d0; color: #fff; }
 .primary:hover { background-color: #1678c2; }
 
 .radio-buttons > button { border-radius: 0; }
 .radio-buttons > button:first-child { border-radius: 0.25rem 0 0 0.25rem }
 .radio-buttons > button:last-child { border-radius: 0 0.25rem 0.25rem 0 }
-.radio-buttons > button.selected { background-color: var(--highlight-gray); }
+.radio-buttons > button.selected { background-color: var(--grey-300); }
 
 .no-select { user-select: none; -webkit-user-select: none; }
 .dynamic-shape > .block { transition: height 0.5s, width 0.5s; }
-.selected-shape > div { box-shadow: 0 0 0 1px #ffffff, 0 0 0 3px var(--accent-blue); }
+.selected-shape > div { box-shadow: 0 0 0 1px #ffffff, 0 0 0 3px var(--blue-500); }
 
 /*
  * DROPDOWN
@@ -127,7 +120,7 @@ button:hover, .button:hover { background-color: var(--highlight-gray); }
 .dropdown-content {
   display: none;
   position: absolute;
-  background-color: var(--button-gray);
+  background-color: var(--grey-100);
   z-index: 5;
   border-radius: 0 0 0.25rem 0.25rem;
 }
@@ -142,7 +135,7 @@ button:hover, .button:hover { background-color: var(--highlight-gray); }
   color: black;
 }
 
-.dropdown-content a:hover { background-color: var(--highlight-gray) }
+.dropdown-content a:hover { background-color: var(--grey-300) }
 
 .dropdown:hover .dropdown-content { display: block; }
 
@@ -157,7 +150,7 @@ button:hover, .button:hover { background-color: var(--highlight-gray); }
   width: 80%;
   height: 80%;
   border-radius: 50%;
-  border: 2px solid var(--icon-gray);
+  border: 2px solid var(--grey-900);
   border-right-color: transparent;
   animation: rotation 1.2s linear infinite;
 }

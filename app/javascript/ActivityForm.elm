@@ -474,7 +474,7 @@ view levelM activityM =
             else
                 row (openAttributes "1.5rem")
                     [ row []
-                        [ MonoIcons.icon (MonoIcons.circleInformation "var(--accent-blue)")
+                        [ MonoIcons.icon (MonoIcons.circleInformation "var(--blue-500)")
                         , column [ style "margin-left" "1rem" ] [ text "Select Date" ]
                         ]
                     ]
@@ -565,7 +565,7 @@ viewActivityShape levelM selectedLap lapIndex lap repeatM =
 viewAddButton : Msg -> Html Msg
 viewAddButton msg =
     row []
-        [ iconButton [ onClick msg ] [ MonoIcons.icon (MonoIcons.add "var(--icon-gray)") ]
+        [ iconButton [ onClick msg ] [ MonoIcons.icon (MonoIcons.add "var(--grey-900)") ]
         ]
 
 
@@ -703,7 +703,7 @@ label name showClear onClear =
         , viewIf showClear
             (compactColumn
                 [ style "margin-left" "0.2rem", style "cursor" "pointer", onClick onClear ]
-                [ MonoIcons.icon (MonoIcons.close "var(--icon-gray)")
+                [ MonoIcons.icon (MonoIcons.close "var(--grey-900)")
                 ]
             )
         ]
@@ -763,7 +763,7 @@ activityTypeSelect msg activityType =
                 (icon aType "#3d3d3d")
                 (Activity.activityType.toString aType)
                 [ onClick (msg aType)
-                , styleIf (activityType == aType) "border" "1px solid var(--accent-blue)"
+                , styleIf (activityType == aType) "border" "1px solid var(--blue-500)"
                 ]
     in
     column []
@@ -844,7 +844,7 @@ emojiSelect msg name search =
                 , style "margin-right" "10px"
                 , style "margin-bottom" "5px"
                 , style "cursor" "pointer"
-                , styleIf (data.name == name) "box-shadow" "0 0 0 0.2rem var(--icon-gray)"
+                , styleIf (data.name == name) "box-shadow" "0 0 0 0.2rem var(--grey-900)"
                 ]
                 [ Emoji.view data ]
     in
@@ -853,7 +853,7 @@ emojiSelect msg name search =
             [ label "Feel" (name /= "") (msg "")
             , compactColumn [ borderStyle "border-bottom" ]
                 [ row []
-                    [ MonoIcons.icon (MonoIcons.search "var(--icon-gray)")
+                    [ MonoIcons.icon (MonoIcons.search "var(--grey-900)")
                     , input
                         [ onInput SearchedEmojis
                         , onFocus (SearchedEmojis "")
@@ -875,7 +875,7 @@ durationInput : (( String, String, String ) -> Msg) -> ( String, String, String 
 durationInput msg ( hrs, mins, secs ) =
     let
         header str =
-            row [ style "font-size" "0.6rem", style "color" "var(--icon-gray)", style "margin-bottom" "2px" ]
+            row [ style "font-size" "0.6rem", style "color" "var(--grey-900)", style "margin-bottom" "2px" ]
                 [ text str ]
     in
     column []
@@ -965,14 +965,14 @@ paceSelect levelM msg paceStr result =
                         (List.map
                             (\time ->
                                 column
-                                    [ style "background-color" (ActivityShape.colorString ActivityShape.Green)
+                                    [ style "background-color" "var(--green-500)"
                                     , onClick (msg time)
                                     , style "height" "0.5rem"
                                     , style "margin-right" "1px"
                                     , style "cursor" "pointer"
                                     , styleIf (isSlowerThan time)
                                         "background-color"
-                                        "var(--highlight-gray)"
+                                        "var(--grey-300)"
                                     ]
                                     []
                             )

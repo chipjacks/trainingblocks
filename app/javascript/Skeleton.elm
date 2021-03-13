@@ -107,4 +107,4 @@ attributeIf bool attr =
 
 borderStyle : String -> Html.Attribute msg
 borderStyle position =
-    style position "1px solid var(--border-gray)"
+    style position "1px solid var(--grey-500)"

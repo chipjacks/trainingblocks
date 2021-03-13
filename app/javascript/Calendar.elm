@@ -365,7 +365,7 @@ viewHeader model =
                 :: ([ "M", "T", "W", "T", "F", "S", "S" ]
                         |> List.map
                             (\d ->
-                                column [ style "background" "white", style "color" "var(--icon-gray)" ]
+                                column [ style "background" "white", style "color" "var(--grey-900)" ]
                                     [ text d ]
                             )
                    )
@@ -560,7 +560,7 @@ viewActivity isActive isActiveDate levelM activity =
     in
     row
         [ style "padding" "0.5rem 0.5rem"
-        , styleIf isActive "background-color" "var(--button-gray)"
+        , styleIf isActive "background-color" "var(--grey-100)"
         , Html.Events.onDoubleClick (EditActivity activity)
         ]
         [ compactColumn
@@ -597,7 +597,7 @@ viewActivity isActive isActiveDate levelM activity =
                 , style "border-radius" "50%"
                 , style "border" "2px solid transparent"
                 , attributeIf (isActiveDate || isActive) (borderStyle "border")
-                , attributeIf isActive (style "background-color" "var(--icon-gray)")
+                , attributeIf isActive (style "background-color" "var(--grey-900)")
                 ]
                 []
             ]
@@ -616,7 +616,7 @@ viewAddButton date =
     row [ Html.Attributes.class "add-button", style "margin-left" "0.5rem", style "margin-top" "0.5rem" ]
         [ iconButton
             [ onClick (ClickedNewActivity date), Html.Attributes.attribute "aria-label" "Add" ]
-            [ MonoIcons.icon (MonoIcons.add "var(--icon-gray)") ]
+            [ MonoIcons.icon (MonoIcons.add "var(--grey-900)") ]
         ]
 
 

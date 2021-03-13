@@ -71,7 +71,7 @@ viewNavbar model =
                         spinner "1.5rem"
 
                       else
-                        div [ style "font-size" "1.4rem", style "padding-top" "2px" ] [ MonoIcons.icon (MonoIcons.optionsVertical "var(--icon-gray)") ]
+                        div [ style "font-size" "1.4rem", style "padding-top" "2px" ] [ MonoIcons.icon (MonoIcons.optionsVertical "var(--grey-900)") ]
                     , div [ class "dropdown-content", style "right" "0" ]
                         [ a [ Html.Attributes.href " /users/sign_out", Html.Attributes.attribute "data-method" "delete" ] [ text "Logout" ] ]
                     ]

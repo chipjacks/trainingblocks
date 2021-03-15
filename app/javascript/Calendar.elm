@@ -458,7 +458,7 @@ titleWeek activities =
                 |> List.foldl (\( r, o ) ( sr, so ) -> ( sr + r, so + o )) ( 0, 0 )
 
         ( runDuration, otherDuration ) =
-            sumDuration (List.map .data activities)
+            sumDuration (List.map Activity.Laps.listData activities |> List.concat)
 
         hours duration =
             (duration // 60) // 60

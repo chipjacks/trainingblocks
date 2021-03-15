@@ -24,6 +24,9 @@ set activity laps =
         [] ->
             { activity | laps = Nothing }
 
+        [ Individual data ] ->
+            { activity | data = data, laps = Nothing }
+
         list ->
             { activity | data = sum list, laps = Just list }
 

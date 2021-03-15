@@ -431,7 +431,7 @@ update msg model =
                             ( model
                             , Activity.newId
                                 |> Random.map (\id -> { activity | id = id })
-                                |> Random.generate NewActivity
+                                |> Random.generate Create
                                 |> Effect.Cmd
                             )
 

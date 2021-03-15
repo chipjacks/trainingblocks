@@ -1,4 +1,4 @@
-module Store exposing (Model, cmd, flush, get, init, needsFlush, update)
+module Store exposing (Model, cmd, get, init, needsFlush, update)
 
 import Activity
 import Activity.Types exposing (Activity, Id)
@@ -120,6 +120,11 @@ update msg (Model state msgs csrfToken) =
                     ( Model state (msgs ++ sentMsgs) csrfToken
                     , Effect.None
                     )
+
+        FlushNow ->
+            ( Model state [] csrfToken
+            , flush model
+            )
 
         DebounceFlush length ->
             if length == List.length msgs then

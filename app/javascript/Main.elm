@@ -143,7 +143,8 @@ update msg model =
                             ( model, Effect.Batch [ Effect.DateToday LoadToday, Effect.GetActivities ] )
 
                         Events.Hidden ->
-                            ( model, Store.flush store )
+                            updateStore FlushNow state
+                                |> loaded
 
                 KeyPressed key ->
                     case key of
@@ -251,6 +252,9 @@ update msg model =
                     updateStore msg state |> loaded
 
                 DebounceFlush _ ->
+                    updateStore msg state |> loaded
+
+                FlushNow ->
                     updateStore msg state |> loaded
 
                 LoadToday date ->

@@ -41,6 +41,7 @@ type Msg
     | Delete Activity
     | Posted (List Msg) (Result Http.Error ( String, Bool ))
     | DebounceFlush Int
+    | FlushNow
       -- CALENDAR
     | Jump Date
     | ChangeZoom Zoom (Maybe Date)

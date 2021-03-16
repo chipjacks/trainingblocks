@@ -713,10 +713,20 @@ toActivityData model =
 label : String -> Bool -> Msg -> Html Msg
 label name showClear onClear =
     row []
-        [ Html.label [] [ text name ]
+        [ Html.label
+            [ style "color" "var(--black-300)"
+            , style "font-size" "0.8rem"
+            ]
+            [ text name
+            ]
         , viewIf showClear
             (compactColumn
-                [ style "margin-left" "0.2rem", style "cursor" "pointer", onClick onClear ]
+                [ style "margin-left" "0.2rem"
+                , style "cursor" "pointer"
+                , style "margin-top" "-2px"
+                , style "margin-bottom" "-2px"
+                , onClick onClear
+                ]
                 [ MonoIcons.icon (MonoIcons.close "var(--grey-900)")
                 ]
             )
@@ -735,6 +745,7 @@ descriptionInput msg str =
             , onInput msg
             , name "description"
             , value str
+            , style "margin-top" "3px"
             ]
             []
         ]
@@ -781,7 +792,7 @@ activityTypeSelect msg activityType =
                 ]
     in
     column []
-        [ Html.label [] [ text "Type" ]
+        [ label "Type" False NoOp
         , row []
             (List.map
                 (\( _, aType ) ->
@@ -795,7 +806,7 @@ activityTypeSelect msg activityType =
 dateSelect : Msg -> Maybe Date -> Html Msg
 dateSelect msg date =
     column []
-        [ Html.label [] [ text "Date" ]
+        [ label "Date" False NoOp
         , row []
             [ button [ class "button", onClick msg ]
                 [ text (Maybe.map (Date.format "E MMM d") date |> Maybe.withDefault "Select Date")
@@ -807,7 +818,7 @@ dateSelect msg date =
 completionToggle : Msg -> Activity.Types.Completion -> Html Msg
 completionToggle msg completed =
     column []
-        [ Html.label [] [ text "Completed" ]
+        [ label "Completed" False NoOp
         , Html.input
             [ onClick msg
             , Html.Attributes.attribute "type" "checkbox"
@@ -1013,7 +1024,7 @@ effortSelect : (Maybe Activity.Types.Effort -> Msg) -> Maybe Activity.Types.Effo
 effortSelect msg effortM =
     column []
         [ label "Effort" (effortM /= Nothing) (msg Nothing)
-        , row [ style "margin-top" "0.4rem" ]
+        , row [ style "margin-top" "0.6rem" ]
             (List.map
                 (\( color, effortOpt ) ->
                     compactColumn

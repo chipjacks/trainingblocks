@@ -128,7 +128,7 @@ update msg model =
                 (\m ->
                     case Selection.get m.laps of
                         Just (Individual data) ->
-                            ( Selection.set (Repeats 2 [ data ]) m.laps
+                            ( Selection.set (Repeats 4 [ data ]) m.laps
                             , Just (Selection.init [ data ])
                             )
 
@@ -141,6 +141,16 @@ update msg model =
                             ( m.laps, m.repeat )
                 )
                 model
+                |> updateRepeat
+                    (\repeat ->
+                        let
+                            restInterval =
+                                Activity.initActivityData
+                                    |> (\a -> { a | completed = model.completed, duration = Just 120 })
+                        in
+                        Selection.add restInterval repeat
+                            |> Selection.select 0
+                    )
                 |> updateFromSelection
                 |> updateActivity
             , Effect.None
@@ -166,7 +176,11 @@ update msg model =
                 (\m ->
                     case m.repeat of
                         Just repeat ->
-                            ( m.laps, Just (Selection.delete repeat) )
+                            if List.length (Selection.toList repeat) == 1 then
+                                ( Selection.delete m.laps, Nothing )
+
+                            else
+                                ( m.laps, Just (Selection.delete repeat) )
 
                         Nothing ->
                             ( Selection.delete m.laps, m.repeat )

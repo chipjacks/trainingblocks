@@ -714,7 +714,7 @@ label : String -> Bool -> Msg -> Html Msg
 label name showClear onClear =
     row []
         [ Html.label
-            [ style "color" "var(--black-300)"
+            [ style "color" "var(--black-500)"
             , style "font-size" "0.8rem"
             ]
             [ text name

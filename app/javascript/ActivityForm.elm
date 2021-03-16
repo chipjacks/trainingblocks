@@ -788,7 +788,7 @@ activityTypeSelect msg activityType =
                 (icon aType "#3d3d3d")
                 (Activity.activityType.toString aType)
                 [ onClick (msg aType)
-                , styleIf (activityType == aType) "border" "1px solid var(--blue-500)"
+                , styleIf (activityType == aType) "border" "1px solid var(--blue-300)"
                 ]
     in
     column []

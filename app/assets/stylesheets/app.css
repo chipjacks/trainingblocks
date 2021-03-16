@@ -78,13 +78,13 @@ body { font-family: Lato,'Helvetica Neue',Arial,Helvetica,sans-serif; }
 a { text-decoration: none; color: var(--blue-500); }
 input { border: 1px solid var(--grey-300); border-radius: 0.25rem; padding: 0.45rem; font-size: 1rem; }
 .input.small { padding: 0.4rem; font-size: 0.8rem; }
-input:focus { border-color: var(--blue-500); outline: 0; }
+input:focus { border-color: var(--blue-300); outline: 0; }
 .input.icon { border-top-left-radius: 0; border-bottom-left-radius: 0; }
 .input.icon:focus { border-top-left-radius: 0; border-bottom-left-radius: 0; border-left-color: var(--blue-500); }
 
 select { border: 1px solid var(--grey-300); border-radius: 0.25rem; padding: 0.5rem; font-size: 1rem; }
 select.input-small { padding: 0.3rem; }
-select:focus { border-color: var(--blue-500); }
+select:focus { border-color: var(--blue-300); outline: none; }
 button, .button {
   height: min-content;
   background-color: var(--grey-100);
@@ -99,6 +99,7 @@ button, .button {
 .button.small { padding: 0rem 0.6rem; }
 .button.medium { padding: 0.45rem 1rem; }
 button:hover, .button:hover { background-color: var(--grey-300); }
+button:focus, .button:focus { border-color: var(--blue-500); outline: none; }
 .primary { background-color: #2185d0; color: #fff; }
 .primary:hover { background-color: #1678c2; }
 
@@ -109,7 +110,7 @@ button:hover, .button:hover { background-color: var(--grey-300); }
 
 .no-select { user-select: none; -webkit-user-select: none; }
 .dynamic-shape > .block { transition: height 0.5s, width 0.5s; }
-.selected-shape > div { box-shadow: 0 0 0 1px #ffffff, 0 0 0 3px var(--blue-500); }
+.selected-shape > div { box-shadow: 0 0 0 1px #ffffff, 0 0 0 3px var(--blue-300); }
 
 /*
  * DROPDOWN

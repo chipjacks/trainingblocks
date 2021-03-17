@@ -4,7 +4,9 @@ import Activity
 import Activity.Types exposing (Activity, Id)
 import Api
 import Date exposing (Date)
+import Dict exposing (Dict)
 import Effect exposing (Effect)
+import Emoji
 import EmojiData exposing (EmojiData)
 import Http
 import Msg exposing (Msg(..))
@@ -21,13 +23,13 @@ type alias State =
     { activities : List Activity
     , revision : String
     , level : Maybe Int
-    , emojis : List EmojiData
+    , emojis : Dict String EmojiData
     }
 
 
 init : String -> String -> List Activity -> Model
 init csrfToken revision activities =
-    Model (State activities revision Nothing [] |> updateLevel) [] csrfToken
+    Model (State activities revision Nothing Dict.empty |> updateLevel) [] csrfToken
 
 
 get : Model -> (State -> b) -> b
@@ -155,7 +157,7 @@ update msg (Model state msgs csrfToken) =
         FetchedEmojis result ->
             case result of
                 Ok emojis ->
-                    ( Model { state | emojis = emojis } msgs csrfToken
+                    ( Model { state | emojis = Emoji.toDict emojis } msgs csrfToken
                     , Effect.None
                     )
 

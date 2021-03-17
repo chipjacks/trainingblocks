@@ -15,7 +15,7 @@ import Html.Keyed
 import Html.Lazy
 import Json.Decode as Decode
 import MonoIcons
-import Msg exposing (ActivityState(..), Msg(..), Zoom(..))
+import Msg exposing (ActivityConfigs, ActivityState(..), Msg(..), Zoom(..))
 import Pace
 import Ports exposing (scrollToSelectedDate)
 import Process
@@ -217,8 +217,8 @@ filterActivities date activities =
     List.filter (\a -> a.date == date) activities
 
 
-view : Model -> List Activity -> String -> Int -> Bool -> Maybe Int -> Html Msg
-view model activities activeId activeRataDie isMoving levelM =
+view : Model -> List Activity -> String -> Int -> Bool -> ActivityConfigs -> Html Msg
+view model activities activeId activeRataDie isMoving configs =
     let
         (Model zoom start end selected today scrollCompleted) =
             model
@@ -233,7 +233,7 @@ view model activities activeId activeRataDie isMoving levelM =
                             , Html.Lazy.lazy4 viewActivity
                                 (String.contains activity.id activeId)
                                 (Date.toRataDie date == activeRataDie)
-                                levelM
+                                configs
                                 activity
                             )
                         )
@@ -254,7 +254,7 @@ view model activities activeId activeRataDie isMoving levelM =
                                     d
                                     isMoving
                                     activeId
-                                    levelM
+                                    configs
                                 )
                             )
 
@@ -290,8 +290,8 @@ view model activities activeId activeRataDie isMoving levelM =
         ]
 
 
-viewActivityShape : Activity -> Bool -> Maybe Int -> Html Msg
-viewActivityShape activity isActive levelM =
+viewActivityShape : Activity -> Bool -> ActivityConfigs -> Html Msg
+viewActivityShape activity isActive configs =
     div
         [ style "width" "min-content"
         , Html.Events.on "pointerdown" (Decode.succeed (MoveActivity activity))
@@ -299,7 +299,7 @@ viewActivityShape activity isActive levelM =
         , style "touch-action" "none"
         ]
         (Activity.Laps.listData activity
-            |> List.map (\a -> ActivityShape.view levelM a)
+            |> List.map (\a -> ActivityShape.view configs a)
         )
 
 
@@ -373,8 +373,8 @@ viewHeader model =
             )
 
 
-viewWeek : List Activity -> Date -> Date -> Date -> Bool -> String -> Maybe Int -> Html Msg
-viewWeek allActivities today selected start isMoving activeId levelM =
+viewWeek : List Activity -> Date -> Date -> Date -> Bool -> String -> ActivityConfigs -> Html Msg
+viewWeek allActivities today selected start isMoving activeId configs =
     let
         days =
             daysOfWeek start
@@ -385,7 +385,7 @@ viewWeek allActivities today selected start isMoving activeId levelM =
 
         dayViews =
             days
-                |> List.map (\d -> viewWeekDay ( d, filterActivities d allActivities ) (d == today) (d == selected) isMoving activeId levelM)
+                |> List.map (\d -> viewWeekDay ( d, filterActivities d allActivities ) (d == today) (d == selected) isMoving activeId configs)
 
         activities =
             days
@@ -397,8 +397,8 @@ viewWeek allActivities today selected start isMoving activeId levelM =
             :: dayViews
 
 
-viewWeekDay : ( Date, List Activity ) -> Bool -> Bool -> Bool -> String -> Maybe Int -> Html Msg
-viewWeekDay ( date, activities ) isToday isSelected isMoving activeId levelM =
+viewWeekDay : ( Date, List Activity ) -> Bool -> Bool -> Bool -> String -> ActivityConfigs -> Html Msg
+viewWeekDay ( date, activities ) isToday isSelected isMoving activeId configs =
     let
         isActive a =
             activeId == a.id
@@ -437,7 +437,7 @@ viewWeekDay ( date, activities ) isToday isSelected isMoving activeId levelM =
                         , attributeIf (isActive a) (class "selected-shape")
                         , Html.Events.onDoubleClick (EditActivity a)
                         ]
-                        [ viewActivityShape a (isActive a) levelM ]
+                        [ viewActivityShape a (isActive a) configs ]
                 )
                 activities
 
@@ -537,8 +537,8 @@ viewDay isToday isSelected isMoving rataDie =
         [ text (Date.format "E MMM d" date) ]
 
 
-viewActivity : Bool -> Bool -> Maybe Int -> Activity -> Html Msg
-viewActivity isActive isActiveDate levelM activity =
+viewActivity : Bool -> Bool -> ActivityConfigs -> Activity -> Html Msg
+viewActivity isActive isActiveDate configs activity =
     let
         activityLevel =
             Activity.mprLevel activity
@@ -546,7 +546,7 @@ viewActivity isActive isActiveDate levelM activity =
                 |> Maybe.withDefault ""
 
         trainingPaceStr paceM =
-            case ( paceM, levelM ) of
+            case ( paceM, configs.levelM ) of
                 ( Just pace, Just level ) ->
                     Pace.secondsToTrainingPace level pace
                         |> Pace.trainingPace.toString
@@ -568,7 +568,7 @@ viewActivity isActive isActiveDate levelM activity =
             , style "justify-content" "center"
             , attributeIf (not isActive) (Html.Events.on "pointerdown" (pointerDownDecoder activity))
             ]
-            [ viewActivityShape activity isActive levelM ]
+            [ viewActivityShape activity isActive configs ]
         , a
             [ class "column expand"
             , style "justify-content" "center"

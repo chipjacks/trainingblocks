@@ -32,7 +32,6 @@ type alias ValidatedFields =
     , repeats : Result FieldError Int
     , duration : Result FieldError Int
     , pace : Result FieldError Int
-    , emoji : Result FieldError String
     }
 
 

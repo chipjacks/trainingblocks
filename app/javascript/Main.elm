@@ -19,7 +19,7 @@ import Html.Events exposing (on)
 import Html.Lazy
 import Json.Decode as Decode
 import MonoIcons
-import Msg exposing (ActivityState(..), Msg(..))
+import Msg exposing (ActivityConfigs, ActivityState(..), Msg(..))
 import Ports
 import Random
 import Skeleton exposing (borderStyle, column, compactColumn, expandingRow, row, spinner, styleIf, viewIf, viewMaybe)
@@ -640,11 +640,10 @@ view model =
                     activities =
                         Store.get store .activities
 
-                    levelM =
-                        Store.get store .level
-
-                    emojis =
-                        Store.get store .emojis
+                    configs =
+                        { levelM = Store.get store .level
+                        , emojis = Store.get store .emojis
+                        }
 
                     events =
                         case activityM of
@@ -685,15 +684,15 @@ view model =
                 in
                 column (style "position" "relative" :: events)
                     [ Html.Lazy.lazy Calendar.viewHeader calendar
-                    , Html.Lazy.lazy6 Calendar.view calendar activities activeId activeRataDie isMoving levelM
-                    , Html.Lazy.lazy2 viewActivityM levelM activityM
-                    , Html.Lazy.lazy3 ActivityForm.view levelM emojis activityM
+                    , Html.Lazy.lazy6 Calendar.view calendar activities activeId activeRataDie isMoving configs
+                    , Html.Lazy.lazy2 viewActivityM configs activityM
+                    , Html.Lazy.lazy2 ActivityForm.view configs activityM
                     ]
         ]
 
 
-viewActivityM : Maybe Int -> ActivityState -> Html Msg
-viewActivityM levelM activityState =
+viewActivityM : ActivityConfigs -> ActivityState -> Html Msg
+viewActivityM configs activityState =
     case activityState of
         Moving activity x y ->
             row
@@ -703,7 +702,7 @@ viewActivityM levelM activityState =
                 , style "z-index" "3"
                 ]
                 [ compactColumn [ style "flex-basis" "5rem" ]
-                    [ ActivityShape.view levelM activity.data ]
+                    [ ActivityShape.view configs activity.data ]
                 ]
 
         _ ->

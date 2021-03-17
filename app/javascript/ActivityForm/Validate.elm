@@ -2,7 +2,6 @@ module ActivityForm.Validate exposing (init, validate)
 
 import ActivityForm.Types exposing (ActivityForm, FieldError(..), ValidatedFields)
 import Date exposing (Date)
-import Emoji
 import Pace
 
 
@@ -12,7 +11,6 @@ init =
     , repeats = Err MissingError
     , duration = Err MissingError
     , pace = Err MissingError
-    , emoji = Err MissingError
     }
 
 
@@ -22,7 +20,6 @@ validate model =
     , repeats = parseRepeats model.repeats
     , duration = parseDuration model.duration
     , pace = parsePace model.pace
-    , emoji = validateEmojiName model.emoji
     }
 
 
@@ -67,8 +64,3 @@ parseDuration ( hrs, mins, secs ) =
 parsePace : String -> Result FieldError Int
 parsePace str =
     Pace.paceFromString str |> Result.fromMaybe ParseError
-
-
-validateEmojiName : String -> Result FieldError String
-validateEmojiName name =
-    Emoji.get name |> Result.fromMaybe ParseError |> Result.map (\a -> name)

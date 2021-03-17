@@ -10,7 +10,7 @@ import ActivityShape
 import Date exposing (Date)
 import Duration
 import Effect exposing (Effect)
-import Emoji
+import Emoji exposing (EmojiDict)
 import EmojiData exposing (EmojiData)
 import Html exposing (Html, a, button, input, text)
 import Html.Attributes exposing (class, name, placeholder, style, type_, value)
@@ -18,7 +18,7 @@ import Html.Events exposing (on, onClick, onFocus, onInput)
 import Json.Decode as Decode
 import MPRLevel
 import MonoIcons
-import Msg exposing (ActivityState(..), Msg(..))
+import Msg exposing (ActivityConfigs, ActivityState(..), Msg(..))
 import Pace
 import Skeleton exposing (attributeIf, borderStyle, column, compactColumn, expandingRow, iconButton, row, styleIf, viewIf, viewMaybe)
 import Store
@@ -426,8 +426,8 @@ updateActivity model =
            )
 
 
-view : Maybe Int -> List EmojiData -> ActivityState -> Html Msg
-view levelM emojis activityM =
+view : ActivityConfigs -> ActivityState -> Html Msg
+view configs activityM =
     let
         sharedAttributes =
             [ borderStyle "border-bottom"
@@ -476,12 +476,12 @@ view levelM emojis activityM =
                                 [ viewButtons model.activity True ]
                             ]
                         , row []
-                            [ viewActivityFields emojis model ]
+                            [ viewActivityFields configs.emojis model ]
                         , row [ style "margin-top" "10px", style "margin-bottom" "5px", borderStyle "border-bottom" ]
                             []
                         , expandingRow [ style "overflow" "hidden" ]
-                            [ viewLapShapes levelM model.laps model.repeat
-                            , viewLapFields levelM model
+                            [ viewLapShapes configs model.laps model.repeat
+                            , viewLapFields configs.levelM model
                             ]
                         ]
                     ]
@@ -498,8 +498,8 @@ view levelM emojis activityM =
             row closedAttributes []
 
 
-viewLapShapes : Maybe Int -> Selection LapData -> Maybe (Selection ActivityData) -> Html Msg
-viewLapShapes levelM lapSelection repeatSelectionM =
+viewLapShapes : ActivityConfigs -> Selection LapData -> Maybe (Selection ActivityData) -> Html Msg
+viewLapShapes configs lapSelection repeatSelectionM =
     column
         [ style "min-width" "4rem"
         , style "overflow-y" "scroll"
@@ -509,15 +509,15 @@ viewLapShapes levelM lapSelection repeatSelectionM =
         ]
         (List.concat
             [ Selection.toList lapSelection
-                |> List.indexedMap (\i lap -> viewActivityShape levelM (Selection.selectedIndex lapSelection) i lap repeatSelectionM)
+                |> List.indexedMap (\i lap -> viewActivityShape configs (Selection.selectedIndex lapSelection) i lap repeatSelectionM)
                 |> List.concat
             , [ row [ style "padding-top" "0.5rem", style "padding-bottom" "0.5rem" ] [ viewAddButton ClickedAddLap ] ]
             ]
         )
 
 
-viewActivityShape : Maybe Int -> Int -> Int -> LapData -> Maybe (Selection ActivityData) -> List (Html Msg)
-viewActivityShape levelM selectedLap lapIndex lap repeatM =
+viewActivityShape : ActivityConfigs -> Int -> Int -> LapData -> Maybe (Selection ActivityData) -> List (Html Msg)
+viewActivityShape configs selectedLap lapIndex lap repeatM =
     case ( selectedLap == lapIndex, lap, repeatM ) of
         ( True, Repeats count list, Just repeat ) ->
             List.concat
@@ -532,7 +532,7 @@ viewActivityShape levelM selectedLap lapIndex lap repeatM =
                             , style "padding-bottom" "0.5rem"
                             , style "min-height" "1rem"
                             ]
-                            [ ActivityShape.view levelM data ]
+                            [ ActivityShape.view configs data ]
                     )
                     (Selection.toList repeat)
                 , [ row
@@ -550,7 +550,7 @@ viewActivityShape levelM selectedLap lapIndex lap repeatM =
                             , style "padding-left" "0.5rem"
                             , borderStyle "border-left"
                             ]
-                            [ ActivityShape.view levelM data ]
+                            [ ActivityShape.view configs data ]
                     )
                     (List.repeat (count - 1) list |> List.concat)
                 ]
@@ -566,11 +566,11 @@ viewActivityShape levelM selectedLap lapIndex lap repeatM =
                             , style "padding-bottom" "0.5rem"
                             , style "min-height" "1rem"
                             ]
-                            [ ActivityShape.view levelM data ]
+                            [ ActivityShape.view configs data ]
 
                 Repeats count list ->
                     [ row [ style "padding-top" "0.5rem" ] [] ]
-                        ++ (List.map (\data -> row [ onClick (SelectedLap lapIndex) ] [ ActivityShape.view levelM data ]) list
+                        ++ (List.map (\data -> row [ onClick (SelectedLap lapIndex) ] [ ActivityShape.view configs data ]) list
                                 |> List.repeat count
                                 |> List.concat
                            )
@@ -584,7 +584,7 @@ viewAddButton msg =
         ]
 
 
-viewActivityFields : List EmojiData -> ActivityForm -> Html Msg
+viewActivityFields : EmojiDict -> ActivityForm -> Html Msg
 viewActivityFields emojis form =
     let
         maxFieldWidth =
@@ -707,7 +707,7 @@ toActivityData model =
                 Nothing
 
             _ ->
-                model.validated.emoji |> Result.toMaybe
+                Just model.emoji
     }
 
 
@@ -851,15 +851,15 @@ repeatsInput msg countStrM result =
         ]
 
 
-emojiSelect : (String -> Msg) -> List EmojiData -> String -> String -> Html Msg
+emojiSelect : (String -> Msg) -> EmojiDict -> String -> String -> Html Msg
 emojiSelect msg emojis name search =
     let
         results =
             if String.isEmpty search then
-                Emoji.recommended
+                Emoji.recommended emojis
 
             else
-                Emoji.filter emojis (String.toLower search)
+                Emoji.filter (Emoji.toList emojis) (String.toLower search)
 
         emojiItem data =
             compactColumn

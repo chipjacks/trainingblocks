@@ -2,10 +2,11 @@ module ActivityShape exposing (Color(..), colorString, view)
 
 import Activity
 import Activity.Types exposing (ActivityData, ActivityType(..), Completion(..), Effort(..), Seconds)
-import Emoji
+import Emoji exposing (EmojiDict)
 import EmojiData exposing (EmojiData)
 import Html exposing (Html, div)
 import Html.Attributes exposing (class, style)
+import Msg exposing (ActivityConfigs)
 import Pace exposing (TrainingPace)
 import Skeleton exposing (column, row, styleIf, viewMaybe)
 
@@ -23,8 +24,8 @@ type Color
     | Gray
 
 
-view : Maybe Int -> ActivityData -> Html msg
-view levelM data =
+view : ActivityConfigs -> ActivityData -> Html msg
+view { levelM, emojis } data =
     let
         width paceM =
             Maybe.map2 Pace.secondsToTrainingPace levelM paceM
@@ -49,7 +50,7 @@ view levelM data =
                     Red
 
         emoji =
-            Emoji.get (data.emoji |> Maybe.withDefault "")
+            Emoji.get emojis (data.emoji |> Maybe.withDefault "")
 
         shape =
             case data.activityType of

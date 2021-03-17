@@ -1,6 +1,6 @@
-module Emoji exposing (default, filter, get, recommended, view)
+module Emoji exposing (EmojiDict, default, filter, get, recommended, toDict, toList, view)
 
-import Dict
+import Dict exposing (Dict)
 import EmojiData exposing (EmojiData)
 import EmojiData.Category
 import EmojiData.List
@@ -9,18 +9,22 @@ import Html exposing (Html, div)
 import Html.Attributes exposing (class, style)
 
 
+type alias EmojiDict =
+    Dict String EmojiData
+
+
 default : EmojiData
 default =
     { category = EmojiData.Category.SmileysAndEmotion, char = "😃", keywords = [], name = "smiley", sprite = ( 30, 35 ) }
 
 
-recommended : List EmojiData
-recommended =
-    [ get "smiley"
-    , get "slightly_smiling_face"
-    , get "neutral_face"
-    , get "disappointed"
-    , get "tired_face"
+recommended : EmojiDict -> List EmojiData
+recommended emojis =
+    [ get emojis "smiley"
+    , get emojis "slightly_smiling_face"
+    , get emojis "neutral_face"
+    , get emojis "disappointed"
+    , get emojis "tired_face"
     ]
         |> List.map (Maybe.withDefault default)
 
@@ -31,11 +35,21 @@ filter emojis name =
         |> List.sortBy (\e -> String.length e.name)
 
 
-get : String -> Maybe EmojiData
-get name =
+toDict : List EmojiData -> EmojiDict
+toDict emojis =
     List.map (\e -> ( e.name, e )) EmojiData.List.emojis
         |> Dict.fromList
-        |> Dict.get name
+
+
+toList : EmojiDict -> List EmojiData
+toList emojiDict =
+    Dict.toList emojiDict
+        |> List.map Tuple.second
+
+
+get : EmojiDict -> String -> Maybe EmojiData
+get emojis name =
+    Dict.get name emojis
 
 
 view : EmojiData -> Html msg

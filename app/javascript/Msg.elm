@@ -1,10 +1,11 @@
-module Msg exposing (ActivityState(..), Msg(..), Zoom(..))
+module Msg exposing (ActivityConfigs, ActivityState(..), Msg(..), Zoom(..))
 
 import Activity.Types exposing (Activity)
 import ActivityForm.Types exposing (ActivityForm)
 import Browser.Dom as Dom
 import Browser.Events as Events
 import Date exposing (Date)
+import Emoji exposing (EmojiDict)
 import EmojiData exposing (EmojiData)
 import Http
 
@@ -20,6 +21,12 @@ type ActivityState
     | Editing ActivityForm
     | Moving Activity Float Float
     | None
+
+
+type alias ActivityConfigs =
+    { levelM : Maybe Int
+    , emojis : EmojiDict
+    }
 
 
 type Msg

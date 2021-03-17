@@ -574,7 +574,7 @@ viewActivity isActive isActiveDate levelM activity =
             , style "justify-content" "center"
             , attributeIf (not isActive) (Html.Events.on "pointerdown" (pointerDownDecoder activity))
             ]
-            [ row [] [ text activity.description ]
+            [ row [ style "word-break" "break-all" ] [ text activity.description ]
             , row [ style "font-size" "0.8rem" ]
                 [ column []
                     [ text <|

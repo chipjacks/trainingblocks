@@ -5,6 +5,7 @@ import Activity.Types exposing (Activity, Id)
 import Api
 import Date exposing (Date)
 import Effect exposing (Effect)
+import EmojiData exposing (EmojiData)
 import Http
 import Msg exposing (Msg(..))
 import Process
@@ -20,12 +21,13 @@ type alias State =
     { activities : List Activity
     , revision : String
     , level : Maybe Int
+    , emojis : List EmojiData
     }
 
 
 init : String -> String -> List Activity -> Model
 init csrfToken revision activities =
-    Model (State activities revision Nothing |> updateLevel) [] csrfToken
+    Model (State activities revision Nothing [] |> updateLevel) [] csrfToken
 
 
 get : Model -> (State -> b) -> b
@@ -148,6 +150,16 @@ update msg (Model state msgs csrfToken) =
                     )
 
                 Err _ ->
+                    ( model, Effect.None )
+
+        FetchedEmojis result ->
+            case result of
+                Ok emojis ->
+                    ( Model { state | emojis = emojis } msgs csrfToken
+                    , Effect.None
+                    )
+
+                _ ->
                     ( model, Effect.None )
 
         _ ->

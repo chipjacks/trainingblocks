@@ -35,9 +35,11 @@ get (Model zoom start end selected today scrollCompleted) =
     { zoom = zoom, start = start, end = end, selected = selected, today = today, scrollCompleted = scrollCompleted }
 
 
-init : Zoom -> Date -> Date -> Model
+init : Zoom -> Date -> Date -> ( Model, Effect )
 init zoom selected today =
-    Model zoom (Date.add Date.Months -3 selected) (Date.add Date.Months 3 selected) selected today True
+    ( Model zoom (Date.add Date.Months -3 selected) (Date.add Date.Months 3 selected) selected today True
+    , Effect.ScrollToSelectedDate
+    )
 
 
 update : Msg -> Model -> ( Model, Effect )
@@ -51,12 +53,10 @@ update msg model =
             ( Model zoom start end selected date scrollCompleted, Effect.None )
 
         Jump date ->
-            ( init zoom date today, Effect.ScrollToSelectedDate )
+            init zoom date today
 
         ChangeZoom newZoom dateM ->
-            ( init newZoom (Maybe.withDefault selected dateM) today
-            , Effect.ScrollToSelectedDate
-            )
+            init newZoom (Maybe.withDefault selected dateM) today
 
         Scroll up date currentHeight ->
             if not scrollCompleted then

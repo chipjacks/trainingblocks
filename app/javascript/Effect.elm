@@ -3,6 +3,7 @@ module Effect exposing (Effect(..), perform)
 import Activity.Types exposing (Activity)
 import Api
 import Date
+import EmojiData.Fetch
 import Msg exposing (Msg(..))
 import Ports
 import Random
@@ -22,6 +23,7 @@ type Effect
         , activityUpdates : List ( String, Activity )
         }
     | GetActivities
+    | FetchEmojis
     | DateToday (Date.Date -> Msg)
     | ScrollToSelectedDate
     | GenerateActivity (Activity -> Msg) (Random.Generator Activity)
@@ -44,6 +46,9 @@ perform effect =
 
         GetActivities ->
             Task.attempt GotActivities Api.getActivities
+
+        FetchEmojis ->
+            Task.attempt FetchedEmojis EmojiData.Fetch.task
 
         DateToday msg ->
             Task.perform msg Date.today

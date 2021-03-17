@@ -5,6 +5,7 @@ import ActivityForm.Types exposing (ActivityForm)
 import Browser.Dom as Dom
 import Browser.Events as Events
 import Date exposing (Date)
+import EmojiData exposing (EmojiData)
 import Http
 
 
@@ -24,6 +25,7 @@ type ActivityState
 type Msg
     = LoadToday Date
     | GotActivities (Result Http.Error ( String, List Activity ))
+    | FetchedEmojis (Result Http.Error (List EmojiData))
     | VisibilityChange Events.Visibility
     | KeyPressed String
     | MouseMoved Float Float

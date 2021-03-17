@@ -137,6 +137,9 @@ update msg model =
                 GotActivities _ ->
                     updateStore msg state |> loaded
 
+                FetchedEmojis _ ->
+                    updateStore msg state |> loaded
+
                 VisibilityChange visibility ->
                     case visibility of
                         Events.Visible ->
@@ -525,13 +528,13 @@ updateLoading : Model -> ( Model, Effect )
 updateLoading model =
     case model of
         Loading (Just date) (Just store) csrfToken ->
-            (Loaded <|
-                State
-                    (Calendar.init Msg.Month date date)
-                    store
-                    None
+            let
+                ( calendarModel, calendarEffect ) =
+                    Calendar.init Msg.Month date date
+            in
+            ( Loaded (State calendarModel store None)
+            , Effect.Batch [ calendarEffect, Effect.FetchEmojis ]
             )
-                |> update (Jump date)
 
         _ ->
             ( model, Effect.None )
@@ -640,6 +643,9 @@ view model =
                     levelM =
                         Store.get store .level
 
+                    emojis =
+                        Store.get store .emojis
+
                     events =
                         case activityM of
                             Moving _ _ _ ->
@@ -681,7 +687,7 @@ view model =
                     [ Html.Lazy.lazy Calendar.viewHeader calendar
                     , Html.Lazy.lazy6 Calendar.view calendar activities activeId activeRataDie isMoving levelM
                     , Html.Lazy.lazy2 viewActivityM levelM activityM
-                    , Html.Lazy.lazy2 ActivityForm.view levelM activityM
+                    , Html.Lazy.lazy3 ActivityForm.view levelM emojis activityM
                     ]
         ]
 

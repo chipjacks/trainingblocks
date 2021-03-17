@@ -1,9 +1,9 @@
-module Emoji exposing (default, filter, find, get, recommended, view)
+module Emoji exposing (default, filter, get, recommended, view)
 
 import Dict
 import EmojiData exposing (EmojiData)
 import EmojiData.Category
-import EmojiData.List exposing (emojis)
+import EmojiData.List
 import EmojiData.View
 import Html exposing (Html, div)
 import Html.Attributes exposing (class, style)
@@ -16,28 +16,24 @@ default =
 
 recommended : List EmojiData
 recommended =
-    [ find "smiley"
-    , find "slightly_smiling_face"
-    , find "neutral_face"
-    , find "disappointed"
-    , find "tired_face"
+    [ get "smiley"
+    , get "slightly_smiling_face"
+    , get "neutral_face"
+    , get "disappointed"
+    , get "tired_face"
     ]
+        |> List.map (Maybe.withDefault default)
 
 
-filter : String -> List EmojiData
-filter name =
+filter : List EmojiData -> String -> List EmojiData
+filter emojis name =
     EmojiData.search emojis name
         |> List.sortBy (\e -> String.length e.name)
 
 
-find : String -> EmojiData
-find name =
-    filter name |> List.head |> Maybe.withDefault default
-
-
 get : String -> Maybe EmojiData
 get name =
-    List.map (\e -> ( e.name, e )) emojis
+    List.map (\e -> ( e.name, e )) EmojiData.List.emojis
         |> Dict.fromList
         |> Dict.get name
 

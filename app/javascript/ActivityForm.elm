@@ -11,6 +11,7 @@ import Date exposing (Date)
 import Duration
 import Effect exposing (Effect)
 import Emoji
+import EmojiData exposing (EmojiData)
 import Html exposing (Html, a, button, input, text)
 import Html.Attributes exposing (class, name, placeholder, style, type_, value)
 import Html.Events exposing (on, onClick, onFocus, onInput)
@@ -425,8 +426,8 @@ updateActivity model =
            )
 
 
-view : Maybe Int -> ActivityState -> Html Msg
-view levelM activityM =
+view : Maybe Int -> List EmojiData -> ActivityState -> Html Msg
+view levelM emojis activityM =
     let
         sharedAttributes =
             [ borderStyle "border-bottom"
@@ -475,7 +476,7 @@ view levelM activityM =
                                 [ viewButtons model.activity True ]
                             ]
                         , row []
-                            [ viewActivityFields model ]
+                            [ viewActivityFields emojis model ]
                         , row [ style "margin-top" "10px", style "margin-bottom" "5px", borderStyle "border-bottom" ]
                             []
                         , expandingRow [ style "overflow" "hidden" ]
@@ -583,8 +584,8 @@ viewAddButton msg =
         ]
 
 
-viewActivityFields : ActivityForm -> Html Msg
-viewActivityFields form =
+viewActivityFields : List EmojiData -> ActivityForm -> Html Msg
+viewActivityFields emojis form =
     let
         maxFieldWidth =
             style "max-width" "20rem"
@@ -595,7 +596,7 @@ viewActivityFields form =
             ]
         , row []
             [ column [ maxFieldWidth ] [ completionToggle CheckedCompleted form.completed ]
-            , column [ maxFieldWidth ] [ emojiSelect SelectedEmoji form.emoji form.emojiSearch ]
+            , column [ maxFieldWidth ] [ emojiSelect SelectedEmoji emojis form.emoji form.emojiSearch ]
             ]
         ]
 
@@ -850,15 +851,15 @@ repeatsInput msg countStrM result =
         ]
 
 
-emojiSelect : (String -> Msg) -> String -> String -> Html Msg
-emojiSelect msg name search =
+emojiSelect : (String -> Msg) -> List EmojiData -> String -> String -> Html Msg
+emojiSelect msg emojis name search =
     let
-        emojis =
+        results =
             if String.isEmpty search then
                 Emoji.recommended
 
             else
-                Emoji.filter (String.toLower search)
+                Emoji.filter emojis (String.toLower search)
 
         emojiItem data =
             compactColumn
@@ -892,7 +893,7 @@ emojiSelect msg name search =
                 ]
             ]
         , row [ style "margin-top" "4px", style "height" "27px" ]
-            (List.map emojiItem (emojis |> List.take 5))
+            (List.map emojiItem (results |> List.take 5))
         ]
 
 

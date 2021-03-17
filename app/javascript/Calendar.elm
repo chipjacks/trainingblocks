@@ -217,15 +217,15 @@ filterActivities date activities =
     List.filter (\a -> a.date == date) activities
 
 
-view : Model -> List Activity -> String -> Int -> Maybe Int -> Html Msg
-view model activities activeId activeRataDie levelM =
+view : Model -> List Activity -> String -> Int -> Bool -> Maybe Int -> Html Msg
+view model activities activeId activeRataDie isMoving levelM =
     let
         (Model zoom start end selected today scrollCompleted) =
             model
 
         dayRows date =
             List.concat
-                [ [ ( Date.toIsoString date, Html.Lazy.lazy3 viewDay (date == today) (date == selected) (Date.toRataDie date) ) ]
+                [ [ ( Date.toIsoString date, Html.Lazy.lazy4 viewDay (date == today) (date == selected) isMoving (Date.toRataDie date) ) ]
                 , filterActivities date activities
                     |> List.map
                         (\activity ->
@@ -247,11 +247,12 @@ view model activities activeId activeRataDie levelM =
                         |> List.map
                             (\d ->
                                 ( Date.toIsoString d
-                                , Html.Lazy.lazy6 viewWeek
+                                , Html.Lazy.lazy7 viewWeek
                                     activities
                                     today
                                     selected
                                     d
+                                    isMoving
                                     activeId
                                     levelM
                                 )
@@ -372,8 +373,8 @@ viewHeader model =
             )
 
 
-viewWeek : List Activity -> Date -> Date -> Date -> String -> Maybe Int -> Html Msg
-viewWeek allActivities today selected start activeId levelM =
+viewWeek : List Activity -> Date -> Date -> Date -> Bool -> String -> Maybe Int -> Html Msg
+viewWeek allActivities today selected start isMoving activeId levelM =
     let
         days =
             daysOfWeek start
@@ -384,7 +385,7 @@ viewWeek allActivities today selected start activeId levelM =
 
         dayViews =
             days
-                |> List.map (\d -> viewWeekDay ( d, filterActivities d allActivities ) (d == today) (d == selected) activeId levelM)
+                |> List.map (\d -> viewWeekDay ( d, filterActivities d allActivities ) (d == today) (d == selected) isMoving activeId levelM)
 
         activities =
             days
@@ -396,8 +397,8 @@ viewWeek allActivities today selected start activeId levelM =
             :: dayViews
 
 
-viewWeekDay : ( Date, List Activity ) -> Bool -> Bool -> String -> Maybe Int -> Html Msg
-viewWeekDay ( date, activities ) isToday isSelected activeId levelM =
+viewWeekDay : ( Date, List Activity ) -> Bool -> Bool -> Bool -> String -> Maybe Int -> Html Msg
+viewWeekDay ( date, activities ) isToday isSelected isMoving activeId levelM =
     let
         isActive a =
             activeId == a.id
@@ -406,7 +407,7 @@ viewWeekDay ( date, activities ) isToday isSelected activeId levelM =
         [ attributeIf isSelected (id "selected-date")
         , style "min-height" "4rem"
         , style "padding-bottom" "1rem"
-        , Html.Events.on "pointerenter" (Decode.succeed (MoveTo date))
+        , attributeIf isMoving (Html.Events.on "pointerenter" (Decode.succeed (MoveTo date)))
         ]
     <|
         viewIf (Date.day date == 1)
@@ -518,8 +519,8 @@ daysOfWeek start =
 -- MONTH VIEW
 
 
-viewDay : Bool -> Bool -> Int -> Html Msg
-viewDay isToday isSelected rataDie =
+viewDay : Bool -> Bool -> Bool -> Int -> Html Msg
+viewDay isToday isSelected isMoving rataDie =
     let
         date =
             Date.fromRataDie rataDie
@@ -530,9 +531,8 @@ viewDay isToday isSelected rataDie =
         , attribute "data-date" (Date.toIsoString date)
         , style "padding" "1rem 0.5rem"
         , styleIf isToday "font-weight" "bold"
-
-        -- , onClick (ChangeZoom Day (Just date))
-        , Html.Events.on "pointerenter" (Decode.succeed (MoveTo date))
+        , onClick (ChangeZoom Day (Just date))
+        , attributeIf isMoving (Html.Events.on "pointerenter" (Decode.succeed (MoveTo date)))
         ]
         [ text (Date.format "E MMM d" date) ]
 

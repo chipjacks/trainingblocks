@@ -652,19 +652,19 @@ view model =
                             _ ->
                                 []
 
-                    activeId =
+                    ( activeId, isMoving ) =
                         case activityM of
                             Selected list ->
-                                List.map .id list |> String.join " "
+                                ( List.map .id list |> String.join " ", False )
 
                             Editing { activity } ->
-                                activity.id
+                                ( activity.id, False )
 
                             Moving { id } _ _ ->
-                                id
+                                ( id, True )
 
                             None ->
-                                ""
+                                ( "", False )
 
                     activeRataDie =
                         case activityM of
@@ -679,7 +679,7 @@ view model =
                 in
                 column (style "position" "relative" :: events)
                     [ Html.Lazy.lazy Calendar.viewHeader calendar
-                    , Html.Lazy.lazy5 Calendar.view calendar activities activeId activeRataDie levelM
+                    , Html.Lazy.lazy6 Calendar.view calendar activities activeId activeRataDie isMoving levelM
                     , Html.Lazy.lazy2 viewActivityM levelM activityM
                     , Html.Lazy.lazy2 ActivityForm.view levelM activityM
                     ]

@@ -49,7 +49,7 @@ view levelM data =
                     Red
 
         emoji =
-            Maybe.map Emoji.find data.emoji
+            Emoji.get (data.emoji |> Maybe.withDefault "")
 
         shape =
             case data.activityType of

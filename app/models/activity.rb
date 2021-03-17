@@ -8,7 +8,7 @@ class Activity < ApplicationRecord
 
   def match_or_create
     match = Activity.where(date: self.date, user: self.user).find { |a| self.match?(a) }
-    if !match
+    if !match || (match && match.import)
       self.save!
     elsif !match.import
       match.import = self.import

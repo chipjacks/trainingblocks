@@ -641,9 +641,7 @@ view model =
                         Store.get store .activities
 
                     configs =
-                        { levelM = Store.get store .level
-                        , emojis = Store.get store .emojis
-                        }
+                        Store.get store .configs
 
                     events =
                         case activityM of

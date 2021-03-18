@@ -9,7 +9,7 @@ import Effect exposing (Effect)
 import Emoji
 import EmojiData exposing (EmojiData)
 import Http
-import Msg exposing (Msg(..))
+import Msg exposing (ActivityConfigs, Msg(..))
 import Process
 import Set
 import Task
@@ -22,14 +22,19 @@ type Model
 type alias State =
     { activities : List Activity
     , revision : String
-    , level : Maybe Int
-    , emojis : Dict String EmojiData
+    , configs : ActivityConfigs
     }
 
 
 init : String -> String -> List Activity -> Model
 init csrfToken revision activities =
-    Model (State activities revision Nothing Dict.empty |> updateLevel) [] csrfToken
+    let
+        configs =
+            { levelM = Nothing
+            , emojis = Dict.empty
+            }
+    in
+    Model (State activities revision configs |> updateLevel) [] csrfToken
 
 
 get : Model -> (State -> b) -> b
@@ -98,7 +103,12 @@ updateLevel state =
                 |> List.reverse
                 |> List.head
     in
-    { state | level = calculateLevel state.activities }
+    updateConfigs (\c -> { c | levelM = calculateLevel state.activities }) state
+
+
+updateConfigs : (ActivityConfigs -> ActivityConfigs) -> State -> State
+updateConfigs transform state =
+    { state | configs = transform state.configs }
 
 
 update : Msg -> Model -> ( Model, Effect )
@@ -157,7 +167,7 @@ update msg (Model state msgs csrfToken) =
         FetchedEmojis result ->
             case result of
                 Ok emojis ->
-                    ( Model { state | emojis = Emoji.toDict emojis } msgs csrfToken
+                    ( Model (updateConfigs (\c -> { c | emojis = Emoji.toDict emojis }) state) msgs csrfToken
                     , Effect.None
                     )
 

@@ -1,6 +1,6 @@
 module Calendar exposing (Model, get, init, update, view, viewHeader, viewMenu)
 
-import Actions exposing (viewFullToolbar, viewMultiSelectToolbar, viewPopoverActions)
+import Actions exposing (viewActivityActions, viewMultiSelectActions, viewPopoverActions)
 import Activity
 import Activity.Laps
 import Activity.Types exposing (Activity)
@@ -598,10 +598,10 @@ viewActivity activeIds isActiveDate configs activity =
                 , style "right" "0"
                 ]
                 [ if isMultiSelect then
-                    viewMultiSelectToolbar
+                    viewMultiSelectActions
 
                   else
-                    viewFullToolbar False
+                    viewActivityActions
                 ]
             )
         , compactColumn

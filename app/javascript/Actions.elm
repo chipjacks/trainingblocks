@@ -1,4 +1,4 @@
-module Actions exposing (viewFullToolbar, viewMultiSelectToolbar, viewPopoverActions)
+module Actions exposing (viewActivityActions, viewFormActions, viewMultiSelectActions, viewPopoverActions)
 
 import Html exposing (Html)
 import Html.Attributes exposing (class, style)
@@ -9,14 +9,10 @@ import Skeleton exposing (attributeIf, column, row)
 import Svg exposing (Svg)
 
 
-viewFullToolbar : Bool -> Html Msg
-viewFullToolbar editing =
+viewActivityActions : Html Msg
+viewActivityActions =
     row []
-        [ if editing then
-            toolbarButton ClickedSubmit MonoIcons.check "Save" True
-
-          else
-            toolbarButton ClickedEdit MonoIcons.edit "Edit" False
+        [ toolbarButton ClickedEdit MonoIcons.edit "Edit" False
         , toolbarButton ClickedCopy MonoIcons.copy "Copy" False
         , toolbarButton ClickedDelete MonoIcons.delete "Delete" False
         , column [] []
@@ -27,11 +23,25 @@ viewFullToolbar editing =
         ]
 
 
-viewMultiSelectToolbar : Html Msg
-viewMultiSelectToolbar =
+viewMultiSelectActions : Html Msg
+viewMultiSelectActions =
     row []
         [ toolbarButton ClickedDelete MonoIcons.delete "Delete" False
         , toolbarButton ClickedGroup MonoIcons.folder "Group" False
+        ]
+
+
+viewFormActions : Html Msg
+viewFormActions =
+    row []
+        [ toolbarButton ClickedSubmit MonoIcons.check "Save" True
+        , toolbarButton ClickedCopy MonoIcons.copy "Copy" False
+        , toolbarButton ClickedDelete MonoIcons.delete "Delete" False
+        , column [] []
+        , toolbarButton (ClickedShift True) MonoIcons.arrowUp "Shift Up" False
+        , toolbarButton (ClickedShift False) MonoIcons.arrowDown "Shift Down" False
+        , column [] []
+        , toolbarButton ClickedClose MonoIcons.close "Close" False
         ]
 
 

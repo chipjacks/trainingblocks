@@ -1,6 +1,6 @@
 module ActivityForm exposing (init, initMove, update, view)
 
-import Actions exposing (viewFullToolbar, viewMultiSelectToolbar)
+import Actions exposing (viewFormActions)
 import Activity
 import Activity.Laps
 import Activity.Types exposing (Activity, ActivityData, ActivityType, LapData(..))
@@ -462,7 +462,7 @@ view configs activityM =
                     [ column []
                         [ row []
                             [ column [ style "margin-bottom" "1rem" ]
-                                [ viewFullToolbar True ]
+                                [ viewFormActions ]
                             ]
                         , row []
                             [ viewActivityFields configs.emojis model ]

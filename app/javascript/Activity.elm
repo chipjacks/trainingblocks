@@ -13,14 +13,14 @@ import Random
 
 initActivityData : ActivityData
 initActivityData =
-    ActivityData
-        Run
-        Nothing
-        Completed
-        Nothing
-        Nothing
-        Nothing
-        Nothing
+    { activityType = Run
+    , duration = Nothing
+    , completed = Completed
+    , pace = Nothing
+    , race = Nothing
+    , effort = Nothing
+    , emoji = Nothing
+    }
 
 
 activityType : Enum ActivityType

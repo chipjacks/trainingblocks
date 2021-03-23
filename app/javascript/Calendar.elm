@@ -280,6 +280,7 @@ view model activities activeId activeRataDie isMoving configs =
             , styleIf (zoom == Month) "animation" "slidein-right 0.5s 0.01ms"
             , styleIf (zoom == Month) "opacity" "0"
             , styleIf (zoom == Month) "animation-fill-mode" "forwards"
+            , Html.Events.stopPropagationOn "pointerdown" (Decode.succeed ( ClickedClose, True ))
             ]
           <|
             List.concat
@@ -294,7 +295,7 @@ viewActivityShape : Activity -> Bool -> ActivityConfigs -> Html Msg
 viewActivityShape activity isActive configs =
     div
         [ style "width" "min-content"
-        , Html.Events.on "pointerdown" (Decode.succeed (MoveActivity activity))
+        , Html.Events.stopPropagationOn "pointerdown" (Decode.succeed ( MoveActivity activity, True ))
         , attributeIf isActive (class "dynamic-shape")
         , style "touch-action" "none"
         ]
@@ -430,7 +431,8 @@ viewWeekDay ( date, activities ) isToday isSelected isMoving activeId configs =
             :: List.map
                 (\a ->
                     row
-                        [ attributeIf (not (isActive a)) (Html.Events.on "pointerdown" (pointerDownDecoder a))
+                        [ attributeIf (not (isActive a))
+                            (onPointerDown (selectActivityDecoder a))
                         , class "no-select"
                         , style "margin-bottom" "0.1rem"
                         , style "margin-right" "0.2rem"
@@ -566,13 +568,13 @@ viewActivity isActive isActiveDate configs activity =
         [ compactColumn
             [ style "flex-basis" "5rem"
             , style "justify-content" "center"
-            , attributeIf (not isActive) (Html.Events.on "pointerdown" (pointerDownDecoder activity))
+            , attributeIf (not isActive) (onPointerDown (selectActivityDecoder activity))
             ]
             [ viewActivityShape activity isActive configs ]
         , a
             [ class "column expand"
             , style "justify-content" "center"
-            , attributeIf (not isActive) (Html.Events.on "pointerdown" (pointerDownDecoder activity))
+            , attributeIf (not isActive) (onPointerDown (selectActivityDecoder activity))
             ]
             [ row [ style "word-break" "break-all" ] [ text activity.description ]
             , row [ style "font-size" "0.8rem" ]
@@ -588,7 +590,7 @@ viewActivity isActive isActiveDate configs activity =
             ]
         , compactColumn
             [ attributeIf (not isActive)
-                (Html.Events.on "pointerdown" (Decode.succeed (SelectActivity activity True)))
+                (onPointerDown (Decode.succeed (SelectActivity activity True)))
             , style "justify-content" "center"
             ]
             [ row
@@ -604,11 +606,19 @@ viewActivity isActive isActiveDate configs activity =
         ]
 
 
-pointerDownDecoder : Activity -> Decode.Decoder Msg
-pointerDownDecoder activity =
+selectActivityDecoder : Activity -> Decode.Decoder Msg
+selectActivityDecoder activity =
     Decode.map
         (SelectActivity activity)
         (Decode.field "shiftKey" Decode.bool)
+
+
+onPointerDown : Decode.Decoder Msg -> Html.Attribute Msg
+onPointerDown decoder =
+    Html.Events.stopPropagationOn "pointerdown"
+        (decoder
+            |> Decode.map (\m -> ( m, True ))
+        )
 
 
 viewAddButton : Date -> Html Msg

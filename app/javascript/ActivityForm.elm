@@ -1,5 +1,6 @@
 module ActivityForm exposing (init, initMove, update, view)
 
+import Actions exposing (viewFullToolbar, viewMultiSelectToolbar)
 import Activity
 import Activity.Laps
 import Activity.Types exposing (Activity, ActivityData, ActivityType, LapData(..))
@@ -455,16 +456,10 @@ view configs activityM =
                 ++ sharedAttributes
     in
     case activityM of
-        Selected [ activity ] ->
+        Selected (a :: b :: _) ->
             row (openAttributes "1.5rem")
                 [ column []
-                    [ viewButtons activity False ]
-                ]
-
-        Selected _ ->
-            row (openAttributes "1.5rem")
-                [ column []
-                    [ viewMultiSelectButtons ]
+                    [ viewMultiSelectToolbar ]
                 ]
 
         Editing model ->
@@ -473,7 +468,7 @@ view configs activityM =
                     [ column []
                         [ row []
                             [ column [ style "margin-bottom" "1rem" ]
-                                [ viewButtons model.activity True ]
+                                [ viewFullToolbar True ]
                             ]
                         , row []
                             [ viewActivityFields configs.emojis model ]
@@ -626,54 +621,6 @@ viewLapFields levelM form =
             [ column [ maxFieldWidth, style "flex-grow" "2" ] [ paceSelect levelM SelectedPace form.pace form.validated.pace ]
             , column [ maxFieldWidth, style "flex-grow" "1" ] [ raceSelect SelectedRace form.race ]
             ]
-        ]
-
-
-viewButtons : Activity -> Bool -> Html Msg
-viewButtons activity editing =
-    row []
-        [ if editing then
-            toolbarButton ClickedSubmit MonoIcons.check "Save" True
-
-          else
-            toolbarButton ClickedEdit MonoIcons.edit "Edit" False
-        , toolbarButton ClickedCopy MonoIcons.copy "Copy" False
-        , toolbarButton ClickedDelete MonoIcons.delete "Delete" False
-        , column [] []
-        , toolbarButton (ClickedShift True) MonoIcons.arrowUp "Shift Up" False
-        , toolbarButton (ClickedShift False) MonoIcons.arrowDown "Shift Down" False
-        , column [] []
-        , toolbarButton ClickedClose MonoIcons.close "Close" False
-        ]
-
-
-toolbarButton : Msg -> (String -> Svg Msg) -> String -> Bool -> Html Msg
-toolbarButton onClickMsg icon labelStr primary =
-    let
-        iconFill =
-            if primary then
-                "#ffffff"
-
-            else
-                "#3d3d3d"
-    in
-    Html.button
-        [ class "button small expand"
-        , attributeIf primary (class "primary")
-        , Html.Attributes.attribute "aria-label" labelStr
-        , style "margin-right" "0.2rem"
-        , style "text-align" "center"
-        , style "max-width" "3rem"
-        , onClick onClickMsg
-        ]
-        [ MonoIcons.icon (icon iconFill) ]
-
-
-viewMultiSelectButtons : Html Msg
-viewMultiSelectButtons =
-    row []
-        [ toolbarButton ClickedDelete MonoIcons.delete "Delete" False
-        , toolbarButton ClickedGroup MonoIcons.folder "Group" False
         ]
 
 

@@ -1,5 +1,6 @@
 module Calendar exposing (Model, get, init, update, view, viewHeader, viewMenu)
 
+import Actions exposing (viewFullToolbar, viewPopoverActions)
 import Activity
 import Activity.Laps
 import Activity.Types exposing (Activity)
@@ -298,10 +299,22 @@ viewActivityShape activity isActive configs =
         , Html.Events.stopPropagationOn "pointerdown" (Decode.succeed ( MoveActivity activity, True ))
         , attributeIf isActive (class "dynamic-shape")
         , style "touch-action" "none"
+        , style "position" "relative"
         ]
-        (Activity.Laps.listData activity
-            |> List.map (\a -> ActivityShape.view configs a)
-        )
+    <|
+        viewIf isActive
+            (div
+                [ style "position" "absolute"
+                , style "top" "0"
+                , style "left" "-55px"
+                , style "width" "50px"
+                , style "z-index" "3"
+                ]
+                [ viewPopoverActions ]
+            )
+            :: (Activity.Laps.listData activity
+                    |> List.map (\a -> ActivityShape.view configs a)
+               )
 
 
 
@@ -439,7 +452,8 @@ viewWeekDay ( date, activities ) isToday isSelected isMoving activeId configs =
                         , attributeIf (isActive a) (class "selected-shape")
                         , Html.Events.onDoubleClick (EditActivity a)
                         ]
-                        [ viewActivityShape a (isActive a) configs ]
+                        [ viewActivityShape a (isActive a) configs
+                        ]
                 )
                 activities
 
@@ -533,7 +547,8 @@ viewDay isToday isSelected isMoving rataDie =
         , attribute "data-date" (Date.toIsoString date)
         , style "padding" "1rem 0.5rem"
         , styleIf isToday "font-weight" "bold"
-        , onClick (ChangeZoom Day (Just date))
+
+        -- , onClick (ChangeZoom Day (Just date))
         , attributeIf isMoving (Html.Events.on "pointerenter" (Decode.succeed (MoveTo date)))
         ]
         [ text (Date.format "E MMM d" date) ]
@@ -563,9 +578,19 @@ viewActivity isActive isActiveDate configs activity =
     row
         [ style "padding" "0.5rem 0.5rem"
         , styleIf isActive "background-color" "var(--grey-100)"
+        , style "position" "relative"
         , Html.Events.onDoubleClick (EditActivity activity)
+        , attributeIf isActive (onPointerDown (Decode.succeed NoOp))
         ]
-        [ compactColumn
+        [ viewIf isActive
+            (div
+                [ style "position" "absolute"
+                , style "top" "-20px"
+                , style "right" "0"
+                ]
+                [ viewFullToolbar False ]
+            )
+        , compactColumn
             [ style "flex-basis" "5rem"
             , style "justify-content" "center"
             , attributeIf (not isActive) (onPointerDown (selectActivityDecoder activity))

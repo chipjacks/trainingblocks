@@ -661,7 +661,7 @@ view model =
                                 ( List.map .id list |> String.join " ", False )
 
                             Editing { activity } ->
-                                ( activity.id, False )
+                                ( "", False )
 
                             Moving { id } _ _ ->
                                 ( id, True )

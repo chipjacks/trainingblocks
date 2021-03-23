@@ -1,6 +1,6 @@
 module Calendar exposing (Model, get, init, update, view, viewHeader, viewMenu)
 
-import Actions exposing (viewFullToolbar, viewPopoverActions)
+import Actions exposing (viewFullToolbar, viewMultiSelectToolbar, viewPopoverActions)
 import Activity
 import Activity.Laps
 import Activity.Types exposing (Activity)
@@ -232,7 +232,7 @@ view model activities activeId activeRataDie isMoving configs =
                         (\activity ->
                             ( activity.id
                             , Html.Lazy.lazy4 viewActivity
-                                (String.contains activity.id activeId)
+                                activeId
                                 (Date.toRataDie date == activeRataDie)
                                 configs
                                 activity
@@ -554,9 +554,18 @@ viewDay isToday isSelected isMoving rataDie =
         [ text (Date.format "E MMM d" date) ]
 
 
-viewActivity : Bool -> Bool -> ActivityConfigs -> Activity -> Html Msg
-viewActivity isActive isActiveDate configs activity =
+viewActivity : String -> Bool -> ActivityConfigs -> Activity -> Html Msg
+viewActivity activeIds isActiveDate configs activity =
     let
+        isActive =
+            String.contains activity.id activeIds
+
+        isFirstActive =
+            String.startsWith activity.id activeIds
+
+        isMultiSelect =
+            String.contains " " activeIds
+
         activityLevel =
             Activity.mprLevel activity
                 |> Maybe.map (\l -> "level " ++ String.fromInt l)
@@ -582,13 +591,18 @@ viewActivity isActive isActiveDate configs activity =
         , Html.Events.onDoubleClick (EditActivity activity)
         , attributeIf isActive (onPointerDown (Decode.succeed NoOp))
         ]
-        [ viewIf isActive
+        [ viewIf isFirstActive
             (div
                 [ style "position" "absolute"
                 , style "top" "-20px"
                 , style "right" "0"
                 ]
-                [ viewFullToolbar False ]
+                [ if isMultiSelect then
+                    viewMultiSelectToolbar
+
+                  else
+                    viewFullToolbar False
+                ]
             )
         , compactColumn
             [ style "flex-basis" "5rem"

@@ -456,12 +456,6 @@ view configs activityM =
                 ++ sharedAttributes
     in
     case activityM of
-        Selected (a :: b :: _) ->
-            row (openAttributes "1.5rem")
-                [ column []
-                    [ viewMultiSelectToolbar ]
-                ]
-
         Editing model ->
             if model.date /= Nothing then
                 row (openAttributes "100%")

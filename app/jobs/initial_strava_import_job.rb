@@ -6,6 +6,6 @@ class InitialStravaImportJob < ApplicationJob
     @strava_client = StravaClient::ActivitiesApi.new
     activities = @strava_client.get_logged_in_athlete_activities({ per_page: 200 })
 
-    Import.add_new(activities, "strava", user)
+    Import.add_new(activities, Import::STRAVA, user)
   end
 end

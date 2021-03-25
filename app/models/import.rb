@@ -2,6 +2,8 @@ class Import < ApplicationRecord
   belongs_to :user
   has_one :activity
 
+  STRAVA = "strava"
+
   def self.add_new(imports, source, user)
     ids = Hash[imports.map { |a| [a.id.to_s, a] }]
     existing_ids = user.imports.select(:id).map { |i| i.id }

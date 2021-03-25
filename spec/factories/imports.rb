@@ -1,10 +1,23 @@
-json_data = '{"id":4826872707,"external_id":"DC140F6A-A1BD-4370-BB8E-4D321BAA4B4E","upload_id":5149587506,"athlete":{"id":2456610},"name":"Morning Run","distance":17632.5,"moving_time":4958,"elapsed_time":5086,"total_elevation_gain":239.6,"elev_high":154.1,"elev_low":27.4,"type":"Run","start_date":"2021-02-21T18:17:03.000+00:00","start_date_local":"2021-02-21T10:17:03.000+00:00","timezone":"(GMT-08:00) America/Los_Angeles","achievement_count":4,"kudos_count":5,"comment_count":0,"athlete_count":1,"photo_count":0,"total_photo_count":0,"map":{"id":"a4826872707","summary_polyline":"i`qbH`wwiVQBy@d@SZQz@[p@EXF~AArACXIP_I@{@LaCCwDNIFEXGbBHhFG~@ONyAMuBHOBILE\\AtGKpI?hKIX_AJKLKl@@t@HlABvHIXIHgGW_@Da@TI`@FbEElB?jCCTID{AGqD?k@\\y@Iy@N{BFiA\\O?}Bz@]DaAMODY^}CFOFOTF~BEvCBvBCjAMzBDzDCpAOd@wAh@_@Qw@MwAAu@Ho@Vg@n@i@Z}EHcAZyA`AoAnAq@`B_@fBWZsDG}IAq@H}BAwAL}EIuBTGt@@lBBdCNrDHh@v@hANp@Dt@?d@iA`Ba@~AQ`A?r@It@@jDRnC?rATxCNhAPTN@~B_AbCMzB\\hAJxAlAtDxD`@t@p@pB\\p@~@t@l@FtBUfEgAt@GRSPgB@gAAi@OgBBqBBa@R_@fEEpAO~FBVHxGa@tCNbAKrB?jAF~AKnAHhBSxBPdAKfAJ~BEbASpCP`BMtAB`AObCJtAK~CD`L_@`@QX_@DYAcAFqAC_BZuACsBB_IB}@LcAFW^k@r@a@b@GtBEnAJ|GBlCEjAPfAABJu@tDDh@Zp@hAz@t@XVb@pBdAp@p@d@JhAo@bAGHIlA`@fCUp@`@z@rBFFv@BT_@RaA?UUm@QgBAk@GYIWw@wA_@sAK_BGg@?kBM[]_@y@_@oBGQIm@m@Ok@c@o@Uk@^p@L@NMHY?oBQiC?mAJcATe@P_BRy@L]jBwBd@_Ad@a@FYKW@On@W^e@d@w@l@gBz@o@F_AL?d@RhAGlDiAD`AZ^PDfALpFKxF?xAPtA`A|@nF?p@YnCi@bDy@dBqApAw@lAMp@ItBKf@g@l@Ir@Nj@j@p@jA\\hDT|DbBjBBlCCp@T^XzAjB^Vj@N^Q~A{ArAc@|@o@R]Nq@@sAOqCLyBA]QqBIWk@eA_CyAcAgAe@}AIe@Cq@KYu@iAiBgBc@u@a@_AS_Au@eEk@kEy@kDc@_AiC{D{@u@gAsAEMIqCDcATK~@Kv@e@Tm@AOHo@Vc@vA}@h@Gf@SDGFgAF}BXOdAGd@[h@_AL_@bA_BbAaAvCkE`@q@x@sBP{@zAeEt@uC`@aA~AkCB[aAg@k@ByCUe@FeAI}@YoD{AOOEiA@sDEcBBcDMm@MSaFBeBN_GGEQBmEUgBCeCSg@eEDgJAaAGwB^oCOkBNeACyAHiEM"},"trainer":false,"commute":false,"manual":false,"private":false,"flagged":false,"workout_type":0,"upload_id_str":"5149587506","average_speed":3.556,"max_speed":5.1,"has_kudoed":false}'
+
+def load_fixture(name)
+ JSON.parse(
+   IO.read(
+     File.join(
+       Rails.root, 'spec/factories', name
+     )
+   ).chomp
+ ) 
+end
 
 FactoryBot.define do
   factory :import do
     id { "4826872707" }
     source { "strava" }
-    data { JSON.parse(json_data) }
+    data { load_fixture('strava_activity.json') }
     user
+
+    trait :laps do
+      data { load_fixture('strava_activity_with_laps.json') }
+    end
   end
 end

@@ -41,6 +41,10 @@ class Activity < ApplicationRecord
         { type: type, duration: duration, completed: true }
       end
 
+    if activity[:laps] then
+      data[:laps] = parse_strava_laps(activity[:laps])
+    end
+
     activity_hash =
       { id: "#{activity[:id].to_s}",
         date: date,
@@ -51,6 +55,17 @@ class Activity < ApplicationRecord
 
     Activity.new(activity_hash)
   end
+
+  def run?
+    case self.data['type']
+    when Activity::RUN
+      true
+    else
+      false
+    end
+  end
+
+  private
 
   def match?(activity)
     return true if self.id == activity.id
@@ -69,17 +84,18 @@ class Activity < ApplicationRecord
     same_date && same_type && same_duration
   end
 
-  def run?
-    case self.data['type']
-    when Activity::RUN
-      true
-    else
-      false
-    end
-  end
-
-
   def self.to_seconds_per_mile(meters_per_second)
     (1609.3 / meters_per_second).round
   end
+
+  def self.parse_strava_laps(laps)
+    laps.map do |lap|
+      { type: RUN,
+        pace: to_seconds_per_mile(lap[:average_speed]),
+        duration: lap[:moving_time],
+        completed: true
+      }
+    end
+  end
+
 end

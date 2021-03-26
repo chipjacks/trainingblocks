@@ -4,6 +4,11 @@ FactoryBot.define do
     password { "password" }
   end
 
+  trait :strava do
+    provider { Import::STRAVA }
+    uid { 12345678 }
+  end
+
   trait :activities do
     after(:create) do |user, evaluator|
       activities = JSON.parse(IO.read(Rails.root + 'db/activities.json').chomp)

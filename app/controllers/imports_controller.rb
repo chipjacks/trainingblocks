@@ -12,9 +12,7 @@ class ImportsController < ApplicationController
         import = Import.find(params[:object_id])
         import.destroy!
       else # "create" or "update"
-        import = Import.find_or_create(params[:object_id], Import::STRAVA, {}, user)
-        import.stale = true
-        import.save!
+        UpdateStravaImportJob.perform_later(user, params[:object_id])
       end
     else
       # TODO: handle api deauthorization

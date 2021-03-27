@@ -65,8 +65,6 @@ class Activity < ApplicationRecord
     end
   end
 
-  private
-
   def match?(activity)
     return true if self.id == activity.id
 
@@ -83,6 +81,8 @@ class Activity < ApplicationRecord
 
     same_date && same_type && same_duration
   end
+
+  private
 
   def self.to_seconds_per_mile(meters_per_second)
     (1609.3 / meters_per_second).round

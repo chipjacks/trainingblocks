@@ -1,11 +1,7 @@
 class ActivitiesController < ApplicationController
   before_action :authenticate_user!
-  before_action :initialize_strava
 
   def index
-    UpdateStravaImportsJob.perform_now(current_user, session["devise.strava_access_token"])
-    current_user.reload
-
     render json: { activities: current_user.activities, rev: revision }
   end
 

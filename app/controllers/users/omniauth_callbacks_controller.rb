@@ -4,9 +4,11 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
     credentials = request.env.dig("omniauth.auth", "credentials")
 
     if @user.persisted? && credentials
-      if @user.previously_new_record?
+      if @user.previously_new_record? || !@user.auth_token
         InitialStravaImportJob.perform_now(@user, credentials["token"])
       end
+      @user.auth_token = credentials["refresh_token"]
+      @user.save!
       set_flash_message(:notice, :success, kind: "Strava") if is_navigational_format?
       store_location_for(:user, :root_path)
       sign_in_and_redirect @user, event: :authentication

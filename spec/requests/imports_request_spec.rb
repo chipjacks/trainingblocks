@@ -30,7 +30,7 @@ RSpec.describe "Imports", type: :request do
         }
       
       expect(response).to have_http_status(200)
-      expect(@import.reload.stale).to be(true)
+      expect(UpdateStravaImportJob).to have_been_enqueued
     end
 
     it "creates new imports" do
@@ -45,8 +45,7 @@ RSpec.describe "Imports", type: :request do
         }
       
       expect(response).to have_http_status(200)
-      expect(Import.find(id).stale).to be(true)
-      expect(Import.find(id).data).to eq({})
+      expect(UpdateStravaImportJob).to have_been_enqueued
     end
 
     it "deletes imports" do

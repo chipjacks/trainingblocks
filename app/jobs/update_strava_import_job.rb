@@ -1,6 +1,6 @@
 class UpdateStravaImportJob < ApplicationJob
   queue_as :default
-  retry_on StravaClient::ApiError
+  retry_on StravaClient::ApiError, wait: 2.minutes
 
   def perform(user, strava_activity_id)
     StravaClient.configure { |config| config.access_token = get_access_token(user) }
@@ -33,6 +33,8 @@ class UpdateStravaImportJob < ApplicationJob
     case res
     when Net::HTTPSuccess
       json = JSON.parse(res.body)
+      user.auth_token = json["refresh_token"]
+      user.save!
       Rails.logger.debug "Strava token refreshed: #{res.body}"
       return json["access_token"]
     else

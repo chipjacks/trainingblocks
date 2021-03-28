@@ -281,7 +281,7 @@ view model activities activeId activeRataDie isMoving configs =
             , styleIf (zoom == Month) "animation" "slidein-right 0.5s 0.01ms"
             , styleIf (zoom == Month) "opacity" "0"
             , styleIf (zoom == Month) "animation-fill-mode" "forwards"
-            , Html.Events.stopPropagationOn "pointerdown" (Decode.succeed ( ClickedClose, True ))
+            , attributeIf (activeId /= "") (Html.Events.stopPropagationOn "pointerdown" (Decode.succeed ( ClickedClose, True )))
             ]
           <|
             List.concat
@@ -296,7 +296,7 @@ viewActivityShape : Activity -> Bool -> ActivityConfigs -> Html Msg
 viewActivityShape activity isActive configs =
     div
         [ style "width" "min-content"
-        , Html.Events.stopPropagationOn "pointerdown" (Decode.succeed ( MoveActivity activity, True ))
+        , attributeIf isActive (Html.Events.stopPropagationOn "pointerdown" (Decode.succeed ( MoveActivity activity, True )))
         , attributeIf isActive (class "dynamic-shape")
         , style "touch-action" "none"
         , style "position" "relative"
@@ -435,7 +435,7 @@ viewWeekDay ( date, activities ) isToday isSelected isMoving activeId configs =
             )
             :: row []
                 [ a
-                    [ onClick (ChangeZoom Month (Just date))
+                    [ onPointerDown (Decode.succeed (ChangeZoom Month (Just date)))
                     , attribute "data-date" (Date.toIsoString date)
                     , styleIf isToday "text-decoration" "underline"
                     ]

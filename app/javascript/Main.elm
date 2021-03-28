@@ -700,7 +700,9 @@ viewActivityM configs activityState =
                 , style "z-index" "3"
                 ]
                 [ compactColumn [ style "flex-basis" "5rem" ]
-                    [ ActivityShape.view configs activity.data ]
+                    (Activity.Laps.listData activity
+                        |> List.map (\lap -> ActivityShape.view configs lap)
+                    )
                 ]
 
         _ ->

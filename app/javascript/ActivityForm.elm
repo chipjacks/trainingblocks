@@ -1,7 +1,7 @@
 module ActivityForm exposing (init, initMove, update, view)
 
 import Actions exposing (viewFormActions)
-import Activity exposing (distanceToMeters)
+import Activity
 import Activity.Laps
 import Activity.Types exposing (Activity, ActivityData, ActivityType, DistanceUnits(..), LapData(..))
 import ActivityForm.Selection as Selection
@@ -9,6 +9,7 @@ import ActivityForm.Types exposing (ActivityForm, FieldError(..), Selection, Val
 import ActivityForm.Validate as Validate exposing (validate)
 import ActivityShape
 import Date exposing (Date)
+import Distance
 import Duration
 import Effect exposing (Effect)
 import Emoji exposing (EmojiDict)
@@ -76,6 +77,14 @@ initFromSelection activity laps repeatM =
             Maybe.map Duration.toHrsMinsSecs data.duration
                 |> Maybe.map (\( h, m, s ) -> ( stringFromInt h, stringFromInt m, stringFromInt s ))
                 |> Maybe.withDefault ( "", "", "" )
+
+        distanceUnits =
+            data.distanceUnits |> Maybe.withDefault Activity.Types.Miles
+
+        distance =
+            Maybe.map (Distance.fromMeters distanceUnits) data.distance
+                |> Maybe.map String.fromFloat
+                |> Maybe.withDefault ""
     in
     { activity = activity
     , laps = laps
@@ -89,8 +98,8 @@ initFromSelection activity laps repeatM =
     , completed = data.completed
     , pace =
         Maybe.map Pace.paceToString data.pace |> Maybe.withDefault ""
-    , distance = Maybe.map String.fromInt data.distance |> Maybe.withDefault ""
-    , distanceUnits = data.distanceUnits |> Maybe.withDefault Activity.Types.Miles
+    , distance = distance
+    , distanceUnits = distanceUnits
     , race = data.race
     , effort = data.effort
     , emoji = Maybe.withDefault "" data.emoji
@@ -653,7 +662,7 @@ toActivityData model =
         if model.activityType == Activity.Types.Run then
             model.validated.distance
                 |> Result.toMaybe
-                |> Maybe.map (distanceToMeters model.distanceUnits)
+                |> Maybe.map (Distance.toMeters model.distanceUnits)
 
         else
             Nothing

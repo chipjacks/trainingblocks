@@ -1,4 +1,4 @@
-module Activity exposing (activityType, decoder, distanceToMeters, distanceUnits, effort, encoder, initActivityData, mprLevel, newId, raceDistance)
+module Activity exposing (activityType, decoder, distanceUnits, effort, encoder, initActivityData, mprLevel, newId, raceDistance)
 
 import Activity.Types exposing (Activity, ActivityData, ActivityType(..), Completion(..), DistanceUnits(..), Effort(..), Id, LapData(..), RaceDistance(..), Seconds)
 import Date exposing (Date)
@@ -94,22 +94,6 @@ mprLevel activity =
             Nothing
 
 
-distanceToMeters : DistanceUnits -> Int -> Int
-distanceToMeters units dist =
-    case units of
-        Miles ->
-            round (toFloat dist * 1609.344)
-
-        Kilometers ->
-            dist * 1000
-
-        Meters ->
-            dist
-
-        Yards ->
-            round (toFloat dist * 0.9144)
-
-
 
 -- SERIALIZATION
 
@@ -152,7 +136,7 @@ activityDataDecoder =
         |> optional "duration" (Decode.map Just Decode.int) Nothing
         |> required "completed" completedDecoder
         |> optional "pace" (Decode.map Just Decode.int) Nothing
-        |> optional "distance" (Decode.map Just Decode.int) Nothing
+        |> optional "distance" (Decode.map Just Decode.float) Nothing
         |> optional "distanceUnits" (Decode.map Just distanceUnits.decoder) Nothing
         |> optional "race" (Decode.map Just raceDistance.decoder) Nothing
         |> optional "effort" (Decode.map Just effort.decoder) Nothing
@@ -183,7 +167,7 @@ encoder activity =
             , ( "duration", maybeEncode data.duration Encode.int )
             , ( "completed", encodeCompleted data.completed )
             , ( "pace", maybeEncode data.pace Encode.int )
-            , ( "distance", maybeEncode data.distance Encode.int )
+            , ( "distance", maybeEncode data.distance Encode.float )
             , ( "distanceUnits", maybeEncode data.distanceUnits distanceUnits.encode )
             , ( "race", maybeEncode data.race raceDistance.encode )
             , ( "effort", maybeEncode data.effort effort.encode )

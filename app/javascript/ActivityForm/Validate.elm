@@ -69,19 +69,16 @@ parsePace str =
     Pace.paceFromString str |> Result.fromMaybe ParseError
 
 
-parseDistance : String -> Result FieldError Int
+parseDistance : String -> Result FieldError Float
 parseDistance str =
     case str of
         "" ->
             Err ValueError
 
         _ ->
-            case String.toInt str of
+            case String.toFloat str of
                 Nothing ->
                     Err ParseError
-
-                Just 0 ->
-                    Err ValueError
 
                 Just num ->
                     Ok num

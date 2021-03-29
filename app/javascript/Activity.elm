@@ -1,4 +1,4 @@
-module Activity exposing (activityType, decoder, effort, encoder, initActivityData, mprLevel, newId, raceDistance)
+module Activity exposing (activityType, decoder, distanceUnits, effort, encoder, initActivityData, mprLevel, newId, raceDistance)
 
 import Activity.Types exposing (Activity, ActivityData, ActivityType(..), Completion(..), DistanceUnits(..), Effort(..), Id, LapData(..), RaceDistance(..), Seconds)
 import Date exposing (Date)
@@ -36,10 +36,10 @@ activityType =
 distanceUnits : Enum DistanceUnits
 distanceUnits =
     Enum.create
-        [ ( "Miles", Miles )
-        , ( "Kilometers", Kilometers )
-        , ( "Meters", Meters )
-        , ( "Yards", Yards )
+        [ ( "mi", Miles )
+        , ( "km", Kilometers )
+        , ( "m", Meters )
+        , ( "yd", Yards )
         ]
 
 

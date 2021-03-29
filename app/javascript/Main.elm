@@ -394,6 +394,10 @@ update msg model =
                     updateActivityForm msg state
                         |> loaded
 
+                SelectedDistanceUnits _ ->
+                    updateActivityForm msg state
+                        |> loaded
+
                 SelectedPace _ ->
                     updateActivityForm msg state
                         |> loaded

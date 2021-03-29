@@ -74,6 +74,7 @@ type Msg
     | CheckedCompleted
     | EditedRepeats String
     | EditedDistance String
+    | SelectedDistanceUnits Activity.Types.DistanceUnits
     | SelectedActivityType Activity.Types.ActivityType
     | EditedDuration ( String, String, String )
     | SelectedEffort (Maybe Activity.Types.Effort)

@@ -3,7 +3,7 @@ module ActivityForm exposing (init, initMove, update, view)
 import Actions exposing (viewFormActions)
 import Activity
 import Activity.Laps
-import Activity.Types exposing (Activity, ActivityData, ActivityType, LapData(..))
+import Activity.Types exposing (Activity, ActivityData, ActivityType, DistanceUnits(..), LapData(..))
 import ActivityForm.Selection as Selection
 import ActivityForm.Types exposing (ActivityForm, FieldError(..), Selection, ValidatedFields)
 import ActivityForm.Validate as Validate exposing (validate)
@@ -339,6 +339,11 @@ update msg model =
             , Effect.None
             )
 
+        SelectedDistanceUnits units ->
+            ( updateActivity { model | distanceUnits = Just units }
+            , Effect.None
+            )
+
         SelectedRace distM ->
             ( updateActivity { model | race = distM }
             , Effect.None
@@ -620,7 +625,7 @@ viewLapFields levelM form =
             ]
         , row [ styleIf (form.activityType /= Activity.Types.Run) "visibility" "hidden" ]
             [ column [ maxFieldWidth, style "flex-grow" "2" ] [ paceSelect levelM SelectedPace form.pace form.validated.pace ]
-            , column [ maxFieldWidth, style "flex-grow" "1" ] [ distanceInput EditedDistance form.distance ]
+            , column [ maxFieldWidth, style "flex-grow" "1" ] [ distanceInput EditedDistance form.distance (form.distanceUnits |> Maybe.withDefault Miles) ]
 
             --, column [ maxFieldWidth, style "flex-grow" "1" ] [ raceSelect SelectedRace form.race ]
             ]
@@ -900,17 +905,42 @@ durationInput msg ( hrs, mins, secs ) =
         ]
 
 
-distanceInput : (String -> Msg) -> String -> Html Msg
-distanceInput msg dist =
-    column [ style "width" "6rem" ]
+distanceInput : (String -> Msg) -> String -> DistanceUnits -> Html Msg
+distanceInput msg dist units =
+    let
+        eventDecoder =
+            Decode.at [ "target", "value" ] Decode.string
+                |> Decode.map Activity.distanceUnits.fromString
+                |> Decode.map (Maybe.withDefault Activity.Types.Miles)
+                |> Decode.map SelectedDistanceUnits
+    in
+    column []
         [ label "Distance" (dist /= "") (msg "")
         , row []
             [ numberInput "distance"
                 100000
                 [ onInput msg
                 , value dist
+                , style "border-top-right-radius" "0"
+                , style "border-bottom-right-radius" "0"
                 ]
                 []
+            , Html.select
+                [ style "border-top-left-radius" "0"
+                , style "border-bottom-left-radius" "0"
+                , style "border-left-width" "0"
+                , Html.Events.on "change" eventDecoder
+                ]
+                (List.map
+                    (\( unitStr, unitOpt ) ->
+                        Html.option
+                            [ Html.Attributes.value unitStr
+                            , Html.Attributes.selected (unitOpt == units)
+                            ]
+                            [ Html.text unitStr ]
+                    )
+                    Activity.distanceUnits.list
+                )
             ]
         ]
 

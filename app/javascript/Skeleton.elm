@@ -1,4 +1,4 @@
-module Skeleton exposing (attributeIf, borderStyle, column, compactColumn, expandingRow, iconButton, layout, logo, row, spinner, styleIf, viewIf, viewMaybe)
+module Skeleton exposing (attributeIf, borderStyle, column, compactColumn, dropdown, expandingRow, iconButton, layout, logo, row, spinner, styleIf, viewIf, viewMaybe)
 
 import Html exposing (Html, div, i, img, text)
 import Html.Attributes exposing (class, src, style)
@@ -66,6 +66,15 @@ iconButton attributes children =
                ]
         )
         children
+
+
+dropdown : Bool -> Html msg -> List (Html msg) -> Html msg
+dropdown rightAlign header content =
+    div [ class "dropdown" ]
+        [ header
+        , div [ class "dropdown-content", styleIf rightAlign "right" "0" ]
+            content
+        ]
 
 
 styleIf : Bool -> String -> String -> Html.Attribute msg

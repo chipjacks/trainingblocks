@@ -20,7 +20,7 @@ import Msg exposing (ActivityConfigs, ActivityState(..), Msg(..), Zoom(..))
 import Pace
 import Ports exposing (scrollToSelectedDate)
 import Process
-import Skeleton exposing (attributeIf, borderStyle, column, compactColumn, expandingRow, iconButton, row, spinner, styleIf, viewIf, viewMaybe)
+import Skeleton exposing (attributeIf, borderStyle, column, compactColumn, dropdown, expandingRow, iconButton, row, spinner, styleIf, viewIf, viewMaybe)
 import Task
 import Time exposing (Month(..))
 
@@ -157,22 +157,14 @@ viewDatePicker model =
     in
     case zoom of
         Year ->
-            div [ class "dropdown" ]
-                [ button []
-                    [ text (Date.format "yyyy" selected)
-                    ]
-                , div [ class "dropdown-content" ]
-                    (listYears selected Jump)
-                ]
+            dropdown False
+                (button [] [ text (Date.format "yyyy" selected) ])
+                (listYears selected Jump)
 
         Month ->
-            div [ class "dropdown" ]
-                [ button []
-                    [ text (Date.format "MMMM" selected)
-                    ]
-                , div [ class "dropdown-content" ]
-                    (listMonths selected Jump)
-                ]
+            dropdown False
+                (button [] [ text (Date.format "MMMM" selected) ])
+                (listMonths selected Jump)
 
         Day ->
             text ""

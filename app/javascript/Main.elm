@@ -66,15 +66,14 @@ viewNavbar model =
     let
         dropdown storeM =
             compactColumn [ style "min-width" "1.5rem", style "justify-content" "center" ]
-                [ div [ class "dropdown" ]
-                    [ if Maybe.map Store.needsFlush storeM |> Maybe.withDefault False then
+                [ Skeleton.dropdown True
+                    (if Maybe.map Store.needsFlush storeM |> Maybe.withDefault False then
                         spinner "1.5rem"
 
-                      else
+                     else
                         div [ style "font-size" "1.4rem", style "padding-top" "2px" ] [ MonoIcons.icon (MonoIcons.optionsVertical "var(--grey-900)") ]
-                    , div [ class "dropdown-content", style "right" "0" ]
-                        [ a [ Html.Attributes.href " /users/sign_out", Html.Attributes.attribute "data-method" "delete" ] [ text "Logout" ] ]
-                    ]
+                    )
+                    [ a [ Html.Attributes.href " /users/sign_out", Html.Attributes.attribute "data-method" "delete" ] [ text "Logout" ] ]
                 ]
     in
     case model of

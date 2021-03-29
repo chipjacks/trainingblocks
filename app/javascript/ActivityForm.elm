@@ -90,6 +90,7 @@ initFromSelection activity laps repeatM =
     , pace =
         Maybe.map Pace.paceToString data.pace |> Maybe.withDefault ""
     , distance = Maybe.map String.fromInt data.distance |> Maybe.withDefault ""
+    , distanceUnits = data.distanceUnits
     , race = data.race
     , effort = data.effort
     , emoji = Maybe.withDefault "" data.emoji
@@ -646,6 +647,12 @@ toActivityData model =
     , distance =
         if model.activityType == Activity.Types.Run then
             model.validated.distance |> Result.toMaybe
+
+        else
+            Nothing
+    , distanceUnits =
+        if model.activityType == Activity.Types.Run then
+            model.distanceUnits
 
         else
             Nothing

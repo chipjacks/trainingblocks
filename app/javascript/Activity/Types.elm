@@ -1,4 +1,4 @@
-module Activity.Types exposing (Activity, ActivityData, ActivityType(..), Completion(..), Effort(..), Id, LapData(..), RaceDistance(..), Seconds)
+module Activity.Types exposing (Activity, ActivityData, ActivityType(..), Completion(..), DistanceUnits(..), Effort(..), Id, LapData(..), RaceDistance(..), Seconds)
 
 import Date exposing (Date)
 import Pace exposing (Pace)
@@ -24,6 +24,7 @@ type alias ActivityData =
     , completed : Completion
     , pace : Maybe Pace
     , distance : Maybe Meters
+    , distanceUnits : Maybe DistanceUnits
     , race : Maybe RaceDistance
     , effort : Maybe Effort
     , emoji : Maybe String
@@ -50,6 +51,13 @@ type alias Seconds =
 
 type alias Meters =
     Int
+
+
+type DistanceUnits
+    = Miles
+    | Kilometers
+    | Meters
+    | Yards
 
 
 type RaceDistance

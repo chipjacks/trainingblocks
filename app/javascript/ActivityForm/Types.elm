@@ -1,6 +1,6 @@
 module ActivityForm.Types exposing (ActivityForm, FieldError(..), Selection, ValidatedFields)
 
-import Activity.Types exposing (Activity, ActivityData, ActivityType, Completion, Effort, LapData, RaceDistance)
+import Activity.Types exposing (Activity, ActivityData, ActivityType, Completion, DistanceUnits, Effort, LapData, RaceDistance)
 import Date exposing (Date)
 
 
@@ -17,6 +17,7 @@ type alias ActivityForm =
     , completed : Completion
     , pace : String
     , distance : String
+    , distanceUnits : Maybe DistanceUnits
     , race : Maybe RaceDistance
     , effort : Maybe Effort
     , emoji : String

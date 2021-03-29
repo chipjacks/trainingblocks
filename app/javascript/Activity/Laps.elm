@@ -48,6 +48,7 @@ sum laps =
     , completed = completed laps
     , pace = Nothing
     , distance = Nothing
+    , distanceUnits = Nothing
     , race = Nothing
     , effort = Nothing
     , emoji = Nothing

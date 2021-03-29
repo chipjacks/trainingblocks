@@ -1,6 +1,6 @@
 module Activity exposing (activityType, decoder, effort, encoder, initActivityData, mprLevel, newId, raceDistance)
 
-import Activity.Types exposing (Activity, ActivityData, ActivityType(..), Completion(..), Effort(..), Id, LapData(..), RaceDistance(..), Seconds)
+import Activity.Types exposing (Activity, ActivityData, ActivityType(..), Completion(..), DistanceUnits(..), Effort(..), Id, LapData(..), RaceDistance(..), Seconds)
 import Date exposing (Date)
 import Enum exposing (Enum)
 import Json.Decode as Decode
@@ -18,6 +18,7 @@ initActivityData =
     , completed = Completed
     , pace = Nothing
     , distance = Nothing
+    , distanceUnits = Nothing
     , race = Nothing
     , effort = Nothing
     , emoji = Nothing
@@ -29,6 +30,16 @@ activityType =
     Enum.create
         [ ( "Run", Run )
         , ( "Other", Other )
+        ]
+
+
+distanceUnits : Enum DistanceUnits
+distanceUnits =
+    Enum.create
+        [ ( "Miles", Miles )
+        , ( "Kilometers", Kilometers )
+        , ( "Meters", Meters )
+        , ( "Yards", Yards )
         ]
 
 
@@ -126,6 +137,7 @@ activityDataDecoder =
         |> required "completed" completedDecoder
         |> optional "pace" (Decode.map Just Decode.int) Nothing
         |> optional "distance" (Decode.map Just Decode.int) Nothing
+        |> optional "distanceUnits" (Decode.map Just distanceUnits.decoder) Nothing
         |> optional "race" (Decode.map Just raceDistance.decoder) Nothing
         |> optional "effort" (Decode.map Just effort.decoder) Nothing
         |> optional "emoji" (Decode.map Just Decode.string) Nothing
@@ -156,6 +168,7 @@ encoder activity =
             , ( "completed", encodeCompleted data.completed )
             , ( "pace", maybeEncode data.pace Encode.int )
             , ( "distance", maybeEncode data.distance Encode.int )
+            , ( "distanceUnits", maybeEncode data.distanceUnits distanceUnits.encode )
             , ( "race", maybeEncode data.race raceDistance.encode )
             , ( "effort", maybeEncode data.effort effort.encode )
             , ( "emoji", maybeEncode data.emoji Encode.string )

@@ -16,6 +16,7 @@ type alias ActivityForm =
     , duration : ( String, String, String )
     , completed : Completion
     , pace : String
+    , distance : String
     , race : Maybe RaceDistance
     , effort : Maybe Effort
     , emoji : String
@@ -32,6 +33,7 @@ type alias ValidatedFields =
     , repeats : Result FieldError Int
     , duration : Result FieldError Int
     , pace : Result FieldError Int
+    , distance : Result FieldError Int
     }
 
 

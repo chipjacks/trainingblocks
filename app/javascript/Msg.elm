@@ -73,6 +73,7 @@ type Msg
     | SearchedEmojis String
     | CheckedCompleted
     | EditedRepeats String
+    | EditedDistance String
     | SelectedActivityType Activity.Types.ActivityType
     | EditedDuration ( String, String, String )
     | SelectedEffort (Maybe Activity.Types.Effort)

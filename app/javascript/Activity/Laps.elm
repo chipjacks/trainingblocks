@@ -43,14 +43,15 @@ updateField transform lap =
 
 sum : List LapData -> ActivityData
 sum laps =
-    ActivityData
-        Run
-        (Just (duration laps))
-        (completed laps)
-        Nothing
-        Nothing
-        Nothing
-        Nothing
+    { activityType = Run
+    , duration = Just (duration laps)
+    , completed = completed laps
+    , pace = Nothing
+    , distance = Nothing
+    , race = Nothing
+    , effort = Nothing
+    , emoji = Nothing
+    }
 
 
 duration : List LapData -> Int

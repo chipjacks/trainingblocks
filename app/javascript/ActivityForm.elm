@@ -89,6 +89,7 @@ initFromSelection activity laps repeatM =
     , completed = data.completed
     , pace =
         Maybe.map Pace.paceToString data.pace |> Maybe.withDefault ""
+    , distance = Maybe.map String.fromInt data.distance |> Maybe.withDefault ""
     , race = data.race
     , effort = data.effort
     , emoji = Maybe.withDefault "" data.emoji
@@ -329,6 +330,11 @@ update msg model =
 
         SelectedPace str ->
             ( updateActivity { model | pace = str }
+            , Effect.None
+            )
+
+        EditedDistance dist ->
+            ( updateActivity { model | distance = dist }
             , Effect.None
             )
 
@@ -613,7 +619,9 @@ viewLapFields levelM form =
             ]
         , row [ styleIf (form.activityType /= Activity.Types.Run) "visibility" "hidden" ]
             [ column [ maxFieldWidth, style "flex-grow" "2" ] [ paceSelect levelM SelectedPace form.pace form.validated.pace ]
-            , column [ maxFieldWidth, style "flex-grow" "1" ] [ raceSelect SelectedRace form.race ]
+            , column [ maxFieldWidth, style "flex-grow" "1" ] [ distanceInput EditedDistance form.distance ]
+
+            --, column [ maxFieldWidth, style "flex-grow" "1" ] [ raceSelect SelectedRace form.race ]
             ]
         ]
 
@@ -632,6 +640,12 @@ toActivityData model =
     , pace =
         if model.activityType == Activity.Types.Run then
             model.validated.pace |> Result.toMaybe
+
+        else
+            Nothing
+    , distance =
+        if model.activityType == Activity.Types.Run then
+            model.validated.distance |> Result.toMaybe
 
         else
             Nothing
@@ -875,6 +889,21 @@ durationInput msg ( hrs, mins, secs ) =
                     ]
                     []
                 ]
+            ]
+        ]
+
+
+distanceInput : (String -> Msg) -> String -> Html Msg
+distanceInput msg dist =
+    column [ style "width" "6rem" ]
+        [ label "Distance" (dist /= "") (msg "")
+        , row []
+            [ numberInput "distance"
+                100000
+                [ onInput msg
+                , value dist
+                ]
+                []
             ]
         ]
 

@@ -11,6 +11,7 @@ init =
     , repeats = Err MissingError
     , duration = Err MissingError
     , pace = Err MissingError
+    , distance = Err MissingError
     }
 
 
@@ -20,6 +21,7 @@ validate model =
     , repeats = parseRepeats model.repeats
     , duration = parseDuration model.duration
     , pace = parsePace model.pace
+    , distance = parseDistance model.distance
     }
 
 
@@ -64,3 +66,21 @@ parseDuration ( hrs, mins, secs ) =
 parsePace : String -> Result FieldError Int
 parsePace str =
     Pace.paceFromString str |> Result.fromMaybe ParseError
+
+
+parseDistance : String -> Result FieldError Int
+parseDistance str =
+    case str of
+        "" ->
+            Err ValueError
+
+        _ ->
+            case String.toInt str of
+                Nothing ->
+                    Err ParseError
+
+                Just 0 ->
+                    Err ValueError
+
+                Just num ->
+                    Ok num

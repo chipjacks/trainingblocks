@@ -1936,7 +1936,6 @@
     "data": {
       "type": "Run",
       "duration": 1080,
-      "distance": "5k",
       "completed": true,
       "effort": "Hard",
       "race": "5k"
@@ -2072,7 +2071,6 @@
     "data": {
       "type": "Run",
       "duration": 2160,
-      "distance": "10k",
       "completed": true,
       "effort": "Hard",
       "race": "10k"
@@ -8325,7 +8323,6 @@
     "data": {
       "type": "Run",
       "duration": 3420,
-      "distance": "10 mile",
       "completed": false,
       "effort": "Hard",
       "race": "10 mile"

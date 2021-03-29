@@ -17,6 +17,7 @@ initActivityData =
     , duration = Nothing
     , completed = Completed
     , pace = Nothing
+    , distance = Nothing
     , race = Nothing
     , effort = Nothing
     , emoji = Nothing
@@ -124,6 +125,7 @@ activityDataDecoder =
         |> optional "duration" (Decode.map Just Decode.int) Nothing
         |> required "completed" completedDecoder
         |> optional "pace" (Decode.map Just Decode.int) Nothing
+        |> optional "distance" (Decode.map Just Decode.int) Nothing
         |> optional "race" (Decode.map Just raceDistance.decoder) Nothing
         |> optional "effort" (Decode.map Just effort.decoder) Nothing
         |> optional "emoji" (Decode.map Just Decode.string) Nothing
@@ -153,6 +155,7 @@ encoder activity =
             , ( "duration", maybeEncode data.duration Encode.int )
             , ( "completed", encodeCompleted data.completed )
             , ( "pace", maybeEncode data.pace Encode.int )
+            , ( "distance", maybeEncode data.distance Encode.int )
             , ( "race", maybeEncode data.race raceDistance.encode )
             , ( "effort", maybeEncode data.effort effort.encode )
             , ( "emoji", maybeEncode data.emoji Encode.string )

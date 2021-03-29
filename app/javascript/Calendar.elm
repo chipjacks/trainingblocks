@@ -297,6 +297,7 @@ viewActivityShape activity isActive configs =
     div
         [ style "width" "min-content"
         , attributeIf isActive (Html.Events.stopPropagationOn "pointerdown" (Decode.succeed ( MoveActivity activity, True )))
+        , styleIf isActive "cursor" "grab"
         , attributeIf isActive (class "dynamic-shape")
         , style "touch-action" "none"
         , style "position" "relative"

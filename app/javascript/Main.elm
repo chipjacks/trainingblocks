@@ -650,6 +650,7 @@ view model =
                                 , Html.Events.on "pointerup" (Decode.succeed MouseReleased)
                                 , style "touch-action" "none"
                                 , style "pointer-action" "none"
+                                , style "cursor" "grabbing"
                                 ]
 
                             _ ->
@@ -698,6 +699,8 @@ viewActivityM configs activityState =
                 , style "left" (String.fromFloat x ++ "px")
                 , style "top" (String.fromFloat y ++ "px")
                 , style "z-index" "3"
+                , style "margin-left" "10px"
+                , style "margin-top" "10px"
                 ]
                 [ compactColumn [ style "flex-basis" "5rem" ]
                     (Activity.Laps.listData activity

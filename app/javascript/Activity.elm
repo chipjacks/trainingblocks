@@ -1,4 +1,4 @@
-module Activity exposing (activityType, decoder, distanceUnits, effort, encoder, initActivityData, mprLevel, newId, raceDistance)
+module Activity exposing (activityType, decoder, distanceToMeters, distanceUnits, effort, encoder, initActivityData, mprLevel, newId, raceDistance)
 
 import Activity.Types exposing (Activity, ActivityData, ActivityType(..), Completion(..), DistanceUnits(..), Effort(..), Id, LapData(..), RaceDistance(..), Seconds)
 import Date exposing (Date)
@@ -92,6 +92,22 @@ mprLevel activity =
 
         _ ->
             Nothing
+
+
+distanceToMeters : DistanceUnits -> Int -> Int
+distanceToMeters units dist =
+    case units of
+        Miles ->
+            round (toFloat dist * 1609.344)
+
+        Kilometers ->
+            dist * 1000
+
+        Meters ->
+            dist
+
+        Yards ->
+            round (toFloat dist * 0.9144)
 
 
 

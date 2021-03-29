@@ -1,7 +1,7 @@
 module ActivityForm exposing (init, initMove, update, view)
 
 import Actions exposing (viewFormActions)
-import Activity
+import Activity exposing (distanceToMeters)
 import Activity.Laps
 import Activity.Types exposing (Activity, ActivityData, ActivityType, DistanceUnits(..), LapData(..))
 import ActivityForm.Selection as Selection
@@ -90,7 +90,7 @@ initFromSelection activity laps repeatM =
     , pace =
         Maybe.map Pace.paceToString data.pace |> Maybe.withDefault ""
     , distance = Maybe.map String.fromInt data.distance |> Maybe.withDefault ""
-    , distanceUnits = data.distanceUnits
+    , distanceUnits = data.distanceUnits |> Maybe.withDefault Activity.Types.Miles
     , race = data.race
     , effort = data.effort
     , emoji = Maybe.withDefault "" data.emoji
@@ -340,7 +340,7 @@ update msg model =
             )
 
         SelectedDistanceUnits units ->
-            ( updateActivity { model | distanceUnits = Just units }
+            ( updateActivity { model | distanceUnits = units }
             , Effect.None
             )
 
@@ -625,7 +625,7 @@ viewLapFields levelM form =
             ]
         , row [ styleIf (form.activityType /= Activity.Types.Run) "visibility" "hidden" ]
             [ column [ maxFieldWidth, style "flex-grow" "2" ] [ paceSelect levelM SelectedPace form.pace form.validated.pace ]
-            , column [ maxFieldWidth, style "flex-grow" "1" ] [ distanceInput EditedDistance form.distance (form.distanceUnits |> Maybe.withDefault Miles) ]
+            , column [ maxFieldWidth, style "flex-grow" "1" ] [ distanceInput EditedDistance form.distance form.distanceUnits ]
 
             --, column [ maxFieldWidth, style "flex-grow" "1" ] [ raceSelect SelectedRace form.race ]
             ]
@@ -651,13 +651,15 @@ toActivityData model =
             Nothing
     , distance =
         if model.activityType == Activity.Types.Run then
-            model.validated.distance |> Result.toMaybe
+            model.validated.distance
+                |> Result.toMaybe
+                |> Maybe.map (distanceToMeters model.distanceUnits)
 
         else
             Nothing
     , distanceUnits =
         if model.activityType == Activity.Types.Run then
-            model.distanceUnits
+            Just model.distanceUnits
 
         else
             Nothing

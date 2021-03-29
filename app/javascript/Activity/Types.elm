@@ -23,7 +23,7 @@ type alias ActivityData =
     , duration : Maybe Seconds
     , completed : Completion
     , pace : Maybe Pace
-    , distance : Maybe Meters
+    , distance : Maybe Int
     , distanceUnits : Maybe DistanceUnits
     , race : Maybe RaceDistance
     , effort : Maybe Effort
@@ -46,10 +46,6 @@ type alias Id =
 
 
 type alias Seconds =
-    Int
-
-
-type alias Meters =
     Int
 
 

@@ -21,6 +21,7 @@ RSpec.describe Activity, type: :model do
       result = Activity.from_strava_activity(@import)
       expect(result.data['duration']).to eq(@import.data['moving_time'])
       expect(result.data['pace']).to be_truthy
+      expect(result.data['distance']).to be_truthy
       expect(result.data['completed']).to be_truthy
       expect(result.data['type']).to eq(Activity::RUN)
     end

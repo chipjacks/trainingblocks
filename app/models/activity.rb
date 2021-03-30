@@ -36,7 +36,8 @@ class Activity < ApplicationRecord
     data =
       if type === RUN
         pace = to_seconds_per_mile(activity[:average_speed])
-        { type: type, pace: pace, duration: duration, completed: true }
+        distance = activity[:distance]
+        { type: type, pace: pace, duration: duration, distance: distance, completed: true }
       else
         { type: type, duration: duration, completed: true }
       end
@@ -92,6 +93,7 @@ class Activity < ApplicationRecord
     laps.map do |lap|
       { type: RUN,
         pace: to_seconds_per_mile(lap[:average_speed]),
+        distance: lap[:distance],
         duration: lap[:moving_time],
         completed: true
       }

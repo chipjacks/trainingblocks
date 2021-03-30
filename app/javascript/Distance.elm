@@ -1,4 +1,4 @@
-module Distance exposing (fromMeters, toMeters)
+module Distance exposing (fromMeters, toMeters, round1)
 
 import Activity.Types exposing (DistanceUnits(..))
 

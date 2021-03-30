@@ -83,6 +83,7 @@ initFromSelection activity laps repeatM =
 
         distance =
             Maybe.map (Distance.fromMeters distanceUnits) data.distance
+                |> Maybe.map Distance.round1
                 |> Maybe.map String.fromFloat
                 |> Maybe.withDefault ""
     in

@@ -57,6 +57,7 @@ raceDistance =
         , ( "25k", TwentyFiveK )
         , ( "30k", ThirtyK )
         , ( "Marathon", Marathon )
+        , ( "Other", OtherDistance )
         ]
 
 

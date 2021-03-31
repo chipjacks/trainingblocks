@@ -406,6 +406,10 @@ update msg model =
                     updateActivityForm msg state
                         |> loaded
 
+                CheckedRace ->
+                    updateActivityForm msg state
+                        |> loaded
+
                 SelectedEffort _ ->
                     updateActivityForm msg state
                         |> loaded

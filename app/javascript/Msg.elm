@@ -80,6 +80,7 @@ type Msg
     | SelectedEffort (Maybe Activity.Types.Effort)
     | SelectedPace String
     | SelectedRace (Maybe Activity.Types.RaceDistance)
+    | CheckedRace
     | ClickedSubmit
     | ClickedEdit
     | ClickedCopy

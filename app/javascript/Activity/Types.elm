@@ -67,6 +67,7 @@ type RaceDistance
     | TwentyFiveK
     | ThirtyK
     | Marathon
+    | OtherDistance
 
 
 type Effort

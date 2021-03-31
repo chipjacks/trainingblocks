@@ -354,8 +354,17 @@ update msg model =
             , Effect.None
             )
 
-        SelectedRace distM ->
-            ( updateActivity { model | race = distM }
+        CheckedRace ->
+            let
+                toggledValue =
+                    case model.race of
+                        Nothing ->
+                            Just Activity.Types.OtherDistance
+
+                        Just _ ->
+                            Nothing
+            in
+            ( updateActivity { model | race = toggledValue }
             , Effect.None
             )
 
@@ -415,6 +424,21 @@ updateValidated model =
     { model | validated = validate model }
 
 
+updateRace : ActivityForm -> ActivityForm
+updateRace model =
+    let
+        newRace =
+            case ( model.validated.distance, model.race ) of
+                ( Ok distance, Just race ) ->
+                    Distance.toRaceDistance (Distance.toMeters model.distanceUnits distance)
+                        |> Just
+
+                _ ->
+                    model.race
+    in
+    { model | race = newRace }
+
+
 updateActivity : ActivityForm -> ActivityForm
 updateActivity model =
     let
@@ -425,6 +449,7 @@ updateActivity model =
             { activity | description = description }
     in
     updateValidated model
+        |> updateRace
         |> updateActiveSelection
             (\m ->
                 case ( Selection.get m.laps, m.repeat ) of
@@ -635,7 +660,7 @@ viewLapFields levelM form =
             ]
         , row [ styleIf (form.activityType /= Activity.Types.Run) "visibility" "hidden" ]
             [ column [ maxFieldWidth, style "flex-grow" "2" ] [ distanceInput EditedDistance form.distance form.distanceUnits form.validated.distance ]
-            , column [ maxFieldWidth, style "flex-grow" "1" ] [ raceToggle NoOp True ]
+            , column [ maxFieldWidth, style "flex-grow" "1" ] [ raceToggle CheckedRace form.race ]
             ]
         , row [ styleIf (form.activityType /= Activity.Types.Run) "visibility" "hidden" ]
             [ column [ maxFieldWidth, style "flex-grow" "2" ] [ paceSelect levelM SelectedPace form.pace form.validated.pace ]
@@ -1089,15 +1114,16 @@ effortSelect msg effortM =
         ]
 
 
-raceToggle : Msg -> Bool -> Html Msg
-raceToggle msg isRace =
+raceToggle : Msg -> Maybe Activity.Types.RaceDistance -> Html Msg
+raceToggle msg raceM =
     column []
         [ label "Race" False NoOp
         , Html.input
-            [ onClick NoOp
+            [ onClick msg
             , Html.Attributes.attribute "type" "checkbox"
             , style "width" "1.5rem"
             , style "height" "1.5rem"
+            , attributeIf (raceM /= Nothing) (Html.Attributes.attribute "checked" "")
             ]
             []
         ]

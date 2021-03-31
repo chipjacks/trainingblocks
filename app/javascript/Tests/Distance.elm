@@ -51,15 +51,18 @@ suite =
         , describe "toRaceDistance" <|
             [ test "matches 5 km" <|
                 \_ ->
-                    Expect.equal (toRaceDistance 5000) (Just FiveK)
+                    Expect.equal (toRaceDistance 5000) FiveK
             , test "matches 3.1 mi" <|
                 \_ ->
-                    Expect.equal (toRaceDistance (toMeters Miles 3.1)) (Just FiveK)
+                    Expect.equal (toRaceDistance (toMeters Miles 3.1)) FiveK
             , test "matches 10 mile" <|
                 \_ ->
-                    Expect.equal (toRaceDistance (toMeters Miles 10)) (Just TenMile)
+                    Expect.equal (toRaceDistance (toMeters Miles 10)) TenMile
             , test "matches half marathon" <|
                 \_ ->
-                    Expect.equal (toRaceDistance (toMeters Miles 13.1)) (Just HalfMarathon)
+                    Expect.equal (toRaceDistance (toMeters Miles 13.1)) HalfMarathon
+            , test "matches other distance" <|
+                \_ ->
+                    Expect.equal (toRaceDistance (toMeters Miles 7)) OtherDistance
             ]
         ]

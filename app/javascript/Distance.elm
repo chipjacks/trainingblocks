@@ -39,47 +39,44 @@ distanceConversion units =
             0.9144
 
 
-toRaceDistance : Float -> Maybe RaceDistance
+toRaceDistance : Float -> RaceDistance
 toRaceDistance meters =
     let
         isEqual a b =
-            a - b < 10
-
-        fiveK =
-            toMeters Kilometers 5
+            abs (a - b) < toMeters Miles 0.1
     in
     if isEqual meters (toMeters Kilometers 5) then
-        Just FiveK
+        FiveK
 
     else if isEqual meters (toMeters Kilometers 8) then
-        Just EightK
+        EightK
 
     else if isEqual meters (toMeters Miles 5) then
-        Just FiveMile
+        FiveMile
 
     else if isEqual meters (toMeters Kilometers 10) then
-        Just TenK
+        TenK
 
     else if isEqual meters (toMeters Miles 10) then
-        Just TenMile
+        TenMile
 
     else if isEqual meters (toMeters Kilometers 20) then
-        Just TwentyK
+        TwentyK
 
     else if isEqual meters (toMeters Miles 13.1) then
-        Just HalfMarathon
+        HalfMarathon
 
     else if isEqual meters (toMeters Kilometers 25) then
-        Just TwentyFiveK
+        TwentyFiveK
 
     else if isEqual meters (toMeters Kilometers 30) then
-        Just ThirtyK
+        ThirtyK
 
     else if isEqual meters (toMeters Miles 26.2) then
-        Just Marathon
+        Marathon
 
     else
-        Nothing
+        OtherDistance
 
 
 round1 : Float -> Float

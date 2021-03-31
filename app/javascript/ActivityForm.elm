@@ -620,7 +620,7 @@ viewLapFields levelM form =
     in
     column
         [ style "justify-content" "space-between"
-        , style "max-height" "20rem"
+        , style "max-height" "25rem"
         , style "margin-bottom" "10px"
         , style "margin-top" "10px"
         , style "flex-grow" "5"
@@ -634,8 +634,11 @@ viewLapFields levelM form =
             , column [ maxFieldWidth, style "flex-grow" "1" ] [ effortSelect SelectedEffort form.effort ]
             ]
         , row [ styleIf (form.activityType /= Activity.Types.Run) "visibility" "hidden" ]
+            [ column [ maxFieldWidth, style "flex-grow" "2" ] [ distanceInput EditedDistance form.distance form.distanceUnits form.validated.distance ]
+            , column [ maxFieldWidth, style "flex-grow" "1" ] [ raceToggle NoOp True ]
+            ]
+        , row [ styleIf (form.activityType /= Activity.Types.Run) "visibility" "hidden" ]
             [ column [ maxFieldWidth, style "flex-grow" "2" ] [ paceSelect levelM SelectedPace form.pace form.validated.pace ]
-            , column [ maxFieldWidth, style "flex-grow" "1" ] [ distanceInput EditedDistance form.distance form.distanceUnits form.validated.distance ]
 
             --, column [ maxFieldWidth, style "flex-grow" "1" ] [ raceSelect SelectedRace form.race ]
             ]
@@ -892,6 +895,8 @@ durationInput msg ( hrs, mins, secs ) =
                     9
                     [ onInput (\h -> msg ( h, mins, secs ))
                     , value hrs
+                    , style "border-top-right-radius" "0"
+                    , style "border-bottom-right-radius" "0"
                     ]
                     []
                 ]
@@ -901,6 +906,10 @@ durationInput msg ( hrs, mins, secs ) =
                     60
                     [ onInput (\m -> msg ( hrs, m, secs ))
                     , value mins
+                    , style "border-top-left-radius" "0"
+                    , style "border-bottom-left-radius" "0"
+                    , style "border-top-right-radius" "0"
+                    , style "border-bottom-right-radius" "0"
                     ]
                     []
                 ]
@@ -910,6 +919,8 @@ durationInput msg ( hrs, mins, secs ) =
                     60
                     [ onInput (\s -> msg ( hrs, mins, s ))
                     , value secs
+                    , style "border-top-left-radius" "0"
+                    , style "border-bottom-left-radius" "0"
                     ]
                     []
                 ]
@@ -1075,6 +1086,20 @@ effortSelect msg effortM =
                 , ( ActivityShape.colorString ActivityShape.Red, Just Activity.Types.Hard )
                 ]
             )
+        ]
+
+
+raceToggle : Msg -> Bool -> Html Msg
+raceToggle msg isRace =
+    column []
+        [ label "Race" False NoOp
+        , Html.input
+            [ onClick NoOp
+            , Html.Attributes.attribute "type" "checkbox"
+            , style "width" "1.5rem"
+            , style "height" "1.5rem"
+            ]
+            []
         ]
 
 

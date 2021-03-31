@@ -1,6 +1,6 @@
 module Tests.Distance exposing (suite)
 
-import Activity.Types exposing (DistanceUnits(..))
+import Activity.Types exposing (DistanceUnits(..), RaceDistance(..))
 import Distance exposing (..)
 import Expect exposing (Expectation, FloatingPointTolerance(..))
 import Fuzz
@@ -47,5 +47,19 @@ suite =
             , fuzz (Fuzz.floatRange 50 10000) "reverses toMeters with yards" <|
                 \i ->
                     expectRealClose (toMeters Yards i |> fromMeters Yards) i
+            ]
+        , describe "toRaceDistance" <|
+            [ test "matches 5 km" <|
+                \_ ->
+                    Expect.equal (toRaceDistance 5000) (Just FiveK)
+            , test "matches 3.1 mi" <|
+                \_ ->
+                    Expect.equal (toRaceDistance (toMeters Miles 3.1)) (Just FiveK)
+            , test "matches 10 mile" <|
+                \_ ->
+                    Expect.equal (toRaceDistance (toMeters Miles 10)) (Just TenMile)
+            , test "matches half marathon" <|
+                \_ ->
+                    Expect.equal (toRaceDistance (toMeters Miles 13.1)) (Just HalfMarathon)
             ]
         ]

@@ -1,6 +1,15 @@
-module Distance exposing (fromMeters, toMeters, round1)
+module Distance exposing (calculate, fromMeters, round1, toMeters)
 
 import Activity.Types exposing (DistanceUnits(..))
+
+
+calculate : DistanceUnits -> Int -> Int -> Float
+calculate units duration pace =
+    toFloat duration
+        / toFloat pace
+        |> toMeters Miles
+        |> fromMeters units
+        |> round1
 
 
 toMeters : DistanceUnits -> Float -> Float

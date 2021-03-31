@@ -635,7 +635,7 @@ viewLapFields levelM form =
             ]
         , row [ styleIf (form.activityType /= Activity.Types.Run) "visibility" "hidden" ]
             [ column [ maxFieldWidth, style "flex-grow" "2" ] [ paceSelect levelM SelectedPace form.pace form.validated.pace ]
-            , column [ maxFieldWidth, style "flex-grow" "1" ] [ distanceInput EditedDistance form.distance form.distanceUnits ]
+            , column [ maxFieldWidth, style "flex-grow" "1" ] [ distanceInput EditedDistance form.distance form.distanceUnits form.validated.distance ]
 
             --, column [ maxFieldWidth, style "flex-grow" "1" ] [ raceSelect SelectedRace form.race ]
             ]
@@ -917,8 +917,8 @@ durationInput msg ( hrs, mins, secs ) =
         ]
 
 
-distanceInput : (String -> Msg) -> String -> DistanceUnits -> Html Msg
-distanceInput msg dist units =
+distanceInput : (String -> Msg) -> String -> DistanceUnits -> Result FieldError Float -> Html Msg
+distanceInput msg dist units result =
     let
         eventDecoder =
             Decode.at [ "target", "value" ] Decode.string
@@ -932,6 +932,12 @@ distanceInput msg dist units =
             [ numberInput "distance"
                 100000
                 [ onInput msg
+                , case ( dist, result ) of
+                    ( "", Ok distance ) ->
+                        Html.Attributes.placeholder (String.fromFloat distance)
+
+                    _ ->
+                        Html.Attributes.placeholder ""
                 , value dist
                 , style "border-top-right-radius" "0"
                 , style "border-bottom-right-radius" "0"

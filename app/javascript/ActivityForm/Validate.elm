@@ -26,20 +26,38 @@ validate model =
     , distance = parseDistance model.distance
     }
         |> calculatePace model.distanceUnits
+        |> calculateDistance model.distanceUnits
 
 
 calculatePace : DistanceUnits -> ValidatedFields -> ValidatedFields
 calculatePace units validated =
     let
-        calculatedPace =
+        paceM =
             Maybe.map2
                 Pace.calculate
                 (Result.toMaybe validated.duration)
                 (Result.toMaybe validated.distance |> Maybe.map (Distance.toMeters units))
     in
-    case ( validated.pace, calculatedPace ) of
+    case ( validated.pace, paceM ) of
         ( Err MissingError, Just pace ) ->
             { validated | pace = Ok pace }
+
+        _ ->
+            validated
+
+
+calculateDistance : DistanceUnits -> ValidatedFields -> ValidatedFields
+calculateDistance units validated =
+    let
+        distanceM =
+            Maybe.map2
+                (Distance.calculate units)
+                (Result.toMaybe validated.duration)
+                (Result.toMaybe validated.pace)
+    in
+    case ( validated.distance, distanceM ) of
+        ( Err MissingError, Just distance ) ->
+            { validated | distance = Ok distance }
 
         _ ->
             validated
@@ -97,7 +115,7 @@ parseDistance : String -> Result FieldError Float
 parseDistance str =
     case str of
         "" ->
-            Err ValueError
+            Err MissingError
 
         _ ->
             case String.toFloat str of

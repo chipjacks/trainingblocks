@@ -402,10 +402,6 @@ update msg model =
                     updateActivityForm msg state
                         |> loaded
 
-                SelectedRace _ ->
-                    updateActivityForm msg state
-                        |> loaded
-
                 CheckedRace ->
                     updateActivityForm msg state
                         |> loaded

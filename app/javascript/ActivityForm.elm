@@ -664,8 +664,6 @@ viewLapFields levelM form =
             ]
         , row [ styleIf (form.activityType /= Activity.Types.Run) "visibility" "hidden" ]
             [ column [ maxFieldWidth, style "flex-grow" "2" ] [ paceSelect levelM SelectedPace form.pace form.validated.pace ]
-
-            --, column [ maxFieldWidth, style "flex-grow" "1" ] [ raceSelect SelectedRace form.race ]
             ]
         ]
 
@@ -1126,28 +1124,4 @@ raceToggle msg raceM =
             , attributeIf (raceM /= Nothing) (Html.Attributes.attribute "checked" "")
             ]
             []
-        ]
-
-
-raceSelect : (Maybe Activity.Types.RaceDistance -> Msg) -> Maybe Activity.Types.RaceDistance -> Html Msg
-raceSelect msg distanceM =
-    let
-        eventDecoder =
-            Decode.at [ "target", "value" ] Decode.string
-                |> Decode.map Activity.raceDistance.fromString
-                |> Decode.map msg
-    in
-    column [ style "max-width" "10rem" ]
-        [ label "Race" (distanceM /= Nothing) (msg Nothing)
-        , Html.select [ Html.Events.on "change" eventDecoder ]
-            (List.map
-                (\( distanceStr, distanceOpt ) ->
-                    Html.option
-                        [ Html.Attributes.value distanceStr
-                        , Html.Attributes.selected (distanceOpt == distanceM)
-                        ]
-                        [ Html.text distanceStr ]
-                )
-                (( "Select", Nothing ) :: (Activity.raceDistance.list |> List.map (Tuple.mapSecond Just)))
-            )
         ]

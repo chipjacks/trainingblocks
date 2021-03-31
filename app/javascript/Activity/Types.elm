@@ -1,7 +1,6 @@
 module Activity.Types exposing (Activity, ActivityData, ActivityType(..), Completion(..), DistanceUnits(..), Effort(..), Id, LapData(..), RaceDistance(..), Seconds)
 
 import Date exposing (Date)
-import Pace exposing (Pace)
 
 
 type alias Activity =
@@ -22,7 +21,7 @@ type alias ActivityData =
     { activityType : ActivityType
     , duration : Maybe Seconds
     , completed : Completion
-    , pace : Maybe Pace
+    , pace : Maybe Int
     , distance : Maybe Float
     , distanceUnits : Maybe DistanceUnits
     , race : Maybe RaceDistance

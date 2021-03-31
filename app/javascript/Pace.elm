@@ -1,6 +1,8 @@
-module Pace exposing (Pace, TrainingPace(..), paceFromString, paceToString, secondsToTrainingPace, trainingPace, trainingPaceToSeconds, trainingPaces)
+module Pace exposing (TrainingPace(..), calculate, paceFromString, paceToString, secondsToTrainingPace, trainingPace, trainingPaceToSeconds, trainingPaces)
 
+import Activity.Types exposing (ActivityData, DistanceUnits(..))
 import Array exposing (Array)
+import Distance
 import Duration
 import Enum exposing (Enum)
 import Json.Decode as Decode
@@ -9,8 +11,11 @@ import MPRLevel exposing (RunnerType(..))
 import Parser
 
 
-type alias Pace =
-    Int
+calculate : Int -> Float -> Int
+calculate duration distance =
+    toFloat duration
+        / Distance.fromMeters Miles distance
+        |> round
 
 
 paceToString : Int -> String

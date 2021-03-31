@@ -7,7 +7,7 @@ import Json.Decode as Decode
 import Json.Decode.Pipeline exposing (custom, optional, required)
 import Json.Encode as Encode
 import MPRLevel
-import Pace exposing (Pace)
+import Pace
 import Random
 
 

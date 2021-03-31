@@ -978,7 +978,7 @@ numberInput nameStr max attrs =
 paceSelect : Maybe Int -> (String -> Msg) -> String -> Result FieldError Int -> Html Msg
 paceSelect levelM msg paceStr result =
     let
-        paceTimes =
+        trainingPaces =
             case levelM of
                 Just level ->
                     Pace.trainingPaces ( MPRLevel.Neutral, level )
@@ -1022,7 +1022,7 @@ paceSelect levelM msg paceStr result =
                                     ]
                                     []
                             )
-                            paceTimes
+                            trainingPaces
                         )
                 )
             , row []
@@ -1031,7 +1031,12 @@ paceSelect levelM msg paceStr result =
                     , class "input"
                     , style "width" "3rem"
                     , value paceStr
-                    , Html.Attributes.placeholder "mm:ss"
+                    , case ( paceStr, result ) of
+                        ( "", Ok pace ) ->
+                            Html.Attributes.placeholder (Pace.paceToString pace)
+
+                        _ ->
+                            Html.Attributes.placeholder "mm:ss"
                     ]
                     []
                 , compactColumn [ style "margin-left" "5px", style "font-size" "0.8rem", style "justify-content" "center" ] [ text trainingPaceStr ]

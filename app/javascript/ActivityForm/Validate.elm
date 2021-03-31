@@ -3,6 +3,7 @@ module ActivityForm.Validate exposing (init, validate)
 import Activity.Types exposing (DistanceUnits(..))
 import ActivityForm.Types exposing (ActivityForm, FieldError(..), ValidatedFields)
 import Date exposing (Date)
+import Distance
 import Pace
 
 
@@ -24,6 +25,24 @@ validate model =
     , pace = parsePace model.pace
     , distance = parseDistance model.distance
     }
+        |> calculatePace model.distanceUnits
+
+
+calculatePace : DistanceUnits -> ValidatedFields -> ValidatedFields
+calculatePace units validated =
+    let
+        calculatedPace =
+            Maybe.map2
+                Pace.calculate
+                (Result.toMaybe validated.duration)
+                (Result.toMaybe validated.distance |> Maybe.map (Distance.toMeters units))
+    in
+    case ( validated.pace, calculatedPace ) of
+        ( Err MissingError, Just pace ) ->
+            { validated | pace = Ok pace }
+
+        _ ->
+            validated
 
 
 parseRepeats : Maybe String -> Result FieldError Int
@@ -66,7 +85,12 @@ parseDuration ( hrs, mins, secs ) =
 
 parsePace : String -> Result FieldError Int
 parsePace str =
-    Pace.paceFromString str |> Result.fromMaybe ParseError
+    case str of
+        "" ->
+            Err MissingError
+
+        _ ->
+            Pace.paceFromString str |> Result.fromMaybe ParseError
 
 
 parseDistance : String -> Result FieldError Float

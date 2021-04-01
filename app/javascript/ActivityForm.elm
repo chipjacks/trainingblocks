@@ -797,7 +797,7 @@ activityTypeSelect msg activityType =
                 , styleIf (activityType == aType) "border" "1px solid var(--blue-300)"
                 ]
     in
-    column []
+    column [ style "margin-right" "1rem" ]
         [ label "Type" False NoOp
         , row []
             (List.map
@@ -838,7 +838,7 @@ completionToggle msg completed =
 
 repeatsInput : (String -> Msg) -> Maybe String -> Result FieldError Int -> Html Msg
 repeatsInput msg countStrM result =
-    column [ style "width" "6rem" ]
+    column [ style "max-width" "6rem" ]
         [ label "Repeats" (countStrM /= Just "" && countStrM /= Nothing) ClickedRepeat
         , case countStrM of
             Just countStr ->

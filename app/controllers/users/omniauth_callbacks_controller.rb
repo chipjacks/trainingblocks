@@ -19,6 +19,12 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
   end
 
   def failure
+    message = "Internal error"
+    begin
+      message = JSON.parse(request.env['omniauth.error'].message.delete_prefix(": "))["message"]
+    rescue
+    end
+    set_flash_message(:alert, :failure, kind: "Strava", reason: message)
     redirect_to root_path
   end
 end

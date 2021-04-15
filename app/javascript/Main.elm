@@ -504,7 +504,7 @@ update msg model =
                                 |> Random.map
                                     (\ids ->
                                         List.map2
-                                            (\id data -> Activity id session.date "" data Nothing)
+                                            (\id data -> Activity id session.date "" data Nothing Nothing)
                                             ids
                                             (Activity.Laps.listData session)
                                     )
@@ -602,6 +602,7 @@ initActivity today dateM =
                     ""
                     { activityData | completed = completed }
                     Nothing
+                    Nothing
             )
         |> Effect.GenerateActivity NewActivity
 
@@ -620,6 +621,7 @@ initSession head activities =
                     ""
                     { activityData | completed = head.data.completed }
                     (Just (List.map .data activities |> List.map Activity.Types.Individual))
+                    Nothing
             )
         |> Effect.GenerateActivity (Group activities)
 

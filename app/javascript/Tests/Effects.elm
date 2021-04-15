@@ -51,6 +51,7 @@ simulateEffects effect =
                         ""
                         Activity.initActivityData
                         Nothing
+                        Nothing
                     )
                 )
 

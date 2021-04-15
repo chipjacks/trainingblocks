@@ -107,6 +107,7 @@ decoder =
         |> required "description" Decode.string
         |> required "data" activityDataDecoder
         |> custom (Decode.maybe (Decode.at [ "data", "laps" ] (Decode.list lapDataDecoder)))
+        |> custom (Decode.maybe (Decode.at [ "data", "planned" ] (Decode.list lapDataDecoder)))
 
 
 lapDataDecoder : Decode.Decoder LapData
@@ -175,10 +176,11 @@ encoder activity =
             , ( "emoji", maybeEncode data.emoji Encode.string )
             ]
 
-        dataEncoder data laps =
+        dataEncoder data laps planned =
             Encode.object <|
                 activityDataFields data
                     ++ [ ( "laps", maybeEncode laps (Encode.list lapEncoder) ) ]
+                    ++ [ ( "planned", maybeEncode planned (Encode.list lapEncoder) ) ]
 
         lapEncoder lapData =
             case lapData of
@@ -196,7 +198,7 @@ encoder activity =
         [ ( "id", Encode.string activity.id )
         , ( "date", Encode.string (Date.toIsoString activity.date) )
         , ( "description", Encode.string activity.description )
-        , ( "data", dataEncoder activity.data activity.laps )
+        , ( "data", dataEncoder activity.data activity.laps activity.planned )
         ]
 
 

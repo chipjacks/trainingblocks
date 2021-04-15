@@ -3,7 +3,7 @@ module ActivityForm exposing (init, initMove, update, view)
 import Actions exposing (viewFormActions)
 import Activity
 import Activity.Laps
-import Activity.Types exposing (Activity, ActivityData, ActivityType, DistanceUnits(..), LapData(..))
+import Activity.Types exposing (Activity, ActivityData, ActivityType, Completion, DistanceUnits(..), LapData(..))
 import ActivityForm.Selection as Selection
 import ActivityForm.Types exposing (ActivityForm, FieldError(..), Selection, ValidatedFields)
 import ActivityForm.Validate as Validate exposing (validate)
@@ -27,23 +27,17 @@ import Store
 import Svg exposing (Svg)
 
 
-
-{- GOOD EXAMPLE:
-   https://github.com/rtfeldman/elm-spa-example/blob/master/src/Page/Settings.elm
--}
-
-
 init : Activity -> ActivityForm
 init activity =
     let
         laps =
             Selection.init (activity.laps |> Maybe.withDefault [ Individual activity.data ])
     in
-    initFromSelection activity laps Nothing
+    initFromSelection activity Activity.Types.Completed laps Nothing
 
 
-initFromSelection : Activity -> Selection LapData -> Maybe (Selection ActivityData) -> ActivityForm
-initFromSelection activity laps repeatM =
+initFromSelection : Activity -> Completion -> Selection LapData -> Maybe (Selection ActivityData) -> ActivityForm
+initFromSelection activity completion laps repeatM =
     let
         lap =
             Selection.get laps
@@ -96,7 +90,7 @@ initFromSelection activity laps repeatM =
     , repeats = Maybe.map String.fromInt countM
     , activityType = data.activityType
     , duration = duration
-    , completed = data.completed
+    , completed = completion
     , pace =
         Maybe.map Pace.paceToString data.pace |> Maybe.withDefault ""
     , distance = distance
@@ -311,19 +305,21 @@ update msg model =
 
         CheckedCompleted ->
             let
-                newCompletion =
+                ( newCompletion, newLaps ) =
                     case model.completed of
                         Activity.Types.Completed ->
-                            Activity.Types.Planned
+                            ( Activity.Types.Planned, model.activity.planned |> Maybe.withDefault [] )
 
                         Activity.Types.Planned ->
-                            Activity.Types.Completed
-
-                markCompleted data =
-                    { data | completed = newCompletion }
+                            ( Activity.Types.Completed, model.activity.laps |> Maybe.withDefault [ Individual model.activity.data ] )
             in
-            ( updateLaps (\_ laps -> Selection.updateAll (Activity.Laps.updateField markCompleted) laps) model
-                |> updateRepeat (\repeat -> Selection.updateAll markCompleted repeat)
+            ( updateActiveSelection
+                (\m ->
+                    ( Selection.init newLaps
+                    , Nothing
+                    )
+                )
+                { model | completed = newCompletion }
                 |> updateFromSelection
                 |> updateActivity
             , Effect.None
@@ -416,7 +412,7 @@ updateRepeat transform model =
 
 updateFromSelection : ActivityForm -> ActivityForm
 updateFromSelection model =
-    initFromSelection model.activity model.laps model.repeat
+    initFromSelection model.activity model.completed model.laps model.repeat
 
 
 updateValidated : ActivityForm -> ActivityForm
@@ -443,7 +439,12 @@ updateActivity : ActivityForm -> ActivityForm
 updateActivity model =
     let
         updateActivityLaps laps activity =
-            Activity.Laps.set activity (Selection.toList laps)
+            case model.completed of
+                Activity.Types.Planned ->
+                    { activity | planned = Just (Selection.toList laps) }
+
+                Activity.Types.Completed ->
+                    Activity.Laps.set activity (Selection.toList laps)
 
         updateActivityDescription description activity =
             { activity | description = description }

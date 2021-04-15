@@ -82,6 +82,7 @@ initFromSelection activity completion laps repeatM =
                 |> Maybe.withDefault ""
     in
     { activity = activity
+    , editingLap = False
     , laps = laps
     , repeat = newRepeatM
     , validated = Validate.init
@@ -448,6 +449,14 @@ updateActivity model =
 
         updateActivityDescription description activity =
             { activity | description = description }
+
+        updateActivityDate dateM activity =
+            case dateM of
+                Just date ->
+                    { activity | date = date }
+
+                _ ->
+                    activity
     in
     updateValidated model
         |> updateRace
@@ -471,6 +480,7 @@ updateActivity model =
                     | activity =
                         updateActivityLaps m.laps m.activity
                             |> updateActivityDescription m.description
+                            |> updateActivityDate m.date
                 }
            )
 
@@ -505,15 +515,19 @@ view configs activityM =
     in
     case activityM of
         Editing model ->
-            if model.date /= Nothing then
+            if model.date == Nothing then
+                row (openAttributes "1.5rem")
+                    [ row []
+                        [ MonoIcons.icon (MonoIcons.circleInformation "var(--blue-500)")
+                        , column [ style "margin-left" "1rem" ] [ text "Select Date" ]
+                        ]
+                    ]
+
+            else if model.editingLap then
                 row (openAttributes "100%")
                     [ column []
                         [ row []
-                            [ column [ style "margin-bottom" "1rem" ]
-                                [ viewFormActions ]
-                            ]
-                        , row []
-                            [ viewActivityFields configs.emojis model ]
+                            [ text model.activity.description ]
                         , row [ style "margin-top" "10px", style "margin-bottom" "5px", borderStyle "border-bottom" ]
                             []
                         , expandingRow [ style "overflow" "hidden" ]
@@ -524,15 +538,36 @@ view configs activityM =
                     ]
 
             else
-                row (openAttributes "1.5rem")
-                    [ row []
-                        [ MonoIcons.icon (MonoIcons.circleInformation "var(--blue-500)")
-                        , column [ style "margin-left" "1rem" ] [ text "Select Date" ]
+                row (openAttributes "100%")
+                    [ column []
+                        [ row []
+                            [ viewActivityFields configs.emojis model ]
+                        , row [ style "margin-top" "5px", style "margin-bottom" "5px", borderStyle "border-bottom" ]
+                            []
+                        , row []
+                            [ completionToggle CheckedCompleted model.completed ]
+                        , expandingRow [ style "overflow" "hidden" ]
+                            [ viewLaps configs model.laps
+                            ]
                         ]
                     ]
 
         _ ->
             row closedAttributes []
+
+
+viewLaps : ActivityConfigs -> Selection LapData -> Html Msg
+viewLaps configs lapSelection =
+    column
+        [ style "overflow-y" "scroll"
+        ]
+        (List.concat
+            [ Selection.toList lapSelection
+                |> List.indexedMap (\i lap -> viewActivityShape configs (Selection.selectedIndex lapSelection) i lap Nothing)
+                |> List.concat
+            , [ row [ style "padding-top" "0.5rem", style "padding-bottom" "0.5rem" ] [ viewAddButton ClickedAddLap ] ]
+            ]
+        )
 
 
 viewLapShapes : ActivityConfigs -> Selection LapData -> Maybe (Selection ActivityData) -> Html Msg
@@ -628,12 +663,12 @@ viewActivityFields emojis form =
             style "max-width" "20rem"
     in
     column []
-        [ row [ style "margin-bottom" "10px", style "max-width" "40rem" ]
-            [ descriptionInput EditedDescription form.description
+        [ row []
+            [ column [ maxFieldWidth ] [ dateSelect ClickedMove form.date ]
+            , column [ style "align-items" "flex-end" ] [ viewFormActions ]
             ]
-        , row []
-            [ column [ maxFieldWidth ] [ completionToggle CheckedCompleted form.completed ]
-            , column [ maxFieldWidth ] [ emojiSelect SelectedEmoji emojis form.emoji form.emojiSearch ]
+        , row [ style "margin-bottom" "10px", style "max-width" "40rem" ]
+            [ descriptionInput EditedDescription form.description
             ]
         ]
 

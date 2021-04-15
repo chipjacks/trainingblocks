@@ -6,6 +6,7 @@ import Date exposing (Date)
 
 type alias ActivityForm =
     { activity : Activity
+    , editingLap : Bool
     , laps : Selection LapData
     , repeat : Maybe (Selection ActivityData)
     , validated : ValidatedFields

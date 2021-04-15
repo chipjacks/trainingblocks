@@ -34,14 +34,8 @@ viewMultiSelectActions =
 viewFormActions : Html Msg
 viewFormActions =
     row []
-        [ toolbarButton ClickedSubmit MonoIcons.check "Save" True
-        , toolbarButton ClickedCopy MonoIcons.copy "Copy" False
-        , toolbarButton ClickedDelete MonoIcons.delete "Delete" False
-        , column [] []
-        , toolbarButton (ClickedShift True) MonoIcons.arrowUp "Shift Up" False
-        , toolbarButton (ClickedShift False) MonoIcons.arrowDown "Shift Down" False
-        , column [] []
-        , toolbarButton ClickedClose MonoIcons.close "Close" False
+        [ toolbarButton ClickedClose MonoIcons.close "Close" False
+        , toolbarButton ClickedSubmit MonoIcons.check "Save" True
         ]
 
 

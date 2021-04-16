@@ -502,7 +502,6 @@ view configs activityM =
 
         openAttributes height =
             [ style "height" height
-            , style "padding" "0.5rem 0.5rem"
             , style "border-width" "1px"
             , Html.Attributes.id "activity-form"
             ]
@@ -513,12 +512,15 @@ view configs activityM =
             , style "height" "0"
             ]
                 ++ sharedAttributes
+
+        padding =
+            style "padding" "0.5rem 0.5rem"
     in
     case activityM of
         Editing model ->
             if model.date == Nothing then
                 row (openAttributes "1.5rem")
-                    [ row []
+                    [ row [ padding ]
                         [ MonoIcons.icon (MonoIcons.circleInformation "var(--blue-500)")
                         , column [ style "margin-left" "1rem" ] [ text "Select Date" ]
                         ]
@@ -527,10 +529,8 @@ view configs activityM =
             else if model.editingLap then
                 row (openAttributes "100%")
                     [ column []
-                        [ row []
+                        [ row [ padding, borderStyle "border-bottom" ]
                             [ text model.activity.description ]
-                        , row [ style "margin-top" "10px", style "margin-bottom" "5px", borderStyle "border-bottom" ]
-                            []
                         , expandingRow [ style "overflow" "hidden" ]
                             [ viewLapShapes configs model.laps model.repeat
                             , viewLapFields configs.levelM model
@@ -541,12 +541,8 @@ view configs activityM =
             else
                 row (openAttributes "100%")
                     [ column []
-                        [ row []
+                        [ row [ padding, borderStyle "border-bottom" ]
                             [ viewActivityFields configs.emojis model ]
-                        , row [ style "margin-top" "5px", style "margin-bottom" "5px", borderStyle "border-bottom" ]
-                            []
-                        , row []
-                            [ completionToggle CheckedCompleted model.completed ]
                         , expandingRow [ style "overflow" "hidden" ]
                             [ viewLaps configs model.laps
                             ]
@@ -579,7 +575,7 @@ viewLaps configs lapSelection =
         (List.concat
             [ Selection.toList lapSelection
                 |> List.indexedMap viewLap
-            , [ row [ style "padding-top" "0.5rem", style "padding-bottom" "0.5rem" ] [ viewAddButton ClickedAddLap ] ]
+            , [ row [ style "padding" "0.5rem 0.5rem" ] [ viewAddButton ClickedAddLap ] ]
             ]
         )
 
@@ -677,12 +673,15 @@ viewActivityFields emojis form =
             style "max-width" "20rem"
     in
     column []
-        [ row []
+        [ row [ style "margin-bottom" "10px" ]
             [ column [ maxFieldWidth ] [ dateSelect ClickedMove form.date ]
             , column [ style "align-items" "flex-end" ] [ viewFormActions ]
             ]
         , row [ style "margin-bottom" "10px", style "max-width" "40rem" ]
             [ descriptionInput EditedDescription form.description
+            ]
+        , row []
+            [ completionToggle CheckedCompleted form.completed
             ]
         ]
 

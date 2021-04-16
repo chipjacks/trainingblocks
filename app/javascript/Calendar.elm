@@ -560,9 +560,9 @@ viewActivity activeIds isActiveDate configs activity =
         isMultiSelect =
             String.contains " " activeIds
     in
-    Activity.View.listItem configs
-        { descriptionM = Just activity.description
-        , data = activity.data
+    Activity.View.listItem
+        { titleM = Just activity.description
+        , subtitle = Activity.View.activityDescription configs.levelM activity.data
         , isActive = isActive
         , handlePointerDown = selectActivityDecoder activity
         , handleDoubleClick = EditActivity activity

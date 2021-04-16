@@ -1,6 +1,6 @@
-module Activity.View exposing (listItem)
+module Activity.View exposing (activityDescription, lapDescription, listItem)
 
-import Activity.Types exposing (ActivityData)
+import Activity.Types exposing (ActivityData, LapData(..))
 import Duration
 import Html exposing (Html, a, div, text)
 import Html.Attributes exposing (class, style)
@@ -11,29 +11,25 @@ import Pace
 import Skeleton exposing (attributeIf, borderStyle, column, compactColumn, onPointerDown, row, styleIf, viewMaybe)
 
 
-listItem :
-    ActivityConfigs
-    ->
-        { descriptionM : Maybe String
-        , data : ActivityData
-        , isActive : Bool
-        , handlePointerDown : Decode.Decoder Msg
-        , handleDoubleClick : Msg
-        , handleMultiSelectM : Maybe (Decode.Decoder Msg)
-        , viewToolbarM : Maybe (Html Msg)
-        , viewShape : Html Msg
-        }
-    -> Html Msg
-listItem configs params =
+lapDescription : Maybe Int -> LapData -> String
+lapDescription levelM lap =
+    case lap of
+        Individual data ->
+            activityDescription levelM data
+
+        Repeats count list ->
+            String.join " "
+                [ String.fromInt count
+                , "x"
+                , String.join ", " (List.map (activityDescription levelM) list)
+                ]
+
+
+activityDescription : Maybe Int -> ActivityData -> String
+activityDescription levelM data =
     let
-        isActive =
-            params.isActive
-
-        data =
-            params.data
-
         trainingPaceStr paceM =
-            case ( paceM, configs.levelM ) of
+            case ( paceM, levelM ) of
                 ( Just pace, Just level ) ->
                     Pace.secondsToTrainingPace level pace
                         |> Pace.trainingPace.toString
@@ -44,6 +40,28 @@ listItem configs params =
 
                 _ ->
                     ""
+    in
+    String.join " "
+        [ Maybe.map Duration.toStringWithUnits data.duration |> Maybe.withDefault ""
+        , trainingPaceStr data.pace
+        ]
+
+
+listItem :
+    { titleM : Maybe String
+    , subtitle : String
+    , isActive : Bool
+    , handlePointerDown : Decode.Decoder Msg
+    , handleDoubleClick : Msg
+    , handleMultiSelectM : Maybe (Decode.Decoder Msg)
+    , viewToolbarM : Maybe (Html Msg)
+    , viewShape : Html Msg
+    }
+    -> Html Msg
+listItem params =
+    let
+        isActive =
+            params.isActive
     in
     row
         [ style "padding" "0.5rem 0.5rem"
@@ -73,16 +91,8 @@ listItem configs params =
             , style "justify-content" "center"
             , attributeIf (not isActive) (onPointerDown params.handlePointerDown)
             ]
-            [ row [ style "word-break" "break-all" ] [ viewMaybe params.descriptionM text ]
-            , row [ style "font-size" "0.8rem" ]
-                [ column []
-                    [ text <|
-                        String.join " "
-                            [ Maybe.map Duration.toStringWithUnits data.duration |> Maybe.withDefault ""
-                            , trainingPaceStr data.pace
-                            ]
-                    ]
-                ]
+            [ row [ style "word-break" "break-all" ] [ viewMaybe params.titleM text ]
+            , row [ style "font-size" "0.8rem" ] [ column [] [ text params.subtitle ] ]
             ]
         , viewMaybe params.handleMultiSelectM
             (\handleMultiSelect ->

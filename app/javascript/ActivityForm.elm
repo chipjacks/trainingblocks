@@ -561,15 +561,9 @@ viewLaps : ActivityConfigs -> Selection LapData -> Html Msg
 viewLaps configs lapSelection =
     let
         viewLap index lap =
-            Activity.View.listItem configs
-                { descriptionM = Nothing
-                , data =
-                    case lap of
-                        Individual data ->
-                            data
-
-                        Repeats count datas ->
-                            Debug.todo "repeats"
+            Activity.View.listItem
+                { titleM = Nothing
+                , subtitle = Activity.View.lapDescription configs.levelM lap
                 , isActive = Selection.selectedIndex lapSelection == index
                 , handlePointerDown = Decode.succeed (SelectedLap index)
                 , handleDoubleClick = SelectedLap index

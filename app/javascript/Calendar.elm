@@ -4,6 +4,7 @@ import Actions exposing (viewActivityActions, viewMultiSelectActions, viewPopove
 import Activity
 import Activity.Laps
 import Activity.Types exposing (Activity)
+import Activity.View
 import ActivityShape
 import Browser.Dom as Dom
 import Date exposing (Date)
@@ -20,7 +21,7 @@ import Msg exposing (ActivityConfigs, ActivityState(..), Msg(..), Zoom(..))
 import Pace
 import Ports exposing (scrollToSelectedDate)
 import Process
-import Skeleton exposing (attributeIf, borderStyle, column, compactColumn, dropdown, expandingRow, iconButton, row, spinner, styleIf, viewIf, viewMaybe)
+import Skeleton exposing (attributeIf, borderStyle, column, compactColumn, dropdown, expandingRow, iconButton, onPointerDown, row, spinner, styleIf, viewIf, viewMaybe)
 import Task
 import Time exposing (Month(..))
 
@@ -558,84 +559,31 @@ viewActivity activeIds isActiveDate configs activity =
 
         isMultiSelect =
             String.contains " " activeIds
-
-        activityLevel =
-            Activity.mprLevel activity
-                |> Maybe.map (\l -> "level " ++ String.fromInt l)
-                |> Maybe.withDefault ""
-
-        trainingPaceStr paceM =
-            case ( paceM, configs.levelM ) of
-                ( Just pace, Just level ) ->
-                    Pace.secondsToTrainingPace level pace
-                        |> Pace.trainingPace.toString
-                        |> String.toLower
-
-                ( Just pace, Nothing ) ->
-                    " at " ++ Pace.paceToString pace ++ " pace"
-
-                _ ->
-                    ""
     in
-    row
-        [ style "padding" "0.5rem 0.5rem"
-        , styleIf isActive "background-color" "var(--grey-100)"
-        , style "position" "relative"
-        , Html.Events.onDoubleClick (EditActivity activity)
-        , attributeIf isActive (onPointerDown (Decode.succeed NoOp))
-        ]
-        [ viewIf isFirstActive
-            (div
-                [ style "position" "absolute"
-                , style "top" "-20px"
-                , style "right" "0"
-                ]
-                [ if isMultiSelect then
-                    viewMultiSelectActions
+    Activity.View.listItem configs
+        { descriptionM = Just activity.description
+        , data = activity.data
+        , isActive = isActive
+        , handlePointerDown = selectActivityDecoder activity
+        , handleDoubleClick = EditActivity activity
+        , handleMultiSelectM =
+            if isActive || isActiveDate then
+                Just (Decode.succeed (SelectActivity activity True))
 
-                  else
-                    viewActivityActions
-                ]
-            )
-        , compactColumn
-            [ style "flex-basis" "5rem"
-            , style "justify-content" "center"
-            , attributeIf (not isActive) (onPointerDown (selectActivityDecoder activity))
-            ]
-            [ viewActivityShape activity isActive configs ]
-        , a
-            [ class "column expand"
-            , style "justify-content" "center"
-            , attributeIf (not isActive) (onPointerDown (selectActivityDecoder activity))
-            ]
-            [ row [ style "word-break" "break-all" ] [ text activity.description ]
-            , row [ style "font-size" "0.8rem" ]
-                [ column []
-                    [ text <|
-                        String.join " "
-                            [ Maybe.map Duration.toStringWithUnits activity.data.duration |> Maybe.withDefault ""
-                            , trainingPaceStr activity.data.pace
-                            ]
-                    ]
-                , compactColumn [ style "align-items" "flex-end" ] [ text activityLevel ]
-                ]
-            ]
-        , compactColumn
-            [ attributeIf (not isActive)
-                (onPointerDown (Decode.succeed (SelectActivity activity True)))
-            , style "justify-content" "center"
-            ]
-            [ row
-                [ style "width" "0.4rem"
-                , style "height" "0.4rem"
-                , style "border-radius" "50%"
-                , style "border" "2px solid transparent"
-                , attributeIf (isActiveDate || isActive) (borderStyle "border")
-                , attributeIf isActive (style "background-color" "var(--grey-900)")
-                ]
-                []
-            ]
-        ]
+            else
+                Nothing
+        , viewToolbarM =
+            if isMultiSelect && isFirstActive then
+                Just viewMultiSelectActions
+
+            else if isActive && not isMultiSelect then
+                Just viewActivityActions
+
+            else
+                Nothing
+        , viewShape =
+            viewActivityShape activity isActive configs
+        }
 
 
 selectActivityDecoder : Activity -> Decode.Decoder Msg
@@ -643,14 +591,6 @@ selectActivityDecoder activity =
     Decode.map
         (SelectActivity activity)
         (Decode.field "shiftKey" Decode.bool)
-
-
-onPointerDown : Decode.Decoder Msg -> Html.Attribute Msg
-onPointerDown decoder =
-    Html.Events.stopPropagationOn "pointerdown"
-        (decoder
-            |> Decode.map (\m -> ( m, True ))
-        )
 
 
 viewAddButton : Date -> Html Msg

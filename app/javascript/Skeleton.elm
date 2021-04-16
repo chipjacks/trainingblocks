@@ -1,7 +1,9 @@
-module Skeleton exposing (attributeIf, borderStyle, column, compactColumn, dropdown, expandingRow, iconButton, layout, logo, row, spinner, styleIf, viewIf, viewMaybe)
+module Skeleton exposing (attributeIf, borderStyle, column, compactColumn, dropdown, expandingRow, iconButton, layout, logo, onPointerDown, row, spinner, styleIf, viewIf, viewMaybe)
 
 import Html exposing (Html, div, i, img, text)
 import Html.Attributes exposing (class, src, style)
+import Html.Events
+import Json.Decode as Decode
 
 
 layout : Html msg -> Html msg -> Html msg
@@ -117,3 +119,11 @@ attributeIf bool attr =
 borderStyle : String -> Html.Attribute msg
 borderStyle position =
     style position "1px solid var(--grey-500)"
+
+
+onPointerDown : Decode.Decoder msg -> Html.Attribute msg
+onPointerDown decoder =
+    Html.Events.stopPropagationOn "pointerdown"
+        (decoder
+            |> Decode.map (\m -> ( m, True ))
+        )

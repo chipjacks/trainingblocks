@@ -4,6 +4,7 @@ import Actions exposing (viewFormActions)
 import Activity
 import Activity.Laps
 import Activity.Types exposing (Activity, ActivityData, ActivityType, Completion, DistanceUnits(..), LapData(..))
+import Activity.View
 import ActivityForm.Selection as Selection
 import ActivityForm.Types exposing (ActivityForm, FieldError(..), Selection, ValidatedFields)
 import ActivityForm.Validate as Validate exposing (validate)
@@ -558,13 +559,32 @@ view configs activityM =
 
 viewLaps : ActivityConfigs -> Selection LapData -> Html Msg
 viewLaps configs lapSelection =
+    let
+        viewLap index lap =
+            Activity.View.listItem configs
+                { descriptionM = Nothing
+                , data =
+                    case lap of
+                        Individual data ->
+                            data
+
+                        Repeats count datas ->
+                            Debug.todo "repeats"
+                , isActive = Selection.selectedIndex lapSelection == index
+                , handlePointerDown = Decode.succeed (SelectedLap index)
+                , handleDoubleClick = SelectedLap index
+                , handleMultiSelectM = Nothing
+                , viewToolbarM = Nothing
+                , viewShape =
+                    compactColumn [] (viewActivityShape configs (Selection.selectedIndex lapSelection) index lap Nothing)
+                }
+    in
     column
         [ style "overflow-y" "scroll"
         ]
         (List.concat
             [ Selection.toList lapSelection
-                |> List.indexedMap (\i lap -> viewActivityShape configs (Selection.selectedIndex lapSelection) i lap Nothing)
-                |> List.concat
+                |> List.indexedMap viewLap
             , [ row [ style "padding-top" "0.5rem", style "padding-bottom" "0.5rem" ] [ viewAddButton ClickedAddLap ] ]
             ]
         )

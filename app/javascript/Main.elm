@@ -421,6 +421,10 @@ update msg model =
 
                 ClickedEdit ->
                     case activityM of
+                        Editing form ->
+                            updateActivityForm msg state
+                                |> loaded
+
                         Selected [ activity ] ->
                             let
                                 form =

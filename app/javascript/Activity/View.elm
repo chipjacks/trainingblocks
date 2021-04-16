@@ -74,7 +74,7 @@ listItem params =
             (\toolbar ->
                 div
                     [ style "position" "absolute"
-                    , style "top" "-20px"
+                    , style "top" "-10px"
                     , style "right" "0"
                     ]
                     [ toolbar

@@ -117,6 +117,11 @@ initMove activity =
 update : Msg -> ActivityForm -> ( ActivityForm, Effect )
 update msg model =
     case msg of
+        ClickedEdit ->
+            ( { model | editingLap = True }
+            , Effect.None
+            )
+
         ClickedCopy ->
             ( updateActiveSelection
                 (\m ->
@@ -526,25 +531,28 @@ view configs activityM =
                         ]
                     ]
 
-            else if model.editingLap then
-                row (openAttributes "100%")
-                    [ column []
-                        [ row [ padding, borderStyle "border-bottom" ]
-                            [ text model.activity.description ]
-                        , expandingRow [ style "overflow" "hidden" ]
-                            [ viewLapShapes configs model.laps model.repeat
-                            , viewLapFields configs.levelM model
-                            ]
-                        ]
-                    ]
-
             else
                 row (openAttributes "100%")
                     [ column []
-                        [ row [ padding, borderStyle "border-bottom" ]
+                        [ row [ padding ]
                             [ viewActivityFields configs.emojis model ]
-                        , expandingRow [ style "overflow" "hidden" ]
+                        , expandingRow [ style "overflow" "hidden", borderStyle "border-top" ]
                             [ viewLaps configs model.laps
+                            , if model.editingLap then
+                                compactColumn
+                                    [ style "transition" "width 0.5s"
+                                    , style "width" "min(100vw - 6rem, 40rem)"
+                                    , padding
+                                    ]
+                                    [ viewLapFields configs.levelM model
+                                    ]
+
+                              else
+                                compactColumn
+                                    [ style "transition" "width 0.5s"
+                                    , style "width" "0"
+                                    ]
+                                    []
                             ]
                         ]
                     ]
@@ -564,13 +572,19 @@ viewLaps configs lapSelection =
                 , handlePointerDown = Decode.succeed (SelectedLap index)
                 , handleDoubleClick = SelectedLap index
                 , handleMultiSelectM = Nothing
-                , viewToolbarM = Nothing
+                , viewToolbarM =
+                    if Selection.selectedIndex lapSelection == index then
+                        Just Actions.viewActivityActions
+
+                    else
+                        Nothing
                 , viewShape =
                     compactColumn [] (viewActivityShape configs (Selection.selectedIndex lapSelection) index lap Nothing)
                 }
     in
     column
         [ style "overflow-y" "scroll"
+        , style "padding-top" "10px"
         ]
         (List.concat
             [ Selection.toList lapSelection
@@ -695,8 +709,6 @@ viewLapFields levelM form =
     column
         [ style "justify-content" "space-between"
         , style "max-height" "25rem"
-        , style "margin-bottom" "10px"
-        , style "margin-top" "10px"
         , style "flex-grow" "5"
         ]
         [ row []

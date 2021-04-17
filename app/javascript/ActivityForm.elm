@@ -1,6 +1,6 @@
 module ActivityForm exposing (init, initMove, update, view)
 
-import Actions exposing (viewFormActions)
+import Actions exposing (toolbarButton, viewFormActions)
 import Activity
 import Activity.Laps
 import Activity.Types exposing (Activity, ActivityData, ActivityType, Completion, DistanceUnits(..), LapData(..))
@@ -34,11 +34,11 @@ init activity =
         laps =
             Selection.init (activity.laps |> Maybe.withDefault [ Individual activity.data ])
     in
-    initFromSelection activity Activity.Types.Completed laps Nothing
+    initFromSelection activity False Activity.Types.Completed laps Nothing
 
 
-initFromSelection : Activity -> Completion -> Selection LapData -> Maybe (Selection ActivityData) -> ActivityForm
-initFromSelection activity completion laps repeatM =
+initFromSelection : Activity -> Bool -> Completion -> Selection LapData -> Maybe (Selection ActivityData) -> ActivityForm
+initFromSelection activity editingLap completion laps repeatM =
     let
         lap =
             Selection.get laps
@@ -83,7 +83,7 @@ initFromSelection activity completion laps repeatM =
                 |> Maybe.withDefault ""
     in
     { activity = activity
-    , editingLap = False
+    , editingLap = editingLap
     , laps = laps
     , repeat = newRepeatM
     , validated = Validate.init
@@ -118,7 +118,7 @@ update : Msg -> ActivityForm -> ( ActivityForm, Effect )
 update msg model =
     case msg of
         ClickedEdit ->
-            ( { model | editingLap = True }
+            ( { model | editingLap = not model.editingLap }
             , Effect.None
             )
 
@@ -419,7 +419,7 @@ updateRepeat transform model =
 
 updateFromSelection : ActivityForm -> ActivityForm
 updateFromSelection model =
-    initFromSelection model.activity model.completed model.laps model.repeat
+    initFromSelection model.activity model.editingLap model.completed model.laps model.repeat
 
 
 updateValidated : ActivityForm -> ActivityForm
@@ -537,12 +537,13 @@ view configs activityM =
                         [ row [ padding ]
                             [ viewActivityFields configs.emojis model ]
                         , expandingRow [ style "overflow" "hidden", borderStyle "border-top" ]
-                            [ viewLaps configs model.laps
+                            [ viewLaps configs model.completed model.editingLap model.laps model.repeat
                             , if model.editingLap then
                                 compactColumn
                                     [ style "transition" "width 0.5s"
                                     , style "width" "min(100vw - 6rem, 40rem)"
                                     , padding
+                                    , borderStyle "border-left"
                                     ]
                                     [ viewLapFields configs.levelM model
                                     ]
@@ -561,9 +562,16 @@ view configs activityM =
             row closedAttributes []
 
 
-viewLaps : ActivityConfigs -> Selection LapData -> Html Msg
-viewLaps configs lapSelection =
+viewLaps : ActivityConfigs -> Completion -> Bool -> Selection LapData -> Maybe (Selection ActivityData) -> Html Msg
+viewLaps configs completed editingLap lapSelection repeatSelectionM =
     let
+        repeatM =
+            if not editingLap then
+                Nothing
+
+            else
+                repeatSelectionM
+
         viewLap index lap =
             Activity.View.listItem
                 { titleM = Nothing
@@ -573,21 +581,37 @@ viewLaps configs lapSelection =
                 , handleDoubleClick = SelectedLap index
                 , handleMultiSelectM = Nothing
                 , viewToolbarM =
-                    if Selection.selectedIndex lapSelection == index then
-                        Just Actions.viewActivityActions
+                    if Selection.selectedIndex lapSelection == index && not editingLap then
+                        Just Actions.viewLapActions
 
                     else
                         Nothing
                 , viewShape =
-                    compactColumn [] (viewActivityShape configs (Selection.selectedIndex lapSelection) index lap Nothing)
+                    compactColumn [] (viewActivityShape configs (Selection.selectedIndex lapSelection) index lap repeatM)
                 }
     in
     column
         [ style "overflow-y" "scroll"
-        , style "padding-top" "10px"
         ]
         (List.concat
-            [ Selection.toList lapSelection
+            [ [ row
+                    [ style "position" "sticky"
+                    , style "top" "0"
+                    , style "z-index" "3"
+                    , style "padding" "0.5rem"
+                    , style "height" "2rem"
+                    , style "align-items" "space-between"
+                    ]
+                    (if editingLap then
+                        [ column [] [], toolbarButton ClickedEdit MonoIcons.chevronDoubleRight "Close" False ]
+
+                     else
+                        [ completionToggle CheckedCompleted completed
+                        , toolbarButton ClickedEdit MonoIcons.edit "Edit" False
+                        ]
+                    )
+              ]
+            , Selection.toList lapSelection
                 |> List.indexedMap viewLap
             , [ row [ style "padding" "0.5rem 0.5rem" ] [ viewAddButton ClickedAddLap ] ]
             ]
@@ -657,7 +681,6 @@ viewActivityShape configs selectedLap lapIndex lap repeatM =
                     List.singleton <|
                         row
                             [ onClick (SelectedLap lapIndex)
-                            , attributeIf (selectedLap == lapIndex && repeatM == Nothing) (class "selected-shape")
                             , style "padding-top" "0.5rem"
                             , style "padding-bottom" "0.5rem"
                             , style "min-height" "1rem"
@@ -691,11 +714,8 @@ viewActivityFields emojis form =
             [ column [ maxFieldWidth ] [ dateSelect ClickedMove form.date ]
             , column [ style "align-items" "flex-end" ] [ viewFormActions ]
             ]
-        , row [ style "margin-bottom" "10px", style "max-width" "40rem" ]
+        , row [ style "max-width" "40rem" ]
             [ descriptionInput EditedDescription form.description
-            ]
-        , row []
-            [ completionToggle CheckedCompleted form.completed
             ]
         ]
 
@@ -885,15 +905,26 @@ dateSelect msg date =
 completionToggle : Msg -> Activity.Types.Completion -> Html Msg
 completionToggle msg completed =
     column []
-        [ label "Completed" False NoOp
-        , Html.input
-            [ onClick msg
-            , Html.Attributes.attribute "type" "checkbox"
-            , style "width" "1.5rem"
-            , style "height" "1.5rem"
-            , attributeIf (completed == Activity.Types.Completed) (Html.Attributes.attribute "checked" "")
+        [ row []
+            [ Html.button
+                [ class "button medium"
+                , style "text-align" "center"
+                , style "border-top-right-radius" "0"
+                , style "border-bottom-right-radius" "0"
+                , attributeIf (completed == Activity.Types.Completed) (onClick msg)
+                , styleIf (completed == Activity.Types.Planned) "background-color" "var(--grey-500)"
+                ]
+                [ text "Planned" ]
+            , Html.button
+                [ class "button medium"
+                , style "text-align" "center"
+                , style "border-top-left-radius" "0"
+                , style "border-bottom-left-radius" "0"
+                , attributeIf (completed == Activity.Types.Planned) (onClick msg)
+                , styleIf (completed == Activity.Types.Completed) "background-color" "var(--grey-500)"
+                ]
+                [ text "Completed" ]
             ]
-            []
         ]
 
 

@@ -1,4 +1,4 @@
-module Actions exposing (viewActivityActions, viewFormActions, viewMultiSelectActions, viewPopoverActions)
+module Actions exposing (toolbarButton, viewActivityActions, viewFormActions, viewMultiSelectActions, viewPopoverActions, viewLapActions)
 
 import Html exposing (Html)
 import Html.Attributes exposing (class, style)
@@ -20,6 +20,17 @@ viewActivityActions =
         , toolbarButton (ClickedShift False) MonoIcons.arrowDown "Shift Down" False
         , column [] []
         , toolbarButton ClickedClose MonoIcons.close "Close" False
+        ]
+
+
+viewLapActions : Html Msg
+viewLapActions =
+    row []
+        [ toolbarButton ClickedCopy MonoIcons.copy "Copy" False
+        , toolbarButton ClickedDelete MonoIcons.delete "Delete" False
+        , column [] []
+        , toolbarButton (ClickedShift True) MonoIcons.arrowUp "Shift Up" False
+        , toolbarButton (ClickedShift False) MonoIcons.arrowDown "Shift Down" False
         ]
 
 

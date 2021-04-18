@@ -90,4 +90,5 @@ type Msg
     | ClickedGroup
     | ClickedUngroup
     | ClickedClose
+    | ClickedAutofill
     | NewId String

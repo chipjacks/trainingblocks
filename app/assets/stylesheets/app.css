@@ -87,7 +87,7 @@ button, .button {
   color: black;
 }
 .button.small { padding: 0rem 0.6rem; }
-.button.medium { padding: 0.45rem 1rem; }
+.button.medium { padding: 0.3rem 0.8rem; }
 button:hover, .button:hover { background-color: var(--grey-300); }
 button:focus, .button:focus { border-color: var(--blue-500); outline: none; }
 .primary { background-color: #2185d0; color: #fff; }

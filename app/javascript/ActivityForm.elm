@@ -328,6 +328,28 @@ update msg model =
                 )
                 { model | completed = newCompletion }
                 |> updateFromSelection
+            , Effect.None
+            )
+
+        ClickedAutofill ->
+            let
+                updateCompleted data =
+                    { data | completed = model.completed }
+
+                newLaps =
+                    case model.completed of
+                        Activity.Types.Completed ->
+                            model.activity.planned
+                                |> Maybe.withDefault []
+                                |> List.map (Activity.Laps.updateField updateCompleted)
+
+                        Activity.Types.Planned ->
+                            model.activity.laps
+                                |> Maybe.withDefault [ Individual model.activity.data ]
+                                |> List.map (Activity.Laps.updateField updateCompleted)
+            in
+            ( updateActiveSelection (\m -> ( Selection.init newLaps, Nothing )) model
+                |> updateFromSelection
                 |> updateActivity
             , Effect.None
             )
@@ -604,6 +626,11 @@ viewLaps configs completed editingLap lapSelection repeatSelectionM =
                     ]
                     (if editingLap then
                         [ column [] [], toolbarButton ClickedEdit MonoIcons.chevronDoubleRight "Close" False ]
+
+                     else if Selection.toList lapSelection |> List.isEmpty then
+                        [ completionToggle CheckedCompleted completed
+                        , Html.button [ class "button medium", onClick ClickedAutofill ] [ text "Autofill" ]
+                        ]
 
                      else
                         [ completionToggle CheckedCompleted completed

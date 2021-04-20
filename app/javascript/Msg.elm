@@ -88,7 +88,6 @@ type Msg
     | ClickedShift Bool
     | ClickedMove
     | ClickedGroup
-    | ClickedUngroup
     | ClickedClose
     | ClickedAutofill
     | NewId String

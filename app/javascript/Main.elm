@@ -504,25 +504,6 @@ update msg model =
                     ( activityFormState, Effect.Batch [ calendarCmd, activityFormCmd ] )
                         |> loaded
 
-                ClickedUngroup ->
-                    case activityM of
-                        Selected [ session ] ->
-                            ( model
-                            , Random.list (List.length (Activity.Laps.listData session)) Activity.newId
-                                |> Random.map
-                                    (\ids ->
-                                        List.map2
-                                            (\id data -> Activity id session.date "" data Nothing Nothing)
-                                            ids
-                                            (Activity.Laps.listData session)
-                                    )
-                                |> Random.generate (\activities -> Ungroup activities session)
-                                |> Effect.Cmd
-                            )
-
-                        _ ->
-                            ( model, Effect.None )
-
                 ClickedGroup ->
                     case activityM of
                         Selected (a :: tail) ->

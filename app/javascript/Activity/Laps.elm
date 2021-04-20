@@ -5,8 +5,19 @@ import Activity.Types exposing (Activity, ActivityData, ActivityType(..), Comple
 
 listData : Activity -> List ActivityData
 listData activity =
-    activity.laps
-        |> Maybe.withDefault [ Individual activity.data ]
+    let
+        visibleLaps =
+            case ( activity.laps, activity.planned ) of
+                ( Just list, _ ) ->
+                    list
+
+                ( _, Just list ) ->
+                    list
+
+                ( Nothing, Nothing ) ->
+                    [ Individual activity.data ]
+    in
+    visibleLaps
         |> List.concatMap
             (\lap ->
                 case lap of

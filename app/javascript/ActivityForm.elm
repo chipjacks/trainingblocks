@@ -562,6 +562,17 @@ view configs activityM =
 
         padding =
             style "padding" "0.5rem 0.5rem"
+
+        isAutofillable model =
+            case ( model.activity.laps, model.activity.planned ) of
+                ( Just list, _ ) ->
+                    not (List.isEmpty list)
+
+                ( _, Just list ) ->
+                    not (List.isEmpty list)
+
+                _ ->
+                    False
     in
     case activityM of
         Editing model ->
@@ -579,7 +590,12 @@ view configs activityM =
                         [ row [ padding ]
                             [ viewActivityFields configs.emojis model ]
                         , expandingRow [ style "overflow" "hidden", borderStyle "border-top" ]
-                            [ viewLaps configs model.completed model.editingLap model.laps model.repeat
+                            [ viewLaps configs
+                                model.completed
+                                model.editingLap
+                                (isAutofillable model)
+                                model.laps
+                                model.repeat
                             , if model.editingLap then
                                 compactColumn
                                     [ style "transition" "width 0.5s"
@@ -604,8 +620,8 @@ view configs activityM =
             row closedAttributes []
 
 
-viewLaps : ActivityConfigs -> Completion -> Bool -> Selection LapData -> Maybe (Selection ActivityData) -> Html Msg
-viewLaps configs completed editingLap lapSelection repeatSelectionM =
+viewLaps : ActivityConfigs -> Completion -> Bool -> Bool -> Selection LapData -> Maybe (Selection ActivityData) -> Html Msg
+viewLaps configs completed editingLap isAutofillable lapSelection repeatSelectionM =
     let
         repeatM =
             if not editingLap then
@@ -649,7 +665,7 @@ viewLaps configs completed editingLap lapSelection repeatSelectionM =
 
                      else if Selection.toList lapSelection |> List.isEmpty then
                         [ completionToggle CheckedCompleted completed
-                        , Html.button [ class "button medium", onClick ClickedAutofill ] [ text "Autofill" ]
+                        , viewIf isAutofillable (Html.button [ class "button medium", onClick ClickedAutofill ] [ text "Autofill" ])
                         ]
 
                      else

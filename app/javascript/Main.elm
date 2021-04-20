@@ -2,7 +2,7 @@ module Main exposing (Model, init, main, update, view)
 
 import Activity
 import Activity.Laps
-import Activity.Types exposing (Activity)
+import Activity.Types exposing (Activity, Completion(..), LapData(..))
 import ActivityForm
 import ActivityForm.Types exposing (ActivityForm)
 import ActivityShape
@@ -592,12 +592,18 @@ initActivity today dateM =
         date =
             dateM |> Maybe.withDefault today
 
-        completed =
+        ( data, laps, planned ) =
             if Date.compare date today == LT || date == today then
-                Activity.Types.Completed
+                ( { activityData | completed = Completed }
+                , Just [ Individual { activityData | completed = Completed } ]
+                , Nothing
+                )
 
             else
-                Activity.Types.Planned
+                ( { activityData | completed = Planned }
+                , Nothing
+                , Just [ Individual { activityData | completed = Planned } ]
+                )
 
         activityData =
             Activity.initActivityData
@@ -608,9 +614,9 @@ initActivity today dateM =
                 Activity id
                     date
                     ""
-                    { activityData | completed = completed }
-                    Nothing
-                    Nothing
+                    data
+                    laps
+                    planned
             )
         |> Effect.GenerateActivity NewActivity
 

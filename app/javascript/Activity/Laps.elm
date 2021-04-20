@@ -24,9 +24,6 @@ set activity laps =
         [] ->
             { activity | laps = Nothing }
 
-        [ Individual data ] ->
-            { activity | data = data, laps = Nothing }
-
         list ->
             { activity | data = sum list, laps = Just list }
 
@@ -43,16 +40,21 @@ updateField transform lap =
 
 sum : List LapData -> ActivityData
 sum laps =
-    { activityType = Run
-    , duration = Just (duration laps)
-    , completed = completed laps
-    , pace = Nothing
-    , distance = Nothing
-    , distanceUnits = Nothing
-    , race = Nothing
-    , effort = Nothing
-    , emoji = Nothing
-    }
+    case laps of
+        [ Individual data ] ->
+            data
+
+        _ ->
+            { activityType = Run
+            , duration = Just (duration laps)
+            , completed = completed laps
+            , pace = Nothing
+            , distance = Nothing
+            , distanceUnits = Nothing
+            , race = Nothing
+            , effort = Nothing
+            , emoji = Nothing
+            }
 
 
 duration : List LapData -> Int

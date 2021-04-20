@@ -3,7 +3,7 @@ module ActivityForm exposing (init, initMove, update, view)
 import Actions exposing (toolbarButton, viewFormActions)
 import Activity
 import Activity.Laps
-import Activity.Types exposing (Activity, ActivityData, ActivityType, Completion, DistanceUnits(..), LapData(..))
+import Activity.Types exposing (Activity, ActivityData, ActivityType, Completion(..), DistanceUnits(..), LapData(..))
 import Activity.View
 import ActivityForm.Selection as Selection
 import ActivityForm.Types exposing (ActivityForm, FieldError(..), Selection, ValidatedFields)
@@ -31,10 +31,24 @@ import Svg exposing (Svg)
 init : Activity -> ActivityForm
 init activity =
     let
-        laps =
-            Selection.init (activity.laps |> Maybe.withDefault [ Individual activity.data ])
+        ( editing, completion, laps ) =
+            case ( activity.laps, activity.planned ) of
+                ( Just [ lap ], Nothing ) ->
+                    ( True, Completed, Selection.init [ lap ] )
+
+                ( Just (lap :: more), _ ) ->
+                    ( False, Completed, Selection.init (lap :: more) )
+
+                ( _, Just [ lap ] ) ->
+                    ( True, Planned, Selection.init [ lap ] )
+
+                ( _, Just (lap :: more) ) ->
+                    ( False, Planned, Selection.init (lap :: more) )
+
+                ( _, _ ) ->
+                    ( True, Completed, Selection.init [ Individual activity.data ] )
     in
-    initFromSelection activity False Activity.Types.Completed laps Nothing
+    initFromSelection activity editing completion laps Nothing
 
 
 initFromSelection : Activity -> Bool -> Completion -> Selection LapData -> Maybe (Selection ActivityData) -> ActivityForm
@@ -240,7 +254,9 @@ update msg model =
                     Activity.initActivityData
                         |> (\a -> { a | completed = model.completed })
             in
-            ( updateLaps (\_ laps -> Selection.add (Individual newData) laps) model
+            ( updateActiveSelection
+                (\m -> ( Selection.add (Individual newData) m.laps, m.repeat ))
+                { model | editingLap = True }
                 |> updateFromSelection
                 |> updateActivity
             , Effect.None
@@ -318,7 +334,7 @@ update msg model =
                             ( Activity.Types.Planned, model.activity.planned |> Maybe.withDefault [] )
 
                         Activity.Types.Planned ->
-                            ( Activity.Types.Completed, model.activity.laps |> Maybe.withDefault [ Individual model.activity.data ] )
+                            ( Activity.Types.Completed, model.activity.laps |> Maybe.withDefault [] )
             in
             ( updateActiveSelection
                 (\m ->
@@ -415,12 +431,13 @@ updateActiveSelection transform model =
 updateLaps : (LapData -> Selection LapData -> Selection LapData) -> ActivityForm -> ActivityForm
 updateLaps transform model =
     let
-        selectedLap =
-            Selection.get model.laps
-                |> Maybe.withDefault (Individual Activity.initActivityData)
-
         newLaps =
-            transform selectedLap model.laps
+            case Selection.get model.laps of
+                Just lap ->
+                    transform lap model.laps
+
+                Nothing ->
+                    model.laps
     in
     { model | laps = newLaps }
 
@@ -500,8 +517,11 @@ updateActivity model =
                         , Just selection
                         )
 
-                    ( _, repeatM ) ->
-                        ( Selection.set (Individual <| toActivityData m) m.laps, repeatM )
+                    ( Just (Individual _), _ ) ->
+                        ( Selection.set (Individual <| toActivityData m) m.laps, m.repeat )
+
+                    ( _, _ ) ->
+                        ( m.laps, m.repeat )
             )
         |> (\m ->
                 { m

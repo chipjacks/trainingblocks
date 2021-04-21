@@ -599,28 +599,42 @@ view configs activityM =
                     [ column []
                         [ row [ padding ]
                             [ viewActivityFields configs.emojis model ]
-                        , expandingRow [ style "overflow" "hidden", borderStyle "border-top" ]
+                        , expandingRow [ style "overflow" "hidden", borderStyle "border-top", style "position" "relative" ]
                             [ viewLaps configs
                                 model.completed
                                 model.editingLap
                                 (isAutofillable model)
                                 model.laps
                                 model.repeat
-                            , if model.editingLap then
-                                compactColumn
-                                    [ style "transition" "width 0.5s"
-                                    , style "width" "min(100vw - 6rem, 40rem)"
-                                    , padding
-                                    , borderStyle "border-left"
+                            , let
+                                drawerAttributes =
+                                    [ style "position" "absolute"
+                                    , style "top" "0"
+                                    , style "right" "0"
+                                    , style "z-index" "3"
+                                    , style "background-color" "white"
+                                    , style "height" "100%"
                                     ]
+                              in
+                              if model.editingLap then
+                                compactColumn
+                                    ([ style "transition" "width 0.5s"
+                                     , style "width" "min(100vw - 6rem, 25rem)"
+                                     , padding
+                                     , borderStyle "border-left"
+                                     ]
+                                        ++ drawerAttributes
+                                    )
                                     [ viewLapFields configs.levelM model
                                     ]
 
                               else
                                 compactColumn
-                                    [ style "transition" "width 0.5s"
-                                    , style "width" "0"
-                                    ]
+                                    ([ style "transition" "width 0.5s"
+                                     , style "width" "0"
+                                     ]
+                                        ++ drawerAttributes
+                                    )
                                     []
                             ]
                         ]
@@ -660,6 +674,7 @@ viewLaps configs completed editingLap isAutofillable lapSelection repeatSelectio
     in
     column
         [ style "overflow-y" "scroll"
+        , style "overflow-x" "hidden"
         ]
         (List.concat
             [ [ row
@@ -686,24 +701,6 @@ viewLaps configs completed editingLap isAutofillable lapSelection repeatSelectio
             , Selection.toList lapSelection
                 |> List.indexedMap viewLap
             , [ row [ style "padding" "0.5rem 0.5rem" ] [ viewAddButton ClickedAddLap ] ]
-            ]
-        )
-
-
-viewLapShapes : ActivityConfigs -> Selection LapData -> Maybe (Selection ActivityData) -> Html Msg
-viewLapShapes configs lapSelection repeatSelectionM =
-    column
-        [ style "min-width" "4rem"
-        , style "overflow-y" "scroll"
-        , class "hide-scrollbars"
-        , style "padding-left" "3px"
-        , style "flex-grow" "1"
-        ]
-        (List.concat
-            [ Selection.toList lapSelection
-                |> List.indexedMap (\i lap -> viewActivityShape configs (Selection.selectedIndex lapSelection) i lap repeatSelectionM)
-                |> List.concat
-            , [ row [ style "padding-top" "0.5rem", style "padding-bottom" "0.5rem" ] [ viewAddButton ClickedAddLap ] ]
             ]
         )
 

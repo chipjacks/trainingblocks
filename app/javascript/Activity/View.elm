@@ -76,6 +76,7 @@ listItem params =
                     [ style "position" "absolute"
                     , style "top" "-10px"
                     , style "right" "0"
+                    , style "z-index" "3"
                     ]
                     [ toolbar
                     ]

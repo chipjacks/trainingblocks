@@ -201,6 +201,15 @@ update msg model =
             )
 
         ClickedDelete ->
+            let
+                closeFormUnlessRepeat m =
+                    case m.repeat of
+                        Nothing ->
+                            { m | editingLap = False }
+
+                        _ ->
+                            { m | editingLap = m.editingLap }
+            in
             ( updateActiveSelection
                 (\m ->
                     case m.repeat of
@@ -215,6 +224,7 @@ update msg model =
                             ( Selection.delete m.laps, m.repeat )
                 )
                 model
+                |> closeFormUnlessRepeat
                 |> updateFromSelection
                 |> updateActivity
             , Effect.None
@@ -636,11 +646,11 @@ viewLaps configs completed editingLap isAutofillable lapSelection repeatSelectio
                 , subtitle = Activity.View.lapDescription configs.levelM lap
                 , isActive = Selection.selectedIndex lapSelection == index
                 , handlePointerDown = Decode.succeed (SelectedLap index)
-                , handleDoubleClick = SelectedLap index
+                , handleDoubleClick = ClickedEdit
                 , handleMultiSelectM = Nothing
                 , viewToolbarM =
                     if Selection.selectedIndex lapSelection == index && not editingLap then
-                        Just Actions.viewLapActions
+                        Just (Actions.viewLapActions False)
 
                     else
                         Nothing
@@ -661,7 +671,7 @@ viewLaps configs completed editingLap isAutofillable lapSelection repeatSelectio
                     , style "align-items" "space-between"
                     ]
                     (if editingLap then
-                        [ column [] [], toolbarButton ClickedEdit MonoIcons.chevronDoubleRight "Close" False ]
+                        []
 
                      else if Selection.toList lapSelection |> List.isEmpty then
                         [ completionToggle CheckedCompleted completed
@@ -670,7 +680,6 @@ viewLaps configs completed editingLap isAutofillable lapSelection repeatSelectio
 
                      else
                         [ completionToggle CheckedCompleted completed
-                        , toolbarButton ClickedEdit MonoIcons.edit "Edit" False
                         ]
                     )
               ]
@@ -710,8 +719,6 @@ viewActivityShape configs selectedLap lapIndex lap repeatM =
                             [ onClick (SelectedRepeatLap i)
                             , attributeIf (i == Selection.selectedIndex repeat) (class "selected-shape")
                             , style "padding-top" "0.5rem"
-                            , style "padding-left" "0.5rem"
-                            , borderStyle "border-left"
                             , style "padding-bottom" "0.5rem"
                             , style "min-height" "1rem"
                             ]
@@ -720,22 +727,10 @@ viewActivityShape configs selectedLap lapIndex lap repeatM =
                     (Selection.toList repeat)
                 , [ row
                         [ style "padding-top" "0.5rem"
-                        , style "padding-left" "0.5rem"
-                        , borderStyle "border-left"
                         , style "padding-bottom" "0.5rem"
                         ]
                         [ viewAddButton ClickedAddRepeat ]
                   ]
-                , List.map
-                    (\data ->
-                        row
-                            [ style "opacity" "0.5"
-                            , style "padding-left" "0.5rem"
-                            , borderStyle "border-left"
-                            ]
-                            [ ActivityShape.view configs data ]
-                    )
-                    (List.repeat (count - 1) list |> List.concat)
                 ]
 
         _ ->
@@ -794,7 +789,8 @@ viewLapFields levelM form =
         , style "max-height" "25rem"
         , style "flex-grow" "5"
         ]
-        [ row []
+        [ row [] [ Actions.viewLapActions True, column [] [] ]
+        , row []
             [ column [ maxFieldWidth, style "flex-grow" "2" ] [ activityTypeSelect SelectedActivityType form.activityType ]
             , column [ maxFieldWidth, style "flex-grow" "1" ] [ repeatsInput EditedRepeats form.repeats form.validated.repeats ]
             ]

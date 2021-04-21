@@ -1,4 +1,4 @@
-module Actions exposing (toolbarButton, viewActivityActions, viewFormActions, viewMultiSelectActions, viewPopoverActions, viewLapActions)
+module Actions exposing (toolbarButton, viewActivityActions, viewFormActions, viewLapActions, viewMultiSelectActions, viewPopoverActions)
 
 import Html exposing (Html)
 import Html.Attributes exposing (class, style)
@@ -23,14 +23,18 @@ viewActivityActions =
         ]
 
 
-viewLapActions : Html Msg
-viewLapActions =
+viewLapActions : Bool -> Html Msg
+viewLapActions isEditing =
     row []
         [ toolbarButton ClickedCopy MonoIcons.copy "Copy" False
         , toolbarButton ClickedDelete MonoIcons.delete "Delete" False
-        , column [] []
         , toolbarButton (ClickedShift True) MonoIcons.arrowUp "Shift Up" False
         , toolbarButton (ClickedShift False) MonoIcons.arrowDown "Shift Down" False
+        , if isEditing then
+            toolbarButton ClickedEdit MonoIcons.check "Save" True
+
+          else
+            toolbarButton ClickedEdit MonoIcons.edit "Edit" False
         ]
 
 

@@ -65,13 +65,21 @@ initFromSelection activity editingLap completion laps repeatM =
 
                 ( Repeats count list, Nothing ) ->
                     ( List.head list |> Maybe.withDefault Activity.initActivityData
-                    , Just (Selection.init list)
+                    , if editingLap then
+                        Just (Selection.init list)
+
+                      else
+                        Nothing
                     , Just count
                     )
 
                 ( Repeats count list, Just repeat ) ->
                     ( Selection.get repeat |> Maybe.withDefault Activity.initActivityData
-                    , Just repeat
+                    , if editingLap then
+                        Just repeat
+
+                      else
+                        Nothing
                     , Just count
                     )
 
@@ -133,6 +141,7 @@ update msg model =
     case msg of
         ClickedEdit ->
             ( { model | editingLap = not model.editingLap }
+                |> updateFromSelection
             , Effect.None
             )
 
@@ -236,16 +245,8 @@ update msg model =
                     let
                         newLaps =
                             Selection.select index m.laps
-
-                        newRepeat =
-                            case Selection.get newLaps of
-                                Just (Repeats count list) ->
-                                    Just (Selection.init list)
-
-                                _ ->
-                                    Nothing
                     in
-                    ( newLaps, newRepeat )
+                    ( newLaps, Nothing )
                 )
                 model
                 |> updateFromSelection

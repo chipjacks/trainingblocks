@@ -1,23 +1,24 @@
-module Activity.Laps exposing (listData, set, updateField)
+module Activity.Laps exposing (listData, sum, updateField, visible)
 
 import Activity.Types exposing (Activity, ActivityData, ActivityType(..), Completion(..), LapData(..))
 
 
+visible : Activity -> List LapData
+visible activity =
+    case ( List.isEmpty activity.laps, List.isEmpty activity.planned ) of
+        ( False, _ ) ->
+            activity.laps
+
+        ( _, False ) ->
+            activity.planned
+
+        ( True, True ) ->
+            []
+
+
 listData : Activity -> List ActivityData
 listData activity =
-    let
-        visibleLaps =
-            case ( activity.laps, activity.planned ) of
-                ( Just list, _ ) ->
-                    list
-
-                ( _, Just list ) ->
-                    list
-
-                ( Nothing, Nothing ) ->
-                    [ Individual activity.data ]
-    in
-    visibleLaps
+    visible activity
         |> List.concatMap
             (\lap ->
                 case lap of
@@ -27,16 +28,6 @@ listData activity =
                     Repeats count list ->
                         List.concat (List.repeat count list)
             )
-
-
-set : Activity -> List LapData -> Activity
-set activity laps =
-    case laps of
-        [] ->
-            { activity | laps = Nothing }
-
-        list ->
-            { activity | data = sum list, laps = Just list }
 
 
 updateField : (ActivityData -> ActivityData) -> LapData -> LapData

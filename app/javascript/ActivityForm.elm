@@ -33,20 +33,20 @@ init activity =
     let
         ( editing, completion, laps ) =
             case ( activity.laps, activity.planned ) of
-                ( Just [ lap ], Nothing ) ->
+                ( [ lap ], [] ) ->
                     ( True, Completed, Selection.init [ lap ] )
 
-                ( Just (lap :: more), _ ) ->
+                ( lap :: more, _ ) ->
                     ( False, Completed, Selection.init (lap :: more) )
 
-                ( _, Just [ lap ] ) ->
+                ( [], [ lap ] ) ->
                     ( True, Planned, Selection.init [ lap ] )
 
-                ( _, Just (lap :: more) ) ->
+                ( _, lap :: more ) ->
                     ( False, Planned, Selection.init (lap :: more) )
 
                 ( _, _ ) ->
-                    ( True, Completed, Selection.init [ Individual activity.data ] )
+                    ( True, Completed, Selection.init activity.laps )
     in
     initFromSelection activity editing completion laps Nothing
 
@@ -342,10 +342,10 @@ update msg model =
                 ( newCompletion, newLaps ) =
                     case model.completed of
                         Activity.Types.Completed ->
-                            ( Activity.Types.Planned, model.activity.planned |> Maybe.withDefault [] )
+                            ( Activity.Types.Planned, model.activity.planned )
 
                         Activity.Types.Planned ->
-                            ( Activity.Types.Completed, model.activity.laps |> Maybe.withDefault [] )
+                            ( Activity.Types.Completed, model.activity.laps )
 
                 newEditingLap =
                     if List.isEmpty newLaps then
@@ -374,12 +374,10 @@ update msg model =
                     case model.completed of
                         Activity.Types.Completed ->
                             model.activity.planned
-                                |> Maybe.withDefault []
                                 |> List.map (Activity.Laps.updateField updateCompleted)
 
                         Activity.Types.Planned ->
                             model.activity.laps
-                                |> Maybe.withDefault [ Individual model.activity.data ]
                                 |> List.map (Activity.Laps.updateField updateCompleted)
             in
             ( updateActiveSelection (\m -> ( Selection.init newLaps, Nothing )) model
@@ -505,10 +503,10 @@ updateActivity model =
         updateActivityLaps laps activity =
             case model.completed of
                 Activity.Types.Planned ->
-                    { activity | planned = Just (Selection.toList laps) }
+                    { activity | planned = Selection.toList laps }
 
                 Activity.Types.Completed ->
-                    Activity.Laps.set activity (Selection.toList laps)
+                    { activity | laps = Selection.toList laps }
 
         updateActivityDescription description activity =
             { activity | description = description }
@@ -582,15 +580,11 @@ view configs activityM =
             style "padding" "0.5rem 0.5rem"
 
         isAutofillable model =
-            case ( model.activity.laps, model.activity.planned ) of
-                ( Just list, _ ) ->
-                    not (List.isEmpty list)
+            if List.isEmpty model.activity.laps && List.isEmpty model.activity.planned then
+                False
 
-                ( _, Just list ) ->
-                    not (List.isEmpty list)
-
-                _ ->
-                    False
+            else
+                True
     in
     case activityM of
         Editing model ->

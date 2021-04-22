@@ -12,7 +12,7 @@ def create_activity(obj, me)
     date: Date.parse(obj['date']),
     order: obj['order'],
     description: obj['description'],
-    data: obj['data'],
+    data: { laps: obj['data']['laps'] || [ obj['data'] ], planned: [] },
     user: me
   )
 

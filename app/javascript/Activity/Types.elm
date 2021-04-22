@@ -7,9 +7,8 @@ type alias Activity =
     { id : Id
     , date : Date
     , description : String
-    , data : ActivityData
-    , laps : Maybe (List LapData)
-    , planned : Maybe (List LapData)
+    , laps : List LapData
+    , planned : List LapData
     }
 
 

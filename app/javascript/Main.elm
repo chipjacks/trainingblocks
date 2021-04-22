@@ -573,17 +573,15 @@ initActivity today dateM =
         date =
             dateM |> Maybe.withDefault today
 
-        ( data, laps, planned ) =
+        ( laps, planned ) =
             if Date.compare date today == LT || date == today then
-                ( { activityData | completed = Completed }
-                , Just [ Individual { activityData | completed = Completed } ]
-                , Nothing
+                ( [ Individual { activityData | completed = Completed } ]
+                , []
                 )
 
             else
-                ( { activityData | completed = Planned }
-                , Nothing
-                , Just [ Individual { activityData | completed = Planned } ]
+                ( []
+                , [ Individual { activityData | completed = Planned } ]
                 )
 
         activityData =
@@ -595,7 +593,6 @@ initActivity today dateM =
                 Activity id
                     date
                     ""
-                    data
                     laps
                     planned
             )
@@ -604,19 +601,14 @@ initActivity today dateM =
 
 initSession : Activity -> List Activity -> Effect
 initSession head activities =
-    let
-        activityData =
-            Activity.initActivityData
-    in
     Activity.newId
         |> Random.map
             (\id ->
                 Activity id
                     head.date
                     ""
-                    { activityData | completed = head.data.completed }
-                    (Just (List.map .data activities |> List.map Activity.Types.Individual))
-                    Nothing
+                    (List.concatMap .laps activities)
+                    (List.concatMap .planned activities)
             )
         |> Effect.GenerateActivity (Group activities)
 

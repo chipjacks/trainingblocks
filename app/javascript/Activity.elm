@@ -1,5 +1,6 @@
 module Activity exposing (activityType, decoder, distanceUnits, effort, encoder, initActivityData, mprLevel, newId, raceDistance)
 
+import Activity.Laps
 import Activity.Types exposing (Activity, ActivityData, ActivityType(..), Completion(..), DistanceUnits(..), Effort(..), Id, LapData(..), RaceDistance(..), Seconds)
 import Date exposing (Date)
 import Enum exposing (Enum)
@@ -83,7 +84,14 @@ newId =
 
 mprLevel : Activity -> Maybe Int
 mprLevel activity =
-    case ( activity.data.race, activity.data.duration ) of
+    let
+        data =
+            Activity.Laps.listData activity
+                |> List.filter (\d -> d.race /= Nothing)
+                |> List.head
+                |> Maybe.withDefault initActivityData
+    in
+    case ( data.race, data.duration ) of
         ( Just distance_, Just duration ) ->
             MPRLevel.lookup MPRLevel.Neutral
                 (raceDistance.toString distance_)
@@ -105,9 +113,8 @@ decoder =
         |> required "id" Decode.string
         |> required "date" dateDecoder
         |> required "description" Decode.string
-        |> required "data" activityDataDecoder
-        |> custom (Decode.maybe (Decode.at [ "data", "laps" ] (Decode.list lapDataDecoder)))
-        |> custom (Decode.maybe (Decode.at [ "data", "planned" ] (Decode.list lapDataDecoder)))
+        |> custom (Decode.at [ "data", "laps" ] (Decode.list lapDataDecoder))
+        |> custom (Decode.at [ "data", "planned" ] (Decode.list lapDataDecoder))
 
 
 lapDataDecoder : Decode.Decoder LapData
@@ -176,11 +183,11 @@ encoder activity =
             , ( "emoji", maybeEncode data.emoji Encode.string )
             ]
 
-        dataEncoder data laps planned =
+        dataEncoder laps planned =
             Encode.object <|
-                activityDataFields data
-                    ++ [ ( "laps", maybeEncode laps (Encode.list lapEncoder) ) ]
-                    ++ [ ( "planned", maybeEncode planned (Encode.list lapEncoder) ) ]
+                [ ( "laps", Encode.list lapEncoder laps )
+                , ( "planned", Encode.list lapEncoder planned )
+                ]
 
         lapEncoder lapData =
             case lapData of
@@ -198,7 +205,7 @@ encoder activity =
         [ ( "id", Encode.string activity.id )
         , ( "date", Encode.string (Date.toIsoString activity.date) )
         , ( "description", Encode.string activity.description )
-        , ( "data", dataEncoder activity.data activity.laps activity.planned )
+        , ( "data", dataEncoder activity.laps activity.planned )
         ]
 
 

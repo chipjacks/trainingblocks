@@ -285,8 +285,8 @@ view model activities activeId activeRataDie isMoving configs =
         ]
 
 
-viewActivityShape : Activity -> Bool -> ActivityConfigs -> Html Msg
-viewActivityShape activity isActive configs =
+viewActivityShape : Activity -> Bool -> Bool -> ActivityConfigs -> Html Msg
+viewActivityShape activity isActive isMonthView configs =
     div
         [ style "width" "min-content"
         , attributeIf isActive (Html.Events.stopPropagationOn "pointerdown" (Decode.succeed ( MoveActivity activity, True )))
@@ -296,7 +296,7 @@ viewActivityShape activity isActive configs =
         , style "position" "relative"
         ]
     <|
-        viewIf isActive
+        viewIf (isActive && isMonthView)
             (div
                 [ style "position" "absolute"
                 , style "top" "0"
@@ -446,7 +446,7 @@ viewWeekDay ( date, activities ) isToday isSelected isMoving activeId configs =
                         , attributeIf (isActive a) (class "selected-shape")
                         , Html.Events.onDoubleClick (EditActivity a)
                         ]
-                        [ viewActivityShape a (isActive a) configs
+                        [ viewActivityShape a (isActive a) True configs
                         ]
                 )
                 activities
@@ -582,7 +582,7 @@ viewActivity activeIds isActiveDate configs activity =
             else
                 Nothing
         , viewShape =
-            viewActivityShape activity isActive configs
+            viewActivityShape activity isActive False configs
         }
 
 

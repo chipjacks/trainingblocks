@@ -595,7 +595,7 @@ view configs activityM =
     case activityM of
         Editing model ->
             if model.date == Nothing then
-                row (openAttributes "1.5rem")
+                row (openAttributes "2.2rem")
                     [ row [ padding ]
                         [ MonoIcons.icon (MonoIcons.circleInformation "var(--blue-500)")
                         , column [ style "margin-left" "1rem" ] [ text "Select Date" ]

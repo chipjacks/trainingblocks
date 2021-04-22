@@ -716,6 +716,7 @@ viewActivityShape configs selectedLap lapIndex lap repeatM =
                         row
                             [ onClick (SelectedRepeatLap i)
                             , attributeIf (i == Selection.selectedIndex repeat) (class "selected-shape")
+                            , attributeIf (i == Selection.selectedIndex repeat) (class "dynamic-shape")
                             , style "padding-top" "0.5rem"
                             , style "padding-bottom" "0.5rem"
                             , style "min-height" "1rem"
@@ -723,11 +724,7 @@ viewActivityShape configs selectedLap lapIndex lap repeatM =
                             [ ActivityShape.view configs data ]
                     )
                     (Selection.toList repeat)
-                , [ row
-                        [ style "padding-top" "0.5rem"
-                        , style "padding-bottom" "0.5rem"
-                        ]
-                        [ viewAddButton ClickedAddRepeat ]
+                , [ row [] [ viewAddButton ClickedAddRepeat ]
                   ]
                 ]
 
@@ -737,6 +734,7 @@ viewActivityShape configs selectedLap lapIndex lap repeatM =
                     List.singleton <|
                         row
                             [ onClick (SelectedLap lapIndex)
+                            , attributeIf (lapIndex == selectedLap) (class "dynamic-shape")
                             , style "padding-top" "0.5rem"
                             , style "padding-bottom" "0.5rem"
                             , style "min-height" "1rem"
@@ -745,17 +743,14 @@ viewActivityShape configs selectedLap lapIndex lap repeatM =
 
                 Repeats count list ->
                     [ row [ style "padding-top" "0.5rem" ] [] ]
-                        ++ (List.map (\data -> row [ onClick (SelectedLap lapIndex) ] [ ActivityShape.view configs data ]) list
-                                |> List.repeat count
-                                |> List.concat
-                           )
-                        ++ [ row [ style "padding-bottom" "0.5rem" ] [] ]
+                        ++ List.map (\data -> row [ onClick (SelectedLap lapIndex) ] [ ActivityShape.view configs data ]) list
+                        ++ [ row [ style "padding" "5px", style "color" "var(--black-300)", style "font-size" "0.8rem" ] [ text ("x " ++ String.fromInt count) ] ]
 
 
 viewAddButton : Msg -> Html Msg
 viewAddButton msg =
     row []
-        [ iconButton [ onClick msg ] [ MonoIcons.icon (MonoIcons.add "var(--grey-900)") ]
+        [ iconButton [ onClick msg ] [ MonoIcons.icon (MonoIcons.add "var(--black-100)") ]
         ]
 
 

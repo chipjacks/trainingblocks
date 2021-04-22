@@ -633,7 +633,7 @@ view configs activityM =
                                      ]
                                         ++ drawerAttributes
                                     )
-                                    [ viewLapFields configs.levelM model
+                                    [ viewLapFields configs model
                                     ]
 
                               else
@@ -770,8 +770,8 @@ viewActivityFields emojis form =
         ]
 
 
-viewLapFields : Maybe Int -> ActivityForm -> Html Msg
-viewLapFields levelM form =
+viewLapFields : ActivityConfigs -> ActivityForm -> Html Msg
+viewLapFields { emojis, levelM } form =
     let
         maxFieldWidth =
             style "max-width" "20rem"
@@ -792,10 +792,11 @@ viewLapFields levelM form =
             ]
         , row [ styleIf (form.activityType /= Activity.Types.Run) "visibility" "hidden" ]
             [ column [ maxFieldWidth, style "flex-grow" "2" ] [ distanceInput EditedDistance form.distance form.distanceUnits form.validated.distance ]
-            , column [ maxFieldWidth, style "flex-grow" "1" ] [ raceToggle CheckedRace form.race ]
+            , column [ maxFieldWidth, style "flex-grow" "1" ] [ emojiSelect SelectedEmoji emojis form.emoji form.emojiSearch ]
             ]
         , row [ styleIf (form.activityType /= Activity.Types.Run) "visibility" "hidden" ]
             [ column [ maxFieldWidth, style "flex-grow" "2" ] [ paceSelect levelM SelectedPace form.pace form.validated.pace ]
+            , column [ maxFieldWidth, style "flex-grow" "1" ] [ raceToggle CheckedRace form.race ]
             ]
         ]
 
@@ -1022,7 +1023,7 @@ emojiSelect msg emojis name search =
                 ]
                 [ Emoji.view data ]
     in
-    column [ style "width" "150px" ]
+    column [ style "width" "100px" ]
         [ row [ style "justify-content" "space-between" ]
             [ label "Feel" (name /= "") (msg "")
             , compactColumn [ borderStyle "border-bottom" ]
@@ -1031,7 +1032,7 @@ emojiSelect msg emojis name search =
                     , input
                         [ onInput SearchedEmojis
                         , onFocus (SearchedEmojis "")
-                        , style "width" "4rem"
+                        , style "width" "2rem"
                         , style "padding" "0"
                         , style "border" "none"
                         , value search
@@ -1040,8 +1041,8 @@ emojiSelect msg emojis name search =
                     ]
                 ]
             ]
-        , row [ style "margin-top" "4px", style "height" "27px" ]
-            (List.map emojiItem (results |> List.take 5))
+        , row [ style "margin-top" "4px", style "height" "55px", style "flex-wrap" "wrap" ]
+            (List.map emojiItem (results |> List.take 6))
         ]
 
 

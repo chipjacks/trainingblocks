@@ -20,11 +20,12 @@ default =
 
 recommended : EmojiDict -> List EmojiData
 recommended emojis =
-    [ get emojis "smiley"
-    , get emojis "slightly_smiling_face"
+    [ get emojis "slightly_smiling_face"
     , get emojis "neutral_face"
     , get emojis "disappointed"
-    , get emojis "tired_face"
+    , get emojis "dizzy_face"
+    , get emojis "face_with_thermometer"
+    , get emojis "face_with_head_bandage"
     ]
         |> List.map (Maybe.withDefault default)
 

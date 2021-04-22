@@ -346,6 +346,13 @@ update msg model =
 
                         Activity.Types.Planned ->
                             ( Activity.Types.Completed, model.activity.laps |> Maybe.withDefault [] )
+
+                newEditingLap =
+                    if List.isEmpty newLaps then
+                        False
+
+                    else
+                        model.editingLap
             in
             ( updateActiveSelection
                 (\m ->
@@ -353,7 +360,7 @@ update msg model =
                     , Nothing
                     )
                 )
-                { model | completed = newCompletion }
+                { model | completed = newCompletion, editingLap = newEditingLap }
                 |> updateFromSelection
             , Effect.None
             )
@@ -686,10 +693,7 @@ viewLaps configs completed editingLap isAutofillable lapSelection repeatSelectio
                     , style "height" "2rem"
                     , style "align-items" "space-between"
                     ]
-                    (if editingLap then
-                        []
-
-                     else if Selection.toList lapSelection |> List.isEmpty then
+                    (if Selection.toList lapSelection |> List.isEmpty then
                         [ completionToggle CheckedCompleted completed
                         , viewIf isAutofillable (Html.button [ class "button medium", onClick ClickedAutofill ] [ text "Autofill" ])
                         ]

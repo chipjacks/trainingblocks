@@ -8,7 +8,7 @@ import Html.Events
 import Json.Decode as Decode
 import Msg exposing (ActivityConfigs, Msg(..))
 import Pace
-import Skeleton exposing (attributeIf, borderStyle, column, compactColumn, onPointerDown, row, styleIf, viewMaybe)
+import Skeleton exposing (attributeIf, borderStyle, column, compactColumn, row, stopPropagationOnClick, styleIf, viewMaybe)
 
 
 lapDescription : Maybe Int -> LapData -> String
@@ -65,15 +65,17 @@ listItem params =
     in
     row
         [ style "padding" "0.5rem 0.5rem"
+        , style "min-height" "3rem"
         , styleIf isActive "background-color" "var(--grey-100)"
         , style "position" "relative"
-        , attributeIf isActive (Html.Events.onDoubleClick params.handleDoubleClick)
+        , Html.Events.stopPropagationOn "dblclick" (Decode.succeed ( params.handleDoubleClick, True ))
+        , stopPropagationOnClick (Decode.succeed NoOp) -- prevents close event from firing
         ]
         [ viewMaybe params.viewToolbarM
             (\toolbar ->
                 div
                     [ style "position" "absolute"
-                    , style "top" "-20px"
+                    , style "top" "-15px"
                     , style "right" "0"
                     , style "z-index" "3"
                     ]
@@ -83,13 +85,13 @@ listItem params =
         , compactColumn
             [ style "flex-basis" "5rem"
             , style "justify-content" "center"
-            , attributeIf (not isActive) (onPointerDown params.handlePointerDown)
+            , attributeIf (not isActive) (stopPropagationOnClick params.handlePointerDown)
             ]
             [ params.viewShape ]
         , a
             [ class "column expand"
             , style "justify-content" "center"
-            , attributeIf (not isActive) (onPointerDown params.handlePointerDown)
+            , attributeIf (not isActive) (stopPropagationOnClick params.handlePointerDown)
             ]
             [ row [ style "word-break" "break-all" ] [ viewMaybe params.titleM text ]
             , row [ style "font-size" "0.8rem" ] [ column [] [ text params.subtitle ] ]
@@ -98,7 +100,7 @@ listItem params =
             (\handleMultiSelect ->
                 compactColumn
                     [ attributeIf (not isActive)
-                        (onPointerDown handleMultiSelect)
+                        (stopPropagationOnClick handleMultiSelect)
                     , style "justify-content" "center"
                     ]
                     [ row

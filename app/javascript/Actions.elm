@@ -3,15 +3,16 @@ module Actions exposing (actionButton, viewActivityActions, viewFormActions, vie
 import Html exposing (Html)
 import Html.Attributes exposing (class, style)
 import Html.Events exposing (onClick)
+import Json.Decode as Decode
 import MonoIcons
 import Msg exposing (..)
-import Skeleton exposing (attributeIf, column, row)
+import Skeleton exposing (attributeIf, borderStyle, column, row)
 import Svg exposing (Svg)
 
 
 viewActivityActions : Html Msg
 viewActivityActions =
-    row []
+    row buttonGroupStyles
         [ actionButton Medium ClickedEdit MonoIcons.edit "Edit" False
         , actionButton Medium ClickedCopy MonoIcons.copy "Copy" False
         , actionButton Medium ClickedDelete MonoIcons.delete "Delete" False
@@ -22,7 +23,13 @@ viewActivityActions =
 
 viewLapActions : Bool -> Html Msg
 viewLapActions isEditing =
-    row []
+    row
+        (if isEditing then
+            []
+
+         else
+            buttonGroupStyles
+        )
         [ if isEditing then
             actionButton Medium ClickedEdit MonoIcons.check "Save" True
 
@@ -37,7 +44,7 @@ viewLapActions isEditing =
 
 viewMultiSelectActions : Html Msg
 viewMultiSelectActions =
-    row []
+    row buttonGroupStyles
         [ actionButton Medium ClickedDelete MonoIcons.delete "Delete" False
         , actionButton Medium ClickedGroup MonoIcons.folder "Group" False
         ]
@@ -46,18 +53,22 @@ viewMultiSelectActions =
 viewFormActions : Html Msg
 viewFormActions =
     row []
-        [ actionButton Medium ClickedClose MonoIcons.close "Close" False
-        , actionButton Wide ClickedSubmit MonoIcons.check "Save" True
+        [ actionButton Wide ClickedSubmit MonoIcons.check "Save" True
+        , actionButton Medium ClickedClose MonoIcons.close "Close" False
         ]
 
 
 viewPopoverActions : Html Msg
 viewPopoverActions =
-    column []
+    column buttonGroupStyles
         [ actionButton Medium ClickedEdit MonoIcons.edit "Edit" False
         , actionButton Medium ClickedCopy MonoIcons.copy "Copy" False
         , actionButton Medium ClickedDelete MonoIcons.delete "Delete" False
         ]
+
+
+buttonGroupStyles =
+    [ class "button-group", style "border-radius" "5px", borderStyle "border", style "overflow" "hidden" ]
 
 
 type ButtonSize
@@ -88,12 +99,11 @@ actionButton size onClickMsg icon labelStr primary =
                     "wide"
     in
     Html.button
-        [ class "button expand"
+        [ class "button expand basic"
         , class sizeClass
         , attributeIf primary (class "primary")
         , Html.Attributes.attribute "aria-label" labelStr
-        , style "margin-right" "0.2rem"
         , style "text-align" "center"
-        , onClick onClickMsg
+        , Html.Events.stopPropagationOn "click" (Decode.succeed ( onClickMsg, True ))
         ]
         [ MonoIcons.icon (icon iconFill) ]

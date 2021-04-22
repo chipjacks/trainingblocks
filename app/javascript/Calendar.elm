@@ -21,7 +21,7 @@ import Msg exposing (ActivityConfigs, ActivityState(..), Msg(..), Zoom(..))
 import Pace
 import Ports exposing (scrollToSelectedDate)
 import Process
-import Skeleton exposing (attributeIf, borderStyle, column, compactColumn, dropdown, expandingRow, iconButton, onPointerDown, row, spinner, styleIf, viewIf, viewMaybe)
+import Skeleton exposing (attributeIf, borderStyle, column, compactColumn, dropdown, expandingRow, iconButton, row, spinner, stopPropagationOnClick, styleIf, viewIf, viewMaybe)
 import Task
 import Time exposing (Month(..))
 
@@ -274,7 +274,7 @@ view model activities activeId activeRataDie isMoving configs =
             , styleIf (zoom == Month) "animation" "slidein-right 0.5s 0.01ms"
             , styleIf (zoom == Month) "opacity" "0"
             , styleIf (zoom == Month) "animation-fill-mode" "forwards"
-            , attributeIf (activeId /= "") (Html.Events.stopPropagationOn "pointerdown" (Decode.succeed ( ClickedClose, True )))
+            , attributeIf (activeId /= "") (Html.Events.stopPropagationOn "click" (Decode.succeed ( ClickedClose, True )))
             ]
           <|
             List.concat
@@ -429,7 +429,7 @@ viewWeekDay ( date, activities ) isToday isSelected isMoving activeId configs =
             )
             :: row []
                 [ a
-                    [ onPointerDown (Decode.succeed (ChangeZoom Month (Just date)))
+                    [ stopPropagationOnClick (Decode.succeed (ChangeZoom Month (Just date)))
                     , attribute "data-date" (Date.toIsoString date)
                     , styleIf isToday "text-decoration" "underline"
                     ]
@@ -439,7 +439,7 @@ viewWeekDay ( date, activities ) isToday isSelected isMoving activeId configs =
                 (\a ->
                     row
                         [ attributeIf (not (isActive a))
-                            (onPointerDown (selectActivityDecoder a))
+                            (stopPropagationOnClick (selectActivityDecoder a))
                         , class "no-select"
                         , style "margin-bottom" "0.1rem"
                         , style "margin-right" "0.2rem"

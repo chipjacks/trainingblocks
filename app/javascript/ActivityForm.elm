@@ -693,15 +693,10 @@ viewLaps configs completed editingLap isAutofillable lapSelection repeatSelectio
                     , style "height" "2rem"
                     , style "align-items" "space-between"
                     ]
-                    (if Selection.toList lapSelection |> List.isEmpty then
-                        [ completionToggle CheckedCompleted completed
-                        , viewIf isAutofillable (Html.button [ class "button medium", onClick ClickedAutofill ] [ text "Autofill" ])
-                        ]
-
-                     else
-                        [ completionToggle CheckedCompleted completed
-                        ]
-                    )
+                    [ completionToggle CheckedCompleted completed
+                    , viewIf ((Selection.toList lapSelection |> List.isEmpty) && isAutofillable)
+                        (Html.button [ class "button medium", onClick ClickedAutofill ] [ text "Autofill" ])
+                    ]
               ]
             , Selection.toList lapSelection
                 |> List.indexedMap viewLap

@@ -123,7 +123,7 @@ borderStyle position =
 
 onPointerDown : Decode.Decoder msg -> Html.Attribute msg
 onPointerDown decoder =
-    Html.Events.stopPropagationOn "pointerdown"
+    Html.Events.stopPropagationOn "click"
         (decoder
             |> Decode.map (\m -> ( m, True ))
         )

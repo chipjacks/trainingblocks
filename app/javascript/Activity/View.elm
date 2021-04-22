@@ -67,14 +67,13 @@ listItem params =
         [ style "padding" "0.5rem 0.5rem"
         , styleIf isActive "background-color" "var(--grey-100)"
         , style "position" "relative"
-        , Html.Events.onDoubleClick params.handleDoubleClick
-        , attributeIf isActive (onPointerDown (Decode.succeed NoOp))
+        , attributeIf isActive (Html.Events.onDoubleClick params.handleDoubleClick)
         ]
         [ viewMaybe params.viewToolbarM
             (\toolbar ->
                 div
                     [ style "position" "absolute"
-                    , style "top" "-10px"
+                    , style "top" "-20px"
                     , style "right" "0"
                     , style "z-index" "3"
                     ]

@@ -1,6 +1,6 @@
 module ActivityForm exposing (init, initMove, update, view)
 
-import Actions exposing (toolbarButton, viewFormActions)
+import Actions exposing (actionButton)
 import Activity
 import Activity.Laps
 import Activity.Types exposing (Activity, ActivityData, ActivityType, Completion(..), DistanceUnits(..), LapData(..))
@@ -762,7 +762,7 @@ viewActivityFields emojis form =
     column []
         [ row [ style "margin-bottom" "10px" ]
             [ column [ maxFieldWidth ] [ dateSelect ClickedMove form.date ]
-            , column [ style "align-items" "flex-end" ] [ viewFormActions ]
+            , column [ style "align-items" "flex-end" ] [ Actions.viewFormActions ]
             ]
         , row [ style "max-width" "40rem" ]
             [ descriptionInput EditedDescription form.description

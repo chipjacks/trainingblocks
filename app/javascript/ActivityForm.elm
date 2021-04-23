@@ -386,6 +386,12 @@ update msg model =
             , Effect.None
             )
 
+        ClickedClearLaps ->
+            ( updateActiveSelection (\m -> ( Selection.init [], Nothing )) { model | editingLap = False }
+                |> updateActivity
+            , Effect.None
+            )
+
         SelectedActivityType activityType ->
             ( updateActivity { model | activityType = activityType }
             , Effect.None
@@ -690,6 +696,8 @@ viewLaps configs completed editingLap isAutofillable lapSelection repeatSelectio
                     [ completionToggle CheckedCompleted completed
                     , viewIf ((Selection.toList lapSelection |> List.isEmpty) && isAutofillable)
                         (Html.button [ class "button medium", onClick ClickedAutofill ] [ text "Autofill" ])
+                    , viewIf (not (Selection.toList lapSelection |> List.isEmpty))
+                        (Html.button [ class "button medium", onClick ClickedClearLaps ] [ text "Clear" ])
                     ]
               ]
             , Selection.toList lapSelection

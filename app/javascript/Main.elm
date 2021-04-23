@@ -414,6 +414,10 @@ update msg model =
                     updateActivityForm msg state
                         |> loaded
 
+                ClickedClearLaps ->
+                    updateActivityForm msg state
+                        |> loaded
+
                 ClickedSubmit ->
                     case activityM of
                         Editing form ->

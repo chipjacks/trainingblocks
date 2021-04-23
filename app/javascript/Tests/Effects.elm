@@ -49,9 +49,8 @@ simulateEffects effect =
                     (Activity "1234567890"
                         (Date.fromCalendarDate 2020 Time.Jan 1)
                         ""
-                        Activity.initActivityData
-                        Nothing
-                        Nothing
+                        [ Activity.Types.Individual Activity.initActivityData ]
+                        []
                     )
                 )
 

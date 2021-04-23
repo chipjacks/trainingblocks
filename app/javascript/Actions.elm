@@ -31,10 +31,10 @@ viewLapActions isEditing =
             buttonGroupStyles
         )
         [ if isEditing then
-            actionButton Medium ClickedEdit MonoIcons.check "Save" True
+            actionButton Medium ClickedEdit MonoIcons.check "Save Lap" True
 
           else
-            actionButton Medium ClickedEdit MonoIcons.edit "Edit" False
+            actionButton Medium ClickedEdit MonoIcons.edit "Edit Lap" False
         , actionButton Medium ClickedCopy MonoIcons.copy "Copy" False
         , actionButton Medium ClickedDelete MonoIcons.delete "Delete" False
         , actionButton Medium (ClickedShift True) MonoIcons.arrowUp "Shift Up" False

@@ -5,7 +5,7 @@ import Activity.Types exposing (Activity, ActivityData, ActivityType(..), Comple
 import Date exposing (Date)
 import Enum exposing (Enum)
 import Json.Decode as Decode
-import Json.Decode.Pipeline exposing (custom, optional, required)
+import Json.Decode.Pipeline exposing (custom, optional, optionalAt, required)
 import Json.Encode as Encode
 import MPRLevel
 import Pace
@@ -113,8 +113,8 @@ decoder =
         |> required "id" Decode.string
         |> required "date" dateDecoder
         |> required "description" Decode.string
-        |> custom (Decode.at [ "data", "laps" ] (Decode.list lapDataDecoder))
-        |> custom (Decode.at [ "data", "planned" ] (Decode.list lapDataDecoder))
+        |> optionalAt [ "data", "laps" ] (Decode.list lapDataDecoder) []
+        |> optionalAt [ "data", "planned" ] (Decode.list lapDataDecoder) []
 
 
 lapDataDecoder : Decode.Decoder LapData

@@ -19,17 +19,27 @@ RSpec.describe Activity, type: :model do
     it "sets activity data" do
       @import = create(:import, user: @user)
       result = Activity.from_strava_activity(@import)
-      expect(result.data['duration']).to eq(@import.data['moving_time'])
-      expect(result.data['pace']).to be_truthy
-      expect(result.data['distance']).to be_truthy
-      expect(result.data['completed']).to be_truthy
-      expect(result.data['type']).to eq(Activity::RUN)
+
+      lap = result.data['laps'][0]
+      expect(lap['duration']).to eq(@import.data['moving_time'])
+      expect(lap['pace']).to be_truthy
+      expect(lap['distance']).to be_truthy
+      expect(lap['completed']).to be_truthy
+      expect(lap['type']).to eq(Activity::RUN)
     end
 
     it "adds laps" do
       @import = create(:import, :laps, user: @user)
       result = Activity.from_strava_activity(@import)
       expect(result.data['laps'].length).to eq(10)
+    end
+  end
+
+  describe "#planned_duration" do
+    it "sums lap durations" do
+      @import = create(:import, :laps)
+      result = Activity.from_strava_activity(@import)
+      expect(result.completed_duration).to be_within(10).of(@import.data['moving_time'])
     end
   end
 end

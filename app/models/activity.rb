@@ -23,27 +23,15 @@ class Activity < ApplicationRecord
 
   def self.from_strava_activity(import)
     activity = import.data.deep_symbolize_keys
-    type =
-      if activity[:type] === RUN
-        RUN
-      else
-        OTHER
-      end
 
     date = Date.parse(activity[:start_date_local]).to_s
     description = activity[:name]
-    duration = activity[:moving_time]
-    data =
-      if type === RUN
-        pace = to_seconds_per_mile(activity[:average_speed])
-        distance = activity[:distance]
-        { type: type, pace: pace, duration: duration, distance: distance, completed: true }
-      else
-        { type: type, duration: duration, completed: true }
-      end
+    data = {}
 
     if activity[:laps] then
       data[:laps] = parse_strava_laps(activity[:laps])
+    else
+      data[:laps] = parse_strava_laps([ activity ])
     end
 
     activity_hash =
@@ -66,16 +54,25 @@ class Activity < ApplicationRecord
     end
   end
 
+  def planned_duration
+    (self.data['planned'] || []).map {|l| l['duration'] || 0}.sum
+  end
+
+  def completed_duration
+    (self.data['laps'] || []).map {|l| l['duration'] || 0}.sum
+  end
+
   def match?(activity)
     return true if self.id == activity.id
 
     same_date = self.date == activity.date
 
     same_type = self.run? && activity.run? || (!self.run? && !activity.run?)
+
     ten_minutes = 10 * 60
     same_duration =
-      if self.data['duration'] && activity.data['duration']
-        (self.data['duration'] - activity.data['duration']).abs < ten_minutes
+      if self.planned_duration && activity.completed_duration
+        (self.planned_duration - activity.completed_duration).abs < ten_minutes
       else
         true
       end
@@ -91,7 +88,16 @@ class Activity < ApplicationRecord
 
   def self.parse_strava_laps(laps)
     laps.map do |lap|
-      { type: RUN,
+      type =
+        if lap[:type] === RUN
+          RUN
+        elsif !lap[:type]
+          RUN
+        else
+          OTHER
+        end
+
+      { type: type,
         pace: to_seconds_per_mile(lap[:average_speed]),
         distance: lap[:distance],
         duration: lap[:moving_time],

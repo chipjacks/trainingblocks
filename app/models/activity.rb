@@ -50,7 +50,7 @@ class Activity < ApplicationRecord
 
     includes_a_run = all_laps.find{ |l| l['type'] == Activity::RUN }
 
-    includes_a_run
+    !!includes_a_run
   end
 
   def planned_duration

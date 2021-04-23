@@ -14,7 +14,7 @@ class Activity < ApplicationRecord
       self.save!
     elsif !match.import
       match.import = self.import
-      match.data['completed'] = true
+      match.data['laps'] = self.data['laps']
       match.save!
     else
       nil
@@ -46,12 +46,11 @@ class Activity < ApplicationRecord
   end
 
   def run?
-    case self.data['type']
-    when Activity::RUN
-      true
-    else
-      false
-    end
+    all_laps = ((self.data['laps'] || []) + (self.data['planned'] || []))
+
+    includes_a_run = all_laps.find{ |l| l['type'] == Activity::RUN }
+
+    includes_a_run
   end
 
   def planned_duration
@@ -62,19 +61,21 @@ class Activity < ApplicationRecord
     (self.data['laps'] || []).map {|l| l['duration'] || 0}.sum
   end
 
-  def match?(activity)
-    return true if self.id == activity.id
+  def match?(planned_activity)
+    return true if self.id == planned_activity.id
 
-    same_date = self.date == activity.date
+    return false if planned_activity.completed_duration > 0
 
-    same_type = self.run? && activity.run? || (!self.run? && !activity.run?)
+    same_date = self.date == planned_activity.date
+
+    same_type = self.run? && planned_activity.run? || (!self.run? && !planned_activity.run?)
 
     ten_minutes = 10 * 60
     same_duration =
-      if self.planned_duration && activity.completed_duration
-        (self.planned_duration - activity.completed_duration).abs < ten_minutes
+      if self.completed_duration && planned_activity.planned_duration
+        (self.completed_duration - planned_activity.planned_duration).abs < ten_minutes
       else
-        true
+        false
       end
 
     same_date && same_type && same_duration

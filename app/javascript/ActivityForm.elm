@@ -688,10 +688,11 @@ viewLaps configs completed editingLap isAutofillable lapSelection repeatSelectio
             [ [ row
                     [ style "position" "sticky"
                     , style "top" "0"
-                    , style "z-index" "3"
+                    , style "z-index" "4"
                     , style "padding" "0.5rem"
-                    , style "height" "2rem"
+                    , style "height" "1.8rem"
                     , style "align-items" "space-between"
+                    , style "background-color" "white"
                     ]
                     [ completionToggle CheckedCompleted completed
                     , viewIf ((Selection.toList lapSelection |> List.isEmpty) && isAutofillable)

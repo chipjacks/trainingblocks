@@ -2,11 +2,10 @@ module Actions exposing (actionButton, viewActivityActions, viewFormActions, vie
 
 import Html exposing (Html)
 import Html.Attributes exposing (class, style)
-import Html.Events exposing (onClick)
 import Json.Decode as Decode
 import MonoIcons
 import Msg exposing (..)
-import Skeleton exposing (attributeIf, borderStyle, column, row)
+import Skeleton exposing (attributeIf, borderStyle, column, row, stopPropagationOnClick)
 import Svg exposing (Svg)
 
 
@@ -104,6 +103,6 @@ actionButton size onClickMsg icon labelStr primary =
         , attributeIf primary (class "primary")
         , Html.Attributes.attribute "aria-label" labelStr
         , style "text-align" "center"
-        , Html.Events.stopPropagationOn "click" (Decode.succeed ( onClickMsg, True ))
+        , stopPropagationOnClick (Decode.succeed onClickMsg)
         ]
         [ MonoIcons.icon (icon iconFill) ]

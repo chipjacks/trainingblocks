@@ -619,7 +619,7 @@ view configs activityM =
                                     [ style "position" "absolute"
                                     , style "top" "0"
                                     , style "right" "0"
-                                    , style "z-index" "3"
+                                    , style "z-index" "5"
                                     , style "background-color" "white"
                                     , style "height" "100%"
                                     ]

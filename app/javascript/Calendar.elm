@@ -274,7 +274,7 @@ view model activities activeId activeRataDie isMoving configs =
             , styleIf (zoom == Month) "animation" "slidein-right 0.5s 0.01ms"
             , styleIf (zoom == Month) "opacity" "0"
             , styleIf (zoom == Month) "animation-fill-mode" "forwards"
-            , attributeIf (activeId /= "") (Html.Events.stopPropagationOn "click" (Decode.succeed ( ClickedClose, True )))
+            , attributeIf (activeId /= "") (stopPropagationOnClick (Decode.succeed ClickedClose))
             ]
           <|
             List.concat

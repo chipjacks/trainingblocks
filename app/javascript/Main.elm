@@ -630,7 +630,7 @@ view model =
         ]
         [ case model of
             Loading _ _ _ ->
-                column [ style "justify-content" "center", style "align-items" "center" ] [ spinner "10rem" ]
+                column [ style "justify-content" "center", style "align-items" "center" ] [ spinner "3rem" ]
 
             Error errorString ->
                 column [] [ text errorString ]

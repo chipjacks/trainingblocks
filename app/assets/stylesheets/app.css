@@ -86,20 +86,18 @@ button, .button {
   text-decoration: none;
   color: black;
 }
-.basic { background-color: white }
-.button-group .button { border-radius: 0 }
 .button.small { padding: 0rem 0.6rem; }
 .button.medium { padding: 0.3rem 0.8rem; }
 .button.wide { padding: 0.3rem 2rem; }
 button:hover, .button:hover { background-color: var(--grey-300); }
 button:focus, .button:focus { border-color: var(--blue-500); outline: none; }
+.basic { background-color: white }
 .primary { background-color: #2185d0; color: #fff; }
 .primary:hover { background-color: #1678c2; }
 
-.radio-buttons > button { border-radius: 0; }
-.radio-buttons > button:first-child { border-radius: 0.25rem 0 0 0.25rem }
-.radio-buttons > button:last-child { border-radius: 0 0.25rem 0.25rem 0 }
-.radio-buttons > button.selected { background-color: var(--grey-300); }
+.button-group > .button { border-radius: 0; margin: 0 }
+.button-group > .button:first-child { border-top-left-radius: 0.25rem; border-bottom-left-radius: 0.25rem }
+.button-group > .button:last-child { border-top-right-radius: 0.25rem; border-bottom-right-radius: 0.25rem }
 
 .no-select { user-select: none; -webkit-user-select: none; }
 .dynamic-shape > .block { transition: height 0.5s, width 0.5s; }

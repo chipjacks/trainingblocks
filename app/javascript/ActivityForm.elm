@@ -959,12 +959,10 @@ dateSelect msg date =
 completionToggle : Msg -> Activity.Types.Completion -> Html Msg
 completionToggle msg completed =
     column []
-        [ row []
+        [ row [ class "button-group" ]
             [ Html.button
                 [ class "button medium"
                 , style "text-align" "center"
-                , style "border-top-right-radius" "0"
-                , style "border-bottom-right-radius" "0"
                 , attributeIf (completed == Activity.Types.Completed) (onClick msg)
                 , styleIf (completed == Activity.Types.Planned) "background-color" "var(--grey-500)"
                 ]
@@ -972,8 +970,6 @@ completionToggle msg completed =
             , Html.button
                 [ class "button medium"
                 , style "text-align" "center"
-                , style "border-top-left-radius" "0"
-                , style "border-bottom-left-radius" "0"
                 , attributeIf (completed == Activity.Types.Planned) (onClick msg)
                 , styleIf (completed == Activity.Types.Completed) "background-color" "var(--grey-500)"
                 ]

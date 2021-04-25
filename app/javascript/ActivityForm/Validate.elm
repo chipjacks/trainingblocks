@@ -93,12 +93,21 @@ parseDuration ( hrs, mins, secs ) =
 
             else
                 String.toInt str |> Result.fromMaybe ParseError
+
+        handleZeroTime result =
+            case result of
+                Ok 0 ->
+                    Err ValueError
+
+                _ ->
+                    result
     in
     Result.map3
         (\h m s -> h * 60 * 60 + m * 60 + s)
         (toIntResult hrs)
         (toIntResult mins)
         (toIntResult secs)
+        |> handleZeroTime
 
 
 parsePace : String -> Result FieldError Int

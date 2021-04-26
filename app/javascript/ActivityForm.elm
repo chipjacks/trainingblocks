@@ -990,6 +990,7 @@ repeatsInput msg countStrM result =
                         99
                         [ onInput msg
                         , value countStr
+                        , style "width" "2.5rem"
                         ]
                         []
                     ]
@@ -1116,6 +1117,7 @@ distanceInput msg dist units result =
                     _ ->
                         Html.Attributes.placeholder ""
                 , value dist
+                , style "width" "4rem"
                 , style "border-top-right-radius" "0"
                 , style "border-bottom-right-radius" "0"
                 ]

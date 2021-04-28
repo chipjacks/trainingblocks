@@ -1,4 +1,6 @@
 class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
+  include Devise::Controllers::Rememberable
+
   def strava
     @user = User.from_omniauth(request.env["omniauth.auth"])
     credentials = request.env.dig("omniauth.auth", "credentials")
@@ -8,6 +10,7 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
         InitialStravaImportJob.perform_now(@user, credentials["token"])
       end
       @user.auth_token = credentials["refresh_token"]
+      remember_me(@user)
       @user.save!
       set_flash_message(:notice, :success, kind: "Strava") if is_navigational_format?
       store_location_for(:user, :root_path)

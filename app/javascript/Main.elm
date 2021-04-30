@@ -42,7 +42,7 @@ main =
 
 
 type Model
-    = Loading (Maybe Date) (Maybe Store.Model) String
+    = Loading (Maybe Date) (Maybe Store.Model)
     | Loaded State
     | Error String
 
@@ -51,9 +51,9 @@ type State
     = State Calendar.Model Store.Model ActivityState
 
 
-init : { csrfToken : String } -> ( Model, Effect )
-init { csrfToken } =
-    ( Loading Nothing Nothing csrfToken
+init : () -> ( Model, Effect )
+init _ =
+    ( Loading Nothing Nothing
     , Effect.Batch
         [ Effect.DateToday Jump
         , Effect.GetActivities
@@ -104,18 +104,17 @@ viewNavbar model =
 update : Msg -> Model -> ( Model, Effect )
 update msg model =
     case model of
-        Loading dateM activitiesM token ->
+        Loading dateM activitiesM ->
             case msg of
                 Jump date ->
-                    Loading (Just date) activitiesM token
+                    Loading (Just date) activitiesM
                         |> updateLoading
 
                 GotActivities activitiesR ->
                     case activitiesR of
                         Ok ( revision, activities ) ->
                             Loading dateM
-                                (Just (Store.init token revision activities))
-                                token
+                                (Just (Store.init revision activities))
                                 |> updateLoading
 
                         Err err ->
@@ -527,7 +526,7 @@ update msg model =
 updateLoading : Model -> ( Model, Effect )
 updateLoading model =
     case model of
-        Loading (Just date) (Just store) csrfToken ->
+        Loading (Just date) (Just store) ->
             let
                 ( calendarModel, calendarEffect ) =
                     Calendar.init Msg.Month date date
@@ -629,7 +628,7 @@ view model =
         , borderStyle "border-right"
         ]
         [ case model of
-            Loading _ _ _ ->
+            Loading _ _ ->
                 column [ style "justify-content" "center", style "align-items" "center" ] [ spinner "3rem" ]
 
             Error errorString ->

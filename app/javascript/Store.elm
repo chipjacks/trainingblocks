@@ -16,7 +16,7 @@ import Task
 
 
 type Model
-    = Model State (List Msg) String
+    = Model State (List Msg)
 
 
 type alias State =
@@ -26,19 +26,19 @@ type alias State =
     }
 
 
-init : String -> String -> List Activity -> Model
-init csrfToken revision activities =
+init : String -> List Activity -> Model
+init revision activities =
     let
         configs =
             { levelM = Nothing
             , emojis = Dict.empty
             }
     in
-    Model (State activities revision configs |> updateLevel) [] csrfToken
+    Model (State activities revision configs |> updateLevel) []
 
 
 get : Model -> (State -> b) -> b
-get (Model state _ _) f =
+get (Model state _) f =
     f state
 
 
@@ -48,7 +48,7 @@ cmd msg =
 
 
 needsFlush : Model -> Bool
-needsFlush (Model _ msgs _) =
+needsFlush (Model _ msgs) =
     not (List.isEmpty msgs)
 
 
@@ -112,37 +112,37 @@ updateConfigs transform state =
 
 
 update : Msg -> Model -> ( Model, Effect )
-update msg (Model state msgs csrfToken) =
+update msg (Model state msgs) =
     let
         model =
-            Model state msgs csrfToken
+            Model state msgs
     in
     case msg of
         Posted sentMsgs result ->
             case result of
                 Ok ( rev, True ) ->
-                    ( Model { state | revision = rev } msgs csrfToken
+                    ( Model { state | revision = rev } msgs
                     , Effect.None
                     )
 
                 Err (Http.BadStatus 409) ->
-                    ( Model state (msgs ++ sentMsgs) csrfToken
+                    ( Model state (msgs ++ sentMsgs)
                     , Effect.Cmd (Task.attempt GotActivities Api.getActivities)
                     )
 
                 _ ->
-                    ( Model state (msgs ++ sentMsgs) csrfToken
+                    ( Model state (msgs ++ sentMsgs)
                     , Effect.None
                     )
 
         FlushNow ->
-            ( Model state [] csrfToken
+            ( Model state []
             , flush model
             )
 
         DebounceFlush length ->
             if length == List.length msgs then
-                ( Model state [] csrfToken
+                ( Model state []
                 , flush model
                 )
 
@@ -157,7 +157,7 @@ update msg (Model state msgs csrfToken) =
                             List.foldr (\rmsg rs -> updateState rmsg rs) { state | activities = activities, revision = revision } msgs
                                 |> updateLevel
                     in
-                    ( Model newState msgs csrfToken
+                    ( Model newState msgs
                     , debounceFlush (List.length msgs)
                     )
 
@@ -167,7 +167,7 @@ update msg (Model state msgs csrfToken) =
         FetchedEmojis result ->
             case result of
                 Ok emojis ->
-                    ( Model (updateConfigs (\c -> { c | emojis = Emoji.toDict emojis }) state) msgs csrfToken
+                    ( Model (updateConfigs (\c -> { c | emojis = Emoji.toDict emojis }) state) msgs
                     , Effect.None
                     )
 
@@ -175,7 +175,7 @@ update msg (Model state msgs csrfToken) =
                     ( model, Effect.None )
 
         _ ->
-            ( Model (updateState msg state) (msg :: msgs) csrfToken
+            ( Model (updateState msg state) (msg :: msgs)
             , debounceFlush (List.length msgs + 1)
             )
 
@@ -188,13 +188,12 @@ debounceFlush length =
 flush : Model -> Effect
 flush model =
     case model of
-        Model state [] _ ->
+        Model state [] ->
             Effect.None
 
-        Model state msgs csrfToken ->
+        Model state msgs ->
             Effect.PostActivities msgs
-                { token = csrfToken
-                , revision = state.revision
+                { revision = state.revision
                 , orderUpdates = orderUpdates state.activities msgs
                 , activityUpdates = activityUpdates msgs
                 }

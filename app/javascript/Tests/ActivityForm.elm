@@ -13,7 +13,7 @@ import Tests.Effects
 start : ProgramTest Main.Model Msg Effect
 start =
     ProgramTest.createDocument
-        { init = \_ -> Main.init { csrfToken = "asdf" }
+        { init = \_ -> Main.init ()
         , update = Main.update
         , view = \m -> { title = "Test", body = [ Main.view m ] }
         }

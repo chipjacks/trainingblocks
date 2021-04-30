@@ -13,6 +13,7 @@
 //= require rails-ujs
 //= require jquery
 //= require jquery_ujs
+//= require csrf-xhr/csrf-xhr
 
 if('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/service-worker.js', { scope: './' });

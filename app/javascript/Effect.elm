@@ -17,8 +17,7 @@ type Effect
     | Batch (List Effect)
     | PostActivities
         (List Msg)
-        { token : String
-        , revision : String
+        { revision : String
         , orderUpdates : List ( String, Int )
         , activityUpdates : List ( String, Activity )
         }
@@ -40,8 +39,8 @@ perform effect =
         Batch effects ->
             Cmd.batch (List.map perform effects)
 
-        PostActivities msgs { token, revision, orderUpdates, activityUpdates } ->
-            Api.postActivities token revision orderUpdates activityUpdates
+        PostActivities msgs { revision, orderUpdates, activityUpdates } ->
+            Api.postActivities revision orderUpdates activityUpdates
                 |> Task.attempt (Posted msgs)
 
         GetActivities ->

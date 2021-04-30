@@ -40,8 +40,8 @@ getActivities =
         }
 
 
-postActivities : String -> String -> List ( String, Int ) -> List ( String, Activity ) -> Task Http.Error ( String, Bool )
-postActivities csrfToken revision orderUpdates activityUpdates =
+postActivities : String -> List ( String, Int ) -> List ( String, Activity ) -> Task Http.Error ( String, Bool )
+postActivities revision orderUpdates activityUpdates =
     let
         activityUpdateEncoder ( msg, activity ) =
             Encode.object
@@ -57,7 +57,7 @@ postActivities csrfToken revision orderUpdates activityUpdates =
     in
     Http.task
         { method = "POST"
-        , headers = [ Http.header "Content-Type" "application/json", Http.header "X-CSRF-Token" csrfToken ]
+        , headers = [ Http.header "Content-Type" "application/json" ]
         , url = storeUrl
         , body =
             Http.jsonBody

@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const target = document.getElementById("elm-main");
   const existing = document.getElementById("elm-overlay");
 
-  const flags = { csrfToken: loadMetaTagData("csrf-token") };
+  const flags = {};
 
   const app = Elm.Main.init({ node: target, flags });
 
@@ -79,13 +79,3 @@ document.addEventListener("DOMContentLoaded", () => {
     e.target.releasePointerCapture(e.pointerId);
   });
 });
-
-function loadMetaTagData(name) {
-  const element = document.querySelectorAll(`meta[name=${name}]`)[0];
-
-  if (typeof element !== "undefined") {
-    return element.getAttribute("content");
-  } else {
-    return null;
-  }
-}

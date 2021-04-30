@@ -784,7 +784,8 @@ viewLapFields { emojis, levelM } form =
         , style "max-height" "25rem"
         , style "flex-grow" "5"
         ]
-        [ row [] [ Actions.viewLapActions True, column [] [] ]
+        [ row []
+            [ column [ maxFieldWidth ] [ Actions.viewLapActions True ] ]
         , row []
             [ column [ maxFieldWidth, style "flex-grow" "2" ] [ activityTypeSelect SelectedActivityType form.activityType ]
             , column [ maxFieldWidth, style "flex-grow" "1" ] [ repeatsInput EditedRepeats form.repeats form.validated.repeats ]

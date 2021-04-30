@@ -6,15 +6,15 @@ import Html.Events
 import Json.Decode as Decode
 
 
-layout : Html msg -> Html msg -> Html msg
+layout : List (Html msg) -> Html msg -> Html msg
 layout navbar page =
-    column [ class "container-y" ]
-        [ row [ class "navbar no-select" ]
-            [ column [ class "container-x" ]
-                [ navbar ]
+    column []
+        [ Html.header [ class "row compact no-select navbar" ]
+            [ column [ class "container" ]
+                navbar
             ]
         , expandingRow []
-            [ column [ class "container-x" ]
+            [ column [ class "container" ]
                 [ page ]
             ]
         ]

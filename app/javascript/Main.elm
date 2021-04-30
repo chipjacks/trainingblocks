@@ -61,7 +61,7 @@ init _ =
     )
 
 
-viewNavbar : Model -> Html Msg
+viewNavbar : Model -> List (Html Msg)
 viewNavbar model =
     let
         dropdown storeM =
@@ -78,7 +78,7 @@ viewNavbar model =
     in
     case model of
         Loaded (State calendar store activityState) ->
-            row
+            [ row
                 [ style "padding" "0.5rem", style "height" "2rem" ]
                 [ case activityState of
                     Editing { date } ->
@@ -88,13 +88,16 @@ viewNavbar model =
                         column [] [ Calendar.viewMenu False calendar ]
                 , dropdown (Just store)
                 ]
+            , Html.Lazy.lazy Calendar.viewHeader calendar
+            ]
 
         _ ->
-            row [ style "padding" "0.5rem", style "height" "2rem" ]
+            [ row [ style "padding" "0.5rem", style "height" "2rem" ]
                 [ compactColumn [ style "justify-content" "center" ] [ Skeleton.logo ]
                 , column [] []
                 , dropdown Nothing
                 ]
+            ]
 
 
 
@@ -284,7 +287,7 @@ update msg model =
                     updateCalendar msg state
                         |> loaded
 
-                ScrollCompleted _ ->
+                ScrollCompleted ->
                     updateCalendar msg state
                         |> loaded
 
@@ -627,8 +630,6 @@ view : Model -> Html Msg
 view model =
     expandingRow
         [ id "home"
-        , borderStyle "border-left"
-        , borderStyle "border-right"
         ]
         [ case model of
             Loading _ _ ->
@@ -684,8 +685,7 @@ view model =
                                 0
                 in
                 column (style "position" "relative" :: events)
-                    [ Html.Lazy.lazy Calendar.viewHeader calendar
-                    , Html.Lazy.lazy6 Calendar.view calendar activities activeId activeRataDie isMoving configs
+                    [ Html.Lazy.lazy6 Calendar.view calendar activities activeId activeRataDie isMoving configs
                     , Html.Lazy.lazy2 viewActivityM configs activityM
                     , Html.Lazy.lazy2 ActivityForm.view configs activityM
                     ]

@@ -74,7 +74,7 @@ update msg model =
                 , Effect.None
                 )
 
-        ScrollCompleted result ->
+        ScrollCompleted ->
             ( Model zoom start end selected today True
             , Effect.None
             )
@@ -262,12 +262,10 @@ view model activities activeId activeRataDie isMoving configs =
         loadingSpinner =
             viewIf (zoom /= Day) (row [ style "justify-content" "center", style "padding" "1rem" ] [ spinner "2rem" ])
     in
-    expandingRow [ style "overflow" "hidden" ]
+    expandingRow []
         [ Html.Keyed.node "div"
             [ id "calendar"
             , class "column expand"
-            , style "overflow-y" "scroll"
-            , style "overflow-x" "hidden"
             , attributeIf scrollCompleted (onScroll <| scrollHandler model)
             , class "no-select"
             , styleIf (zoom == Year) "animation" "slidein-left 0.5s"
@@ -342,17 +340,16 @@ onScroll ( loadPrevious, loadNext ) =
 
 returnScroll : Int -> Effect
 returnScroll previousHeight =
-    Dom.getViewportOf "calendar"
+    Dom.getViewport
         |> Task.andThen
             (\info ->
                 Task.sequence
-                    [ Dom.setViewportOf "calendar" 0 (info.scene.height - toFloat previousHeight)
+                    [ Dom.setViewport 0 (info.scene.height - toFloat previousHeight)
                     , Process.sleep 100
-                    , Dom.setViewportOf "calendar" 0 (info.scene.height - toFloat previousHeight)
+                    , Dom.setViewport 0 (info.scene.height - toFloat previousHeight)
                     ]
             )
-        |> Task.andThen (\_ -> Dom.getElement "calendar")
-        |> Task.attempt (\result -> ScrollCompleted result)
+        |> Task.attempt (\result -> ScrollCompleted)
         |> Effect.Cmd
 
 
@@ -369,7 +366,7 @@ scrollHandler (Model zoom start end _ _ _) =
 viewHeader : Model -> Html Msg
 viewHeader model =
     viewIf ((model |> get |> .zoom) == Year) <|
-        row [ borderStyle "border-bottom" ]
+        row []
             (column [ style "min-width" "4rem" ] []
                 :: ([ "M", "T", "W", "T", "F", "S", "S" ]
                         |> List.map

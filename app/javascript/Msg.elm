@@ -55,7 +55,7 @@ type Msg
     | Jump Date
     | ChangeZoom Zoom (Maybe Date)
     | Scroll Bool Date Int
-    | ScrollCompleted (Result Dom.Error Dom.Element)
+    | ScrollCompleted
     | ReceiveSelectDate String
     | MoveActivity Activity
       -- ACTIVITY FORM

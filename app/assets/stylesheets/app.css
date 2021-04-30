@@ -54,9 +54,8 @@
 html, body { height: 100%; margin: 0; }
 @media screen and (max-width: 340px) { html { font-size: 14px; } }
 @media screen and (max-width: 390px) { html { font-size: 15px; } }
-.container-x { max-width: 1000px; min-width: 320px; margin-left: auto; margin-right: auto;}
-.container-y {  min-height: 450px; height: 100%; overflow: hidden; }
-.navbar { border-bottom: 1px solid var(--grey-500) }
+.container { max-width: 1000px; min-width: 320px; margin-left: auto; margin-right: auto;}
+.navbar { border-bottom: 1px solid var(--grey-500); position: sticky; top: 0; z-index: 5; background-color: white; }
 
 @keyframes slidein-left { from { transform: translate(-100%); } to { transform: translate(0%); } }
 @keyframes slidein-right { from { transform: translate(100%); } to { transform: translate(0%); opacity: 1; } }

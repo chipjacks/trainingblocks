@@ -419,7 +419,14 @@ viewWeekDay ( date, activities ) isToday isSelected isMoving activeId configs =
         ]
     <|
         viewIf (Date.day date == 1)
-            (row [ style "margin-top" "-1rem", style "overflow-x" "visible", style "max-width" "3rem", style "white-space" "nowrap" ]
+            (row
+                [ style "margin-top" "-1rem"
+                , style "overflow-x" "visible"
+                , style "max-width" "3rem"
+                , style "white-space" "nowrap"
+                , class "month-header"
+                , attribute "data-date" (Date.toIsoString date)
+                ]
                 [ if Date.weekdayNumber date == 7 then
                     text (Date.format "MMM" date)
 

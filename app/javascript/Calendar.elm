@@ -160,7 +160,7 @@ viewDatePicker model =
         Year ->
             dropdown False
                 (button [] [ text (Date.format "yyyy" selected) ])
-                (listYears selected Jump)
+                (listYears today Jump)
 
         Month ->
             dropdown False
@@ -185,13 +185,13 @@ listMonths date changeDate =
 
 
 listYears : Date -> (Date -> Msg) -> List (Html Msg)
-listYears date changeDate =
+listYears today changeDate =
     let
         start =
-            Date.add Date.Years -3 (Date.fromCalendarDate 2019 Time.Jan 1)
+            Date.add Date.Years -3 today
 
         end =
-            Date.add Date.Years 3 (Date.fromCalendarDate 2019 Time.Jan 1)
+            Date.add Date.Years 3 today
     in
     Date.range Date.Month 12 start end
         |> List.map (viewDropdownItem changeDate "yyyy")

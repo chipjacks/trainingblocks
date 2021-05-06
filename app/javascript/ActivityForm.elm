@@ -558,30 +558,6 @@ updateActivity model =
 view : ActivityConfigs -> ActivityState -> Html Msg
 view configs activityM =
     let
-        sharedAttributes =
-            [ borderStyle "border-bottom"
-            , style "position" "absolute"
-            , style "left" "0"
-            , style "right" "0"
-            , style "background-color" "white"
-            , style "z-index" "2"
-            , style "overflow" "hidden"
-            , style "transition" "height 0.5s"
-            ]
-
-        openAttributes height =
-            [ style "height" height
-            , style "border-width" "1px"
-            , Html.Attributes.id "activity-form"
-            ]
-                ++ sharedAttributes
-
-        closedAttributes =
-            [ style "border-width" "0"
-            , style "height" "0"
-            ]
-                ++ sharedAttributes
-
         padding =
             style "padding" "0.5rem 0.5rem"
 
@@ -595,16 +571,11 @@ view configs activityM =
     case activityM of
         Editing model ->
             if model.date == Nothing then
-                row (openAttributes "2.2rem")
-                    [ row [ padding ]
-                        [ MonoIcons.icon (MonoIcons.circleInformation "var(--blue-500)")
-                        , column [ style "margin-left" "1rem" ] [ text "Select Date" ]
-                        ]
-                    ]
+                Debug.todo "Select Date Toast"
 
             else
-                row (openAttributes "100%")
-                    [ column []
+                row [ class "dimmer" ]
+                    [ column [ class "modal", Html.Attributes.id "activity-form" ]
                         [ row [ padding ]
                             [ viewActivityFields configs.emojis model ]
                         , expandingRow [ style "overflow" "hidden", borderStyle "border-top", style "position" "relative" ]
@@ -649,7 +620,7 @@ view configs activityM =
                     ]
 
         _ ->
-            row closedAttributes []
+            text ""
 
 
 viewLaps : ActivityConfigs -> Completion -> Bool -> Bool -> Selection LapData -> Maybe (Selection ActivityData) -> Html Msg

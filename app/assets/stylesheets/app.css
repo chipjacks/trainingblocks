@@ -59,6 +59,8 @@ html, body { height: 100%; margin: 0; }
 
 @keyframes slidein-left { from { transform: translate(-100%); } to { transform: translate(0%); } }
 @keyframes slidein-right { from { transform: translate(100%); } to { transform: translate(0%); opacity: 1; } }
+@keyframes slidein-bottom { from { transform: translate(0, 100%); } to { transform: translate(0, 0%); opacity: 1; } }
+@keyframes dim { from { opacity: 0 } to { opacity: 1; } }
 
 /*
  * STYLING
@@ -147,3 +149,31 @@ button:focus, .button:focus { border-color: var(--blue-500); outline: none; }
 }
 
 @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+
+/*
+ * MODAL
+*/
+
+.modal {
+  position: fixed;
+  top: 10rem;
+  width: 40rem;
+  background-color: white;
+  z-index: 2;
+  animation: slidein-bottom 0.5s;
+  height: 40rem;
+  border-radius: 5px;
+}
+
+.dimmer {
+  position: absolute;
+  right: 0;
+  left: 0;
+  height: 100%;
+  background-color: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  animation: dim 0.5s;
+}

@@ -585,36 +585,24 @@ view configs activityM =
                                 (isAutofillable model)
                                 model.laps
                                 model.repeat
-                            , let
-                                drawerAttributes =
-                                    [ style "position" "absolute"
-                                    , style "top" "0"
-                                    , style "right" "0"
-                                    , style "z-index" "5"
-                                    , style "background-color" "white"
-                                    , style "height" "100%"
-                                    ]
-                              in
-                              if model.editingLap then
-                                compactColumn
-                                    ([ style "transition" "width 0.5s"
-                                     , style "width" "min(100vw - 6rem, 25rem)"
-                                     , padding
-                                     , borderStyle "border-left"
-                                     ]
-                                        ++ drawerAttributes
-                                    )
-                                    [ viewLapFields configs model
-                                    ]
+                            , compactColumn
+                                [ style "position" "absolute"
+                                , style "top" "0"
+                                , style "z-index" "5"
+                                , style "background-color" "white"
+                                , style "height" "100%"
+                                , style "transition" "right 0.5s"
+                                , if model.editingLap then
+                                    style "right" "0"
 
-                              else
-                                compactColumn
-                                    ([ style "transition" "width 0.5s"
-                                     , style "width" "0"
-                                     ]
-                                        ++ drawerAttributes
-                                    )
-                                    []
+                                  else
+                                    style "right" "-100%"
+                                , style "width" "min(100% - 6rem, 25rem)"
+                                , padding
+                                , borderStyle "border-left"
+                                ]
+                                [ viewLapFields configs model
+                                ]
                             ]
                         ]
                     ]

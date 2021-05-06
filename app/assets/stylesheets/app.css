@@ -157,12 +157,12 @@ button:focus, .button:focus { border-color: var(--blue-500); outline: none; }
 
 .modal {
   position: fixed;
-  top: 10rem;
-  width: 40rem;
+  top: 20%;
+  width: min(100vw, 40rem);
+  height: min(80vh, 40rem);
   background-color: white;
   z-index: 2;
   animation: slidein-bottom 0.5s;
-  height: 40rem;
   border-radius: 5px;
 }
 

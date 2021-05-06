@@ -81,7 +81,7 @@ trainingPaceToSeconds level tp =
     trainingPaces ( MPRLevel.Neutral, level )
         |> Result.map
             (\l ->
-                if tp == Slow then
+                if tp == VeryEasy then
                     List.head l
                         |> Maybe.map (\( _, ( minPace, maxPace ) ) -> (paceFromString maxPace |> Maybe.withDefault 0) + 1)
                         |> Maybe.withDefault 0
@@ -108,11 +108,11 @@ secondsToTrainingPace level seconds =
                     |> List.head
                     |> Maybe.map Tuple.first
             )
-        |> Maybe.withDefault Slow
+        |> Maybe.withDefault VeryEasy
 
 
 type TrainingPace
-    = Slow
+    = VeryEasy
     | Easy
     | Moderate
     | Steady
@@ -127,7 +127,7 @@ type TrainingPace
 trainingPace : Enum TrainingPace
 trainingPace =
     Enum.create
-        [ ( "Slow", Slow )
+        [ ( "Very Easy", VeryEasy )
         , ( "Easy", Easy )
         , ( "Moderate", Moderate )
         , ( "Steady", Steady )

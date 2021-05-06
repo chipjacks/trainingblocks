@@ -136,7 +136,7 @@ toHeight duration =
 toWidth : TrainingPace -> Float
 toWidth pace =
     case pace of
-        Pace.Slow ->
+        Pace.VeryEasy ->
             0.5
 
         Pace.Easy ->

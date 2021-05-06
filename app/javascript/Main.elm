@@ -153,6 +153,9 @@ update msg model =
                             updateActivityForm ClickedSubmit state
                                 |> loaded
 
+                        "Escape" ->
+                            ( Loaded (State calendar store None), Effect.None )
+
                         _ ->
                             ( model, Effect.None )
 
@@ -735,10 +738,10 @@ subscriptions model =
                 , Events.onVisibilityChange VisibilityChange
                 , case activityM of
                     Editing form ->
-                        Events.onKeyPress keyPressDecoder
+                        Events.onKeyDown keyPressDecoder
 
                     Selected _ ->
-                        Events.onKeyPress keyPressDecoder
+                        Events.onKeyDown keyPressDecoder
 
                     Moving activity x y ->
                         Time.every 100 (\_ -> AutoScrollCalendar y)

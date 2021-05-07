@@ -157,9 +157,9 @@ button:focus, .button:focus { border-color: var(--blue-500); outline: none; }
 
 .modal {
   position: fixed;
-  top: min(10rem, 10vh);
-  width: min(100vw, 40rem);
-  height: min(90vh, 35rem);
+  top: Min(10vh, 10rem);
+  width: Min(100vw, 40rem);
+  height: Min(90vh, 35rem);
   background-color: white;
   z-index: 11;
   animation: slidein-bottom 0.5s;

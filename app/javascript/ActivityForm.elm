@@ -571,7 +571,10 @@ view configs activityM =
     case activityM of
         Editing model ->
             if model.date == Nothing then
-                Debug.todo "Select Date Toast"
+                row [ class "toast", padding, borderStyle "border" ]
+                    [ MonoIcons.icon (MonoIcons.circleInformation "var(--blue-500)")
+                    , column [ style "margin-left" "1rem" ] [ text "Select Date" ]
+                    ]
 
             else
                 row [ class "dimmer", stopPropagationOnClick (Decode.succeed ClickedClose) ]

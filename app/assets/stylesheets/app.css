@@ -179,3 +179,13 @@ button:focus, .button:focus { border-color: var(--blue-500); outline: none; }
   z-index: 10;
   animation: dim 0.5s;
 }
+
+.toast {
+  position: fixed;
+  top: 5rem;
+  left: 1rem;
+  background-color: white;
+  z-index: 11;
+  animation: slidein-top 0.5s;
+  border-radius: 5px;
+}

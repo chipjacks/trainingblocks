@@ -609,7 +609,7 @@ view model =
 
         Loaded (State calendar store activityM) ->
             column
-                [ id "home", style "overflow-y" "scroll", Calendar.handleScroll calendar ]
+                [ id "main", style "overflow-y" "scroll", style "height" "100vh", Calendar.handleScroll calendar ]
                 [ viewNavbar model
                 , viewBody (State calendar store activityM)
                 ]
@@ -662,7 +662,7 @@ viewBody (State calendar store activityM) =
                 _ ->
                     0
     in
-    expandingRow ([ style "position" "relative", style "top" "2rem" ] ++ events)
+    expandingRow ([ style "position" "relative" ] ++ events)
         [ Html.Lazy.lazy6 Calendar.view calendar activities activeId activeRataDie isMoving configs
         , Html.Lazy.lazy2 viewActivityM configs activityM
         , Html.Lazy.lazy2 ActivityForm.view configs activityM

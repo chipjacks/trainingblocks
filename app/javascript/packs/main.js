@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   function handleCalendarScroll(event) {
-    const calendar = document.getElementById("calendar");
+    const calendar = document.getElementById("main");
     if (
       calendar.scrollTop < 100 ||
       calendar.scrollHeight - calendar.scrollTop === calendar.clientHeight
@@ -55,7 +55,7 @@ document.addEventListener("DOMContentLoaded", () => {
     setTimeout(() => {
       try {
         document
-          .getElementById("calendar")
+          .getElementById("main")
           .removeEventListener("scroll", handleCalendarScroll);
       } catch (e) {
         scrollFail = true;
@@ -67,7 +67,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       setTimeout(() => {
         document
-          .getElementById("calendar")
+          .getElementById("main")
           .addEventListener("scroll", handleCalendarScroll);
       }, 500);
     }, 100);

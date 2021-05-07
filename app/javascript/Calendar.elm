@@ -342,13 +342,13 @@ handleScroll (Model zoom start end _ _ scrollCompleted) =
 
 returnScroll : Int -> Effect
 returnScroll previousHeight =
-    Dom.getViewport
+    Dom.getViewportOf "main"
         |> Task.andThen
             (\info ->
                 Task.sequence
-                    [ Dom.setViewport 0 (info.scene.height - toFloat previousHeight)
+                    [ Dom.setViewportOf "main" 0 (info.scene.height - toFloat previousHeight)
                     , Process.sleep 100
-                    , Dom.setViewport 0 (info.scene.height - toFloat previousHeight)
+                    , Dom.setViewportOf "main" 0 (info.scene.height - toFloat previousHeight)
                     ]
             )
         |> Task.attempt (\result -> ScrollCompleted)

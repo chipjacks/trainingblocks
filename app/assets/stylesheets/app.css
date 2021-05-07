@@ -168,6 +168,7 @@ button:focus, .button:focus { border-color: var(--blue-500); outline: none; }
 
 .dimmer {
   position: absolute;
+  top: 0;
   right: 0;
   left: 0;
   height: 100%;

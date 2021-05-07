@@ -589,30 +589,24 @@ initSession head activities =
 
 view : Model -> Html Msg
 view model =
-    case model of
-        Loading _ _ ->
-            column []
-                [ viewNavbar model
-                , expandingRow
-                    [ style "justify-content" "center", style "align-items" "center" ]
+    column
+        [ style "height" "100vh", style "width" "100vw", style "position" "absolute" ]
+        [ viewNavbar model
+        , case model of
+            Loading _ _ ->
+                expandingRow
+                    [ style "justify-content" "center", style "align-items" "center", style "padding-top" "2rem" ]
                     [ spinner "3rem" ]
-                ]
 
-        Error errorString ->
-            column []
-                [ viewNavbar model
-                , expandingRow []
+            Error errorString ->
+                expandingRow []
                     [ column [ class "container" ]
                         [ text errorString ]
                     ]
-                ]
 
-        Loaded (State calendar store activityM) ->
-            column
-                [ style "height" "100vh", style "width" "100vw", style "position" "absolute" ]
-                [ viewNavbar model
-                , viewBody (State calendar store activityM)
-                ]
+            Loaded (State calendar store activityM) ->
+                viewBody (State calendar store activityM)
+        ]
 
 
 viewBody : State -> Html Msg
@@ -703,12 +697,7 @@ viewNavbar model =
         Loaded (State calendar store activityState) ->
             [ row
                 [ style "padding" "0.5rem", style "height" "2.2rem" ]
-                [ case activityState of
-                    Editing { date } ->
-                        column [] [ Calendar.viewMenu (date /= Nothing) calendar ]
-
-                    _ ->
-                        column [] [ Calendar.viewMenu False calendar ]
+                [ column [] [ Calendar.viewMenu calendar ]
                 , dropdown (Just store)
                 ]
             , Html.Lazy.lazy Calendar.viewHeader calendar

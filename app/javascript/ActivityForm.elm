@@ -23,7 +23,7 @@ import MPRLevel
 import MonoIcons
 import Msg exposing (ActivityConfigs, ActivityState(..), Msg(..))
 import Pace
-import Skeleton exposing (attributeIf, borderStyle, column, compactColumn, expandingRow, iconButton, row, styleIf, viewIf, viewMaybe)
+import Skeleton exposing (attributeIf, borderStyle, column, compactColumn, expandingRow, iconButton, row, stopPropagationOnClick, styleIf, viewIf, viewMaybe)
 import Store
 import Svg exposing (Svg)
 
@@ -574,8 +574,8 @@ view configs activityM =
                 Debug.todo "Select Date Toast"
 
             else
-                row [ class "dimmer" ]
-                    [ column [ class "modal", Html.Attributes.id "activity-form" ]
+                row [ class "dimmer", stopPropagationOnClick (Decode.succeed ClickedClose) ]
+                    [ column [ class "modal", Html.Attributes.id "activity-form", stopPropagationOnClick (Decode.succeed NoOp) ]
                         [ row [ padding ]
                             [ viewActivityFields configs.emojis model ]
                         , expandingRow [ style "overflow" "hidden", borderStyle "border-top", style "position" "relative" ]

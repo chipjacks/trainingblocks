@@ -1,4 +1,4 @@
-module Calendar exposing (Model, get, init, update, view, viewHeader, viewMenu)
+module Calendar exposing (Model, get, handleScroll, init, update, view, viewHeader, viewMenu)
 
 import Actions exposing (viewActivityActions, viewMultiSelectActions, viewPopoverActions)
 import Activity
@@ -262,25 +262,22 @@ view model activities activeId activeRataDie isMoving configs =
         loadingSpinner =
             viewIf (zoom /= Day) (row [ style "justify-content" "center", style "padding" "1rem" ] [ spinner "2rem" ])
     in
-    expandingRow []
-        [ Html.Keyed.node "div"
-            [ id "calendar"
-            , class "column expand"
-            , attributeIf scrollCompleted (onScroll <| scrollHandler model)
-            , class "no-select"
-            , styleIf (zoom == Year) "animation" "slidein-left 0.5s"
-            , styleIf (zoom == Month) "animation" "slidein-right 0.5s 0.01ms"
-            , styleIf (zoom == Month) "opacity" "0"
-            , styleIf (zoom == Month) "animation-fill-mode" "forwards"
-            , attributeIf (activeId /= "") (stopPropagationOnClick (Decode.succeed ClickedClose))
-            ]
-          <|
-            List.concat
-                [ [ ( "loadingup", loadingSpinner ) ]
-                , body
-                , [ ( "loadingdown", loadingSpinner ) ]
-                ]
+    Html.Keyed.node "div"
+        [ id "calendar"
+        , class "column expand container"
+        , class "no-select"
+        , styleIf (zoom == Year) "animation" "slidein-left 0.5s"
+        , styleIf (zoom == Month) "animation" "slidein-right 0.5s 0.01ms"
+        , styleIf (zoom == Month) "opacity" "0"
+        , styleIf (zoom == Month) "animation-fill-mode" "forwards"
+        , attributeIf (activeId /= "") (stopPropagationOnClick (Decode.succeed ClickedClose))
         ]
+    <|
+        List.concat
+            [ [ ( "loadingup", loadingSpinner ) ]
+            , body
+            , [ ( "loadingdown", loadingSpinner ) ]
+            ]
 
 
 viewActivityShape : Activity -> Bool -> Bool -> ActivityConfigs -> Html Msg
@@ -313,29 +310,34 @@ viewActivityShape activity isActive isMonthView configs =
 -- SCROLLING
 
 
-onScroll : ( Int -> msg, Int -> msg ) -> Html.Attribute msg
-onScroll ( loadPrevious, loadNext ) =
+handleScroll : Model -> Html.Attribute Msg
+handleScroll (Model zoom start end _ _ scrollCompleted) =
     let
         loadMargin =
             10
+
+        ( loadPrevious, loadNext ) =
+            ( Date.add Date.Months -2 start, Date.add Date.Months 2 end )
+                |> Tuple.mapBoth (Scroll True) (Scroll False)
     in
-    Html.Events.on "scroll"
-        (Decode.map3 (\a b c -> ( a, b, c ))
-            (Decode.at [ "target", "scrollTop" ] Decode.int)
-            (Decode.at [ "target", "scrollHeight" ] Decode.int)
-            (Decode.at [ "target", "clientHeight" ] Decode.int)
-            |> Decode.andThen
-                (\( scrollTop, scrollHeight, clientHeight ) ->
-                    if scrollTop < loadMargin then
-                        Decode.succeed (loadPrevious scrollHeight)
+    attributeIf scrollCompleted <|
+        Html.Events.on "scroll"
+            (Decode.map3 (\a b c -> ( a, b, c ))
+                (Decode.at [ "target", "scrollTop" ] Decode.int)
+                (Decode.at [ "target", "scrollHeight" ] Decode.int)
+                (Decode.at [ "target", "clientHeight" ] Decode.int)
+                |> Decode.andThen
+                    (\( scrollTop, scrollHeight, clientHeight ) ->
+                        if scrollTop < loadMargin then
+                            Decode.succeed (loadPrevious scrollHeight)
 
-                    else if scrollTop > scrollHeight - clientHeight - loadMargin then
-                        Decode.succeed (loadNext scrollHeight)
+                        else if scrollTop > scrollHeight - clientHeight - loadMargin then
+                            Decode.succeed (loadNext scrollHeight)
 
-                    else
-                        Decode.fail ""
-                )
-        )
+                        else
+                            Decode.fail ""
+                    )
+            )
 
 
 returnScroll : Int -> Effect
@@ -351,12 +353,6 @@ returnScroll previousHeight =
             )
         |> Task.attempt (\result -> ScrollCompleted)
         |> Effect.Cmd
-
-
-scrollHandler : Model -> ( Int -> Msg, Int -> Msg )
-scrollHandler (Model zoom start end _ _ _) =
-    ( Date.add Date.Months -2 start, Date.add Date.Months 2 end )
-        |> Tuple.mapBoth (Scroll True) (Scroll False)
 
 
 

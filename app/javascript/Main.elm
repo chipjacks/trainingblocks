@@ -35,7 +35,7 @@ import Time
 main =
     Browser.document
         { init = \x -> init x |> Tuple.mapSecond Effect.perform
-        , view = \model -> { title = "Rhino Log", body = [ Skeleton.layout (viewNavbar model) (view model) ] }
+        , view = \model -> { title = "Rhino Log", body = [ view model ] }
         , update = \model msg -> update model msg |> Tuple.mapSecond Effect.perform
         , subscriptions = subscriptions
         }
@@ -59,45 +59,6 @@ init _ =
         , Effect.GetActivities
         ]
     )
-
-
-viewNavbar : Model -> List (Html Msg)
-viewNavbar model =
-    let
-        dropdown storeM =
-            compactColumn [ style "min-width" "1.5rem", style "justify-content" "center" ]
-                [ Skeleton.dropdown True
-                    (if Maybe.map Store.needsFlush storeM |> Maybe.withDefault False then
-                        spinner "1.5rem"
-
-                     else
-                        div [ style "font-size" "1.4rem", style "padding-top" "2px" ] [ MonoIcons.icon (MonoIcons.optionsVertical "var(--grey-900)") ]
-                    )
-                    [ a [ Html.Attributes.href " /users/sign_out", Html.Attributes.attribute "data-method" "delete" ] [ text "Logout" ] ]
-                ]
-    in
-    case model of
-        Loaded (State calendar store activityState) ->
-            [ row
-                [ style "padding" "0.5rem", style "height" "2rem" ]
-                [ case activityState of
-                    Editing { date } ->
-                        column [] [ Calendar.viewMenu (date /= Nothing) calendar ]
-
-                    _ ->
-                        column [] [ Calendar.viewMenu False calendar ]
-                , dropdown (Just store)
-                ]
-            , Html.Lazy.lazy Calendar.viewHeader calendar
-            ]
-
-        _ ->
-            [ row [ style "padding" "0.5rem", style "height" "2rem" ]
-                [ compactColumn [ style "justify-content" "center" ] [ Skeleton.logo ]
-                , column [] []
-                , dropdown Nothing
-                ]
-            ]
 
 
 
@@ -628,68 +589,140 @@ initSession head activities =
 
 view : Model -> Html Msg
 view model =
-    expandingRow
-        [ id "home"
-        ]
-        [ case model of
-            Loading _ _ ->
-                column [ style "justify-content" "center", style "align-items" "center" ] [ spinner "3rem" ]
+    case model of
+        Loading _ _ ->
+            column []
+                [ viewNavbar model
+                , expandingRow
+                    [ style "justify-content" "center", style "align-items" "center" ]
+                    [ spinner "3rem" ]
+                ]
 
-            Error errorString ->
-                column [] [ text errorString ]
-
-            Loaded (State calendar store activityM) ->
-                let
-                    activities =
-                        Store.get store .activities
-
-                    configs =
-                        Store.get store .configs
-
-                    events =
-                        case activityM of
-                            Moving _ _ _ ->
-                                [ Html.Events.on "pointermove" mouseMoveDecoder
-                                , Html.Events.on "pointerup" (Decode.succeed MouseReleased)
-                                , style "touch-action" "none"
-                                , style "pointer-action" "none"
-                                , style "cursor" "grabbing"
-                                ]
-
-                            _ ->
-                                []
-
-                    ( activeId, isMoving ) =
-                        case activityM of
-                            Selected list ->
-                                ( List.map .id list |> String.join " ", False )
-
-                            Editing { activity } ->
-                                ( "", False )
-
-                            Moving { id } _ _ ->
-                                ( id, True )
-
-                            None ->
-                                ( "", False )
-
-                    activeRataDie =
-                        case activityM of
-                            Editing { date } ->
-                                Maybe.map Date.toRataDie date |> Maybe.withDefault 0
-
-                            Selected (a :: _) ->
-                                Date.toRataDie a.date
-
-                            _ ->
-                                0
-                in
-                column (style "position" "relative" :: events)
-                    [ Html.Lazy.lazy6 Calendar.view calendar activities activeId activeRataDie isMoving configs
-                    , Html.Lazy.lazy2 viewActivityM configs activityM
-                    , Html.Lazy.lazy2 ActivityForm.view configs activityM
+        Error errorString ->
+            column []
+                [ viewNavbar model
+                , expandingRow []
+                    [ column [ class "container" ]
+                        [ text errorString ]
                     ]
+                ]
+
+        Loaded (State calendar store activityM) ->
+            column
+                [ id "home", style "overflow-y" "scroll", Calendar.handleScroll calendar ]
+                [ viewNavbar model
+                , viewBody (State calendar store activityM)
+                ]
+
+
+viewBody : State -> Html Msg
+viewBody (State calendar store activityM) =
+    let
+        activities =
+            Store.get store .activities
+
+        configs =
+            Store.get store .configs
+
+        events =
+            case activityM of
+                Moving _ _ _ ->
+                    [ Html.Events.on "pointermove" mouseMoveDecoder
+                    , Html.Events.on "pointerup" (Decode.succeed MouseReleased)
+                    , style "touch-action" "none"
+                    , style "pointer-action" "none"
+                    , style "cursor" "grabbing"
+                    ]
+
+                _ ->
+                    []
+
+        ( activeId, isMoving ) =
+            case activityM of
+                Selected list ->
+                    ( List.map .id list |> String.join " ", False )
+
+                Editing { activity } ->
+                    ( "", False )
+
+                Moving { id } _ _ ->
+                    ( id, True )
+
+                None ->
+                    ( "", False )
+
+        activeRataDie =
+            case activityM of
+                Editing { date } ->
+                    Maybe.map Date.toRataDie date |> Maybe.withDefault 0
+
+                Selected (a :: _) ->
+                    Date.toRataDie a.date
+
+                _ ->
+                    0
+    in
+    expandingRow ([ style "position" "relative", style "top" "2rem" ] ++ events)
+        [ Html.Lazy.lazy6 Calendar.view calendar activities activeId activeRataDie isMoving configs
+        , Html.Lazy.lazy2 viewActivityM configs activityM
+        , Html.Lazy.lazy2 ActivityForm.view configs activityM
         ]
+
+
+viewNavbar : Model -> Html Msg
+viewNavbar model =
+    let
+        wrap body =
+            Html.header
+                [ class "row compact no-select"
+                , style "position" "fixed"
+                , style "top" "0"
+                , style "left" "0"
+                , style "right" "0"
+                , style "z-index" "5"
+                , style "background-color" "white"
+                , borderStyle "border-bottom"
+                ]
+                [ column [ class "container" ]
+                    body
+                ]
+
+        dropdown storeM =
+            compactColumn [ style "min-width" "1.5rem", style "justify-content" "center" ]
+                [ Skeleton.dropdown True
+                    (if Maybe.map Store.needsFlush storeM |> Maybe.withDefault False then
+                        spinner "1.5rem"
+
+                     else
+                        div [ style "font-size" "1.4rem", style "padding-top" "2px" ] [ MonoIcons.icon (MonoIcons.optionsVertical "var(--grey-900)") ]
+                    )
+                    [ a [ Html.Attributes.href " /users/sign_out", Html.Attributes.attribute "data-method" "delete" ] [ text "Logout" ] ]
+                ]
+    in
+    case model of
+        Loaded (State calendar store activityState) ->
+            [ row
+                [ style "padding" "0.5rem", style "height" "2rem" ]
+                [ case activityState of
+                    Editing { date } ->
+                        column [] [ Calendar.viewMenu (date /= Nothing) calendar ]
+
+                    _ ->
+                        column [] [ Calendar.viewMenu False calendar ]
+                , dropdown (Just store)
+                ]
+            , Html.Lazy.lazy Calendar.viewHeader calendar
+            ]
+                |> wrap
+
+        _ ->
+            [ row [ style "padding" "0.5rem", style "height" "2rem" ]
+                [ compactColumn [ style "justify-content" "center" ] [ Skeleton.logo ]
+                , column [] []
+                , dropdown Nothing
+                ]
+            ]
+                |> wrap
 
 
 viewActivityM : ActivityConfigs -> ActivityState -> Html Msg

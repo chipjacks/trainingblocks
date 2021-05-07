@@ -55,7 +55,7 @@ html, body { overflow: hidden; margin: 0; }
 body { width: 100vw; height: 100vh; }
 @media screen and (max-width: 340px) { html { font-size: 14px; } }
 @media screen and (max-width: 390px) { html { font-size: 15px; } }
-.container { max-width: 1000px; min-width: 320px; margin-left: auto; margin-right: auto;}
+.container { max-width: 1000px; min-width: 300px; margin-left: auto; margin-right: auto;}
 
 @keyframes slidein-left { from { transform: translate(-100%); } to { transform: translate(0%); } }
 @keyframes slidein-right { from { transform: translate(100%); } to { transform: translate(0%); opacity: 1; } }
@@ -157,9 +157,9 @@ button:focus, .button:focus { border-color: var(--blue-500); outline: none; }
 
 .modal {
   position: fixed;
-  top: 20%;
+  top: min(10rem, calc(100vh - min(90vh, 35rem)));
   width: min(100vw, 40rem);
-  height: min(80vh, 40rem);
+  height: min(90vh, 35rem);
   background-color: white;
   z-index: 11;
   animation: slidein-bottom 0.5s;

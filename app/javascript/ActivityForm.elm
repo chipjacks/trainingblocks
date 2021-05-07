@@ -597,7 +597,7 @@ view configs activityM =
 
                                   else
                                     style "right" "-100%"
-                                , style "width" "min(100% - 6rem, 25rem)"
+                                , style "width" "min(100% - 5rem, 25rem)"
                                 , padding
                                 , borderStyle "border-left"
                                 ]

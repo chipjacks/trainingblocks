@@ -60,7 +60,7 @@ body { width: 100vw; height: 100vh; }
 @keyframes slidein-left { from { transform: translate(-100%); } to { transform: translate(0%); } }
 @keyframes slidein-right { from { transform: translate(100%); } to { transform: translate(0%); opacity: 1; } }
 @keyframes slidein-bottom { from { transform: translate(0, 100%); } to { transform: translate(0, 0%); opacity: 1; } }
-@keyframes dim { from { opacity: 0 } to { opacity: 1; } }
+@keyframes dim { from { background-color: rgba(0,0,0,0); } to { background-color: rgba(0,0,0,0.5); } }
 
 /*
  * STYLING
@@ -158,8 +158,8 @@ button:focus, .button:focus { border-color: var(--blue-500); outline: none; }
 .modal {
   position: fixed;
   top: Min(10vh, 10rem);
-  width: Min(100vw, 40rem);
   height: Min(90vh, 35rem);
+  width: Min(100vw, 40rem);
   background-color: white;
   z-index: 11;
   animation: slidein-bottom 0.5s;

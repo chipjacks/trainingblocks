@@ -745,6 +745,7 @@ viewLapFields { emojis, levelM } form =
         [ style "justify-content" "space-between"
         , style "max-height" "25rem"
         , style "flex-grow" "5"
+        , style "padding-bottom" "1rem"
         ]
         [ row []
             [ column [ maxFieldWidth ] [ Actions.viewLapActions True ] ]

@@ -22,7 +22,7 @@ simulateEffects effect =
         Effect.Batch effects ->
             SimulatedEffect.Cmd.batch (List.map simulateEffects effects)
 
-        Effect.PostActivities msgs { token, revision, orderUpdates, activityUpdates } ->
+        Effect.PostActivities msgs { revision, orderUpdates, activityUpdates } ->
             SimulatedEffect.Cmd.none
 
         Effect.GetActivities ->

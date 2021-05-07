@@ -609,7 +609,7 @@ view model =
 
         Loaded (State calendar store activityM) ->
             column
-                [ id "main", style "overflow-y" "scroll", style "height" "100vh", Calendar.handleScroll calendar ]
+                [ style "height" "100vh", style "width" "100vw", style "position" "absolute" ]
                 [ viewNavbar model
                 , viewBody (State calendar store activityM)
                 ]
@@ -662,7 +662,13 @@ viewBody (State calendar store activityM) =
                 _ ->
                     0
     in
-    expandingRow ([ style "position" "relative" ] ++ events)
+    expandingRow
+        ([ id "main"
+         , style "overflow-y" "scroll"
+         , Calendar.handleScroll calendar
+         ]
+            ++ events
+        )
         [ Html.Lazy.lazy6 Calendar.view calendar activities activeId activeRataDie isMoving configs
         , Html.Lazy.lazy2 viewActivityM configs activityM
         , Html.Lazy.lazy2 ActivityForm.view configs activityM
@@ -675,12 +681,6 @@ viewNavbar model =
         wrap body =
             Html.header
                 [ class "row compact no-select"
-                , style "position" "fixed"
-                , style "top" "0"
-                , style "left" "0"
-                , style "right" "0"
-                , style "z-index" "5"
-                , style "background-color" "white"
                 , borderStyle "border-bottom"
                 ]
                 [ column [ class "container" ]
@@ -702,7 +702,7 @@ viewNavbar model =
     case model of
         Loaded (State calendar store activityState) ->
             [ row
-                [ style "padding" "0.5rem", style "height" "2rem" ]
+                [ style "padding" "0.5rem", style "height" "2.2rem" ]
                 [ case activityState of
                     Editing { date } ->
                         column [] [ Calendar.viewMenu (date /= Nothing) calendar ]
@@ -716,7 +716,7 @@ viewNavbar model =
                 |> wrap
 
         _ ->
-            [ row [ style "padding" "0.5rem", style "height" "2rem" ]
+            [ row [ style "padding" "0.5rem", style "height" "2.2rem" ]
                 [ compactColumn [ style "justify-content" "center" ] [ Skeleton.logo ]
                 , column [] []
                 , dropdown Nothing

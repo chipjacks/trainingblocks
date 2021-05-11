@@ -4,10 +4,11 @@ import Activity.Types exposing (Activity)
 import Api
 import Date
 import EmojiData.Fetch
-import Msg exposing (Msg(..))
+import Msg exposing (Msg(..), StoreData)
 import Ports
 import Random
 import Result exposing (Result)
+import Store.History exposing (History)
 import Task exposing (Task)
 import Time
 
@@ -16,7 +17,7 @@ type Effect
     = None
     | Batch (List Effect)
     | PostActivities
-        (List Msg)
+        (History Msg StoreData)
         { revision : String
         , orderUpdates : List ( String, Int )
         , activityUpdates : List ( String, Activity )

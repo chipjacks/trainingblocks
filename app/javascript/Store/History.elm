@@ -1,4 +1,4 @@
-module Store.History exposing (History, events, init, isEmpty, length, push)
+module Store.History exposing (History, events, init, isEmpty, length, push, append)
 
 
 type History event state
@@ -29,3 +29,8 @@ events (History list) =
 push : ( event, state ) -> History event state -> History event state
 push ( event, state ) (History list) =
     History (( event, state ) :: list)
+
+
+append : History event state -> History event state -> History event state
+append (History list) (History more) =
+    History (list ++ more)

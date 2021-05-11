@@ -1,4 +1,4 @@
-module Msg exposing (ActivityConfigs, ActivityState(..), Msg(..), Zoom(..))
+module Msg exposing (ActivityConfigs, ActivityState(..), Msg(..), StoreData, Zoom(..))
 
 import Activity.Types exposing (Activity)
 import ActivityForm.Types exposing (ActivityForm)
@@ -8,6 +8,7 @@ import Date exposing (Date)
 import Emoji exposing (EmojiDict)
 import EmojiData exposing (EmojiData)
 import Http
+import Store.History exposing (History)
 
 
 type Zoom
@@ -26,6 +27,13 @@ type ActivityState
 type alias ActivityConfigs =
     { levelM : Maybe Int
     , emojis : EmojiDict
+    }
+
+
+type alias StoreData =
+    { activities : List Activity
+    , revision : String
+    , configs : ActivityConfigs
     }
 
 
@@ -48,7 +56,7 @@ type Msg
     | Move Date Activity
     | Shift Bool Activity
     | Delete Activity
-    | Posted (List Msg) (Result Http.Error ( String, Bool ))
+    | Posted (History Msg StoreData) (Result Http.Error ( String, Bool ))
     | DebounceFlush Int
     | FlushNow
       -- CALENDAR

@@ -9,7 +9,7 @@ import Effect exposing (Effect)
 import Emoji
 import EmojiData exposing (EmojiData)
 import Http
-import Msg exposing (ActivityConfigs, Msg(..))
+import Msg exposing (ActivityConfigs, Msg(..), StoreData)
 import Process
 import Set
 import Store.History as History exposing (History)
@@ -17,14 +17,7 @@ import Task
 
 
 type Model
-    = Model State (History Msg State)
-
-
-type alias State =
-    { activities : List Activity
-    , revision : String
-    , configs : ActivityConfigs
-    }
+    = Model StoreData (History Msg StoreData)
 
 
 init : String -> List Activity -> Model
@@ -35,10 +28,10 @@ init revision activities =
             , emojis = Dict.empty
             }
     in
-    Model (State activities revision configs |> updateLevel) History.init
+    Model (StoreData activities revision configs |> updateLevel) History.init
 
 
-get : Model -> (State -> b) -> b
+get : Model -> (StoreData -> b) -> b
 get (Model state _) f =
     f state
 
@@ -53,7 +46,7 @@ needsFlush (Model _ history) =
     not (History.isEmpty history)
 
 
-updateState : Msg -> State -> State
+updateState : Msg -> StoreData -> StoreData
 updateState msg state =
     case msg of
         Create activity ->
@@ -95,7 +88,7 @@ updateState msg state =
             state
 
 
-updateLevel : State -> State
+updateLevel : StoreData -> StoreData
 updateLevel state =
     let
         calculateLevel activities =
@@ -107,7 +100,7 @@ updateLevel state =
     updateConfigs (\c -> { c | levelM = calculateLevel state.activities }) state
 
 
-updateConfigs : (ActivityConfigs -> ActivityConfigs) -> State -> State
+updateConfigs : (ActivityConfigs -> ActivityConfigs) -> StoreData -> StoreData
 updateConfigs transform state =
     { state | configs = transform state.configs }
 
@@ -119,7 +112,7 @@ update msg (Model state history) =
             Model state history
     in
     case msg of
-        Posted sentMsgs result ->
+        Posted sentHistory result ->
             case result of
                 Ok ( rev, True ) ->
                     ( Model { state | revision = rev } history
@@ -127,14 +120,12 @@ update msg (Model state history) =
                     )
 
                 Err (Http.BadStatus 409) ->
-                    ( Model state history
-                      --(msgs ++ sentMsgs)
+                    ( Model state (History.append history sentHistory)
                     , Effect.Cmd (Task.attempt GotActivities Api.getActivities)
                     )
 
                 _ ->
-                    ( Model state history
-                      --(msgs ++ sentMsgs)
+                    ( Model state (History.append history sentHistory)
                     , Effect.None
                     )
 
@@ -198,7 +189,7 @@ flush (Model state history) =
             msgs =
                 History.events history
         in
-        Effect.PostActivities msgs
+        Effect.PostActivities history
             { revision = state.revision
             , orderUpdates = orderUpdates state.activities msgs
             , activityUpdates = activityUpdates msgs

@@ -29,22 +29,30 @@ viewActivityActions =
 
 viewLapActions : Bool -> Html Msg
 viewLapActions isEditing =
+    let
+        config =
+            if isEditing then
+                { defaultConfig | tooltip = Bottom }
+
+            else
+                defaultConfig
+    in
     row
         (if isEditing then
-            []
+            [ style "position" "relative" ]
 
          else
             buttonGroupStyles
         )
         [ if isEditing then
-            actionButton (ButtonConfig Medium Primary Top) ClickedEdit MonoIcons.check "Save Lap"
+            actionButton (ButtonConfig Medium Primary Bottom) ClickedEdit MonoIcons.check "Save Lap"
 
           else
-            actionButton defaultConfig ClickedEdit MonoIcons.edit "Edit Lap"
-        , actionButton defaultConfig ClickedCopy MonoIcons.copy "Copy"
-        , actionButton defaultConfig ClickedDelete MonoIcons.delete "Delete"
-        , actionButton defaultConfig (ClickedShift True) MonoIcons.arrowUp "Shift Up"
-        , actionButton defaultConfig (ClickedShift False) MonoIcons.arrowDown "Shift Down"
+            actionButton config ClickedEdit MonoIcons.edit "Edit Lap"
+        , actionButton config ClickedCopy MonoIcons.copy "Copy"
+        , actionButton config ClickedDelete MonoIcons.delete "Delete"
+        , actionButton config (ClickedShift True) MonoIcons.arrowUp "Shift Up"
+        , actionButton config (ClickedShift False) MonoIcons.arrowDown "Shift Down"
         ]
 
 
@@ -74,7 +82,7 @@ viewPopoverActions =
 
 
 buttonGroupStyles =
-    [ class "button-group", style "border-radius" "5px", borderStyle "border", style "overflow" "hidden" ]
+    [ class "button-group", style "border-radius" "5px", borderStyle "border", style "position" "relative" ]
 
 
 type ButtonSize
@@ -92,6 +100,7 @@ type ButtonColor
 type TooltipPosition
     = Top
     | Right
+    | Bottom
 
 
 type alias ButtonConfig =
@@ -142,6 +151,7 @@ actionButton { size, color, tooltip } onClickMsg icon labelStr =
         , Html.div
             [ class "tooltip"
             , attributeIf (tooltip == Right) (class "right")
+            , attributeIf (tooltip == Bottom) (class "bottom")
             ]
             [ Html.text labelStr ]
         ]

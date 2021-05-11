@@ -211,11 +211,8 @@ button:focus, .button:focus { border-color: var(--blue-500); outline: none; }
   opacity: 0;
 }
 
-.tooltip.right {
-  top: 50%;
-  left: 100%;
-  transform: translate(5px, -50%);
-}
+.tooltip.right { top: 50%; left: 100%; transform: translate(5px, -50%); }
+.tooltip.bottom { top: 100%; transform: translate(-20%, 5px); } 
 
 button:hover > .tooltip {
   display: block;

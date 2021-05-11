@@ -105,4 +105,7 @@ actionButton size onClickMsg icon labelStr primary =
         , style "text-align" "center"
         , stopPropagationOnClick (Decode.succeed onClickMsg)
         ]
-        [ MonoIcons.icon (icon iconFill) ]
+        [ MonoIcons.icon (icon iconFill)
+        , Html.div [ class "tooltip" ]
+            [ Html.text labelStr ]
+        ]

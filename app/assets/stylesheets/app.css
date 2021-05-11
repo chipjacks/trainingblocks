@@ -61,6 +61,7 @@ body { width: 100vw; height: 100vh; }
 @keyframes slidein-right { from { transform: translate(100%); } to { transform: translate(0%); opacity: 1; } }
 @keyframes slidein-bottom { from { transform: translate(0, 100%); } to { transform: translate(0, 0%); opacity: 1; } }
 @keyframes dim { from { background-color: rgba(0,0,0,0); } to { background-color: rgba(0,0,0,0.5); } }
+@keyframes appear  { from { opacity: 0; } to { opacity: 1; } }
 
 /*
  * STYLING
@@ -188,4 +189,29 @@ button:focus, .button:focus { border-color: var(--blue-500); outline: none; }
   z-index: 11;
   animation: slidein-top 0.5s;
   border-radius: 5px;
+}
+
+
+/*
+ * TOOLTIP
+*/
+
+.tooltip {
+  display: none;
+  position: absolute;
+  top: -2rem;
+  z-index: 20;
+  transform: translateX(-35%);
+  background-color: rgba(0,0,0,0.5);
+  width: fit-content;
+  color: white;
+  border-radius: 5px;
+  padding: 5px;
+  opacity: 0;
+}
+
+button:hover > .tooltip {
+  display: block;
+  animation: appear 0.5s ease 0.5s;
+  animation-fill-mode: forwards;
 }

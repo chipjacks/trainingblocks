@@ -260,8 +260,6 @@ view model activities activeId activeRataDie isMoving configs =
         [ id "calendar"
         , class "column expand container no-select"
         , style "height" "fit-content"
-        , borderStyle "border-right"
-        , borderStyle "border-left"
         , styleIf (zoom == Year) "animation" "slidein-left 0.5s"
         , styleIf (zoom == Month) "animation" "slidein-right 0.5s 0.01ms"
         , styleIf (zoom == Month) "opacity" "0"

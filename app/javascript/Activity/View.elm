@@ -67,6 +67,7 @@ listItem params =
         [ style "padding" "0.5rem 0.5rem"
         , style "min-height" "3rem"
         , styleIf isActive "background-color" "var(--grey-100)"
+        , style "border-radius" "5px"
         , style "position" "relative"
         , Html.Events.stopPropagationOn "dblclick" (Decode.succeed ( params.handleDoubleClick, True ))
         , stopPropagationOnClick (Decode.succeed NoOp) -- prevents close event from firing

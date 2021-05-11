@@ -12,11 +12,12 @@ import Http
 import Msg exposing (ActivityConfigs, Msg(..))
 import Process
 import Set
+import Store.History as History exposing (History)
 import Task
 
 
 type Model
-    = Model State (List Msg)
+    = Model State (History Msg State)
 
 
 type alias State =
@@ -34,7 +35,7 @@ init revision activities =
             , emojis = Dict.empty
             }
     in
-    Model (State activities revision configs |> updateLevel) []
+    Model (State activities revision configs |> updateLevel) History.init
 
 
 get : Model -> (State -> b) -> b
@@ -48,8 +49,8 @@ cmd msg =
 
 
 needsFlush : Model -> Bool
-needsFlush (Model _ msgs) =
-    not (List.isEmpty msgs)
+needsFlush (Model _ history) =
+    not (History.isEmpty history)
 
 
 updateState : Msg -> State -> State
@@ -112,37 +113,39 @@ updateConfigs transform state =
 
 
 update : Msg -> Model -> ( Model, Effect )
-update msg (Model state msgs) =
+update msg (Model state history) =
     let
         model =
-            Model state msgs
+            Model state history
     in
     case msg of
         Posted sentMsgs result ->
             case result of
                 Ok ( rev, True ) ->
-                    ( Model { state | revision = rev } msgs
+                    ( Model { state | revision = rev } history
                     , Effect.None
                     )
 
                 Err (Http.BadStatus 409) ->
-                    ( Model state (msgs ++ sentMsgs)
+                    ( Model state history
+                      --(msgs ++ sentMsgs)
                     , Effect.Cmd (Task.attempt GotActivities Api.getActivities)
                     )
 
                 _ ->
-                    ( Model state (msgs ++ sentMsgs)
+                    ( Model state history
+                      --(msgs ++ sentMsgs)
                     , Effect.None
                     )
 
         FlushNow ->
-            ( Model state []
+            ( Model state History.init
             , flush model
             )
 
         DebounceFlush length ->
-            if length == List.length msgs then
-                ( Model state []
+            if length == History.length history then
+                ( Model state History.init
                 , flush model
                 )
 
@@ -154,11 +157,11 @@ update msg (Model state msgs) =
                 Ok ( revision, activities ) ->
                     let
                         newState =
-                            List.foldr (\rmsg rs -> updateState rmsg rs) { state | activities = activities, revision = revision } msgs
+                            List.foldr (\rmsg rs -> updateState rmsg rs) { state | activities = activities, revision = revision } (History.events history)
                                 |> updateLevel
                     in
-                    ( Model newState msgs
-                    , debounceFlush (List.length msgs)
+                    ( Model newState history
+                    , debounceFlush (History.length history)
                     )
 
                 Err _ ->
@@ -167,7 +170,7 @@ update msg (Model state msgs) =
         FetchedEmojis result ->
             case result of
                 Ok emojis ->
-                    ( Model (updateConfigs (\c -> { c | emojis = Emoji.toDict emojis }) state) msgs
+                    ( Model (updateConfigs (\c -> { c | emojis = Emoji.toDict emojis }) state) history
                     , Effect.None
                     )
 
@@ -175,8 +178,8 @@ update msg (Model state msgs) =
                     ( model, Effect.None )
 
         _ ->
-            ( Model (updateState msg state) (msg :: msgs)
-            , debounceFlush (List.length msgs + 1)
+            ( Model (updateState msg state) (History.push ( msg, state ) history)
+            , debounceFlush (History.length history + 1)
             )
 
 
@@ -186,17 +189,20 @@ debounceFlush length =
 
 
 flush : Model -> Effect
-flush model =
-    case model of
-        Model state [] ->
-            Effect.None
+flush (Model state history) =
+    if History.isEmpty history then
+        Effect.None
 
-        Model state msgs ->
-            Effect.PostActivities msgs
-                { revision = state.revision
-                , orderUpdates = orderUpdates state.activities msgs
-                , activityUpdates = activityUpdates msgs
-                }
+    else
+        let
+            msgs =
+                History.events history
+        in
+        Effect.PostActivities msgs
+            { revision = state.revision
+            , orderUpdates = orderUpdates state.activities msgs
+            , activityUpdates = activityUpdates msgs
+            }
 
 
 updateActivity : Activity -> Bool -> List Activity -> List Activity

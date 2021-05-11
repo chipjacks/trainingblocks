@@ -1,4 +1,4 @@
-module Actions exposing (actionButton, viewActivityActions, viewFormActions, viewLapActions, viewMultiSelectActions, viewPopoverActions)
+module Actions exposing (actionButton, viewActivityActions, viewAddAction, viewFormActions, viewLapActions, viewMultiSelectActions, viewPopoverActions)
 
 import Html exposing (Html)
 import Html.Attributes exposing (class, style)
@@ -9,14 +9,21 @@ import Skeleton exposing (attributeIf, borderStyle, column, row, stopPropagation
 import Svg exposing (Svg)
 
 
+viewAddAction : Msg -> String -> Html Msg
+viewAddAction msg label =
+    row [ class "add-button", style "width" "fit-content", style "position" "relative" ]
+        [ actionButton (ButtonConfig Small Subtle Right) msg MonoIcons.add label
+        ]
+
+
 viewActivityActions : Html Msg
 viewActivityActions =
     row buttonGroupStyles
-        [ actionButton Medium ClickedEdit MonoIcons.edit "Edit" False
-        , actionButton Medium ClickedCopy MonoIcons.copy "Copy" False
-        , actionButton Medium ClickedDelete MonoIcons.delete "Delete" False
-        , actionButton Medium (ClickedShift True) MonoIcons.arrowUp "Shift Up" False
-        , actionButton Medium (ClickedShift False) MonoIcons.arrowDown "Shift Down" False
+        [ actionButton defaultConfig ClickedEdit MonoIcons.edit "Edit"
+        , actionButton defaultConfig ClickedCopy MonoIcons.copy "Copy"
+        , actionButton defaultConfig ClickedDelete MonoIcons.delete "Delete"
+        , actionButton defaultConfig (ClickedShift True) MonoIcons.arrowUp "Shift Up"
+        , actionButton defaultConfig (ClickedShift False) MonoIcons.arrowDown "Shift Down"
         ]
 
 
@@ -30,39 +37,39 @@ viewLapActions isEditing =
             buttonGroupStyles
         )
         [ if isEditing then
-            actionButton Medium ClickedEdit MonoIcons.check "Save Lap" True
+            actionButton (ButtonConfig Medium Primary Top) ClickedEdit MonoIcons.check "Save Lap"
 
           else
-            actionButton Medium ClickedEdit MonoIcons.edit "Edit Lap" False
-        , actionButton Medium ClickedCopy MonoIcons.copy "Copy" False
-        , actionButton Medium ClickedDelete MonoIcons.delete "Delete" False
-        , actionButton Medium (ClickedShift True) MonoIcons.arrowUp "Shift Up" False
-        , actionButton Medium (ClickedShift False) MonoIcons.arrowDown "Shift Down" False
+            actionButton defaultConfig ClickedEdit MonoIcons.edit "Edit Lap"
+        , actionButton defaultConfig ClickedCopy MonoIcons.copy "Copy"
+        , actionButton defaultConfig ClickedDelete MonoIcons.delete "Delete"
+        , actionButton defaultConfig (ClickedShift True) MonoIcons.arrowUp "Shift Up"
+        , actionButton defaultConfig (ClickedShift False) MonoIcons.arrowDown "Shift Down"
         ]
 
 
 viewMultiSelectActions : Html Msg
 viewMultiSelectActions =
     row buttonGroupStyles
-        [ actionButton Medium ClickedDelete MonoIcons.delete "Delete" False
-        , actionButton Medium ClickedGroup MonoIcons.folder "Group" False
+        [ actionButton defaultConfig ClickedDelete MonoIcons.delete "Delete"
+        , actionButton defaultConfig ClickedGroup MonoIcons.folder "Group"
         ]
 
 
 viewFormActions : Html Msg
 viewFormActions =
     row []
-        [ actionButton Wide ClickedSubmit MonoIcons.check "Save" True
-        , actionButton Medium ClickedClose MonoIcons.close "Close" False
+        [ actionButton (ButtonConfig Wide Primary Top) ClickedSubmit MonoIcons.check "Save"
+        , actionButton defaultConfig ClickedClose MonoIcons.close "Close"
         ]
 
 
 viewPopoverActions : Html Msg
 viewPopoverActions =
     column buttonGroupStyles
-        [ actionButton Medium ClickedEdit MonoIcons.edit "Edit" False
-        , actionButton Medium ClickedCopy MonoIcons.copy "Copy" False
-        , actionButton Medium ClickedDelete MonoIcons.delete "Delete" False
+        [ actionButton defaultConfig ClickedEdit MonoIcons.edit "Edit"
+        , actionButton defaultConfig ClickedCopy MonoIcons.copy "Copy"
+        , actionButton defaultConfig ClickedDelete MonoIcons.delete "Delete"
         ]
 
 
@@ -76,15 +83,41 @@ type ButtonSize
     | Wide
 
 
-actionButton : ButtonSize -> Msg -> (String -> Svg Msg) -> String -> Bool -> Html Msg
-actionButton size onClickMsg icon labelStr primary =
+type ButtonColor
+    = Primary
+    | Regular
+    | Subtle
+
+
+type TooltipPosition
+    = Top
+    | Right
+
+
+type alias ButtonConfig =
+    { size : ButtonSize
+    , color : ButtonColor
+    , tooltip : TooltipPosition
+    }
+
+
+defaultConfig =
+    ButtonConfig Medium Regular Top
+
+
+actionButton : ButtonConfig -> Msg -> (String -> Svg Msg) -> String -> Html Msg
+actionButton { size, color, tooltip } onClickMsg icon labelStr =
     let
         iconFill =
-            if primary then
-                "#ffffff"
+            case color of
+                Primary ->
+                    "#ffffff"
 
-            else
-                "#3d3d3d"
+                Regular ->
+                    "#3d3d3d"
+
+                Subtle ->
+                    "var(--grey-900)"
 
         sizeClass =
             case size of
@@ -100,12 +133,15 @@ actionButton size onClickMsg icon labelStr primary =
     Html.button
         [ class "button expand basic"
         , class sizeClass
-        , attributeIf primary (class "primary")
+        , attributeIf (color == Primary) (class "primary")
         , Html.Attributes.attribute "aria-label" labelStr
         , style "text-align" "center"
         , stopPropagationOnClick (Decode.succeed onClickMsg)
         ]
         [ MonoIcons.icon (icon iconFill)
-        , Html.div [ class "tooltip" ]
+        , Html.div
+            [ class "tooltip"
+            , attributeIf (tooltip == Right) (class "right")
+            ]
             [ Html.text labelStr ]
         ]

@@ -591,11 +591,7 @@ selectActivityDecoder activity =
 
 viewAddButton : Date -> Html Msg
 viewAddButton date =
-    row [ Html.Attributes.class "add-button", style "margin-left" "0.5rem", style "margin-top" "0.5rem" ]
-        [ iconButton
-            [ stopPropagationOnClick (Decode.succeed (ClickedNewActivity date)), Html.Attributes.attribute "aria-label" "Add" ]
-            [ MonoIcons.icon (MonoIcons.add "var(--grey-900)") ]
-        ]
+    Actions.viewAddAction (ClickedNewActivity date) "Add Activity"
 
 
 listDays : Date -> Date -> List Date

@@ -713,9 +713,7 @@ viewActivityShape configs selectedLap lapIndex lap repeatM =
 
 viewAddButton : Msg -> Html Msg
 viewAddButton msg =
-    row []
-        [ iconButton [ onClick msg ] [ MonoIcons.icon (MonoIcons.add "var(--black-100)") ]
-        ]
+    Actions.viewAddAction msg "Add Lap"
 
 
 viewActivityFields : EmojiDict -> ActivityForm -> Html Msg

@@ -88,7 +88,7 @@ button, .button {
   text-decoration: none;
   color: black;
 }
-.button.small { padding: 0rem 0.6rem; }
+.button.small { padding: 0.3rem 0.6rem; }
 .button.medium { padding: 0.3rem 0.8rem; }
 .button.wide { padding: 0.3rem 2rem; }
 button:hover, .button:hover { background-color: var(--grey-300); }
@@ -204,10 +204,17 @@ button:focus, .button:focus { border-color: var(--blue-500); outline: none; }
   transform: translateX(-35%);
   background-color: rgba(0,0,0,0.5);
   width: fit-content;
+  white-space: nowrap;
   color: white;
   border-radius: 5px;
   padding: 5px;
   opacity: 0;
+}
+
+.tooltip.right {
+  top: 50%;
+  left: 100%;
+  transform: translate(5px, -50%);
 }
 
 button:hover > .tooltip {

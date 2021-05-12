@@ -69,8 +69,11 @@ undoMsg (Model _ history) =
                 Move _ _ ->
                     "Activity moved"
 
+                Shift _ _ ->
+                    "Activity shifted"
+
                 _ ->
-                    ""
+                    "Activity updated"
     in
     History.peek history
         |> Maybe.map (\( msg, state ) -> ( eventName msg, Undo ( msg, state ) ))

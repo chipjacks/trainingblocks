@@ -81,7 +81,14 @@ dropdown rightAlign header content =
 
 toast : Html msg -> Html msg
 toast body =
-    row [ style "position" "fixed", style "bottom" "0", style "height" "4rem", style "width" "100%", style "z-index" "35", style "animation" "slidein-bottom 0.5s" ]
+    row
+        [ style "position" "fixed"
+        , style "bottom" "0"
+        , style "height" "fit-content"
+        , style "width" "100%"
+        , style "z-index" "35"
+        , style "animation" "slidein-bottom 0.5s"
+        ]
         [ column [ class "container" ]
             [ row
                 [ style "justify-content" "flex-end" ]

@@ -747,6 +747,8 @@ viewUndoToastM eventM =
             Skeleton.toast <|
                 row
                     [ style "padding" "10px"
+                    , style "margin-right" "10px"
+                    , style "margin-bottom" "10px"
                     , style "background-color" "white"
                     , style "border-radius" "5px"
                     , style "align-items" "middle"

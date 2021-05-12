@@ -167,8 +167,8 @@ update msg (Model state history) =
             , flush model
             )
 
-        DebounceFlush length ->
-            if length == History.length history then
+        DebounceFlush version ->
+            if version == History.version history then
                 ( Model state History.init
                 , flush model
                 )
@@ -185,7 +185,7 @@ update msg (Model state history) =
                                 |> updateLevel
                     in
                     ( Model newState history
-                    , debounceFlush (History.length history)
+                    , debounceFlush (History.version history)
                     )
 
                 Err _ ->
@@ -202,19 +202,27 @@ update msg (Model state history) =
                     ( model, Effect.None )
 
         Undo ( prevMsg, prevState ) ->
-            ( Model prevState (History.pop history |> Tuple.second)
-            , Effect.None
+            let
+                newHistory =
+                    History.pop history |> Tuple.second
+            in
+            ( Model prevState newHistory
+            , debounceFlush (History.version newHistory)
             )
 
         _ ->
-            ( Model (updateState msg state) (History.push ( msg, state ) history)
-            , debounceFlush (History.length history + 1)
+            let
+                newHistory =
+                    History.push ( msg, state ) history
+            in
+            ( Model (updateState msg state) newHistory
+            , debounceFlush (History.version newHistory)
             )
 
 
 debounceFlush : Int -> Effect
-debounceFlush length =
-    Effect.Cmd (Task.perform (\_ -> DebounceFlush length) (Process.sleep 5000))
+debounceFlush version =
+    Effect.Cmd (Task.perform (\_ -> DebounceFlush version) (Process.sleep 5000))
 
 
 flush : Model -> Effect

@@ -56,6 +56,7 @@ type Msg
     | Move Date Activity
     | Shift Bool Activity
     | Delete Activity
+    | Undo ( Msg, StoreData )
     | Posted (History Msg StoreData) (Result Http.Error ( String, Bool ))
     | DebounceFlush Int
     | FlushNow

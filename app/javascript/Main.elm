@@ -216,6 +216,9 @@ update msg model =
                 Delete _ ->
                     updateStore msg (State calendar store None) |> loaded
 
+                Undo _ ->
+                    updateStore msg state |> loaded
+
                 Posted _ _ ->
                     updateStore msg state |> loaded
 
@@ -666,6 +669,7 @@ viewBody (State calendar store activityM) =
         [ Html.Lazy.lazy6 Calendar.view calendar activities activeId activeRataDie isMoving configs
         , Html.Lazy.lazy2 viewActivityM configs activityM
         , Html.Lazy.lazy2 ActivityForm.view configs activityM
+        , Html.Lazy.lazy viewUndoToastM (Store.undoMsg store)
         ]
 
 
@@ -734,6 +738,29 @@ viewActivityM configs activityState =
 
         _ ->
             Html.text ""
+
+
+viewUndoToastM : Maybe ( String, Msg ) -> Html Msg
+viewUndoToastM eventM =
+    viewMaybe eventM
+        (\( name, msg ) ->
+            Skeleton.toast <|
+                row
+                    [ style "padding" "10px"
+                    , style "background-color" "white"
+                    , style "border-radius" "5px"
+                    , style "align-items" "middle"
+                    , borderStyle "border"
+                    ]
+                    [ MonoIcons.icon (MonoIcons.circleInformation "var(--blue-500)")
+                    , Html.span [ style "margin-left" "5px" ] [ text name ]
+                    , Html.a
+                        [ Html.Events.onClick msg
+                        , style "margin-left" "0.5rem"
+                        ]
+                        [ text "Undo" ]
+                    ]
+        )
 
 
 mouseMoveDecoder =

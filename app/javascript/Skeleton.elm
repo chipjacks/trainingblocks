@@ -1,4 +1,4 @@
-module Skeleton exposing (attributeIf, borderStyle, column, compactColumn, dropdown, expandingRow, iconButton, layout, logo, row, spinner, stopPropagationOnClick, styleIf, viewIf, viewMaybe)
+module Skeleton exposing (attributeIf, borderStyle, column, compactColumn, dropdown, expandingRow, iconButton, layout, logo, row, spinner, stopPropagationOnClick, styleIf, toast, viewIf, viewMaybe)
 
 import Html exposing (Html, div, i, img, text)
 import Html.Attributes exposing (class, src, style)
@@ -76,6 +76,17 @@ dropdown rightAlign header content =
         [ header
         , div [ class "dropdown-content", styleIf rightAlign "right" "0" ]
             content
+        ]
+
+
+toast : Html msg -> Html msg
+toast body =
+    row [ style "position" "fixed", style "bottom" "0", style "height" "4rem", style "width" "100%", style "z-index" "35", style "animation" "slidein-bottom 0.5s" ]
+        [ column [ class "container" ]
+            [ row
+                [ style "justify-content" "flex-end" ]
+                [ body ]
+            ]
         ]
 
 

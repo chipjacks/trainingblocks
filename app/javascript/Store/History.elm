@@ -1,4 +1,4 @@
-module Store.History exposing (History, events, init, isEmpty, length, push, append)
+module Store.History exposing (History, append, events, init, isEmpty, length, peek, pop, push)
 
 
 type History event state
@@ -34,3 +34,18 @@ push ( event, state ) (History list) =
 append : History event state -> History event state -> History event state
 append (History list) (History more) =
     History (list ++ more)
+
+
+peek : History event state -> Maybe ( event, state )
+peek (History list) =
+    List.head list
+
+
+pop : History event state -> ( Maybe ( event, state ), History event state )
+pop (History list) =
+    case list of
+        head :: tail ->
+            ( Just head, History tail )
+
+        [] ->
+            ( Nothing, History list )

@@ -1,4 +1,4 @@
-module Store exposing (Model, cmd, get, init, needsFlush, update)
+module Store exposing (Model, cmd, get, init, needsFlush, undoMsg, update)
 
 import Activity
 import Activity.Types exposing (Activity, Id)
@@ -44,6 +44,36 @@ cmd msg =
 needsFlush : Model -> Bool
 needsFlush (Model _ history) =
     not (History.isEmpty history)
+
+
+undoMsg : Model -> Maybe ( String, Msg )
+undoMsg (Model _ history) =
+    let
+        eventName msg =
+            case msg of
+                Create _ ->
+                    "Activity created"
+
+                Update _ ->
+                    "Activity updated"
+
+                Delete _ ->
+                    "Activity deleted"
+
+                Group _ _ ->
+                    "Activities grouped"
+
+                Ungroup _ _ ->
+                    "Activities ungrouped"
+
+                Move _ _ ->
+                    "Activity moved"
+
+                _ ->
+                    ""
+    in
+    History.peek history
+        |> Maybe.map (\( msg, state ) -> ( eventName msg, Undo ( msg, state ) ))
 
 
 updateState : Msg -> StoreData -> StoreData
@@ -167,6 +197,11 @@ update msg (Model state history) =
 
                 _ ->
                     ( model, Effect.None )
+
+        Undo ( prevMsg, prevState ) ->
+            ( Model prevState (History.pop history |> Tuple.second)
+            , Effect.None
+            )
 
         _ ->
             ( Model (updateState msg state) (History.push ( msg, state ) history)

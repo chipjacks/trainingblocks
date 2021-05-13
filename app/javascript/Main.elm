@@ -22,7 +22,7 @@ import MonoIcons
 import Msg exposing (ActivityConfigs, ActivityState(..), Msg(..))
 import Ports
 import Random
-import Skeleton exposing (borderStyle, column, compactColumn, expandingRow, row, spinner, styleIf, viewIf, viewMaybe)
+import Skeleton exposing (attributeIf, borderStyle, column, compactColumn, expandingRow, row, spinner, styleIf, viewIf, viewMaybe)
 import Store
 import Task
 import Time
@@ -740,10 +740,17 @@ viewActivityM configs activityState =
             Html.text ""
 
 
-viewUndoToastM : Maybe ( String, Msg ) -> Html Msg
+viewUndoToastM : Maybe ( Int, String, Msg ) -> Html Msg
 viewUndoToastM eventM =
+    let
+        boxShadow =
+            [ "white -3px -3px 0 -1px, var(--grey-500) -3px -3px"
+            , "white -6px -6px 0 -1px, var(--grey-500) -6px -6px"
+            , "white -9px -9px 0 -1px, var(--grey-500) -9px -9px"
+            ]
+    in
     viewMaybe eventM
-        (\( name, msg ) ->
+        (\( stackHeight, name, msg ) ->
             Skeleton.toast <|
                 row
                     [ style "padding" "10px"
@@ -753,6 +760,8 @@ viewUndoToastM eventM =
                     , style "border-radius" "5px"
                     , style "align-items" "middle"
                     , borderStyle "border"
+                    , style "box-shadow" (boxShadow |> List.take (stackHeight - 1) |> String.join ",")
+                    , style "transition" "box-shadow 0.5s"
                     ]
                     [ MonoIcons.icon (MonoIcons.circleInformation "var(--blue-500)")
                     , Html.span [ style "margin-left" "5px" ] [ text name ]

@@ -46,7 +46,7 @@ needsFlush (Model _ history) =
     not (History.isEmpty history)
 
 
-undoMsg : Model -> Maybe ( String, Msg )
+undoMsg : Model -> Maybe ( Int, String, Msg )
 undoMsg (Model _ history) =
     let
         eventName msg =
@@ -76,7 +76,7 @@ undoMsg (Model _ history) =
                     "Activity updated"
     in
     History.peek history
-        |> Maybe.map (\( msg, state ) -> ( eventName msg, Undo ( msg, state ) ))
+        |> Maybe.map (\( msg, state ) -> ( History.length history, eventName msg, Undo ( msg, state ) ))
 
 
 updateState : Msg -> StoreData -> StoreData

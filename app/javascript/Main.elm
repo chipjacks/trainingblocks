@@ -97,7 +97,9 @@ update msg model =
             in
             case msg of
                 GotActivities _ ->
-                    updateStore msg state |> loaded
+                    updateStore msg state
+                        |> Tuple.mapFirst reloadActivityState
+                        |> loaded
 
                 FetchedEmojis _ ->
                     updateStore msg state |> loaded
@@ -217,7 +219,9 @@ update msg model =
                     updateStore msg (State calendar store None) |> loaded
 
                 Undo _ ->
-                    updateStore msg (State calendar store None) |> loaded
+                    updateStore msg state
+                        |> Tuple.mapFirst reloadActivityState
+                        |> loaded
 
                 Posted _ _ ->
                     updateStore msg state |> loaded
@@ -533,6 +537,33 @@ updateStore : Msg -> State -> ( State, Effect )
 updateStore msg (State calendar store activityM) =
     Store.update msg store
         |> Tuple.mapFirst (\updated -> State calendar updated activityM)
+
+
+reloadActivityState : State -> State
+reloadActivityState (State calendar store activityM) =
+    let
+        reloadActivity activity =
+            Store.get store .activities
+                |> List.filter (\a -> a.id == activity.id)
+                |> List.head
+
+        newActivityM =
+            case activityM of
+                Editing form ->
+                    reloadActivity form.activity.id
+                        |> Maybe.map ActivityForm.init
+                        |> Maybe.map Editing
+                        |> Maybe.withDefault None
+
+                Selected [ activity ] ->
+                    reloadActivity activity.id
+                        |> Maybe.map (\a -> Selected [ a ])
+                        |> Maybe.withDefault None
+
+                _ ->
+                    None
+    in
+    State calendar store newActivityM
 
 
 loaded : ( State, Effect ) -> ( Model, Effect )

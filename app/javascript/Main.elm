@@ -217,7 +217,7 @@ update msg model =
                     updateStore msg (State calendar store None) |> loaded
 
                 Undo _ ->
-                    updateStore msg state |> loaded
+                    updateStore msg (State calendar store None) |> loaded
 
                 Posted _ _ ->
                     updateStore msg state |> loaded

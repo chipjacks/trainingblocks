@@ -4,6 +4,7 @@ import Html exposing (Html, div, i, img, text)
 import Html.Attributes exposing (class, src, style)
 import Html.Events
 import Json.Decode as Decode
+import MonoIcons
 
 
 layout : List (Html msg) -> Html msg -> Html msg
@@ -79,20 +80,53 @@ dropdown rightAlign header content =
         ]
 
 
-toast : Html msg -> Html msg
-toast body =
+toast : Bool -> Int -> Html msg -> Html msg
+toast positionTop stackHeight body =
+    let
+        boxShadow =
+            [ "white -3px -3px 0 -1px, var(--grey-500) -3px -3px"
+            , "white -6px -6px 0 -1px, var(--grey-500) -6px -6px"
+            , "white -9px -9px 0 -1px, var(--grey-500) -9px -9px"
+            ]
+    in
     row
         [ style "position" "fixed"
-        , style "bottom" "0"
+        , if positionTop then
+            style "top" "70px"
+
+          else
+            style "bottom" "0"
+        , if positionTop then
+            style "animation" "slidein-top 0.5s"
+
+          else
+            style "animation" "slidein-bottom 0.5s"
         , style "height" "fit-content"
         , style "width" "100%"
         , style "z-index" "35"
-        , style "animation" "slidein-bottom 0.5s"
         ]
         [ column [ class "container" ]
             [ row
-                [ style "justify-content" "flex-end" ]
-                [ body ]
+                [ if positionTop then
+                    style "justify-content" "flex-start"
+
+                  else
+                    style "justify-content" "flex-end"
+                , style "margin" "10px"
+                ]
+                [ row
+                    [ style "padding" "10px"
+                    , style "background-color" "white"
+                    , style "border-radius" "5px"
+                    , style "align-items" "middle"
+                    , borderStyle "border"
+                    , style "box-shadow" (boxShadow |> List.take (stackHeight - 1) |> String.join ",")
+                    ]
+                    [ MonoIcons.icon (MonoIcons.circleInformation "var(--blue-500)")
+                    , compactColumn [ style "width" "5px" ] []
+                    , body
+                    ]
+                ]
             ]
         ]
 

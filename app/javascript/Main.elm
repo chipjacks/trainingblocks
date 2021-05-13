@@ -550,13 +550,13 @@ reloadActivityState (State calendar store activityM) =
         newActivityM =
             case activityM of
                 Editing form ->
-                    reloadActivity form.activity.id
+                    reloadActivity form.activity
                         |> Maybe.map ActivityForm.init
                         |> Maybe.map Editing
                         |> Maybe.withDefault None
 
                 Selected [ activity ] ->
-                    reloadActivity activity.id
+                    reloadActivity activity
                         |> Maybe.map (\a -> Selected [ a ])
                         |> Maybe.withDefault None
 
@@ -773,29 +773,11 @@ viewActivityM configs activityState =
 
 viewUndoToastM : Maybe ( Int, String, Msg ) -> Html Msg
 viewUndoToastM eventM =
-    let
-        boxShadow =
-            [ "white -3px -3px 0 -1px, var(--grey-500) -3px -3px"
-            , "white -6px -6px 0 -1px, var(--grey-500) -6px -6px"
-            , "white -9px -9px 0 -1px, var(--grey-500) -9px -9px"
-            ]
-    in
     viewMaybe eventM
         (\( stackHeight, name, msg ) ->
-            Skeleton.toast <|
-                row
-                    [ style "padding" "10px"
-                    , style "margin-right" "10px"
-                    , style "margin-bottom" "10px"
-                    , style "background-color" "white"
-                    , style "border-radius" "5px"
-                    , style "align-items" "middle"
-                    , borderStyle "border"
-                    , style "box-shadow" (boxShadow |> List.take (stackHeight - 1) |> String.join ",")
-                    , style "transition" "box-shadow 0.5s"
-                    ]
-                    [ MonoIcons.icon (MonoIcons.circleInformation "var(--blue-500)")
-                    , Html.span [ style "margin-left" "5px" ] [ text name ]
+            Skeleton.toast False stackHeight <|
+                row []
+                    [ text name
                     , Html.a
                         [ Html.Events.onClick msg
                         , style "margin-left" "0.5rem"

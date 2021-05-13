@@ -146,17 +146,17 @@ update msg model =
                             50
 
                         autoScrollCalendar =
-                            Dom.getViewportOf "calendar"
+                            Dom.getViewportOf "main"
                                 |> Task.andThen
                                     (\info ->
                                         if y < 0 then
                                             Task.succeed ()
 
                                         else if y > (info.viewport.height * 0.9 + navbarHeight) then
-                                            Dom.setViewportOf "calendar" 0 (info.viewport.y + distance)
+                                            Dom.setViewportOf "main" 0 (info.viewport.y + distance)
 
                                         else if y < (info.viewport.height * 0.1 + navbarHeight) then
-                                            Dom.setViewportOf "calendar" 0 (info.viewport.y - distance)
+                                            Dom.setViewportOf "main" 0 (info.viewport.y - distance)
 
                                         else
                                             Task.succeed ()

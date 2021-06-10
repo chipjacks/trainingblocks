@@ -200,9 +200,9 @@ viewDropdownItem changeDate formatDate date =
 -- VIEW
 
 
-filterActivities : Date -> List Activity -> List Activity
-filterActivities date activities =
-    List.filter (\a -> a.date == date) activities
+filterActivities : Date -> Date -> List Activity -> List Activity
+filterActivities start end activities =
+    List.filter (\a -> Date.isBetween start end a.date) activities
 
 
 view : Model -> List Activity -> String -> Int -> Bool -> ActivityConfigs -> Html Msg
@@ -214,7 +214,7 @@ view model activities activeId activeRataDie isMoving configs =
         dayRows date =
             List.concat
                 [ [ ( Date.toIsoString date, Html.Lazy.lazy4 viewDay (date == today) (date == selected) isMoving (Date.toRataDie date) ) ]
-                , filterActivities date activities
+                , filterActivities date date activities
                     |> List.map
                         (\activity ->
                             ( activity.id
@@ -236,7 +236,7 @@ view model activities activeId activeRataDie isMoving configs =
                             (\d ->
                                 ( Date.toIsoString d
                                 , Html.Lazy.lazy7 viewWeek
-                                    activities
+                                    (filterActivities d (Date.add Date.Weeks 1 d) activities)
                                     today
                                     selected
                                     d
@@ -369,7 +369,7 @@ viewHeader model =
 
 
 viewWeek : List Activity -> Date -> Date -> Date -> Bool -> String -> ActivityConfigs -> Html Msg
-viewWeek allActivities today selected start isMoving activeId configs =
+viewWeek activities today selected start isMoving activeId configs =
     let
         days =
             daysOfWeek start
@@ -380,12 +380,7 @@ viewWeek allActivities today selected start isMoving activeId configs =
 
         dayViews =
             days
-                |> List.map (\d -> viewWeekDay ( d, filterActivities d allActivities ) (d == today) (d == selected) isMoving activeId configs)
-
-        activities =
-            days
-                |> List.map (\d -> filterActivities d allActivities)
-                |> List.concat
+                |> List.map (\d -> viewWeekDay ( d, filterActivities d d activities ) (d == today) (d == selected) isMoving activeId configs)
     in
     row [ style "padding" "0 0.5rem", styleIf isNewMonth "margin-top" "1rem" ] <|
         titleWeek activities

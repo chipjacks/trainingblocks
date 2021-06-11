@@ -22,7 +22,7 @@ import Json.Decode as Decode
 import MPRLevel
 import MonoIcons
 import Msg exposing (ActivityConfigs, ActivityState(..), Msg(..))
-import Pace
+import Pace exposing (TrainingPaceList)
 import Skeleton exposing (attributeIf, borderStyle, column, compactColumn, expandingRow, iconButton, row, stopPropagationOnClick, styleIf, viewIf, viewMaybe)
 import Store
 import Svg exposing (Svg)
@@ -625,7 +625,7 @@ viewLaps configs completed editingLap isAutofillable lapSelection repeatSelectio
         viewLap index lap =
             Activity.View.listItem
                 { titleM = Nothing
-                , subtitle = Activity.View.lapDescription configs.levelM lap
+                , subtitle = Activity.View.lapDescription configs.paces lap
                 , isActive = Selection.selectedIndex lapSelection == index
                 , handlePointerDown = Decode.succeed (SelectedLap index)
                 , handleDoubleClick = ClickedEdit
@@ -732,7 +732,7 @@ viewActivityFields emojis form =
 
 
 viewLapFields : ActivityConfigs -> ActivityForm -> Html Msg
-viewLapFields { emojis, levelM } form =
+viewLapFields { emojis, paces } form =
     let
         maxFieldWidth =
             style "max-width" "20rem"
@@ -758,7 +758,7 @@ viewLapFields { emojis, levelM } form =
             , column [ maxFieldWidth, style "flex-grow" "1" ] [ emojiSelect SelectedEmoji emojis form.emoji form.emojiSearch ]
             ]
         , row [ styleIf (form.activityType /= Activity.Types.Run) "visibility" "hidden" ]
-            [ column [ maxFieldWidth, style "flex-grow" "2" ] [ paceSelect levelM SelectedPace form.pace form.validated.pace ]
+            [ column [ maxFieldWidth, style "flex-grow" "2" ] [ paceSelect paces SelectedPace form.pace form.validated.pace ]
             , column [ maxFieldWidth, style "flex-grow" "1" ] [ raceToggle CheckedRace form.race ]
             ]
         ]
@@ -1120,22 +1120,17 @@ numberInput nameStr max attrs =
         )
 
 
-paceSelect : Maybe Int -> (String -> Msg) -> String -> Result FieldError Int -> Html Msg
-paceSelect levelM msg paceStr result =
+paceSelect : Maybe TrainingPaceList -> (String -> Msg) -> String -> Result FieldError Int -> Html Msg
+paceSelect pacesM msg paceStr result =
     let
         trainingPaces =
-            case levelM of
-                Just level ->
-                    Pace.trainingPaces ( MPRLevel.Neutral, level )
-                        |> Result.map (List.map (\( name, ( minPace, maxPace ) ) -> Duration.stripTimeStr maxPace))
-                        |> Result.withDefault []
-
-                Nothing ->
-                    []
+            pacesM
+                |> Maybe.map (List.map (\( name, ( minPace, maxPace ) ) -> Duration.stripTimeStr maxPace))
+                |> Maybe.withDefault []
 
         trainingPaceStr =
             Result.toMaybe result
-                |> Maybe.map2 (\level paceSecs -> Pace.secondsToTrainingPace level paceSecs) levelM
+                |> Maybe.map2 (\paces paceSecs -> Pace.secondsToTrainingPace paces paceSecs) pacesM
                 |> Maybe.map Pace.trainingPace.toString
                 |> Maybe.withDefault ""
 
@@ -1150,7 +1145,7 @@ paceSelect levelM msg paceStr result =
     column []
         [ label "Pace" (paceStr /= "") (msg "")
         , column []
-            [ viewMaybe levelM
+            [ viewMaybe pacesM
                 (\_ ->
                     row [ style "margin-top" "2px", style "margin-bottom" "2px", style "border-radius" "4px", style "overflow" "hidden", style "max-width" "10rem", style "margin-right" "10px" ]
                         (List.map

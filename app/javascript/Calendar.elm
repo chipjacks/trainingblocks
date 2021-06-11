@@ -551,7 +551,7 @@ viewActivity activeIds isActiveDate configs activity =
     in
     Activity.View.listItem
         { titleM = Just activity.description
-        , subtitle = Activity.View.activityDescription configs.levelM (Activity.Laps.visible activity |> Activity.Laps.sum)
+        , subtitle = Activity.View.activityDescription configs.paces (Activity.Laps.visible activity |> Activity.Laps.sum)
         , isActive = isActive
         , handlePointerDown = selectActivityDecoder activity
         , handleDoubleClick = EditActivity activity

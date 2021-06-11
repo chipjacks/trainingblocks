@@ -9,7 +9,9 @@ import Effect exposing (Effect)
 import Emoji
 import EmojiData exposing (EmojiData)
 import Http
+import MPRLevel
 import Msg exposing (ActivityConfigs, Msg(..), StoreData)
+import Pace
 import Process
 import Set
 import Store.History as History exposing (History)
@@ -24,11 +26,11 @@ init : String -> List Activity -> Model
 init revision activities =
     let
         configs =
-            { levelM = Nothing
+            { paces = Nothing
             , emojis = Dict.empty
             }
     in
-    Model (StoreData activities revision configs |> updateLevel) History.init
+    Model (StoreData activities revision configs |> updatePaces) History.init
 
 
 get : Model -> (StoreData -> b) -> b
@@ -84,15 +86,15 @@ updateState msg state =
     case msg of
         Create activity ->
             { state | activities = updateActivity activity True state.activities }
-                |> updateLevel
+                |> updatePaces
 
         Update activity ->
             { state | activities = updateActivity activity False state.activities }
-                |> updateLevel
+                |> updatePaces
 
         Delete activity ->
             { state | activities = List.filter (\a -> a.id /= activity.id) state.activities }
-                |> updateLevel
+                |> updatePaces
 
         Group activities session ->
             let
@@ -121,16 +123,23 @@ updateState msg state =
             state
 
 
-updateLevel : StoreData -> StoreData
-updateLevel state =
+updatePaces : StoreData -> StoreData
+updatePaces state =
     let
-        calculateLevel activities =
-            activities
+        levelM =
+            state.activities
                 |> List.filterMap Activity.mprLevel
                 |> List.reverse
                 |> List.head
+
+        trainingPacesM =
+            levelM
+                |> Maybe.andThen
+                    (\level ->
+                        Pace.trainingPaces ( MPRLevel.Neutral, level )
+                    )
     in
-    updateConfigs (\c -> { c | levelM = calculateLevel state.activities }) state
+    updateConfigs (\c -> { c | paces = trainingPacesM }) state
 
 
 updateConfigs : (ActivityConfigs -> ActivityConfigs) -> StoreData -> StoreData
@@ -182,7 +191,7 @@ update msg (Model state history) =
                     let
                         newState =
                             List.foldr (\rmsg rs -> updateState rmsg rs) { state | activities = activities, revision = revision } (History.events history)
-                                |> updateLevel
+                                |> updatePaces
                     in
                     ( Model newState history
                     , debounceFlush (History.version history)

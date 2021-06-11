@@ -8,6 +8,7 @@ import Date exposing (Date)
 import Emoji exposing (EmojiDict)
 import EmojiData exposing (EmojiData)
 import Http
+import Pace exposing (TrainingPace, TrainingPaceList)
 import Store.History exposing (History)
 
 
@@ -25,7 +26,7 @@ type ActivityState
 
 
 type alias ActivityConfigs =
-    { levelM : Maybe Int
+    { paces : Maybe TrainingPaceList
     , emojis : EmojiDict
     }
 

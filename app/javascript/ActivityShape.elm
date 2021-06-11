@@ -25,10 +25,10 @@ type Color
 
 
 view : ActivityConfigs -> ActivityData -> Html msg
-view { levelM, emojis } data =
+view { paces, emojis } data =
     let
         width paceM =
-            Maybe.map2 Pace.secondsToTrainingPace levelM paceM
+            Maybe.map2 Pace.secondsToTrainingPace paces paceM
                 |> Maybe.withDefault Pace.Easy
                 |> toWidth
 

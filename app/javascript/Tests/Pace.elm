@@ -2,6 +2,7 @@ module Tests.Pace exposing (suite)
 
 import Expect exposing (Expectation)
 import Fuzz
+import MPRLevel
 import Pace exposing (..)
 import Test exposing (..)
 
@@ -33,19 +34,25 @@ suite =
         , describe "trainingPaceToSeconds" <|
             [ test "returns the correct max pace in seconds" <|
                 \_ ->
-                    Expect.equal (trainingPaceToSeconds 47 Easy) (7 * 60 + 35)
+                    Expect.equal (trainingPaceToSeconds (paces 47) Easy) (7 * 60 + 35)
             ]
         , describe "secondsToTrainingPace" <|
             [ test "returns the correct training pace for brisk" <|
                 \_ ->
-                    Expect.equal (secondsToTrainingPace 44 (6 * 60 + 29)) Brisk
+                    Expect.equal (secondsToTrainingPace (paces 44) (6 * 60 + 29)) Brisk
             , test "returns the correct training pace for fast" <|
                 \_ ->
-                    Expect.equal (secondsToTrainingPace 44 (5 * 60 + 9)) Fast
+                    Expect.equal (secondsToTrainingPace (paces 44) (5 * 60 + 9)) Fast
             , fuzz2 (Fuzz.intRange 1 60)
                 (Fuzz.oneOf (List.map (Tuple.second >> Fuzz.constant) trainingPace.list))
                 "reverses trainingPaceToSeconds"
               <|
-                \level pace -> Expect.equal (trainingPaceToSeconds level pace |> secondsToTrainingPace level) pace
+                \level pace ->
+                    Expect.equal (trainingPaceToSeconds (paces level) pace |> secondsToTrainingPace (paces level)) pace
             ]
         ]
+
+
+paces level =
+    trainingPaces ( MPRLevel.Neutral, level )
+        |> Maybe.withDefault []

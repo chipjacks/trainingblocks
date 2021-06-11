@@ -7,31 +7,31 @@ import Html.Attributes exposing (class, style)
 import Html.Events
 import Json.Decode as Decode
 import Msg exposing (ActivityConfigs, Msg(..))
-import Pace
+import Pace exposing (TrainingPaceList)
 import Skeleton exposing (attributeIf, borderStyle, column, compactColumn, row, stopPropagationOnClick, styleIf, viewMaybe)
 
 
-lapDescription : Maybe Int -> LapData -> String
-lapDescription levelM lap =
+lapDescription : Maybe TrainingPaceList -> LapData -> String
+lapDescription pacesM lap =
     case lap of
         Individual data ->
-            activityDescription levelM data
+            activityDescription pacesM data
 
         Repeats count list ->
             String.join " "
                 [ String.fromInt count
                 , "x"
-                , String.join ", " (List.map (activityDescription levelM) list)
+                , String.join ", " (List.map (activityDescription pacesM) list)
                 ]
 
 
-activityDescription : Maybe Int -> ActivityData -> String
-activityDescription levelM data =
+activityDescription : Maybe TrainingPaceList -> ActivityData -> String
+activityDescription pacesM data =
     let
         trainingPaceStr paceM =
-            case ( paceM, levelM ) of
-                ( Just pace, Just level ) ->
-                    Pace.secondsToTrainingPace level pace
+            case ( paceM, pacesM ) of
+                ( Just pace, Just paces ) ->
+                    Pace.secondsToTrainingPace paces pace
                         |> Pace.trainingPace.toString
                         |> String.toLower
 

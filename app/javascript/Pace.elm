@@ -1,4 +1,4 @@
-module Pace exposing (TrainingPace(..), calculate, paceFromString, paceToString, secondsToTrainingPace, trainingPace, trainingPaceToSeconds, trainingPaces)
+module Pace exposing (TrainingPace(..), TrainingPaceList, calculate, paceFromString, paceToString, secondsToTrainingPace, trainingPace, trainingPaceToSeconds, trainingPaces)
 
 import Activity.Types exposing (ActivityData, DistanceUnits(..))
 import Array exposing (Array)
@@ -43,6 +43,10 @@ paceFromString str =
 -- TRAINING PACES
 
 
+type alias TrainingPaceList =
+    List ( TrainingPace, ( String, String ) )
+
+
 trainingPacesTable : RunnerType -> Array (Array ( String, String ))
 trainingPacesTable runnerType =
     let
@@ -62,52 +66,38 @@ trainingPacesTable runnerType =
         |> Array.map (\a -> Array.map (\t -> toTuple t |> Maybe.withDefault ( "", "" )) a)
 
 
-trainingPaces : ( RunnerType, Int ) -> Result String (List ( TrainingPace, ( String, String ) ))
+trainingPaces : ( RunnerType, Int ) -> Maybe TrainingPaceList
 trainingPaces ( runnerType, level ) =
-    let
-        res =
-            Array.get (level - 1) (trainingPacesTable runnerType)
-    in
-    case res of
-        Just arr ->
-            Ok (Array.toList arr |> List.map2 (\x y -> Tuple.pair x y) (List.map Tuple.second (List.drop 1 trainingPace.list)))
-
-        Nothing ->
-            Err "out of range"
-
-
-trainingPaceToSeconds : Int -> TrainingPace -> Int
-trainingPaceToSeconds level tp =
-    trainingPaces ( MPRLevel.Neutral, level )
-        |> Result.map
-            (\l ->
-                if tp == VeryEasy then
-                    List.head l
-                        |> Maybe.map (\( _, ( minPace, maxPace ) ) -> (paceFromString maxPace |> Maybe.withDefault 0) + 1)
-                        |> Maybe.withDefault 0
-
-                else
-                    List.filter (\( name, _ ) -> name == tp) l
-                        |> List.head
-                        |> Maybe.map
-                            (\( _, ( minPace, maxPace ) ) -> paceFromString maxPace |> Maybe.withDefault 0)
-                        |> Maybe.withDefault 0
+    Array.get (level - 1) (trainingPacesTable runnerType)
+        |> Maybe.map
+            (\arr ->
+                Array.toList arr
+                    |> List.map2 (\x y -> Tuple.pair x y) (List.map Tuple.second (List.drop 1 trainingPace.list))
             )
-        |> Result.withDefault 0
 
 
-secondsToTrainingPace : Int -> Int -> TrainingPace
-secondsToTrainingPace level seconds =
-    trainingPaces ( MPRLevel.Neutral, level )
-        |> Result.toMaybe
-        |> Maybe.andThen
-            (\list ->
-                List.map (\( name, ( minPace, maxPace ) ) -> ( name, Duration.timeStrToSeconds maxPace |> Result.withDefault 0 )) list
-                    |> List.filter (\( name, maxPaceSeconds ) -> seconds <= maxPaceSeconds)
-                    |> List.reverse
-                    |> List.head
-                    |> Maybe.map Tuple.first
-            )
+trainingPaceToSeconds : TrainingPaceList -> TrainingPace -> Int
+trainingPaceToSeconds paces tp =
+    if tp == VeryEasy then
+        List.head paces
+            |> Maybe.map (\( _, ( minPace, maxPace ) ) -> (paceFromString maxPace |> Maybe.withDefault 0) + 1)
+            |> Maybe.withDefault 0
+
+    else
+        List.filter (\( name, _ ) -> name == tp) paces
+            |> List.head
+            |> Maybe.map
+                (\( _, ( minPace, maxPace ) ) -> paceFromString maxPace |> Maybe.withDefault 0)
+            |> Maybe.withDefault 0
+
+
+secondsToTrainingPace : TrainingPaceList -> Int -> TrainingPace
+secondsToTrainingPace paces seconds =
+    List.map (\( name, ( minPace, maxPace ) ) -> ( name, Duration.timeStrToSeconds maxPace |> Result.withDefault 0 )) paces
+        |> List.filter (\( name, maxPaceSeconds ) -> seconds <= maxPaceSeconds)
+        |> List.reverse
+        |> List.head
+        |> Maybe.map Tuple.first
         |> Maybe.withDefault VeryEasy
 
 

@@ -10,15 +10,18 @@
 // Read Sprockets README (https://github.com/rails/sprockets#sprockets-directives) for details
 // about supported directives.
 //
+//= require rails-ujs
+//= require jquery
+//= require jquery_ujs
 //= require csrf-xhr/csrf-xhr
 
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("/service-worker.js", { scope: "./" });
+if('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/service-worker.js', { scope: './' });
 
   let refreshing;
-  navigator.serviceWorker.addEventListener("controllerchange", function () {
-    if (refreshing) return;
-    const conf = window.confirm("An update is available. Reload?");
+  navigator.serviceWorker.addEventListener('controllerchange', function () {
+  if (refreshing) return;
+    const conf = window.confirm('An update is available. Reload?');
     if (conf) {
       window.location.reload();
       refreshing = true;

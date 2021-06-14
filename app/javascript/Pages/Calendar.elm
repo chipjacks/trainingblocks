@@ -1,4 +1,4 @@
-module Pages.Calendar exposing (Model, init, main, update, view)
+module Pages.Calendar exposing (main)
 
 import Activity
 import Activity.Laps
@@ -35,7 +35,7 @@ import Time
 main =
     Browser.document
         { init = \x -> init x |> Tuple.mapSecond Effect.perform
-        , view = \model -> { title = "Rhino Log", body = [ view model ] }
+        , view = \model -> { title = "Calendar | Rhino Log", body = [ view model ] }
         , update = \model msg -> update model msg |> Tuple.mapSecond Effect.perform
         , subscriptions = subscriptions
         }

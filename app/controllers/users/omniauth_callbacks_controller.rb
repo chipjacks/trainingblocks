@@ -13,7 +13,7 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
       remember_me(@user)
       @user.save!
       set_flash_message(:notice, :success, kind: "Strava") if is_navigational_format?
-      store_location_for(:user, :root_path)
+      store_location_for(@user, calendar_path)
       sign_in_and_redirect @user, event: :authentication
     else
       set_flash_message(:alert, :failure, kind: "Strava", reason: "#{@user.errors.full_messages.join(', ')}")

@@ -1,8 +1,4 @@
-// Run this example by adding <%= javascript_pack_tag "main" %> to the
-// head of your layout file, like app/views/layouts/application.html.erb.
-// It will render "Hello Elm!" within the page.
-//
-import { Elm } from "../Main";
+import { Elm } from "../Pages/Calendar";
 
 document.addEventListener("DOMContentLoaded", () => {
   const target = document.getElementById("elm-main");
@@ -10,7 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const flags = {};
 
-  const app = Elm.Main.init({ node: target, flags });
+  const app = Elm.Pages.Calendar.init({ node: target, flags });
 
   window.localStorage.setItem("loadDate", Date.now());
   document.addEventListener("visibilitychange", () => {

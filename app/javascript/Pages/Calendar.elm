@@ -1,4 +1,4 @@
-module Main exposing (Model, init, main, update, view)
+module Pages.Calendar exposing (Model, init, main, update, view)
 
 import Activity
 import Activity.Laps

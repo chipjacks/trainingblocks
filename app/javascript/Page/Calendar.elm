@@ -28,6 +28,7 @@ import Time
 import UI exposing (spinner)
 import UI.Layout exposing (column, compactColumn, expandingRow, row)
 import UI.Navbar as Navbar
+import UI.Skeleton as Skeleton
 import UI.Toast
 import UI.Util exposing (attributeIf, borderStyle, styleIf, viewIf, viewMaybe)
 
@@ -627,24 +628,29 @@ initSession head activities =
 
 view : Model -> Html Msg
 view model =
-    column
-        [ style "height" "100vh", style "width" "100vw", style "position" "absolute" ]
-        [ viewNavbar model
-        , case model of
-            Loading _ _ ->
-                expandingRow
-                    [ style "justify-content" "center", style "align-items" "center", style "padding-top" "2rem" ]
-                    [ spinner "3rem" ]
+    let
+        withBody skeleton =
+            case model of
+                Loading _ _ ->
+                    Skeleton.withBody
+                        (expandingRow
+                            [ style "justify-content" "center", style "align-items" "center", style "padding-top" "2rem" ]
+                            [ spinner "3rem" ]
+                        )
+                        skeleton
 
-            Error errorString ->
-                expandingRow []
-                    [ column [ class "container" ]
-                        [ text errorString ]
-                    ]
+                Error errorString ->
+                    Skeleton.withBody (text errorString) skeleton
 
-            Loaded (State calendar store activityM) ->
-                viewBody (State calendar store activityM)
-        ]
+                Loaded (State calendar store activityM) ->
+                    Skeleton.withContainer (\body -> body) skeleton
+                        |> Skeleton.withBody
+                            (viewBody (State calendar store activityM))
+    in
+    Skeleton.default
+        |> Skeleton.withNavbar (viewNavbar model)
+        |> withBody
+        |> Skeleton.view
 
 
 viewBody : State -> Html Msg

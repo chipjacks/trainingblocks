@@ -6,6 +6,7 @@ import Html.Attributes exposing (class, style)
 import MonoIcons
 import UI.Layout exposing (column, expandingRow)
 import UI.Navbar as Navbar
+import UI.Skeleton as Skeleton
 
 
 main =
@@ -51,14 +52,12 @@ view model =
         navHeader =
             Html.div [ style "font-size" "1.3rem" ] [ Html.text "Settings" ]
     in
-    column
-        [ style "height" "100vh", style "width" "100vw" ]
-        [ Navbar.default
-            |> Navbar.withBackButton backButton
-            |> Navbar.withItems [ navHeader ]
-            |> Navbar.view
-        , expandingRow []
-            [ column [ class "container" ]
-                [ Html.text "Settings" ]
-            ]
-        ]
+    Skeleton.default
+        |> Skeleton.withNavbar
+            (Navbar.default
+                |> Navbar.withBackButton backButton
+                |> Navbar.withItems [ navHeader ]
+                |> Navbar.view
+            )
+        |> Skeleton.withBody (Html.text "Settings")
+        |> Skeleton.view

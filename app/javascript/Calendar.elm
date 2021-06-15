@@ -1,4 +1,4 @@
-module Calendar exposing (Model, get, handleScroll, init, update, view, viewHeader, viewMenu)
+module Calendar exposing (Model, get, handleScroll, init, update, view, viewBackButton, viewHeader, viewMenu)
 
 import Actions exposing (viewActivityActions, viewMultiSelectActions, viewPopoverActions)
 import Activity
@@ -98,27 +98,19 @@ update msg model =
 -- VIEW MENU
 
 
-viewMenu : Model -> Html Msg
+viewMenu : Model -> List (Html Msg)
 viewMenu model =
     let
         (Model zoom start end selected today scrollCompleted) =
             model
     in
-    row []
-        [ compactColumn [ style "justify-content" "center" ]
-            [ viewBackButton model
-            ]
-        , column []
-            [ row [ style "justify-content" "center" ]
-                [ viewDatePicker model
-                , button
-                    [ style "margin-left" "0.2rem"
-                    , onClick (Jump today)
-                    ]
-                    [ text "Today" ]
-                ]
-            ]
+    [ viewDatePicker model
+    , button
+        [ style "margin-left" "0.2rem"
+        , onClick (Jump today)
         ]
+        [ text "Today" ]
+    ]
 
 
 viewBackButton : Model -> Html Msg

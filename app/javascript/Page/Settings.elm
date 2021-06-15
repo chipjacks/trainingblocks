@@ -2,8 +2,9 @@ module Page.Settings exposing (main)
 
 import Browser
 import Html exposing (Html)
-import Html.Attributes exposing (style)
-import UI.Layout exposing (column)
+import Html.Attributes exposing (class, style)
+import MonoIcons
+import UI.Layout exposing (column, expandingRow)
 import UI.Navbar as Navbar
 
 
@@ -40,8 +41,24 @@ update msg model =
 
 view : Model -> Html msg
 view model =
+    let
+        backButton =
+            Html.a [ class "button row", style "align-items" "bottom", Html.Attributes.href "/calendar" ]
+                [ MonoIcons.icon (MonoIcons.chevronLeft "#3d3d3d")
+                , Html.text "Back"
+                ]
+
+        navHeader =
+            Html.div [ style "font-size" "1.3rem" ] [ Html.text "Settings" ]
+    in
     column
-        [ style "height" "100vh", style "width" "100vw", style "position" "absolute" ]
-        [ Navbar.view Navbar.default
-        , Html.text "Settings"
+        [ style "height" "100vh", style "width" "100vw" ]
+        [ Navbar.default
+            |> Navbar.withBackButton backButton
+            |> Navbar.withItems [ navHeader ]
+            |> Navbar.view
+        , expandingRow []
+            [ column [ class "container" ]
+                [ Html.text "Settings" ]
+            ]
         ]

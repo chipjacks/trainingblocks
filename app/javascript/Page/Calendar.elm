@@ -718,7 +718,7 @@ viewNavbar model =
         Loaded (State calendar store activityState) ->
             Navbar.default
                 |> Navbar.withLoading (loading (Just store))
-                |> Navbar.withLogoOverride (Calendar.viewBackButton calendar)
+                |> Navbar.withBackButton (Calendar.viewBackButton calendar)
                 |> Navbar.withItems (Calendar.viewMenu calendar)
                 |> Navbar.withSecondRow (Html.Lazy.lazy Calendar.viewHeader calendar)
                 |> Navbar.view

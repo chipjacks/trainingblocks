@@ -1,4 +1,4 @@
-module UI.Navbar exposing (default, view, withItems, withLoading, withLogoOverride, withSecondRow)
+module UI.Navbar exposing (default, view, withBackButton, withItems, withLoading, withSecondRow)
 
 import Html exposing (Html, a, div, text)
 import Html.Attributes exposing (class, style)
@@ -12,7 +12,7 @@ default : Config msg
 default =
     { loading = False
     , items = []
-    , logoOverride = Nothing
+    , backButton = Nothing
     , secondRow = Nothing
     }
 
@@ -27,9 +27,9 @@ withItems items config =
     { config | items = items }
 
 
-withLogoOverride : Html msg -> Config msg -> Config msg
-withLogoOverride override config =
-    { config | logoOverride = Just override }
+withBackButton : Html msg -> Config msg -> Config msg
+withBackButton override config =
+    { config | backButton = Just override }
 
 
 withSecondRow : Html msg -> Config msg -> Config msg
@@ -40,13 +40,13 @@ withSecondRow row config =
 type alias Config msg =
     { loading : Bool
     , items : List (Html msg)
-    , logoOverride : Maybe (Html msg)
+    , backButton : Maybe (Html msg)
     , secondRow : Maybe (Html msg)
     }
 
 
 view : Config msg -> Html msg
-view { loading, items, logoOverride, secondRow } =
+view { loading, items, backButton, secondRow } =
     let
         container body =
             Html.header
@@ -66,13 +66,15 @@ view { loading, items, logoOverride, secondRow } =
                      else
                         div [ style "font-size" "1.4rem", style "padding-top" "2px" ] [ MonoIcons.icon (MonoIcons.optionsVertical "var(--grey-900)") ]
                     )
-                    [ a [ Html.Attributes.href " /users/sign_out", Html.Attributes.attribute "data-method" "delete" ] [ text "Logout" ] ]
+                    [ a [ Html.Attributes.href "/settings" ] [ text "Settings" ]
+                    , a [ Html.Attributes.href "/users/sign_out", Html.Attributes.attribute "data-method" "delete" ] [ text "Logout" ]
+                    ]
                 ]
     in
     container
         [ row
             [ style "padding" "0.5rem", style "height" "2.2rem" ]
-            [ compactColumn [ style "justify-content" "center" ] [ logoOverride |> Maybe.withDefault UI.logo ]
+            [ compactColumn [ style "justify-content" "center" ] [ backButton |> Maybe.withDefault UI.logo ]
             , column [] [ row [ style "justify-content" "center" ] items ]
             , dropdown
             ]

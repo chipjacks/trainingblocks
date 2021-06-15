@@ -1,4 +1,4 @@
-module Pages.Calendar exposing (main)
+module Page.Calendar exposing (main)
 
 import Activity
 import Activity.Laps
@@ -26,6 +26,7 @@ import Skeleton exposing (attributeIf, borderStyle, column, compactColumn, expan
 import Store
 import Task
 import Time
+import UI.Navbar as Navbar
 
 
 
@@ -707,46 +708,21 @@ viewBody (State calendar store activityM) =
 viewNavbar : Model -> Html Msg
 viewNavbar model =
     let
-        wrap body =
-            Html.header
-                [ class "row compact no-select"
-                , borderStyle "border-bottom"
-                ]
-                [ column [ class "container" ]
-                    body
-                ]
-
-        dropdown storeM =
-            compactColumn [ style "min-width" "1.5rem", style "justify-content" "center" ]
-                [ Skeleton.dropdown True
-                    (if Maybe.map Store.needsFlush storeM |> Maybe.withDefault False then
-                        spinner "1.5rem"
-
-                     else
-                        div [ style "font-size" "1.4rem", style "padding-top" "2px" ] [ MonoIcons.icon (MonoIcons.optionsVertical "var(--grey-900)") ]
-                    )
-                    [ a [ Html.Attributes.href " /users/sign_out", Html.Attributes.attribute "data-method" "delete" ] [ text "Logout" ] ]
-                ]
+        loading storeM =
+            Maybe.map Store.needsFlush storeM |> Maybe.withDefault False
     in
     case model of
         Loaded (State calendar store activityState) ->
-            [ row
-                [ style "padding" "0.5rem", style "height" "2.2rem" ]
-                [ column [] [ Calendar.viewMenu calendar ]
-                , dropdown (Just store)
-                ]
-            , Html.Lazy.lazy Calendar.viewHeader calendar
-            ]
-                |> wrap
+            Navbar.default
+                |> Navbar.withLoading (loading (Just store))
+                |> Navbar.withLogoOverride (Calendar.viewBackButton calendar)
+                |> Navbar.withItems (Calendar.viewMenu calendar)
+                |> Navbar.withSecondRow (Html.Lazy.lazy Calendar.viewHeader calendar)
+                |> Navbar.view
 
         _ ->
-            [ row [ style "padding" "0.5rem", style "height" "2.2rem" ]
-                [ compactColumn [ style "justify-content" "center" ] [ Skeleton.logo ]
-                , column [] []
-                , dropdown Nothing
-                ]
-            ]
-                |> wrap
+            Navbar.default
+                |> Navbar.view
 
 
 viewActivityM : ActivityConfigs -> ActivityState -> Html Msg

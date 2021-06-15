@@ -1,4 +1,4 @@
-module Pages.Settings exposing (main)
+module Page.Settings exposing (main)
 
 import Browser
 import Html exposing (Html)

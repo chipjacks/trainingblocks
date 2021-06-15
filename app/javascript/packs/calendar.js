@@ -1,4 +1,4 @@
-import { Elm } from "../Pages/Calendar";
+import { Elm } from "../Page/Calendar";
 
 document.addEventListener("DOMContentLoaded", () => {
   const target = document.getElementById("elm-main");
@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const flags = {};
 
-  const app = Elm.Pages.Calendar.init({ node: target, flags });
+  const app = Elm.Page.Calendar.init({ node: target, flags });
 
   window.localStorage.setItem("loadDate", Date.now());
   document.addEventListener("visibilitychange", () => {

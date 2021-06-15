@@ -8,7 +8,8 @@ import Html exposing (Html, div)
 import Html.Attributes exposing (class, style)
 import Msg exposing (ActivityConfigs)
 import Pace exposing (TrainingPace)
-import Skeleton exposing (column, row, styleIf, viewMaybe)
+import UI.Layout exposing (column, row)
+import UI.Util exposing (styleIf, viewMaybe)
 
 
 type Shape

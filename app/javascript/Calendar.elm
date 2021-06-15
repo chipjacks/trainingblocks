@@ -21,9 +21,11 @@ import Msg exposing (ActivityConfigs, ActivityState(..), Msg(..), Zoom(..))
 import Pace
 import Ports exposing (scrollToSelectedDate)
 import Process
-import Skeleton exposing (attributeIf, borderStyle, column, compactColumn, dropdown, expandingRow, iconButton, row, spinner, stopPropagationOnClick, styleIf, viewIf, viewMaybe)
+import Skeleton exposing (dropdown, iconButton, spinner)
 import Task
 import Time exposing (Month(..))
+import UI.Layout exposing (column, compactColumn, expandingRow, row)
+import UI.Util exposing (attributeIf, borderStyle, stopPropagationOnClick, styleIf, viewIf, viewMaybe)
 
 
 type

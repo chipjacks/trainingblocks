@@ -22,11 +22,14 @@ import MonoIcons
 import Msg exposing (ActivityConfigs, ActivityState(..), Msg(..))
 import Ports
 import Random
-import Skeleton exposing (attributeIf, borderStyle, column, compactColumn, expandingRow, row, spinner, styleIf, viewIf, viewMaybe)
+import Skeleton exposing (spinner)
 import Store
 import Task
 import Time
+import UI.Layout exposing (column, compactColumn, expandingRow, row)
 import UI.Navbar as Navbar
+import UI.Toast
+import UI.Util exposing (attributeIf, borderStyle, styleIf, viewIf, viewMaybe)
 
 
 
@@ -751,7 +754,7 @@ viewUndoToastM : Maybe ( Int, String, Msg ) -> Html Msg
 viewUndoToastM eventM =
     viewMaybe eventM
         (\( stackHeight, name, msg ) ->
-            Skeleton.toast False stackHeight <|
+            UI.Toast.view False stackHeight <|
                 row []
                     [ text name
                     , Html.a

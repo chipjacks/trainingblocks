@@ -5,8 +5,9 @@ import Html.Attributes exposing (class, style)
 import Json.Decode as Decode
 import MonoIcons
 import Msg exposing (..)
-import Skeleton exposing (attributeIf, borderStyle, column, row, stopPropagationOnClick)
 import Svg exposing (Svg)
+import UI.Layout exposing (column, row)
+import UI.Util exposing (attributeIf, borderStyle, stopPropagationOnClick)
 
 
 viewAddAction : Msg -> String -> Html Msg

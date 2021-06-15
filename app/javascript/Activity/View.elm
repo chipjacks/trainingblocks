@@ -8,7 +8,8 @@ import Html.Events
 import Json.Decode as Decode
 import Msg exposing (ActivityConfigs, Msg(..))
 import Pace exposing (TrainingPaceList)
-import Skeleton exposing (attributeIf, borderStyle, column, compactColumn, row, stopPropagationOnClick, styleIf, viewMaybe)
+import UI.Layout exposing (column, compactColumn, row)
+import UI.Util exposing (attributeIf, borderStyle, stopPropagationOnClick, styleIf, viewMaybe)
 
 
 lapDescription : Maybe TrainingPaceList -> LapData -> String

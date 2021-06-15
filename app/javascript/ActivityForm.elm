@@ -23,9 +23,12 @@ import MPRLevel
 import MonoIcons
 import Msg exposing (ActivityConfigs, ActivityState(..), Msg(..))
 import Pace exposing (TrainingPaceList)
-import Skeleton exposing (attributeIf, borderStyle, column, compactColumn, expandingRow, iconButton, row, stopPropagationOnClick, styleIf, viewIf, viewMaybe)
+import Skeleton exposing (iconButton)
 import Store
 import Svg exposing (Svg)
+import UI.Layout exposing (column, compactColumn, expandingRow, row)
+import UI.Toast
+import UI.Util exposing (attributeIf, borderStyle, stopPropagationOnClick, styleIf, viewIf, viewMaybe)
 
 
 init : Activity -> ActivityForm
@@ -571,7 +574,7 @@ view configs activityM =
     case activityM of
         Editing model ->
             if model.date == Nothing then
-                Skeleton.toast True 1 <|
+                UI.Toast.view True 1 <|
                     row [] [ text "Select Date" ]
 
             else

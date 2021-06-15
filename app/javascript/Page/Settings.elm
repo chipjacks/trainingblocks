@@ -2,6 +2,9 @@ module Page.Settings exposing (main)
 
 import Browser
 import Html exposing (Html)
+import Html.Attributes exposing (style)
+import UI.Layout exposing (column)
+import UI.Navbar as Navbar
 
 
 main =
@@ -37,4 +40,8 @@ update msg model =
 
 view : Model -> Html msg
 view model =
-    Html.text "Settings"
+    column
+        [ style "height" "100vh", style "width" "100vw", style "position" "absolute" ]
+        [ Navbar.view Navbar.default
+        , Html.text "Settings"
+        ]

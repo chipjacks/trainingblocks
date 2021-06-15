@@ -3,7 +3,9 @@ module UI.Navbar exposing (default, view, withItems, withLoading, withLogoOverri
 import Html exposing (Html, a, div, text)
 import Html.Attributes exposing (class, style)
 import MonoIcons
-import Skeleton exposing (borderStyle, column, compactColumn, row, spinner)
+import Skeleton exposing (spinner)
+import UI.Layout exposing (..)
+import UI.Util exposing (borderStyle)
 
 
 default : Config msg
@@ -71,7 +73,7 @@ view { loading, items, logoOverride, secondRow } =
         [ row
             [ style "padding" "0.5rem", style "height" "2.2rem" ]
             [ compactColumn [ style "justify-content" "center" ] [ logoOverride |> Maybe.withDefault Skeleton.logo ]
-            , column [] [ row [ style "justify-content" "center" ]  items ]
+            , column [] [ row [ style "justify-content" "center" ] items ]
             , dropdown
             ]
         , secondRow |> Maybe.withDefault (Html.text "")

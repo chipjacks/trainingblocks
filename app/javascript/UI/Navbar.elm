@@ -3,7 +3,7 @@ module UI.Navbar exposing (default, view, withItems, withLoading, withLogoOverri
 import Html exposing (Html, a, div, text)
 import Html.Attributes exposing (class, style)
 import MonoIcons
-import Skeleton exposing (spinner)
+import UI exposing (spinner)
 import UI.Layout exposing (..)
 import UI.Util exposing (borderStyle)
 
@@ -59,7 +59,7 @@ view { loading, items, logoOverride, secondRow } =
 
         dropdown =
             compactColumn [ style "min-width" "1.5rem", style "justify-content" "center" ]
-                [ Skeleton.dropdown True
+                [ UI.dropdown True
                     (if loading then
                         spinner "1.5rem"
 
@@ -72,7 +72,7 @@ view { loading, items, logoOverride, secondRow } =
     container
         [ row
             [ style "padding" "0.5rem", style "height" "2.2rem" ]
-            [ compactColumn [ style "justify-content" "center" ] [ logoOverride |> Maybe.withDefault Skeleton.logo ]
+            [ compactColumn [ style "justify-content" "center" ] [ logoOverride |> Maybe.withDefault UI.logo ]
             , column [] [ row [ style "justify-content" "center" ] items ]
             , dropdown
             ]

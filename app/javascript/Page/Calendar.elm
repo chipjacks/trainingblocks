@@ -22,10 +22,10 @@ import MonoIcons
 import Msg exposing (ActivityConfigs, ActivityState(..), Msg(..))
 import Ports
 import Random
-import Skeleton exposing (spinner)
 import Store
 import Task
 import Time
+import UI exposing (spinner)
 import UI.Layout exposing (column, compactColumn, expandingRow, row)
 import UI.Navbar as Navbar
 import UI.Toast

@@ -21,9 +21,9 @@ import Msg exposing (ActivityConfigs, ActivityState(..), Msg(..), Zoom(..))
 import Pace
 import Ports exposing (scrollToSelectedDate)
 import Process
-import Skeleton exposing (dropdown, iconButton, spinner)
 import Task
 import Time exposing (Month(..))
+import UI exposing (dropdown, iconButton, spinner)
 import UI.Layout exposing (column, compactColumn, expandingRow, row)
 import UI.Util exposing (attributeIf, borderStyle, stopPropagationOnClick, styleIf, viewIf, viewMaybe)
 
@@ -123,7 +123,7 @@ viewBackButton model =
     in
     case zoom of
         Year ->
-            Skeleton.logo
+            UI.logo
 
         Month ->
             a [ class "button row", style "margin-right" "0.2rem", style "align-items" "bottom", onClick (ChangeZoom Year Nothing) ]

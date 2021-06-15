@@ -1,26 +1,9 @@
-module Skeleton exposing (dropdown, iconButton, layout, logo, spinner)
+module UI exposing (dropdown, iconButton, logo, spinner)
 
 import Html exposing (Html, div, i, img, text)
 import Html.Attributes exposing (class, src, style)
-import Html.Events
-import Json.Decode as Decode
-import MonoIcons
 import UI.Layout exposing (..)
 import UI.Util exposing (styleIf)
-
-
-layout : List (Html msg) -> Html msg -> Html msg
-layout navbar page =
-    column []
-        [ Html.header [ class "row compact no-select navbar" ]
-            [ column [ class "container" ]
-                navbar
-            ]
-        , expandingRow []
-            [ column [ class "container" ]
-                [ page ]
-            ]
-        ]
 
 
 logo : Html msg

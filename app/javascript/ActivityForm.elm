@@ -23,9 +23,9 @@ import MPRLevel
 import MonoIcons
 import Msg exposing (ActivityConfigs, ActivityState(..), Msg(..))
 import Pace exposing (TrainingPaceList)
-import Skeleton exposing (iconButton)
 import Store
 import Svg exposing (Svg)
+import UI exposing (iconButton)
 import UI.Layout exposing (column, compactColumn, expandingRow, row)
 import UI.Toast
 import UI.Util exposing (attributeIf, borderStyle, stopPropagationOnClick, styleIf, viewIf, viewMaybe)

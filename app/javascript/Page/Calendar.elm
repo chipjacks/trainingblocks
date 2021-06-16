@@ -643,7 +643,7 @@ view model =
                     Skeleton.withBody (text errorString) skeleton
 
                 Loaded (State calendar store activityM) ->
-                    Skeleton.withContainer (\body -> body) skeleton
+                    Skeleton.withContainer identity skeleton
                         |> Skeleton.withBody
                             (viewBody (State calendar store activityM))
     in

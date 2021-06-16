@@ -4,7 +4,7 @@ import Browser
 import Html exposing (Html)
 import Html.Attributes exposing (class, style)
 import MonoIcons
-import UI.Layout exposing (column, expandingRow)
+import UI.Layout exposing (column, expandingRow, row)
 import UI.Navbar as Navbar
 import UI.Skeleton as Skeleton
 
@@ -20,13 +20,21 @@ main =
 
 init : () -> ( Model, Cmd msg )
 init _ =
-    ( None
+    ( Model placeholderPaces
     , Cmd.none
     )
 
 
-type Model
-    = None
+placeholderPaces =
+    [ ( "Very Easy", "8:00" )
+    , ( "Easy", "7:00" )
+    , ( "Moderate", "6:30" )
+    , ( "Hard", "5:00" )
+    ]
+
+
+type alias Model =
+    { trainingPaces : List ( String, String ) }
 
 
 type Msg
@@ -59,5 +67,26 @@ view model =
                 |> Navbar.withItems [ navHeader ]
                 |> Navbar.view
             )
-        |> Skeleton.withBody (Html.text "Settings")
+        |> Skeleton.withBody (viewBody model)
         |> Skeleton.view
+
+
+viewBody : Model -> Html msg
+viewBody { trainingPaces } =
+    column []
+        [ Html.h3 [] [ Html.text "Training Paces" ]
+        , viewTrainingPaces trainingPaces
+        ]
+
+
+viewTrainingPaces : List ( String, String ) -> Html msg
+viewTrainingPaces paces =
+    column [] (List.map viewPaceForm paces)
+
+
+viewPaceForm : ( String, String ) -> Html msg
+viewPaceForm ( name, pace ) =
+    row []
+        [ Html.input [ Html.Attributes.value name ] []
+        , Html.input [ Html.Attributes.value pace ] []
+        ]

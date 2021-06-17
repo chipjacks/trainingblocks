@@ -5,8 +5,7 @@ import Activity
 import Activity.Laps
 import Activity.Types exposing (Activity, ActivityData, ActivityType, Completion(..), DistanceUnits(..), LapData(..))
 import Activity.View
-import ActivityForm.Selection as Selection
-import ActivityForm.Types exposing (ActivityForm, FieldError(..), Selection, ValidatedFields)
+import ActivityForm.Types exposing (ActivityForm, FieldError(..), ValidatedFields)
 import ActivityForm.Validate as Validate exposing (validate)
 import ActivityShape
 import Date exposing (Date)
@@ -23,9 +22,11 @@ import MPRLevel
 import MonoIcons
 import Msg exposing (ActivityConfigs, ActivityState(..), Msg(..))
 import Pace exposing (TrainingPaceList)
+import Selection exposing (Selection)
 import Store
 import Svg exposing (Svg)
 import UI exposing (iconButton)
+import UI.Input
 import UI.Layout exposing (column, compactColumn, expandingRow, row)
 import UI.Toast
 import UI.Util exposing (attributeIf, borderStyle, stopPropagationOnClick, styleIf, viewIf, viewMaybe)
@@ -1169,19 +1170,7 @@ paceSelect pacesM msg paceStr result =
                         )
                 )
             , row []
-                [ input
-                    [ onInput msg
-                    , class "input"
-                    , style "width" "3rem"
-                    , value paceStr
-                    , case ( paceStr, result ) of
-                        ( "", Ok pace ) ->
-                            Html.Attributes.placeholder (Pace.paceToString pace)
-
-                        _ ->
-                            Html.Attributes.placeholder "mm:ss"
-                    ]
-                    []
+                [ UI.Input.pace paceStr msg (Result.map Pace.paceToString result)
                 , compactColumn [ style "margin-left" "5px", style "font-size" "0.8rem", style "justify-content" "center" ] [ text trainingPaceStr ]
                 ]
             ]

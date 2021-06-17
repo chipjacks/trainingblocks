@@ -3,7 +3,10 @@ module Page.Settings exposing (main)
 import Browser
 import Html exposing (Html)
 import Html.Attributes exposing (class, style)
+import Html.Events
 import MonoIcons
+import Selection exposing (Selection)
+import UI.Input
 import UI.Layout exposing (column, expandingRow, row)
 import UI.Navbar as Navbar
 import UI.Skeleton as Skeleton
@@ -20,7 +23,7 @@ main =
 
 init : () -> ( Model, Cmd msg )
 init _ =
-    ( Model placeholderPaces
+    ( Model (Selection.init placeholderPaces)
     , Cmd.none
     )
 
@@ -34,21 +37,35 @@ placeholderPaces =
 
 
 type alias Model =
-    { trainingPaces : List ( String, String ) }
+    { trainingPaces : Selection ( String, String ) }
 
 
 type Msg
-    = NoOp
+    = EditedPace Int String
+    | EditedName Int String
 
 
 update : Msg -> Model -> ( Model, Cmd msg )
 update msg model =
     case msg of
-        NoOp ->
-            ( model, Cmd.none )
+        EditedPace index str ->
+            let
+                newTrainingPaces =
+                    Selection.select index model.trainingPaces
+                        |> Selection.update (\( name, pace ) -> ( name, str ))
+            in
+            ( { model | trainingPaces = newTrainingPaces }, Cmd.none )
+
+        EditedName index str ->
+            let
+                newTrainingPaces =
+                    Selection.select index model.trainingPaces
+                        |> Selection.update (\( name, pace ) -> ( str, pace ))
+            in
+            ( { model | trainingPaces = newTrainingPaces }, Cmd.none )
 
 
-view : Model -> Html msg
+view : Model -> Html Msg
 view model =
     let
         backButton =
@@ -71,22 +88,22 @@ view model =
         |> Skeleton.view
 
 
-viewBody : Model -> Html msg
+viewBody : Model -> Html Msg
 viewBody { trainingPaces } =
     column []
         [ Html.h3 [] [ Html.text "Training Paces" ]
-        , viewTrainingPaces trainingPaces
+        , viewTrainingPaces (Selection.toList trainingPaces)
         ]
 
 
-viewTrainingPaces : List ( String, String ) -> Html msg
+viewTrainingPaces : List ( String, String ) -> Html Msg
 viewTrainingPaces paces =
-    column [] (List.map viewPaceForm paces)
+    column [] (List.indexedMap viewPaceForm paces)
 
 
-viewPaceForm : ( String, String ) -> Html msg
-viewPaceForm ( name, pace ) =
+viewPaceForm : Int -> ( String, String ) -> Html Msg
+viewPaceForm index ( name, pace ) =
     row []
-        [ Html.input [ Html.Attributes.value name ] []
-        , Html.input [ Html.Attributes.value pace ] []
+        [ Html.input [ Html.Attributes.value name, Html.Events.onInput (EditedName index) ] []
+        , UI.Input.pace pace (EditedPace index) (Ok pace)
         ]

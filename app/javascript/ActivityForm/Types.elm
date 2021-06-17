@@ -1,7 +1,8 @@
-module ActivityForm.Types exposing (ActivityForm, FieldError(..), Selection, ValidatedFields)
+module ActivityForm.Types exposing (ActivityForm, FieldError(..), ValidatedFields)
 
 import Activity.Types exposing (Activity, ActivityData, ActivityType, Completion, DistanceUnits, Effort, LapData, RaceDistance)
 import Date exposing (Date)
+import Selection exposing (Selection)
 
 
 type alias ActivityForm =
@@ -24,10 +25,6 @@ type alias ActivityForm =
     , emoji : String
     , emojiSearch : String
     }
-
-
-type alias Selection a =
-    ( Int, List a )
 
 
 type alias ValidatedFields =

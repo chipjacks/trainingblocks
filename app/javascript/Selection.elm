@@ -1,9 +1,10 @@
-module ActivityForm.Selection exposing (add, copy, delete, get, init, select, selectedIndex, set, shift, toList, updateAll)
+module Selection exposing (Selection, add, copy, delete, get, init, select, selectedIndex, set, shift, toList, update, updateAll)
 
-import Activity
-import Activity.Types exposing (Activity, ActivityData)
-import ActivityForm.Types exposing (Selection)
 import Array
+
+
+type alias Selection a =
+    ( Int, List a )
 
 
 init : List a -> Selection a
@@ -39,6 +40,16 @@ set item ( index, list ) =
         |> Array.set index item
         |> Array.toList
     )
+
+
+update : (a -> a) -> Selection a -> Selection a
+update transform selection =
+    case get selection of
+        Just item ->
+            set (transform item) selection
+
+        Nothing ->
+            selection
 
 
 updateAll : (a -> a) -> Selection a -> Selection a

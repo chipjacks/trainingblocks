@@ -5,8 +5,8 @@ import Activity
 import Activity.Laps
 import Activity.Types exposing (Activity, ActivityData, ActivityType, Completion(..), DistanceUnits(..), LapData(..))
 import Activity.View
-import ActivityForm.Types exposing (ActivityForm, FieldError(..), ValidatedFields)
-import ActivityForm.Validate as Validate exposing (validate)
+import ActivityForm.Types exposing (ActivityForm, ValidatedFields)
+import ActivityForm.Validate exposing (validate)
 import ActivityShape
 import Date exposing (Date)
 import Distance
@@ -30,6 +30,7 @@ import UI.Input
 import UI.Layout exposing (column, compactColumn, expandingRow, row)
 import UI.Toast
 import UI.Util exposing (attributeIf, borderStyle, stopPropagationOnClick, styleIf, viewIf, viewMaybe)
+import Validate exposing (FieldError(..))
 
 
 init : Activity -> ActivityForm
@@ -112,7 +113,7 @@ initFromSelection activity editingLap completion laps repeatM =
     , editingLap = editingLap
     , laps = laps
     , repeat = newRepeatM
-    , validated = Validate.init
+    , validated = ActivityForm.Validate.init
     , date = Just activity.date
     , description = activity.description
     , repeats = Maybe.map String.fromInt countM

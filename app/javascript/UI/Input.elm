@@ -18,5 +18,11 @@ pace value_ msg result =
 
             _ ->
                 Html.Attributes.placeholder "mm:ss"
+        , case result of
+            Err _ ->
+                class "error"
+
+            Ok _ ->
+                class ""
         ]
         []

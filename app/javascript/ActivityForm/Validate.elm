@@ -1,10 +1,11 @@
 module ActivityForm.Validate exposing (init, validate)
 
 import Activity.Types exposing (DistanceUnits(..))
-import ActivityForm.Types exposing (ActivityForm, FieldError(..), ValidatedFields)
+import ActivityForm.Types exposing (ActivityForm, ValidatedFields)
 import Date exposing (Date)
 import Distance
 import Pace
+import Validate exposing (FieldError(..), parsePace)
 
 
 init : ValidatedFields
@@ -108,16 +109,6 @@ parseDuration ( hrs, mins, secs ) =
         (toIntResult mins)
         (toIntResult secs)
         |> handleZeroTime
-
-
-parsePace : String -> Result FieldError Int
-parsePace str =
-    case str of
-        "" ->
-            Err MissingError
-
-        _ ->
-            Pace.paceFromString str |> Result.fromMaybe ParseError
 
 
 parseDistance : String -> Result FieldError Float

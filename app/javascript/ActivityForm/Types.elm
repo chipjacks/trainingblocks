@@ -1,8 +1,9 @@
-module ActivityForm.Types exposing (ActivityForm, FieldError(..), ValidatedFields)
+module ActivityForm.Types exposing (ActivityForm, ValidatedFields)
 
 import Activity.Types exposing (Activity, ActivityData, ActivityType, Completion, DistanceUnits, Effort, LapData, RaceDistance)
 import Date exposing (Date)
 import Selection exposing (Selection)
+import Validate exposing (FieldError)
 
 
 type alias ActivityForm =
@@ -34,9 +35,3 @@ type alias ValidatedFields =
     , pace : Result FieldError Int
     , distance : Result FieldError Float
     }
-
-
-type FieldError
-    = MissingError
-    | ParseError
-    | ValueError

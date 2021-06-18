@@ -1,4 +1,4 @@
-module UI.Input exposing (pace, text, view, withError, withPlaceholder, withResultError)
+module UI.Input exposing (pace, text, view, withAttributes, withError, withPlaceholder, withResultError)
 
 import Html exposing (Html, input)
 import Html.Attributes exposing (class, placeholder, style, type_, value)
@@ -34,6 +34,11 @@ pace toMsg =
     , placeholder = Just "mm:ss"
     , attrs = [ style "width" "3rem" ]
     }
+
+
+withAttributes : List (Html.Attribute msg) -> Config msg -> Config msg
+withAttributes attrs config =
+    { config | attrs = config.attrs ++ attrs }
 
 
 withError : FieldError -> Config msg -> Config msg

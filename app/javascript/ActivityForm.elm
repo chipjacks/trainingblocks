@@ -844,17 +844,15 @@ descriptionInput : (String -> Msg) -> String -> Html Msg
 descriptionInput msg str =
     column []
         [ label "Description" (str /= "") (msg "")
-        , input
-            [ type_ "text"
-            , Html.Attributes.id "description"
-            , Html.Attributes.attribute "aria-label" "Description"
-            , Html.Attributes.autocomplete False
-            , onInput msg
-            , name "description"
-            , value str
-            , style "margin-top" "3px"
-            ]
-            []
+        , UI.Input.text msg
+            |> UI.Input.withAttributes
+                [ Html.Attributes.id "description"
+                , Html.Attributes.attribute "aria-label" "Description"
+                , Html.Attributes.autocomplete False
+                , name "description"
+                , style "margin-top" "3px"
+                ]
+            |> UI.Input.view str
         ]
 
 

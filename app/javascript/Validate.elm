@@ -10,8 +10,7 @@ type FieldError
 
 
 type alias Field a b =
-    { initial : a
-    , value : a
+    { value : a
     , result : Result FieldError b
     , parse : a -> Result FieldError b
     }
@@ -19,8 +18,7 @@ type alias Field a b =
 
 init : (a -> Result FieldError b) -> a -> Field a b
 init parse value =
-    { initial = value
-    , value = value
+    { value = value
     , result = parse value
     , parse = parse
     }

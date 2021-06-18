@@ -112,6 +112,17 @@ viewTrainingPaces paces =
 viewPaceForm : Int -> ( Field String String, Field String Int ) -> Html Msg
 viewPaceForm index ( name, pace ) =
     row []
-        [ Html.input [ Html.Attributes.value name.value, Html.Events.onInput (EditedName index) ] []
-        , UI.Input.pace pace.value (EditedPace index) (pace.result |> Result.map Pace.paceToString)
+        [ UI.Input.text (EditedName index)
+            |> UI.Input.withResultError name.result
+            |> UI.Input.view name.value
+        , UI.Input.pace (EditedPace index)
+            |> (\config -> case pace.result of
+                Err err ->
+                    UI.Input.withError err config
+
+                _ ->
+                    config
+                )
+            |> UI.Input.withPlaceholder (Result.map Pace.paceToString pace.result |> Result.withDefault "mm:ss")
+            |> UI.Input.view pace.value
         ]

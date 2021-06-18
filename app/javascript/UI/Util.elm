@@ -1,4 +1,4 @@
-module UI.Util exposing (attributeIf, borderStyle, stopPropagationOnClick, styleIf, viewIf, viewMaybe)
+module UI.Util exposing (attributeIf, borderStyle, stopPropagationOnClick, styleIf, viewIf, viewMaybe, attributeMaybe)
 
 import Html exposing (Html)
 import Html.Attributes exposing (style)
@@ -25,8 +25,8 @@ viewIf bool html =
 
 
 viewMaybe : Maybe a -> (a -> Html msg) -> Html msg
-viewMaybe attrM viewF =
-    case attrM of
+viewMaybe viewM viewF =
+    case viewM of
         Just attr ->
             viewF attr
 
@@ -41,6 +41,17 @@ attributeIf bool attr =
 
     else
         style "" ""
+
+
+attributeMaybe : Maybe a -> (a -> Html.Attribute msg) -> Html.Attribute msg
+attributeMaybe attrM attrF =
+    case attrM of
+        Just attr ->
+            attrF attr
+
+        Nothing ->
+            style "" ""
+
 
 
 stopPropagationOnClick : Decode.Decoder msg -> Html.Attribute msg

@@ -1171,7 +1171,20 @@ paceSelect pacesM msg paceStr result =
                         )
                 )
             , row []
-                [ UI.Input.pace paceStr msg (Result.map Pace.paceToString result)
+                [ UI.Input.pace msg
+                    |> (\config ->
+                            case result of
+                                Err MissingError ->
+                                    config
+
+                                Err err ->
+                                    UI.Input.withError err config
+
+                                _ ->
+                                    config
+                       )
+                    |> UI.Input.withPlaceholder (Result.map Pace.paceToString result |> Result.withDefault "mm:ss")
+                    |> UI.Input.view paceStr
                 , compactColumn [ style "margin-left" "5px", style "font-size" "0.8rem", style "justify-content" "center" ] [ text trainingPaceStr ]
                 ]
             ]

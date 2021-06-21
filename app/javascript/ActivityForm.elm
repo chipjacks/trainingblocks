@@ -1,6 +1,6 @@
 module ActivityForm exposing (init, initMove, update, view)
 
-import Actions exposing (actionButton)
+import Actions
 import Activity
 import Activity.Laps
 import Activity.Types exposing (Activity, ActivityData, ActivityType, Completion(..), DistanceUnits(..), LapData(..))

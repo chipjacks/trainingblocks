@@ -7,6 +7,7 @@ import Html.Events
 import MonoIcons
 import Pace
 import Selection exposing (Selection)
+import UI.Button as Button
 import UI.Input
 import UI.Layout exposing (column, expandingRow, row)
 import UI.Navbar as Navbar
@@ -51,6 +52,7 @@ type alias Model =
 type Msg
     = EditedPace Int String
     | EditedName Int String
+    | ClickedAddPace
 
 
 update : Msg -> Model -> ( Model, Cmd msg )
@@ -71,6 +73,9 @@ update msg model =
                         |> Selection.update (Tuple.mapFirst (Validate.update str))
             in
             ( { model | trainingPaces = newTrainingPaces }, Cmd.none )
+
+        ClickedAddPace ->
+            ( model, Cmd.none )
 
 
 view : Model -> Html Msg
@@ -106,7 +111,8 @@ viewBody { trainingPaces } =
 
 viewTrainingPaces : List ( Field String String, Field String Int ) -> Html Msg
 viewTrainingPaces paces =
-    column [] (List.indexedMap viewPaceForm paces)
+    column []
+        (List.indexedMap viewPaceForm paces ++ [ viewAddButton ])
 
 
 viewPaceForm : Int -> ( Field String String, Field String Int ) -> Html Msg
@@ -116,13 +122,23 @@ viewPaceForm index ( name, pace ) =
             |> UI.Input.withResultError name.result
             |> UI.Input.view name.value
         , UI.Input.pace (EditedPace index)
-            |> (\config -> case pace.result of
-                Err err ->
-                    UI.Input.withError err config
+            |> (\config ->
+                    case pace.result of
+                        Err err ->
+                            UI.Input.withError err config
 
-                _ ->
-                    config
-                )
+                        _ ->
+                            config
+               )
             |> UI.Input.withPlaceholder (Result.map Pace.paceToString pace.result |> Result.withDefault "mm:ss")
             |> UI.Input.view pace.value
+        ]
+
+
+viewAddButton : Html Msg
+viewAddButton =
+    row []
+        [ Button.action "Add Pace" MonoIcons.add ClickedAddPace
+            |> Button.withAppearance Button.Wide Button.Subtle Button.Right
+            |> Button.view
         ]

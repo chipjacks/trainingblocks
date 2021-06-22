@@ -79,6 +79,7 @@ select { border: 1px solid var(--grey-300); border-radius: 0.25rem; padding: 0.5
 select.input-small { padding: 0.3rem; }
 select:focus { border-color: var(--blue-300); outline: none; }
 .button {
+  position: relative;
   height: min-content;
   background-color: var(--grey-100);
   padding: 0.5rem 1rem;
@@ -99,6 +100,11 @@ select:focus { border-color: var(--blue-300); outline: none; }
 .button--basic { background-color: #fff; }
 .button--primary { background-color: var(--blue-500); color: #fff; }
 .button--primary:hover { background-color: var(--blue-700); }
+
+.row__button--drag { visibility: hidden; }
+.row:hover > .row__button--drag { visibility: visible; }
+.row__button--drag { cursor: grab; }
+.row__button--drag:hover { background-color: inherit; }
 
 .button-group > .button { border-radius: 0; margin: 0 }
 .button-group > .button:first-child { border-top-left-radius: 0.25rem; border-bottom-left-radius: 0.25rem }
@@ -189,7 +195,7 @@ select:focus { border-color: var(--blue-300); outline: none; }
  * TOOLTIP
 */
 
-.tooltip {
+.button__tooltip {
   display: none;
   position: absolute;
   top: -2rem;
@@ -204,10 +210,10 @@ select:focus { border-color: var(--blue-300); outline: none; }
   opacity: 0;
 }
 
-.tooltip--right { top: 50%; left: 100%; transform: translate(5px, -50%); }
-.tooltip--bottom { top: 100%; transform: translate(-20%, 5px); } 
+.button__tooltip--right { top: 50%; left: 100%; transform: translate(5px, -50%); }
+.button__tooltip--bottom { top: 100%; transform: translate(-20%, 5px); }
 
-button:hover > .tooltip {
+.button:hover > .button__tooltip {
   display: block;
   animation: appear 0.5s ease 0.5s;
   animation-fill-mode: forwards;

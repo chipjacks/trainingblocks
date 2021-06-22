@@ -101,9 +101,9 @@ view { size, color, tooltip, label, onClick, iconM, attrs } =
         )
         [ viewMaybe iconM (\icon -> MonoIcons.icon (icon iconFill))
         , Html.div
-            [ class "tooltip"
-            , attributeIf (tooltip == Right) (class "tooltip--right")
-            , attributeIf (tooltip == Bottom) (class "tooltip--bottom")
+            [ class "button__tooltip"
+            , attributeIf (tooltip == Right) (class "button__tooltip--right")
+            , attributeIf (tooltip == Bottom) (class "button__tooltip--bottom")
             ]
             [ Html.text label ]
         ]

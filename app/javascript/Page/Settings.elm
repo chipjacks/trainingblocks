@@ -54,6 +54,7 @@ type Msg
     | EditedName Int String
     | ClickedAddPace
     | ClickedRemovePace Int
+    | ClickedDragPace Int
 
 
 update : Msg -> Model -> ( Model, Cmd msg )
@@ -89,6 +90,9 @@ update msg model =
             ( { model | trainingPaces = newTrainingPaces }
             , Cmd.none
             )
+
+        ClickedDragPace index ->
+            ( model, Cmd.none )
 
 
 newTrainingPace : ( Validate.Field String String, Validate.Field String Int )
@@ -140,10 +144,15 @@ viewTrainingPaces paces =
 
 viewPaceForm : Int -> ( Field String String, Field String Int ) -> Html Msg
 viewPaceForm index ( name, pace ) =
-    row []
-        [ UI.Input.text (EditedName index)
+    row [ style "margin-top" "5px", style "margin-bottom" "5px" ]
+        [ Button.action "Drag" MonoIcons.drag (ClickedDragPace index)
+            |> Button.withAttributes [ class "row__button--drag" ]
+            |> Button.withAppearance Button.Small Button.Subtle Button.Top
+            |> Button.view
+        , UI.Input.text (EditedName index)
             |> UI.Input.withResultError name.result
             |> UI.Input.view name.value
+        , compactColumn [ style "width" "10px" ] []
         , UI.Input.pace (EditedPace index)
             |> (\config ->
                     case pace.result of

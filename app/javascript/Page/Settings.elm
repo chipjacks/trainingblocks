@@ -9,7 +9,7 @@ import Pace
 import Selection exposing (Selection)
 import UI.Button as Button
 import UI.Input
-import UI.Layout exposing (column, expandingRow, row)
+import UI.Layout exposing (column, compactColumn, expandingRow, row)
 import UI.Navbar as Navbar
 import UI.Skeleton as Skeleton
 import Validate exposing (Field)
@@ -53,6 +53,7 @@ type Msg
     = EditedPace Int String
     | EditedName Int String
     | ClickedAddPace
+    | ClickedRemovePace Int
 
 
 update : Msg -> Model -> ( Model, Cmd msg )
@@ -75,7 +76,26 @@ update msg model =
             ( { model | trainingPaces = newTrainingPaces }, Cmd.none )
 
         ClickedAddPace ->
-            ( model, Cmd.none )
+            ( { model | trainingPaces = Selection.add newTrainingPace model.trainingPaces }
+            , Cmd.none
+            )
+
+        ClickedRemovePace index ->
+            let
+                newTrainingPaces =
+                    Selection.select index model.trainingPaces
+                        |> Selection.delete
+            in
+            ( { model | trainingPaces = newTrainingPaces }
+            , Cmd.none
+            )
+
+
+newTrainingPace : ( Validate.Field String String, Validate.Field String Int )
+newTrainingPace =
+    ( Validate.init Ok ""
+    , Validate.init Validate.parsePace ""
+    )
 
 
 view : Model -> Html Msg
@@ -105,13 +125,16 @@ viewBody : Model -> Html Msg
 viewBody { trainingPaces } =
     column []
         [ Html.h3 [] [ Html.text "Training Paces" ]
-        , viewTrainingPaces (Selection.toList trainingPaces)
+        , row []
+            [ viewTrainingPaces (Selection.toList trainingPaces)
+            , column [] []
+            ]
         ]
 
 
 viewTrainingPaces : List ( Field String String, Field String Int ) -> Html Msg
 viewTrainingPaces paces =
-    column []
+    compactColumn []
         (List.indexedMap viewPaceForm paces ++ [ viewAddButton ])
 
 
@@ -124,6 +147,9 @@ viewPaceForm index ( name, pace ) =
         , UI.Input.pace (EditedPace index)
             |> (\config ->
                     case pace.result of
+                        Err Validate.MissingError ->
+                            config
+
                         Err err ->
                             UI.Input.withError err config
 
@@ -132,13 +158,16 @@ viewPaceForm index ( name, pace ) =
                )
             |> UI.Input.withPlaceholder (Result.map Pace.paceToString pace.result |> Result.withDefault "mm:ss")
             |> UI.Input.view pace.value
+        , Button.action "Remove Pace" MonoIcons.remove (ClickedRemovePace index)
+            |> Button.withAppearance Button.Small Button.Subtle Button.Right
+            |> Button.view
         ]
 
 
 viewAddButton : Html Msg
 viewAddButton =
-    row []
+    row [ style "justify-content" "flex-end" ]
         [ Button.action "Add Pace" MonoIcons.add ClickedAddPace
-            |> Button.withAppearance Button.Wide Button.Subtle Button.Right
+            |> Button.withAppearance Button.Small Button.Subtle Button.Right
             |> Button.view
         ]

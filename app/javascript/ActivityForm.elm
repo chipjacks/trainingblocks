@@ -661,9 +661,9 @@ viewLaps configs completed editingLap isAutofillable lapSelection repeatSelectio
                     ]
                     [ completionToggle CheckedCompleted completed
                     , viewIf ((Selection.toList lapSelection |> List.isEmpty) && isAutofillable)
-                        (Html.button [ class "button medium", onClick ClickedAutofill ] [ text "Autofill" ])
+                        (Html.button [ class "button button--medium", onClick ClickedAutofill ] [ text "Autofill" ])
                     , viewIf (not (Selection.toList lapSelection |> List.isEmpty))
-                        (Html.button [ class "button medium", onClick ClickedClearLaps ] [ text "Clear" ])
+                        (Html.button [ class "button button--medium", onClick ClickedClearLaps ] [ text "Clear" ])
                     ]
               ]
             , Selection.toList lapSelection
@@ -925,14 +925,14 @@ completionToggle msg completed =
     column []
         [ row [ class "button-group" ]
             [ Html.button
-                [ class "button medium"
+                [ class "button button--medium"
                 , style "text-align" "center"
                 , attributeIf (completed == Activity.Types.Completed) (onClick msg)
                 , styleIf (completed == Activity.Types.Planned) "background-color" "var(--grey-500)"
                 ]
                 [ text "Planned" ]
             , Html.button
-                [ class "button medium"
+                [ class "button button--medium"
                 , style "text-align" "center"
                 , attributeIf (completed == Activity.Types.Planned) (onClick msg)
                 , styleIf (completed == Activity.Types.Completed) "background-color" "var(--grey-500)"

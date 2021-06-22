@@ -109,6 +109,7 @@ viewMenu model =
     [ viewDatePicker model
     , button
         [ style "margin-left" "0.2rem"
+        , class "button"
         , onClick (Jump today)
         ]
         [ text "Today" ]
@@ -147,12 +148,12 @@ viewDatePicker model =
     case zoom of
         Year ->
             dropdown False
-                (button [] [ text (Date.format "yyyy" selected) ])
+                (button [ class "button" ] [ text (Date.format "yyyy" selected) ])
                 (listYears today Jump)
 
         Month ->
             dropdown False
-                (button [] [ text (Date.format "MMMM" selected) ])
+                (button [ class "button" ] [ text (Date.format "MMMM" selected) ])
                 (listMonths selected Jump)
 
         Day ->

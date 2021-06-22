@@ -78,7 +78,7 @@ input:focus { border-color: var(--blue-300); outline: 0; }
 select { border: 1px solid var(--grey-300); border-radius: 0.25rem; padding: 0.5rem; font-size: 1rem; }
 select.input-small { padding: 0.3rem; }
 select:focus { border-color: var(--blue-300); outline: none; }
-button, .button {
+.button {
   height: min-content;
   background-color: var(--grey-100);
   padding: 0.5rem 1rem;
@@ -89,14 +89,16 @@ button, .button {
   text-decoration: none;
   color: black;
 }
-.button.small { padding: 0.3rem 0.6rem; }
-.button.medium { padding: 0.3rem 0.8rem; }
-.button.wide { padding: 0.3rem 2rem; }
-button:hover, .button:hover { background-color: var(--grey-300); }
-button:focus, .button:focus { border-color: var(--blue-500); outline: none; }
-.basic { background-color: white }
-.primary { background-color: #2185d0; color: #fff; }
-.primary:hover { background-color: #1678c2; }
+.button:hover { background-color: var(--grey-300); }
+.button:focus { border-color: var(--blue-500); outline: none; }
+
+.button--small { padding: 0.3rem 0.6rem; }
+.button--medium { padding: 0.3rem 0.8rem; }
+.button--wide { padding: 0.3rem 2rem; }
+
+.button--basic { background-color: #fff; }
+.button--primary { background-color: var(--blue-500); color: #fff; }
+.button--primary:hover { background-color: var(--blue-700); }
 
 .button-group > .button { border-radius: 0; margin: 0 }
 .button-group > .button:first-child { border-top-left-radius: 0.25rem; border-bottom-left-radius: 0.25rem }
@@ -202,8 +204,8 @@ button:focus, .button:focus { border-color: var(--blue-500); outline: none; }
   opacity: 0;
 }
 
-.tooltip.right { top: 50%; left: 100%; transform: translate(5px, -50%); }
-.tooltip.bottom { top: 100%; transform: translate(-20%, 5px); } 
+.tooltip--right { top: 50%; left: 100%; transform: translate(5px, -50%); }
+.tooltip--bottom { top: 100%; transform: translate(-20%, 5px); } 
 
 button:hover > .tooltip {
   display: block;

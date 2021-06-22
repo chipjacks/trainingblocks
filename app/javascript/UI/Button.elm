@@ -1,4 +1,4 @@
-module UI.Button exposing (Color(..), Size(..), Tooltip(..), action, view, withAppearance, withTooltipPosition, withAttributes)
+module UI.Button exposing (Color(..), Size(..), Tooltip(..), action, view, withAppearance, withAttributes, withTooltipPosition)
 
 import Html exposing (Html)
 import Html.Attributes exposing (class, style)
@@ -45,7 +45,7 @@ action label icon onClick =
     , label = label
     , onClick = onClick
     , iconM = Just icon
-    , attrs = [ class "basic" ]
+    , attrs = [ class "button--basic" ]
     }
 
 
@@ -81,18 +81,18 @@ view { size, color, tooltip, label, onClick, iconM, attrs } =
         sizeClass =
             case size of
                 Small ->
-                    "small"
+                    "button--small"
 
                 Medium ->
-                    "medium"
+                    "button--medium"
 
                 Wide ->
-                    "wide"
+                    "button--wide"
     in
     Html.button
         ([ class "button"
          , class sizeClass
-         , attributeIf (color == Primary) (class "primary")
+         , attributeIf (color == Primary) (class "button--primary")
          , Html.Attributes.attribute "aria-label" label
          , style "text-align" "center"
          , stopPropagationOnClick (Decode.succeed onClick)
@@ -102,8 +102,8 @@ view { size, color, tooltip, label, onClick, iconM, attrs } =
         [ viewMaybe iconM (\icon -> MonoIcons.icon (icon iconFill))
         , Html.div
             [ class "tooltip"
-            , attributeIf (tooltip == Right) (class "right")
-            , attributeIf (tooltip == Bottom) (class "bottom")
+            , attributeIf (tooltip == Right) (class "tooltip--right")
+            , attributeIf (tooltip == Bottom) (class "tooltip--bottom")
             ]
             [ Html.text label ]
         ]

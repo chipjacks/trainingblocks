@@ -1,4 +1,4 @@
-module Selection exposing (Selection, add, copy, delete, get, init, select, selectedIndex, set, shift, toList, update, updateAll)
+module Selection exposing (Selection, add, copy, delete, get, init, select, selectedIndex, set, shift, toList, update, updateAll, move)
 
 import Array
 
@@ -118,6 +118,27 @@ shift up ( index, list ) =
             index + 1
         , shiftedList
         )
+
+
+move : Int -> Selection a -> Selection a
+move newIndex ( index, list ) =
+    let
+        array =
+            Array.fromList list
+    in
+    Maybe.map2
+        (\item swapItem ->
+            Array.set newIndex item array
+                |> Array.set index swapItem
+                |> Array.toList
+        )
+        (Array.get index array)
+        (Array.get newIndex array)
+        |> Maybe.map
+            (\newList ->
+                ( newIndex, newList )
+            )
+        |> Maybe.withDefault ( index, list )
 
 
 delete : Selection a -> Selection a

@@ -23,7 +23,7 @@ main =
         { init = \x -> init x
         , view = \model -> { title = "Settings | Rhino Log", body = [ view model ] }
         , update = \model msg -> update model msg
-        , subscriptions = \_ -> Sub.none
+        , subscriptions = \_ -> Ports.setDropTarget SetDropTarget
         }
 
 
@@ -61,6 +61,7 @@ type Msg
     | ClickedRemovePace Int
     | ClickedDragPace Int Int
     | PointerMoved Float Float
+    | SetDropTarget Int
     | PointerUp
     | NoOp
 
@@ -117,6 +118,9 @@ update msg model =
             , Cmd.none
             )
 
+        SetDropTarget id ->
+            ( { model | trainingPaces = Selection.move id model.trainingPaces }, Cmd.none )
+
         NoOp ->
             ( model, Cmd.none )
 
@@ -169,7 +173,7 @@ trainingPaceListId =
 
 viewTrainingPaces : Maybe ( Float, Float ) -> List ( Field String String, Field String Int ) -> Html Msg
 viewTrainingPaces dragging paces =
-    compactColumn
+    Html.node "list-dnd"
         [ Html.Attributes.id trainingPaceListId
         , attributeMaybe dragging (\_ -> onPointerMove PointerMoved)
         , attributeMaybe dragging (\_ -> Html.Events.on "pointerup" (Decode.succeed PointerUp))
@@ -179,7 +183,12 @@ viewTrainingPaces dragging paces =
 
 viewPaceForm : Int -> ( Field String String, Field String Int ) -> Html Msg
 viewPaceForm index ( name, pace ) =
-    row [ style "margin-top" "5px", style "margin-bottom" "5px" ]
+    row
+        [ style "margin-top" "5px"
+        , style "margin-bottom" "5px"
+        , class "drop-target"
+        , Html.Attributes.attribute "data-drop-id" (String.fromInt index)
+        ]
         [ Button.action "Drag" MonoIcons.drag NoOp
             |> Button.withAttributes
                 [ class "row__button--drag"
@@ -226,6 +235,7 @@ viewDraggedPace ( x, y ) trainingPaces =
         , style "left" (String.fromFloat (x - 20) ++ "px")
         , style "top" (String.fromFloat (y - 20) ++ "px")
         , style "opacity" "0.5"
+        , Html.Attributes.id "dragged-element"
         ]
         [ paceForm
         ]

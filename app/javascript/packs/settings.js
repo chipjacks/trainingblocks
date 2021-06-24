@@ -6,4 +6,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const flags = {};
 
   const app = Elm.Page.Settings.init({ node: target, flags });
+
+  app.ports.setPointerCapture.subscribe(({ targetId, pointerId }) => {
+    const target = document.getElementById(targetId);
+    event.target.setPointerCapture(pointerId);
+  });
 });

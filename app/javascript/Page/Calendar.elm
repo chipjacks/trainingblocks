@@ -30,7 +30,7 @@ import UI.Layout exposing (column, compactColumn, expandingRow, row)
 import UI.Navbar as Navbar
 import UI.Skeleton as Skeleton
 import UI.Toast
-import UI.Util exposing (attributeIf, borderStyle, styleIf, viewIf, viewMaybe)
+import UI.Util exposing (attributeIf, borderStyle, onPointerMove, styleIf, viewIf, viewMaybe)
 
 
 
@@ -665,7 +665,7 @@ viewBody (State calendar store activityM) =
         events =
             case activityM of
                 Moving _ _ _ ->
-                    [ Html.Events.on "pointermove" mouseMoveDecoder
+                    [ onPointerMove MouseMoved
                     , Html.Events.on "pointerup" (Decode.succeed MouseReleased)
                     , style "touch-action" "none"
                     , style "pointer-action" "none"
@@ -770,12 +770,6 @@ viewUndoToastM eventM =
                         [ text "Undo" ]
                     ]
         )
-
-
-mouseMoveDecoder =
-    Decode.map2 MouseMoved
-        (Decode.field "x" Decode.float)
-        (Decode.field "y" Decode.float)
 
 
 

@@ -4,14 +4,17 @@ import Browser
 import Html exposing (Html)
 import Html.Attributes exposing (class, style)
 import Html.Events
+import Json.Decode as Decode
 import MonoIcons
 import Pace
+import Ports
 import Selection exposing (Selection)
 import UI.Button as Button
 import UI.Input
 import UI.Layout exposing (column, compactColumn, expandingRow, row)
 import UI.Navbar as Navbar
 import UI.Skeleton as Skeleton
+import UI.Util exposing (attributeMaybe, onPointerMove, viewMaybe)
 import Validate exposing (Field)
 
 
@@ -26,7 +29,7 @@ main =
 
 init : () -> ( Model, Cmd msg )
 init _ =
-    ( Model (Selection.init placeholderPaces)
+    ( Model (Selection.init placeholderPaces) Nothing
     , Cmd.none
     )
 
@@ -46,7 +49,9 @@ placeholderPaces =
 
 
 type alias Model =
-    { trainingPaces : Selection ( Validate.Field String String, Validate.Field String Int ) }
+    { trainingPaces : Selection ( Validate.Field String String, Validate.Field String Int )
+    , dragging : Maybe ( Float, Float )
+    }
 
 
 type Msg
@@ -54,7 +59,10 @@ type Msg
     | EditedName Int String
     | ClickedAddPace
     | ClickedRemovePace Int
-    | ClickedDragPace Int
+    | ClickedDragPace Int Int
+    | PointerMoved Float Float
+    | PointerUp
+    | NoOp
 
 
 update : Msg -> Model -> ( Model, Cmd msg )
@@ -91,7 +99,25 @@ update msg model =
             , Cmd.none
             )
 
-        ClickedDragPace index ->
+        ClickedDragPace index pointerId ->
+            ( { model
+                | trainingPaces = Selection.select index model.trainingPaces
+                , dragging = Just ( -100, -100 )
+              }
+            , Ports.setPointerCapture { targetId = trainingPaceListId, pointerId = pointerId }
+            )
+
+        PointerMoved x y ->
+            ( { model | dragging = Just ( x, y ) }
+            , Cmd.none
+            )
+
+        PointerUp ->
+            ( { model | dragging = Nothing }
+            , Cmd.none
+            )
+
+        NoOp ->
             ( model, Cmd.none )
 
 
@@ -126,28 +152,40 @@ view model =
 
 
 viewBody : Model -> Html Msg
-viewBody { trainingPaces } =
+viewBody { trainingPaces, dragging } =
     column []
         [ Html.h3 [] [ Html.text "Training Paces" ]
         , row []
-            [ viewTrainingPaces (Selection.toList trainingPaces)
+            [ viewTrainingPaces dragging (Selection.toList trainingPaces)
             , column [] []
             ]
+        , viewMaybe dragging (\position -> viewDraggedPace position trainingPaces)
         ]
 
 
-viewTrainingPaces : List ( Field String String, Field String Int ) -> Html Msg
-viewTrainingPaces paces =
-    compactColumn []
+trainingPaceListId =
+    "training-pace-list"
+
+
+viewTrainingPaces : Maybe ( Float, Float ) -> List ( Field String String, Field String Int ) -> Html Msg
+viewTrainingPaces dragging paces =
+    compactColumn
+        [ Html.Attributes.id trainingPaceListId
+        , attributeMaybe dragging (\_ -> onPointerMove PointerMoved)
+        , attributeMaybe dragging (\_ -> Html.Events.on "pointerup" (Decode.succeed PointerUp))
+        ]
         (List.indexedMap viewPaceForm paces ++ [ viewAddButton ])
 
 
 viewPaceForm : Int -> ( Field String String, Field String Int ) -> Html Msg
 viewPaceForm index ( name, pace ) =
     row [ style "margin-top" "5px", style "margin-bottom" "5px" ]
-        [ Button.action "Drag" MonoIcons.drag (ClickedDragPace index)
-            |> Button.withAttributes [ class "row__button--drag" ]
-            |> Button.withAppearance Button.Small Button.Subtle Button.Top
+        [ Button.action "Drag" MonoIcons.drag NoOp
+            |> Button.withAttributes
+                [ class "row__button--drag"
+                , Html.Events.on "pointerdown" (Decode.map (ClickedDragPace index) (Decode.field "pointerId" Decode.int))
+                ]
+            |> Button.withAppearance Button.Small Button.Subtle Button.None
             |> Button.view
         , UI.Input.text (EditedName index)
             |> UI.Input.withResultError name.result
@@ -170,6 +208,26 @@ viewPaceForm index ( name, pace ) =
         , Button.action "Remove Pace" MonoIcons.remove (ClickedRemovePace index)
             |> Button.withAppearance Button.Small Button.Subtle Button.Right
             |> Button.view
+        ]
+
+
+viewDraggedPace : ( Float, Float ) -> Selection ( Validate.Field String String, Validate.Field String Int ) -> Html Msg
+viewDraggedPace ( x, y ) trainingPaces =
+    let
+        paceForm =
+            viewMaybe
+                (Selection.get trainingPaces)
+                (\pace ->
+                    viewPaceForm (Selection.selectedIndex trainingPaces) pace
+                )
+    in
+    Html.div
+        [ style "position" "absolute"
+        , style "left" (String.fromFloat (x - 20) ++ "px")
+        , style "top" (String.fromFloat (y - 20) ++ "px")
+        , style "opacity" "0.5"
+        ]
+        [ paceForm
         ]
 
 

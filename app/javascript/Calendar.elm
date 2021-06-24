@@ -19,7 +19,6 @@ import Json.Decode as Decode
 import MonoIcons
 import Msg exposing (ActivityConfigs, ActivityState(..), Msg(..), Zoom(..))
 import Pace
-import Ports exposing (scrollToSelectedDate)
 import Process
 import Task
 import Time exposing (Month(..))

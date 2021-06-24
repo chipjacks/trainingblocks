@@ -2,10 +2,11 @@ module UI.Button exposing (Color(..), Size(..), Tooltip(..), action, view, withA
 
 import Html exposing (Html)
 import Html.Attributes exposing (class, style)
+import Html.Events
 import Json.Decode as Decode
 import MonoIcons
 import Svg exposing (Svg)
-import UI.Util exposing (attributeIf, stopPropagationOnClick, viewMaybe)
+import UI.Util exposing (attributeIf, stopPropagationOnClick, viewIf, viewMaybe)
 
 
 type Size
@@ -24,6 +25,7 @@ type Tooltip
     = Top
     | Right
     | Bottom
+    | None
 
 
 type alias Config msg =
@@ -100,10 +102,12 @@ view { size, color, tooltip, label, onClick, iconM, attrs } =
             ++ attrs
         )
         [ viewMaybe iconM (\icon -> MonoIcons.icon (icon iconFill))
-        , Html.div
-            [ class "button__tooltip"
-            , attributeIf (tooltip == Right) (class "button__tooltip--right")
-            , attributeIf (tooltip == Bottom) (class "button__tooltip--bottom")
-            ]
-            [ Html.text label ]
+        , viewIf (tooltip /= None)
+            (Html.div
+                [ class "button__tooltip"
+                , attributeIf (tooltip == Right) (class "button__tooltip--right")
+                , attributeIf (tooltip == Bottom) (class "button__tooltip--bottom")
+                ]
+                [ Html.text label ]
+            )
         ]

@@ -1,4 +1,13 @@
-module UI.Util exposing (attributeIf, borderStyle, stopPropagationOnClick, styleIf, viewIf, viewMaybe, attributeMaybe)
+module UI.Util exposing
+    ( attributeIf
+    , attributeMaybe
+    , borderStyle
+    , onPointerMove
+    , stopPropagationOnClick
+    , styleIf
+    , viewIf
+    , viewMaybe
+    )
 
 import Html exposing (Html)
 import Html.Attributes exposing (style)
@@ -53,7 +62,6 @@ attributeMaybe attrM attrF =
             style "" ""
 
 
-
 stopPropagationOnClick : Decode.Decoder msg -> Html.Attribute msg
 stopPropagationOnClick decoder =
     Html.Events.stopPropagationOn "pointerdown"
@@ -65,3 +73,14 @@ stopPropagationOnClick decoder =
 borderStyle : String -> Html.Attribute msg
 borderStyle position =
     style position "1px solid var(--grey-500)"
+
+
+onPointerMove : (Float -> Float -> msg) -> Html.Attribute msg
+onPointerMove msg =
+    let
+        decoder =
+            Decode.map2 msg
+                (Decode.field "x" Decode.float)
+                (Decode.field "y" Decode.float)
+    in
+    Html.Events.on "pointermove" decoder

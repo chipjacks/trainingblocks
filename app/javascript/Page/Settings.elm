@@ -14,7 +14,7 @@ import UI.Input
 import UI.Layout exposing (column, compactColumn, expandingRow, row)
 import UI.Navbar as Navbar
 import UI.Skeleton as Skeleton
-import UI.Util exposing (attributeMaybe, onPointerMove, viewMaybe)
+import UI.Util exposing (attributeIf, attributeMaybe, onPointerMove, styleIf, viewMaybe)
 import Validate exposing (Field)
 
 
@@ -160,7 +160,7 @@ viewBody { trainingPaces, dragging } =
     column []
         [ Html.h3 [] [ Html.text "Training Paces" ]
         , row []
-            [ viewTrainingPaces dragging (Selection.toList trainingPaces)
+            [ viewTrainingPaces dragging (Selection.selectedIndex trainingPaces) (Selection.toList trainingPaces)
             , column [] []
             ]
         , viewMaybe dragging (\position -> viewDraggedPace position trainingPaces)
@@ -171,22 +171,23 @@ trainingPaceListId =
     "training-pace-list"
 
 
-viewTrainingPaces : Maybe ( Float, Float ) -> List ( Field String String, Field String Int ) -> Html Msg
-viewTrainingPaces dragging paces =
+viewTrainingPaces : Maybe ( Float, Float ) -> Int -> List ( Field String String, Field String Int ) -> Html Msg
+viewTrainingPaces dragging selectedIndex paces =
     Html.node "list-dnd"
         [ Html.Attributes.id trainingPaceListId
         , attributeMaybe dragging (\_ -> onPointerMove PointerMoved)
         , attributeMaybe dragging (\_ -> Html.Events.on "pointerup" (Decode.succeed PointerUp))
         ]
-        (List.indexedMap viewPaceForm paces ++ [ viewAddButton ])
+        (List.indexedMap (\index fields -> viewPaceForm index ((dragging /= Nothing) && selectedIndex == index) fields) paces ++ [ viewAddButton ])
 
 
-viewPaceForm : Int -> ( Field String String, Field String Int ) -> Html Msg
-viewPaceForm index ( name, pace ) =
+viewPaceForm : Int -> Bool -> ( Field String String, Field String Int ) -> Html Msg
+viewPaceForm index isDropTarget ( name, pace ) =
     row
         [ style "margin-top" "5px"
         , style "margin-bottom" "5px"
         , class "drop-target"
+        , styleIf isDropTarget "visibility" "hidden"
         , Html.Attributes.attribute "data-drop-id" (String.fromInt index)
         ]
         [ Button.action "Drag" MonoIcons.drag NoOp
@@ -227,7 +228,7 @@ viewDraggedPace ( x, y ) trainingPaces =
             viewMaybe
                 (Selection.get trainingPaces)
                 (\pace ->
-                    viewPaceForm (Selection.selectedIndex trainingPaces) pace
+                    viewPaceForm (Selection.selectedIndex trainingPaces) False pace
                 )
     in
     Html.div

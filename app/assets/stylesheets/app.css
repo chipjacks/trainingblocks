@@ -105,6 +105,7 @@ select:focus { border-color: var(--blue-300); outline: none; }
 .row:hover > .row__button--drag { visibility: visible; }
 .row__button--drag { cursor: grab; }
 .row__button--drag:hover { background-color: inherit; }
+.row__button--drag:active { visibility: hidden !important; cursor: grabbing; }
 
 .button-group > .button { border-radius: 0; margin: 0 }
 .button-group > .button:first-child { border-top-left-radius: 0.25rem; border-bottom-left-radius: 0.25rem }

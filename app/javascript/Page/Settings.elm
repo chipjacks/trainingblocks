@@ -44,21 +44,21 @@ placeholderPaces =
             (\( name, pace ) ->
                 { name = Validate.init Ok name
                 , pace = Validate.init Validate.parsePace pace
-                , dragging = False
+                , dragging = Nothing
                 }
             )
 
 
 type alias Model =
     { trainingPaces : Selection PaceForm
-    , dragging : Maybe ( Float, Float )
+    , initialDragPosition : Maybe ( Float, Float )
     }
 
 
 type alias PaceForm =
     { name : Validate.Field String String
     , pace : Validate.Field String Int
-    , dragging : Bool
+    , dragging : Maybe ( Float, Float )
     }
 
 
@@ -67,7 +67,7 @@ type Msg
     | EditedName Int String
     | ClickedAddPace
     | ClickedRemovePace Int
-    | ClickedDragPace Int Int
+    | ClickedDragPace Int Int Float Float
     | BlurredPace
     | PointerMoved Float Float
     | PointerUp
@@ -110,25 +110,28 @@ update msg model =
             , Cmd.none
             )
 
-        ClickedDragPace index pointerId ->
+        ClickedDragPace index pointerId pageX pageY ->
             ( { model
-                | trainingPaces =
+                | initialDragPosition = Just ( pageX, pageY )
+                , trainingPaces =
                     Selection.select index model.trainingPaces
-                        |> Selection.update (\form -> { form | dragging = True })
-                , dragging = Just ( -100, -100 )
+                        |> Selection.update (\form -> { form | dragging = Just ( 0, 0 ) })
               }
             , Ports.setPointerCapture { targetId = config.trainingPaceListId, pointerId = pointerId }
             )
 
         PointerMoved x y ->
-            ( { model | dragging = Just ( x, y ) }
+            let
+                position =
+                    Maybe.map (\( ix, iy ) -> ( x - ix, y - iy )) model.initialDragPosition
+            in
+            ( { model | trainingPaces = Selection.update (\form -> { form | dragging = position }) model.trainingPaces }
             , Cmd.none
             )
 
         PointerUp ->
             ( { model
-                | dragging = Nothing
-                , trainingPaces = Selection.update (\form -> { form | dragging = False }) model.trainingPaces
+                | trainingPaces = Selection.update (\form -> { form | dragging = Nothing }) model.trainingPaces
               }
             , Cmd.none
             )
@@ -144,7 +147,7 @@ newTrainingPace : PaceForm
 newTrainingPace =
     { name = Validate.init Ok ""
     , pace = Validate.init Validate.parsePace ""
-    , dragging = False
+    , dragging = Nothing
     }
 
 
@@ -172,27 +175,13 @@ view model =
 
 
 viewBody : Model -> Html Msg
-viewBody { trainingPaces, dragging } =
-    let
-        ( draggedPaces, paces ) =
-            Selection.toList trainingPaces
-                |> List.partition .dragging
-    in
-    column
-        [ attributeMaybe dragging (\_ -> style "touch-action" "none")
-        ]
+viewBody { trainingPaces } =
+    column []
         [ Html.h3 [] [ Html.text "Training Paces" ]
         , row []
-            [ viewTrainingPaces dragging (Selection.selectedIndex trainingPaces) paces
+            [ viewTrainingPaces (Selection.selectedIndex trainingPaces) (Selection.toList trainingPaces)
             , column [] []
             ]
-        , Maybe.map2
-            (\position draggedPace ->
-                viewDraggedPace position draggedPace
-            )
-            dragging
-            (List.head draggedPaces)
-            |> Maybe.withDefault (row [] [])
         ]
 
 
@@ -204,20 +193,25 @@ config =
     }
 
 
-viewTrainingPaces : Maybe ( Float, Float ) -> Int -> List PaceForm -> Html Msg
-viewTrainingPaces dragging selectedIndex paces =
+viewTrainingPaces : Int -> List PaceForm -> Html Msg
+viewTrainingPaces selectedIndex paces =
+    let
+        dragging =
+            List.filterMap .dragging paces |> List.isEmpty |> not
+    in
     column
         [ Html.Attributes.id config.trainingPaceListId
-        , attributeMaybe dragging (\_ -> onPointerMove PointerMoved)
-        , attributeMaybe dragging (\_ -> Html.Events.on "pointerup" (Decode.succeed PointerUp))
+        , styleIf dragging "touch-action" "none"
+        , attributeIf dragging (onPointerMove PointerMoved)
+        , attributeIf dragging (Html.Events.on "pointerup" (Decode.succeed PointerUp))
         , style "height" (String.fromInt config.sliderHeight ++ "px")
         , style "position" "relative"
         ]
-        (viewAddButton :: List.indexedMap viewPaceForm paces)
+        (viewAddButton :: List.indexedMap (viewPaceForm dragging) paces)
 
 
-viewPaceForm : Int -> PaceForm -> Html Msg
-viewPaceForm index { name, pace, dragging } =
+viewPaceForm : Bool -> Int -> PaceForm -> Html Msg
+viewPaceForm dragActive index { name, pace, dragging } =
     let
         { minPace, maxPace, sliderHeight } =
             config
@@ -225,17 +219,28 @@ viewPaceForm index { name, pace, dragging } =
         yOffset =
             Result.map (\seconds -> (1 - (toFloat seconds - minPace) / (maxPace - minPace)) * sliderHeight) pace.result
                 |> Result.withDefault (sliderHeight / 2)
+
+        dragOffset =
+            dragging
+                |> Maybe.map Tuple.second
+                |> Maybe.withDefault 0
     in
     row
         [ style "margin-top" "5px"
         , style "margin-bottom" "5px"
-        , styleIf (not dragging) "position" "absolute"
-        , styleIf (not dragging) "top" (String.fromFloat yOffset ++ "px")
+        , style "position" "absolute"
+        , styleIf dragActive "pointer-events" "none"
+        , style "top" (String.fromFloat (yOffset + dragOffset) ++ "px")
         ]
         [ Button.action "Drag" MonoIcons.drag NoOp
             |> Button.withAttributes
                 [ class "row__button--drag"
-                , Html.Events.on "pointerdown" (Decode.map (ClickedDragPace index) (Decode.field "pointerId" Decode.int))
+                , Html.Events.on "pointerdown"
+                    (Decode.map3 (ClickedDragPace index)
+                        (Decode.field "pointerId" Decode.int)
+                        (Decode.field "pageX" Decode.float)
+                        (Decode.field "pageY" Decode.float)
+                    )
                 ]
             |> Button.withAppearance Button.Small Button.Subtle Button.None
             |> Button.view
@@ -261,18 +266,6 @@ viewPaceForm index { name, pace, dragging } =
         , Button.action "Remove Pace" MonoIcons.remove (ClickedRemovePace index)
             |> Button.withAppearance Button.Small Button.Subtle Button.Right
             |> Button.view
-        ]
-
-
-viewDraggedPace : ( Float, Float ) -> PaceForm -> Html Msg
-viewDraggedPace ( x, y ) paceForm =
-    Html.div
-        [ style "position" "absolute"
-        , style "top" (String.fromFloat (y - 20) ++ "px")
-        , style "touch-action" "none"
-        , Html.Attributes.id "dragged-element"
-        ]
-        [ viewPaceForm 0 paceForm
         ]
 
 

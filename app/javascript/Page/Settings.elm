@@ -42,10 +42,13 @@ placeholderPaces =
     ]
         |> List.map
             (\( name, pace ) ->
-                { name = Validate.init Ok name
-                , pace = Validate.init Validate.parsePace pace
-                , dragging = Nothing
+                { name = Validate.init Ok name name
+                , pace = Validate.init Validate.parsePace (7 * 60) pace |> Validate.updateFallback
+                , yOffset = 0
+                , dragOffset = 0
+                , dragValue = pace
                 }
+                    |> updatePaceFormPosition 0
             )
 
 
@@ -58,7 +61,9 @@ type alias Model =
 type alias PaceForm =
     { name : Validate.Field String String
     , pace : Validate.Field String Int
-    , dragging : Maybe ( Float, Float )
+    , yOffset : Float
+    , dragOffset : Float
+    , dragValue : String
     }
 
 
@@ -70,7 +75,7 @@ type Msg
     | ClickedDragPace Int Int Float Float
     | BlurredPace
     | PointerMoved Float Float
-    | PointerUp
+    | PointerUp Float
     | NoOp
 
 
@@ -113,31 +118,36 @@ update msg model =
         ClickedDragPace index pointerId pageX pageY ->
             ( { model
                 | initialDragPosition = Just ( pageX, pageY )
-                , trainingPaces =
-                    Selection.select index model.trainingPaces
-                        |> Selection.update (\form -> { form | dragging = Just ( 0, 0 ) })
+                , trainingPaces = Selection.select index model.trainingPaces
               }
             , Ports.setPointerCapture { targetId = config.trainingPaceListId, pointerId = pointerId }
             )
 
-        PointerMoved x y ->
+        PointerMoved _ y ->
             let
-                position =
-                    Maybe.map (\( ix, iy ) -> ( x - ix, y - iy )) model.initialDragPosition
+                updateForm form =
+                    Maybe.map (\( _, iy ) -> y - iy) model.initialDragPosition
+                        |> Maybe.map (\dragOffset -> updatePaceFormPosition dragOffset form)
+                        |> Maybe.withDefault form
             in
-            ( { model | trainingPaces = Selection.update (\form -> { form | dragging = position }) model.trainingPaces }
+            ( { model | trainingPaces = Selection.update updateForm model.trainingPaces }
             , Cmd.none
             )
 
-        PointerUp ->
+        PointerUp y ->
             ( { model
-                | trainingPaces = Selection.update (\form -> { form | dragging = Nothing }) model.trainingPaces
+                | initialDragPosition = Nothing
+                , trainingPaces = Selection.update (\form -> { form | pace = Validate.update form.dragValue form.pace |> Validate.updateFallback }) model.trainingPaces
               }
             , Cmd.none
             )
 
         BlurredPace ->
-            ( model, Cmd.none )
+            ( { model
+                | trainingPaces = Selection.update (\form -> { form | pace = Validate.updateFallback form.pace } |> updatePaceFormPosition 0) model.trainingPaces
+              }
+            , Cmd.none
+            )
 
         NoOp ->
             ( model, Cmd.none )
@@ -145,10 +155,37 @@ update msg model =
 
 newTrainingPace : PaceForm
 newTrainingPace =
-    { name = Validate.init Ok ""
-    , pace = Validate.init Validate.parsePace ""
-    , dragging = Nothing
+    { name = Validate.init Ok "" ""
+    , pace = Validate.init Validate.parsePace (7 * 60) ""
+    , yOffset = 0
+    , dragOffset = 0
+    , dragValue = ""
     }
+        |> updatePaceFormPosition 0
+
+
+updatePaceFormPosition : Float -> PaceForm -> PaceForm
+updatePaceFormPosition dragOffset form =
+    let
+        { minPace, maxPace, sliderHeight } =
+            config
+
+        yOffset =
+            form.pace.fallback
+                |> (\seconds -> (1 - (toFloat seconds - minPace) / (maxPace - minPace)) * sliderHeight)
+
+        clampedDragOffset =
+            dragOffset
+                |> clamp -yOffset (sliderHeight - yOffset)
+
+        draggedPace =
+            (-clampedDragOffset / sliderHeight)
+                * (maxPace - minPace)
+                |> round
+                |> (+) form.pace.fallback
+                |> Pace.paceToString
+    in
+    { form | yOffset = yOffset, dragOffset = clampedDragOffset, dragValue = draggedPace }
 
 
 view : Model -> Html Msg
@@ -175,11 +212,11 @@ view model =
 
 
 viewBody : Model -> Html Msg
-viewBody { trainingPaces } =
+viewBody { trainingPaces, initialDragPosition } =
     column []
         [ Html.h3 [] [ Html.text "Training Paces" ]
         , row []
-            [ viewTrainingPaces (Selection.selectedIndex trainingPaces) (Selection.toList trainingPaces)
+            [ viewTrainingPaces (initialDragPosition /= Nothing) (Selection.selectedIndex trainingPaces) (Selection.toList trainingPaces)
             , column [] []
             ]
         ]
@@ -193,38 +230,21 @@ config =
     }
 
 
-viewTrainingPaces : Int -> List PaceForm -> Html Msg
-viewTrainingPaces selectedIndex paces =
-    let
-        dragging =
-            List.filterMap .dragging paces |> List.isEmpty |> not
-    in
+viewTrainingPaces : Bool -> Int -> List PaceForm -> Html Msg
+viewTrainingPaces dragActive selectedIndex paces =
     column
         [ Html.Attributes.id config.trainingPaceListId
-        , styleIf dragging "touch-action" "none"
-        , attributeIf dragging (onPointerMove PointerMoved)
-        , attributeIf dragging (Html.Events.on "pointerup" (Decode.succeed PointerUp))
+        , styleIf dragActive "touch-action" "none"
+        , attributeIf dragActive (onPointerMove PointerMoved)
+        , attributeIf dragActive (Html.Events.on "pointerup" (Decode.map PointerUp (Decode.field "y" Decode.float)))
         , style "height" (String.fromInt config.sliderHeight ++ "px")
         , style "position" "relative"
         ]
-        (viewAddButton :: List.indexedMap (viewPaceForm dragging) paces)
+        (viewAddButton :: List.indexedMap (viewPaceForm dragActive) paces)
 
 
 viewPaceForm : Bool -> Int -> PaceForm -> Html Msg
-viewPaceForm dragActive index { name, pace, dragging } =
-    let
-        { minPace, maxPace, sliderHeight } =
-            config
-
-        yOffset =
-            Result.map (\seconds -> (1 - (toFloat seconds - minPace) / (maxPace - minPace)) * sliderHeight) pace.result
-                |> Result.withDefault (sliderHeight / 2)
-
-        dragOffset =
-            dragging
-                |> Maybe.map Tuple.second
-                |> Maybe.withDefault 0
-    in
+viewPaceForm dragActive index { name, pace, yOffset, dragOffset, dragValue } =
     row
         [ style "margin-top" "5px"
         , style "margin-bottom" "5px"
@@ -258,7 +278,13 @@ viewPaceForm dragActive index { name, pace, dragging } =
                )
             |> UI.Input.withPlaceholder (Result.map Pace.paceToString pace.result |> Result.withDefault "mm:ss")
             |> UI.Input.withAttributes [ Html.Events.onBlur BlurredPace ]
-            |> UI.Input.view pace.value
+            |> UI.Input.view
+                (if dragActive && dragOffset /= 0 then
+                    dragValue
+
+                 else
+                    pace.value
+                )
         , compactColumn [ style "width" "10px" ] []
         , UI.Input.text (EditedName index)
             |> UI.Input.withResultError name.result

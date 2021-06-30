@@ -52,7 +52,7 @@ viewLapActions isEditing =
         )
         ([ if isEditing then
             Button.action "Save Lap" MonoIcons.check ClickedEdit
-                |> Button.withAppearance Button.Wide Button.Primary Button.Bottom
+                |> Button.withAppearance Button.Large Button.Primary Button.Bottom
 
            else
             Button.action "Edit Lap" MonoIcons.edit ClickedEdit
@@ -79,7 +79,7 @@ viewFormActions : Html Msg
 viewFormActions =
     row []
         [ Button.action "Save" MonoIcons.check ClickedSubmit
-            |> Button.withAppearance Button.Wide Button.Primary Button.Top
+            |> Button.withAppearance Button.Large Button.Primary Button.Top
             |> Button.view
         , Button.action "Close" MonoIcons.close ClickedClose
             |> Button.view

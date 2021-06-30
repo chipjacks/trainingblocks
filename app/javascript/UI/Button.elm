@@ -10,9 +10,10 @@ import UI.Util exposing (attributeIf, stopPropagationOnClick, viewIf, viewMaybe)
 
 
 type Size
-    = Small
+    = Tiny
+    | Small
     | Medium
-    | Wide
+    | Large
 
 
 type Color
@@ -82,14 +83,17 @@ view { size, color, tooltip, label, onClick, iconM, attrs } =
 
         sizeClass =
             case size of
+                Tiny ->
+                    "button--tiny"
+
                 Small ->
                     "button--small"
 
                 Medium ->
                     "button--medium"
 
-                Wide ->
-                    "button--wide"
+                Large ->
+                    "button--large"
     in
     Html.button
         ([ class "button"

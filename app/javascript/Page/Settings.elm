@@ -267,7 +267,6 @@ viewPaceForm dragActive index { name, pace, yOffset, dragOffset, dragValue } =
         [ Button.action "Drag" MonoIcons.drag NoOp
             |> Button.withAttributes
                 [ class "row__button--drag"
-                , class "button--narrow"
                 , Html.Events.on "pointerdown"
                     (Decode.map3 (ClickedDragPace index)
                         (Decode.field "pointerId" Decode.int)
@@ -275,7 +274,7 @@ viewPaceForm dragActive index { name, pace, yOffset, dragOffset, dragValue } =
                         (Decode.field "pageY" Decode.float)
                     )
                 ]
-            |> Button.withAppearance Button.Small Button.Subtle Button.None
+            |> Button.withAppearance Button.Tiny Button.Subtle Button.None
             |> Button.view
         , UI.Input.pace (EditedPace index)
             |> (\inputConfig ->
@@ -290,7 +289,8 @@ viewPaceForm dragActive index { name, pace, yOffset, dragOffset, dragValue } =
                             inputConfig
                )
             |> UI.Input.withPlaceholder (Result.map Pace.paceToString pace.result |> Result.withDefault "mm:ss")
-            |> UI.Input.withAttributes [ Html.Events.onBlur BlurredPace, class "input--narrow" ]
+            |> UI.Input.withAttributes [ Html.Events.onBlur BlurredPace ]
+            |> UI.Input.withAppearance UI.Input.Tiny
             |> UI.Input.view
                 (if dragActive && dragOffset /= 0 then
                     dragValue
@@ -301,11 +301,10 @@ viewPaceForm dragActive index { name, pace, yOffset, dragOffset, dragValue } =
         , compactColumn [ style "width" "10px" ] []
         , UI.Input.text (EditedName index)
             |> UI.Input.withResultError name.result
-            |> UI.Input.withAttributes [ class "input--narrow" ]
+            |> UI.Input.withAppearance UI.Input.Tiny
             |> UI.Input.view name.value
         , Button.action "Remove Pace" MonoIcons.remove (ClickedRemovePace index)
-            |> Button.withAppearance Button.Small Button.Subtle Button.Right
-            |> Button.withAttributes [ class "button--narrow" ]
+            |> Button.withAppearance Button.Tiny Button.Subtle Button.Right
             |> Button.view
         ]
 

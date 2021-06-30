@@ -1,4 +1,4 @@
-module UI.Input exposing (pace, text, view, withAttributes, withError, withPlaceholder, withResultError)
+module UI.Input exposing (Size(..), pace, text, view, withAppearance, withAttributes, withError, withPlaceholder, withResultError)
 
 import Html exposing (Html, input)
 import Html.Attributes exposing (class, placeholder, style, type_, value)
@@ -7,12 +7,18 @@ import UI.Util exposing (attributeMaybe)
 import Validate exposing (FieldError)
 
 
+type Size
+    = Tiny
+    | Medium
+
+
 type alias Config msg =
     { type_ : String
     , toMsg : String -> msg
     , error : Maybe FieldError
     , placeholder : Maybe String
     , attrs : List (Html.Attribute msg)
+    , size : Size
     }
 
 
@@ -23,6 +29,7 @@ text toMsg =
     , error = Nothing
     , placeholder = Nothing
     , attrs = []
+    , size = Medium
     }
 
 
@@ -33,7 +40,13 @@ pace toMsg =
     , error = Nothing
     , placeholder = Just "mm:ss"
     , attrs = [ style "width" "3rem" ]
+    , size = Medium
     }
+
+
+withAppearance : Size -> Config msg -> Config msg
+withAppearance size config =
+    { config | size = size }
 
 
 withAttributes : List (Html.Attribute msg) -> Config msg -> Config msg
@@ -63,13 +76,23 @@ withPlaceholder placeholder config =
 
 view : String -> Config msg -> Html msg
 view currentValue config =
+    let
+        sizeClass =
+            case config.size of
+                Tiny ->
+                    "input--tiny"
+
+                Medium ->
+                    ""
+    in
     input
         ([ onInput config.toMsg
          , type_ config.type_
          , class "input"
+         , class sizeClass
          , value currentValue
          , attributeMaybe config.placeholder placeholder
-         , attributeMaybe config.error (\_ -> class "error")
+         , attributeMaybe config.error (\_ -> class "input--error")
          ]
             ++ config.attrs
         )

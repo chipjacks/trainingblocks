@@ -73,7 +73,11 @@ input { border: 1px solid var(--grey-300); border-radius: 0.25rem; padding: 0.45
 input:focus { border-color: var(--blue-300); outline: 0; }
 .input.icon { border-top-left-radius: 0; border-bottom-left-radius: 0; }
 .input.icon:focus { border-top-left-radius: 0; border-bottom-left-radius: 0; border-left-color: var(--blue-500); }
-.input.error { border-color: var(--red-100); }
+
+.input--tiny { padding-top: 0.1rem; padding-bottom: 0.1rem }
+
+.input--error { border-color: var(--red-100); }
+
 
 select { border: 1px solid var(--grey-300); border-radius: 0.25rem; padding: 0.5rem; font-size: 1rem; }
 select.input-small { padding: 0.3rem; }
@@ -93,9 +97,10 @@ select:focus { border-color: var(--blue-300); outline: none; }
 .button:hover { background-color: var(--grey-300); }
 .button:focus { border-color: var(--blue-500); outline: none; }
 
+.button--tiny { padding: 0.1rem 0.6rem }
 .button--small { padding: 0.3rem 0.6rem; }
 .button--medium { padding: 0.3rem 0.8rem; }
-.button--wide { padding: 0.3rem 2rem; }
+.button--large { padding: 0.3rem 2rem; }
 
 .button--basic { background-color: #fff; }
 .button--primary { background-color: var(--blue-500); color: #fff; }
@@ -113,8 +118,6 @@ select:focus { border-color: var(--blue-300); outline: none; }
 .dynamic-shape > .block { transition: height 0.5s, width 0.5s; }
 .selected-shape > div { box-shadow: 0 0 0 1px #ffffff, 0 0 0 3px var(--blue-300); }
 
-.button--narrow { padding-top: 0.1rem; padding-bottom: 0.1rem }
-.input--narrow { padding-top: 0.1rem; padding-bottom: 0.1rem }
 
 /*
  * DROPDOWN

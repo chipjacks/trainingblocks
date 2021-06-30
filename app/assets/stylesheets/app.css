@@ -97,7 +97,7 @@ select:focus { border-color: var(--blue-300); outline: none; }
 .button:hover { background-color: var(--grey-300); }
 .button:focus { border-color: var(--blue-500); outline: none; }
 
-.button--tiny { padding: 0.1rem 0.6rem }
+.button--tiny { padding: 0.1rem 0.4rem }
 .button--small { padding: 0.3rem 0.6rem; }
 .button--medium { padding: 0.3rem 0.8rem; }
 .button--large { padding: 0.3rem 2rem; }

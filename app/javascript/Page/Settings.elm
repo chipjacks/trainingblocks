@@ -223,11 +223,11 @@ viewBody { trainingPaces, initialDragPosition } =
         dragActive =
             initialDragPosition /= Nothing
     in
-    column []
+    column [ style "margin" "5px" ]
         [ row []
             [ compactColumn []
-                [ row [ style "justify-content" "space-between", style "align-items" "flex-end" ]
-                    [ Html.h3 [ style "margin-bottom" "0.5rem" ] [ Html.text "Training Paces" ]
+                [ row [ style "align-items" "flex-end", style "margin-bottom" "1rem" ]
+                    [ Html.h3 [ style "margin-bottom" "0.5rem", style "margin-right" "10px" ] [ Html.text "Training Paces" ]
                     , viewAddButton
                     ]
                 , row []
@@ -260,7 +260,7 @@ viewTrainingPaces dragActive selectedIndex paces =
         , attributeIf dragActive (Html.Events.on "pointerup" (Decode.map PointerUp (Decode.field "y" Decode.float)))
         , style "height" (String.fromInt config.sliderHeight ++ "px")
         , style "position" "relative"
-        , style "width" "325px"
+        , style "width" "310px"
         ]
         (List.indexedMap (viewPaceForm dragActive) paces ++ List.map viewPaceTick paceTicks)
 
@@ -294,6 +294,7 @@ viewPaceForm dragActive index { name, pace, yOffset, dragOffset, dragValue } =
     row
         [ style "margin-top" "5px"
         , style "margin-bottom" "5px"
+        , style "margin-left" "5px"
         , style "position" "absolute"
         , styleIf dragActive "pointer-events" "none"
         , styleIf dragActive "touch-action" "none"
@@ -335,7 +336,7 @@ viewPaceForm dragActive index { name, pace, yOffset, dragOffset, dragValue } =
                  else
                     pace.value
                 )
-        , compactColumn [ style "width" "10px" ] []
+        , compactColumn [ style "width" "5px" ] []
         , UI.Input.text (EditedName index)
             |> UI.Input.withResultError name.result
             |> UI.Input.withAppearance UI.Input.Tiny

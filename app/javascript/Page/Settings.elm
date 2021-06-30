@@ -1,7 +1,7 @@
 module Page.Settings exposing (main)
 
 import Browser
-import Html exposing (Html)
+import Html exposing (Html, text)
 import Html.Attributes exposing (class, style)
 import Html.Events
 import Json.Decode as Decode
@@ -14,7 +14,7 @@ import UI.Input
 import UI.Layout exposing (column, compactColumn, expandingRow, row)
 import UI.Navbar as Navbar
 import UI.Skeleton as Skeleton
-import UI.Util exposing (attributeIf, attributeMaybe, onPointerMove, styleIf, viewMaybe)
+import UI.Util exposing (attributeIf, attributeMaybe, borderStyle, onPointerMove, styleIf, viewMaybe)
 import Validate exposing (Field)
 
 
@@ -162,7 +162,7 @@ update msg model =
 newTrainingPace : PaceForm
 newTrainingPace =
     { name = Validate.init Ok "" ""
-    , pace = Validate.init Validate.parsePace (7 * 60) ""
+    , pace = Validate.init Validate.parsePace config.maxPace ""
     , yOffset = 0
     , dragOffset = 0
     , dragValue = ""
@@ -224,10 +224,17 @@ viewBody { trainingPaces, initialDragPosition } =
             initialDragPosition /= Nothing
     in
     column []
-        [ Html.h3 [] [ Html.text "Training Paces" ]
-        , row []
-            [ viewTrainingPaces (initialDragPosition /= Nothing) (Selection.selectedIndex trainingPaces) (Selection.toList trainingPaces)
-            , column [] []
+        [ row []
+            [ compactColumn []
+                [ row [ style "justify-content" "space-between", style "align-items" "flex-end" ]
+                    [ Html.h3 [ style "margin-bottom" "0.5rem" ] [ Html.text "Training Paces" ]
+                    , viewAddButton
+                    ]
+                , row []
+                    [ viewTrainingPaces (initialDragPosition /= Nothing) (Selection.selectedIndex trainingPaces) (Selection.toList trainingPaces)
+                    , column [] []
+                    ]
+                ]
             ]
         ]
 
@@ -242,15 +249,44 @@ config =
 
 viewTrainingPaces : Bool -> Int -> List PaceForm -> Html Msg
 viewTrainingPaces dragActive selectedIndex paces =
-    column
+    let
+        paceTicks =
+            List.range 4 8 |> List.reverse |> List.map ((*) 60)
+    in
+    compactColumn
         [ Html.Attributes.id config.trainingPaceListId
         , styleIf dragActive "touch-action" "none"
         , attributeIf dragActive (onPointerMove PointerMoved)
         , attributeIf dragActive (Html.Events.on "pointerup" (Decode.map PointerUp (Decode.field "y" Decode.float)))
         , style "height" (String.fromInt config.sliderHeight ++ "px")
         , style "position" "relative"
+        , style "width" "325px"
         ]
-        (viewAddButton :: List.indexedMap (viewPaceForm dragActive) paces)
+        (List.indexedMap (viewPaceForm dragActive) paces ++ List.map viewPaceTick paceTicks)
+
+
+viewPaceTick : Int -> Html Msg
+viewPaceTick seconds =
+    let
+        { minPace, maxPace, sliderHeight } =
+            config
+
+        yOffset =
+            (1 - (toFloat seconds - minPace) / (maxPace - minPace)) * sliderHeight
+    in
+    row
+        [ style "margin-top" "5px"
+        , style "padding-top" "2px"
+        , style "padding-bottom" "3px"
+        , style "margin-bottom" "5px"
+        , style "position" "absolute"
+        , style "z-index" "0"
+        , style "top" (String.fromFloat yOffset ++ "px")
+        , style "width" "100%"
+        , borderStyle "border-bottom"
+        , style "color" "var(--grey-900)"
+        ]
+        [ text (Pace.paceToString seconds) ]
 
 
 viewPaceForm : Bool -> Int -> PaceForm -> Html Msg
@@ -262,6 +298,7 @@ viewPaceForm dragActive index { name, pace, yOffset, dragOffset, dragValue } =
         , styleIf dragActive "pointer-events" "none"
         , styleIf dragActive "touch-action" "none"
         , styleIf (dragOffset /= 0) "z-index" "2"
+        , style "z-index" "1"
         , style "top" (String.fromFloat (yOffset + dragOffset) ++ "px")
         ]
         [ Button.action "Drag" MonoIcons.drag NoOp
@@ -311,8 +348,6 @@ viewPaceForm dragActive index { name, pace, yOffset, dragOffset, dragValue } =
 
 viewAddButton : Html Msg
 viewAddButton =
-    row []
-        [ Button.action "Add Pace" MonoIcons.add ClickedAddPace
-            |> Button.withAppearance Button.Small Button.Subtle Button.Right
-            |> Button.view
-        ]
+    Button.action "Add Pace" MonoIcons.add ClickedAddPace
+        |> Button.withAppearance Button.Small Button.Subtle Button.Right
+        |> Button.view

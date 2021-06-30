@@ -219,6 +219,10 @@ view model =
 
 viewBody : Model -> Html Msg
 viewBody { trainingPaces, initialDragPosition } =
+    let
+        dragActive =
+            initialDragPosition /= Nothing
+    in
     column []
         [ Html.h3 [] [ Html.text "Training Paces" ]
         , row []
@@ -256,6 +260,8 @@ viewPaceForm dragActive index { name, pace, yOffset, dragOffset, dragValue } =
         , style "margin-bottom" "5px"
         , style "position" "absolute"
         , styleIf dragActive "pointer-events" "none"
+        , styleIf dragActive "touch-action" "none"
+        , styleIf (dragOffset /= 0) "z-index" "2"
         , style "top" (String.fromFloat (yOffset + dragOffset) ++ "px")
         ]
         [ Button.action "Drag" MonoIcons.drag NoOp

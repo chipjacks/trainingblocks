@@ -143,7 +143,7 @@ update msg model =
         PointerUp y ->
             ( { model
                 | initialDragPosition = Nothing
-                , trainingPaces = Selection.update (\form -> { form | pace = Validate.update form.dragValue form.pace |> Validate.updateFallback, dragOffset = 0 }) model.trainingPaces
+                , trainingPaces = Selection.update (\form -> { form | pace = Validate.update form.dragValue form.pace |> Validate.updateFallback } |> updatePaceFormPosition 0) model.trainingPaces
               }
             , Cmd.none
             )

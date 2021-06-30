@@ -35,10 +35,16 @@ init _ =
 
 
 placeholderPaces =
-    [ ( "Very Easy", "8:00" )
-    , ( "Easy", "7:00" )
-    , ( "Moderate", "6:30" )
-    , ( "Hard", "5:00" )
+    [ ( "Very Easy", "7:35" )
+    , ( "Easy", "6:54" )
+    , ( "Moderate", "6:38" )
+    , ( "Steady State", "6:20" )
+    , ( "Brisk", "6:08" )
+    , ( "Aerobic Threshold", "5:53" )
+    , ( "Lactate Threshold", "5:38" )
+    , ( "Groove", "5:22" )
+    , ( "VO2 Max", "5:07" )
+    , ( "Fast", "4:52" )
     ]
         |> List.map
             (\( name, pace ) ->
@@ -223,9 +229,9 @@ viewBody { trainingPaces, initialDragPosition } =
 
 
 config =
-    { sliderHeight = 500
-    , maxPace = 9 * 60
-    , minPace = 3 * 60
+    { sliderHeight = 600
+    , maxPace = 8 * 60
+    , minPace = 4 * 60
     , trainingPaceListId = "training-pace-list"
     }
 
@@ -255,6 +261,7 @@ viewPaceForm dragActive index { name, pace, yOffset, dragOffset, dragValue } =
         [ Button.action "Drag" MonoIcons.drag NoOp
             |> Button.withAttributes
                 [ class "row__button--drag"
+                , class "button--narrow"
                 , Html.Events.on "pointerdown"
                     (Decode.map3 (ClickedDragPace index)
                         (Decode.field "pointerId" Decode.int)
@@ -277,7 +284,7 @@ viewPaceForm dragActive index { name, pace, yOffset, dragOffset, dragValue } =
                             inputConfig
                )
             |> UI.Input.withPlaceholder (Result.map Pace.paceToString pace.result |> Result.withDefault "mm:ss")
-            |> UI.Input.withAttributes [ Html.Events.onBlur BlurredPace ]
+            |> UI.Input.withAttributes [ Html.Events.onBlur BlurredPace, class "input--narrow" ]
             |> UI.Input.view
                 (if dragActive && dragOffset /= 0 then
                     dragValue
@@ -288,16 +295,18 @@ viewPaceForm dragActive index { name, pace, yOffset, dragOffset, dragValue } =
         , compactColumn [ style "width" "10px" ] []
         , UI.Input.text (EditedName index)
             |> UI.Input.withResultError name.result
+            |> UI.Input.withAttributes [ class "input--narrow" ]
             |> UI.Input.view name.value
         , Button.action "Remove Pace" MonoIcons.remove (ClickedRemovePace index)
             |> Button.withAppearance Button.Small Button.Subtle Button.Right
+            |> Button.withAttributes [ class "button--narrow" ]
             |> Button.view
         ]
 
 
 viewAddButton : Html Msg
 viewAddButton =
-    row [ style "justify-content" "flex-end" ]
+    row []
         [ Button.action "Add Pace" MonoIcons.add ClickedAddPace
             |> Button.withAppearance Button.Small Button.Subtle Button.Right
             |> Button.view

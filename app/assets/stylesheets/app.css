@@ -113,6 +113,9 @@ select:focus { border-color: var(--blue-300); outline: none; }
 .dynamic-shape > .block { transition: height 0.5s, width 0.5s; }
 .selected-shape > div { box-shadow: 0 0 0 1px #ffffff, 0 0 0 3px var(--blue-300); }
 
+.button--narrow { padding-top: 0.1rem; padding-bottom: 0.1rem }
+.input--narrow { padding-top: 0.1rem; padding-bottom: 0.1rem }
+
 /*
  * DROPDOWN
 */

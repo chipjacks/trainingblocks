@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2021_04_23_211926) do
+ActiveRecord::Schema.define(version: 2021_07_01_184905) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -37,6 +37,14 @@ ActiveRecord::Schema.define(version: 2021_04_23_211926) do
     t.index ["user_id"], name: "index_imports_on_user_id"
   end
 
+  create_table "settings", force: :cascade do |t|
+    t.bigint "user_id"
+    t.json "paces"
+    t.datetime "created_at", precision: 6, null: false
+    t.datetime "updated_at", precision: 6, null: false
+    t.index ["user_id"], name: "index_settings_on_user_id", unique: true
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "email"
     t.string "encrypted_password", default: "", null: false
@@ -59,4 +67,5 @@ ActiveRecord::Schema.define(version: 2021_04_23_211926) do
 
   add_foreign_key "activities", "users"
   add_foreign_key "imports", "users"
+  add_foreign_key "settings", "users"
 end

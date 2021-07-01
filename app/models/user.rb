@@ -1,6 +1,7 @@
 class User < ApplicationRecord
   has_many :activities, dependent: :destroy
   has_many :imports, dependent: :destroy
+  has_one :setting
 
   # Include default devise modules. Others available are:
   # :lockable, :timeoutable

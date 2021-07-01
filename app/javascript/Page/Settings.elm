@@ -12,6 +12,7 @@ import Pace
 import Ports
 import Selection exposing (Selection)
 import Task
+import UI
 import UI.Button as Button
 import UI.Input
 import UI.Layout exposing (column, compactColumn, expandingRow, row)
@@ -32,7 +33,7 @@ main =
 
 init : () -> ( Model, Cmd msg )
 init _ =
-    ( Model (Selection.init placeholderPaces) Nothing Nothing
+    ( Model (Selection.init placeholderPaces) Nothing Success
     , Cmd.none
     )
 
@@ -64,7 +65,7 @@ placeholderPaces =
 type alias Model =
     { trainingPaces : Selection PaceForm
     , initialDragPosition : Maybe ( Float, Float )
-    , error : Maybe String
+    , status : FormStatus
     }
 
 
@@ -75,6 +76,12 @@ type alias PaceForm =
     , dragOffset : Float
     , dragValue : String
     }
+
+
+type FormStatus
+    = Posted
+    | Success
+    | Error String
 
 
 type Msg
@@ -100,17 +107,17 @@ update msg model =
                     Selection.toList model.trainingPaces
                         |> List.map (\{ name, pace } -> ( pace.fallback, name.fallback ))
             in
-            ( model
+            ( { model | status = Posted }
             , Task.attempt PostedPaces (Api.postTrainingPaces paces)
             )
 
         PostedPaces result ->
             ( case result of
                 Err error ->
-                    { model | error = Just (Api.errorString error) }
+                    { model | status = Error (Api.errorString error) }
 
                 _ ->
-                    { model | error = Nothing }
+                    { model | status = Success }
             , Cmd.none
             )
 
@@ -244,7 +251,7 @@ view model =
 
 
 viewBody : Model -> Html Msg
-viewBody { trainingPaces, initialDragPosition, error } =
+viewBody { trainingPaces, initialDragPosition, status } =
     let
         dragActive =
             initialDragPosition /= Nothing
@@ -256,9 +263,9 @@ viewBody { trainingPaces, initialDragPosition, error } =
                     [ Html.h3 [ style "margin-bottom" "0.5rem", style "margin-right" "10px" ] [ Html.text "Training Paces" ]
                     , viewAddButton
                     , column [] []
-                    , viewSaveButton
+                    , viewSaveButton status
                     ]
-                , row [ style "height" "1rem", style "justify-content" "flex-end", style "color" "var(--red-700)" ] [ viewMaybe error text ]
+                , viewStatusMessage status
                 , row []
                     [ viewTrainingPaces (initialDragPosition /= Nothing) (Selection.selectedIndex trainingPaces) (Selection.toList trainingPaces)
                     , column [] []
@@ -383,8 +390,25 @@ viewAddButton =
         |> Button.view
 
 
-viewSaveButton : Html Msg
-viewSaveButton =
-    Button.action "Save" MonoIcons.check ClickedSave
-        |> Button.withAppearance Button.Large Button.Primary Button.Right
-        |> Button.view
+viewStatusMessage : FormStatus -> Html Msg
+viewStatusMessage status =
+    case status of
+        Error string ->
+            row [ style "height" "1rem", style "justify-content" "flex-end", style "color" "var(--red-700)" ]
+                [ text string ]
+
+        _ ->
+            row [ style "height" "1rem", style "justify-content" "flex-end", style "color" "var(--red-700)" ] []
+
+
+viewSaveButton : FormStatus -> Html Msg
+viewSaveButton status =
+    column [ style "align-items" "flex-end" ]
+        [ if status == Posted then
+            UI.spinner "2rem"
+
+          else
+            Button.action "Save" MonoIcons.check ClickedSave
+                |> Button.withAppearance Button.Large Button.Primary Button.Right
+                |> Button.view
+        ]

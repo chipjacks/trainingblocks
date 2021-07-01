@@ -18,7 +18,7 @@ import UI.Input
 import UI.Layout exposing (column, compactColumn, expandingRow, row)
 import UI.Navbar as Navbar
 import UI.Skeleton as Skeleton
-import UI.Util exposing (attributeIf, attributeMaybe, borderStyle, onPointerMove, styleIf, viewMaybe)
+import UI.Util exposing (attributeIf, attributeMaybe, borderStyle, onPointerMove, styleIf, viewIf, viewMaybe)
 import Validate exposing (Field)
 
 
@@ -31,35 +31,26 @@ main =
         }
 
 
-init : () -> ( Model, Cmd msg )
+init : () -> ( Model, Cmd Msg )
 init _ =
-    ( Model (Selection.init placeholderPaces) Nothing Success
-    , Cmd.none
+    ( Model (initPaces []) Nothing Loading
+    , Task.attempt GotSettings Api.getSettings
     )
 
 
-placeholderPaces =
-    [ ( "Very Easy", "7:35" )
-    , ( "Easy", "6:54" )
-    , ( "Moderate", "6:38" )
-    , ( "Steady State", "6:20" )
-    , ( "Brisk", "6:08" )
-    , ( "Aerobic Threshold", "5:53" )
-    , ( "Lactate Threshold", "5:38" )
-    , ( "Groove", "5:22" )
-    , ( "VO2 Max", "5:07" )
-    , ( "Fast", "4:52" )
-    ]
+initPaces paces =
+    paces
         |> List.map
             (\( name, pace ) ->
                 { name = Validate.init Ok name name
-                , pace = Validate.init Validate.parsePace (7 * 60) pace |> Validate.updateFallback
+                , pace = Validate.init Validate.parsePace pace (Pace.paceToString pace)
                 , yOffset = 0
                 , dragOffset = 0
-                , dragValue = pace
+                , dragValue = Pace.paceToString pace
                 }
                     |> updatePaceFormPosition 0
             )
+        |> Selection.init
 
 
 type alias Model =
@@ -79,13 +70,15 @@ type alias PaceForm =
 
 
 type FormStatus
-    = Posted
+    = Loading
+    | Posted
     | Success
     | Error String
 
 
 type Msg
     = ClickedSave
+    | GotSettings (Result Http.Error (List ( String, Int )))
     | PostedPaces (Result Http.Error Bool)
     | EditedPace Int String
     | EditedName Int String
@@ -105,10 +98,20 @@ update msg model =
             let
                 paces =
                     Selection.toList model.trainingPaces
-                        |> List.map (\{ name, pace } -> ( pace.fallback, name.fallback ))
+                        |> List.map (\{ name, pace } -> ( name.fallback, pace.fallback ))
             in
             ( { model | status = Posted }
-            , Task.attempt PostedPaces (Api.postTrainingPaces paces)
+            , Task.attempt PostedPaces (Api.postSettings paces)
+            )
+
+        GotSettings result ->
+            ( case result of
+                Err error ->
+                    { model | status = Error (Api.errorString error) }
+
+                Ok paces ->
+                    { model | status = Success, trainingPaces = initPaces paces }
+            , Cmd.none
             )
 
         PostedPaces result ->
@@ -261,7 +264,7 @@ viewBody { trainingPaces, initialDragPosition, status } =
             [ compactColumn []
                 [ row [ style "align-items" "flex-end" ]
                     [ Html.h3 [ style "margin-bottom" "0.5rem", style "margin-right" "10px" ] [ Html.text "Training Paces" ]
-                    , viewAddButton
+                    , viewIf (status /= Loading) viewAddButton
                     , column [] []
                     , viewSaveButton status
                     ]
@@ -404,11 +407,15 @@ viewStatusMessage status =
 viewSaveButton : FormStatus -> Html Msg
 viewSaveButton status =
     column [ style "align-items" "flex-end" ]
-        [ if status == Posted then
-            UI.spinner "2rem"
+        [ case status of
+            Posted ->
+                UI.spinner "2rem"
 
-          else
-            Button.action "Save" MonoIcons.check ClickedSave
-                |> Button.withAppearance Button.Large Button.Primary Button.Right
-                |> Button.view
+            Loading ->
+                UI.spinner "2rem"
+
+            _ ->
+                Button.action "Save" MonoIcons.check ClickedSave
+                    |> Button.withAppearance Button.Large Button.Primary Button.Right
+                    |> Button.view
         ]

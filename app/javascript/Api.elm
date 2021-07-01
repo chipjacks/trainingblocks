@@ -1,4 +1,4 @@
-module Api exposing (errorString, getActivities, getActivitiesResolver, postActivities, postTrainingPaces)
+module Api exposing (errorString, getActivities, getActivitiesResolver, getSettings, postActivities, postSettings)
 
 import Activity
 import Activity.Types exposing (Activity)
@@ -10,19 +10,11 @@ import Time exposing (Month(..))
 
 
 
--- CONFIG
+-- ACTIVITIES
 
 
 activitiesRoute =
     "/activities"
-
-
-pacesRoute =
-    "/paces"
-
-
-
--- ROUTES
 
 
 getActivitiesResolver =
@@ -81,19 +73,48 @@ postActivities revision orderUpdates activityUpdates =
         }
 
 
-postTrainingPaces : List ( Int, String ) -> Task Http.Error Bool
-postTrainingPaces paces =
+
+-- SETTINGS
+
+
+settingsRoute =
+    "/settings"
+
+
+getSettingsResolver =
     let
-        pacesEncoder ( pace, name ) =
+        paceDecoder =
+            Decode.map2 Tuple.pair (Decode.field "name" Decode.string) (Decode.field "pace" Decode.int)
+    in
+    handleJsonResponse <|
+        Decode.field "paces" (Decode.list paceDecoder)
+
+
+getSettings : Task Http.Error (List ( String, Int ))
+getSettings =
+    Http.task
+        { method = "GET"
+        , headers = [ Http.header "Content-Type" "application/json" ]
+        , url = settingsRoute ++ ".json"
+        , body = Http.emptyBody
+        , resolver = Http.stringResolver <| getSettingsResolver
+        , timeout = Nothing
+        }
+
+
+postSettings : List ( String, Int ) -> Task Http.Error Bool
+postSettings paces =
+    let
+        pacesEncoder ( name, pace ) =
             Encode.object
-                [ ( "pace", Encode.int pace )
-                , ( "name", Encode.string name )
+                [ ( "name", Encode.string name )
+                , ( "pace", Encode.int pace )
                 ]
     in
     Http.task
         { method = "POST"
         , headers = [ Http.header "Content-Type" "application/json" ]
-        , url = pacesRoute
+        , url = settingsRoute
         , body =
             Http.jsonBody
                 (Encode.object

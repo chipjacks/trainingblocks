@@ -6,7 +6,9 @@ Rails.application.routes.draw do
   root to: "home#index"
 
   get 'calendar', to: 'calendar#index'
+
   get 'settings', to: 'settings#index'
+  post 'settings', to: 'settings#update'
 
   get 'activities', to: 'activities#index'
   post 'activities', to: 'activities#batch_update'

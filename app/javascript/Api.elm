@@ -1,4 +1,4 @@
-module Api exposing (errorString, getActivities, getActivitiesResolver, postActivities)
+module Api exposing (errorString, getActivities, getActivitiesResolver, postActivities, postTrainingPaces)
 
 import Activity
 import Activity.Types exposing (Activity)
@@ -13,8 +13,12 @@ import Time exposing (Month(..))
 -- CONFIG
 
 
-storeUrl =
+activitiesRoute =
     "/activities"
+
+
+pacesRoute =
+    "/paces"
 
 
 
@@ -33,7 +37,7 @@ getActivities =
     Http.task
         { method = "GET"
         , headers = [ Http.header "Content-Type" "application/json" ]
-        , url = storeUrl
+        , url = activitiesRoute
         , body = Http.emptyBody
         , resolver = Http.stringResolver <| getActivitiesResolver
         , timeout = Nothing
@@ -58,7 +62,7 @@ postActivities revision orderUpdates activityUpdates =
     Http.task
         { method = "POST"
         , headers = [ Http.header "Content-Type" "application/json" ]
-        , url = storeUrl
+        , url = activitiesRoute
         , body =
             Http.jsonBody
                 (Encode.object
@@ -73,6 +77,33 @@ postActivities revision orderUpdates activityUpdates =
                     Decode.map2 Tuple.pair
                         (Decode.field "rev" Decode.string)
                         (Decode.field "ok" Decode.bool)
+        , timeout = Nothing
+        }
+
+
+postTrainingPaces : List ( Int, String ) -> Task Http.Error Bool
+postTrainingPaces paces =
+    let
+        pacesEncoder ( pace, name ) =
+            Encode.object
+                [ ( "pace", Encode.int pace )
+                , ( "name", Encode.string name )
+                ]
+    in
+    Http.task
+        { method = "POST"
+        , headers = [ Http.header "Content-Type" "application/json" ]
+        , url = pacesRoute
+        , body =
+            Http.jsonBody
+                (Encode.object
+                    [ ( "paces", Encode.list pacesEncoder paces )
+                    ]
+                )
+        , resolver =
+            Http.stringResolver <|
+                handleJsonResponse <|
+                    Decode.field "ok" Decode.bool
         , timeout = Nothing
         }
 

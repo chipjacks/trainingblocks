@@ -1,14 +1,17 @@
 module Page.Settings exposing (main)
 
+import Api
 import Browser
 import Html exposing (Html, text)
 import Html.Attributes exposing (class, style)
 import Html.Events
+import Http
 import Json.Decode as Decode
 import MonoIcons
 import Pace
 import Ports
 import Selection exposing (Selection)
+import Task
 import UI.Button as Button
 import UI.Input
 import UI.Layout exposing (column, compactColumn, expandingRow, row)
@@ -29,7 +32,7 @@ main =
 
 init : () -> ( Model, Cmd msg )
 init _ =
-    ( Model (Selection.init placeholderPaces) Nothing
+    ( Model (Selection.init placeholderPaces) Nothing Nothing
     , Cmd.none
     )
 
@@ -61,6 +64,7 @@ placeholderPaces =
 type alias Model =
     { trainingPaces : Selection PaceForm
     , initialDragPosition : Maybe ( Float, Float )
+    , error : Maybe String
     }
 
 
@@ -74,7 +78,9 @@ type alias PaceForm =
 
 
 type Msg
-    = EditedPace Int String
+    = ClickedSave
+    | PostedPaces (Result Http.Error Bool)
+    | EditedPace Int String
     | EditedName Int String
     | ClickedAddPace
     | ClickedRemovePace Int
@@ -85,9 +91,29 @@ type Msg
     | NoOp
 
 
-update : Msg -> Model -> ( Model, Cmd msg )
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        ClickedSave ->
+            let
+                paces =
+                    Selection.toList model.trainingPaces
+                        |> List.map (\{ name, pace } -> ( pace.fallback, name.fallback ))
+            in
+            ( model
+            , Task.attempt PostedPaces (Api.postTrainingPaces paces)
+            )
+
+        PostedPaces result ->
+            ( case result of
+                Err error ->
+                    { model | error = Just (Api.errorString error) }
+
+                _ ->
+                    { model | error = Nothing }
+            , Cmd.none
+            )
+
         EditedPace index str ->
             let
                 newTrainingPaces =
@@ -218,7 +244,7 @@ view model =
 
 
 viewBody : Model -> Html Msg
-viewBody { trainingPaces, initialDragPosition } =
+viewBody { trainingPaces, initialDragPosition, error } =
     let
         dragActive =
             initialDragPosition /= Nothing
@@ -226,10 +252,13 @@ viewBody { trainingPaces, initialDragPosition } =
     column [ style "margin" "5px" ]
         [ row []
             [ compactColumn []
-                [ row [ style "align-items" "flex-end", style "margin-bottom" "1rem" ]
+                [ row [ style "align-items" "flex-end" ]
                     [ Html.h3 [ style "margin-bottom" "0.5rem", style "margin-right" "10px" ] [ Html.text "Training Paces" ]
                     , viewAddButton
+                    , column [] []
+                    , viewSaveButton
                     ]
+                , row [ style "height" "1rem", style "justify-content" "flex-end", style "color" "var(--red-700)" ] [ viewMaybe error text ]
                 , row []
                     [ viewTrainingPaces (initialDragPosition /= Nothing) (Selection.selectedIndex trainingPaces) (Selection.toList trainingPaces)
                     , column [] []
@@ -351,4 +380,11 @@ viewAddButton : Html Msg
 viewAddButton =
     Button.action "Add Pace" MonoIcons.add ClickedAddPace
         |> Button.withAppearance Button.Small Button.Subtle Button.Right
+        |> Button.view
+
+
+viewSaveButton : Html Msg
+viewSaveButton =
+    Button.action "Save" MonoIcons.check ClickedSave
+        |> Button.withAppearance Button.Large Button.Primary Button.Right
         |> Button.view

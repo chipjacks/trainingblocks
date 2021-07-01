@@ -98,7 +98,7 @@ update msg model =
             let
                 paces =
                     Selection.toList model.trainingPaces
-                        |> List.map (\{ name, pace } -> ( name.fallback, pace.fallback ))
+                        |> List.map (\{ name, pace } -> ( name.result |> Result.withDefault name.fallback, pace.result |> Result.withDefault pace.fallback ))
             in
             ( { model | status = Posted }
             , Task.attempt PostedPaces (Api.postSettings paces)

@@ -253,6 +253,10 @@ view model =
         |> Skeleton.view
 
 
+maxWidthForMobile =
+    style "width" "310px"
+
+
 viewBody : Model -> Html Msg
 viewBody { trainingPaces, initialDragPosition, status } =
     let
@@ -260,19 +264,27 @@ viewBody { trainingPaces, initialDragPosition, status } =
             initialDragPosition /= Nothing
     in
     column [ style "margin" "5px" ]
-        [ row []
-            [ compactColumn []
+        [ row [ style "justify-content" "space-between", style "flex-wrap" "wrap-reverse" ]
+            [ compactColumn [ maxWidthForMobile ]
                 [ row [ style "align-items" "flex-end" ]
                     [ Html.h3 [ style "margin-bottom" "0.5rem", style "margin-right" "10px" ] [ Html.text "Training Paces" ]
                     , viewIf (status /= Loading) viewAddButton
                     , column [] []
-                    , viewSaveButton status
                     ]
-                , viewStatusMessage status
+                , Html.text "Adjust your training paces to control how activities appear on your calendar."
                 , row []
                     [ viewTrainingPaces (initialDragPosition /= Nothing) (Selection.selectedIndex trainingPaces) (Selection.toList trainingPaces)
                     , column [] []
                     ]
+                ]
+            , compactColumn [ maxWidthForMobile ]
+                [ Html.h3 [ style "margin-bottom" "0.5rem", style "margin-right" "10px" ] [ Html.text "Strava Account" ]
+                , Html.text "Sign in with Strava to import your activities."
+                , Html.div [ style "color" "var(--green-900)", style "margin-top" "0.5rem" ] [ Html.text "Connected ✓" ]
+                ]
+            , compactColumn []
+                [ viewSaveButton status
+                , viewStatusMessage status
                 ]
             ]
         ]
@@ -300,6 +312,7 @@ viewTrainingPaces dragActive selectedIndex paces =
         , style "height" (String.fromInt config.sliderHeight ++ "px")
         , style "position" "relative"
         , style "width" "310px"
+        , style "margin-top" "1rem"
         ]
         (List.indexedMap (viewPaceForm dragActive) paces ++ List.map viewPaceTick paceTicks)
 
@@ -406,7 +419,7 @@ viewStatusMessage status =
 
 viewSaveButton : FormStatus -> Html Msg
 viewSaveButton status =
-    column [ style "align-items" "flex-end" ]
+    row [ style "justify-content" "center", style "margin-top" "1rem", style "min-width" "6rem" ]
         [ case status of
             Posted ->
                 UI.spinner "2rem"

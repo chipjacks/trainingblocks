@@ -240,7 +240,7 @@ view model =
                 ]
 
         navHeader =
-            Html.div [ style "font-size" "1.3rem" ] [ Html.text "Settings" ]
+            Html.div [ style "font-size" "1.3rem", style "margin-top" "0.2rem" ] [ Html.text "Settings" ]
     in
     Skeleton.default
         |> Skeleton.withNavbar
@@ -408,13 +408,14 @@ viewAddButton =
 
 viewStatusMessage : FormStatus -> Html Msg
 viewStatusMessage status =
-    case status of
-        Error string ->
-            row [ style "height" "1rem", style "justify-content" "flex-end", style "color" "var(--red-700)" ]
+    row [ style "height" "1rem", style "justify-content" "flex-end", style "color" "var(--red-700)" ]
+        (case status of
+            Error string ->
                 [ text string ]
 
-        _ ->
-            row [ style "height" "1rem", style "justify-content" "flex-end", style "color" "var(--red-700)" ] []
+            _ ->
+                []
+        )
 
 
 viewSaveButton : FormStatus -> Html Msg
@@ -429,6 +430,6 @@ viewSaveButton status =
 
             _ ->
                 Button.action "Save" MonoIcons.check ClickedSave
-                    |> Button.withAppearance Button.Large Button.Primary Button.Right
+                    |> Button.withAppearance Button.Large Button.Primary Button.Bottom
                     |> Button.view
         ]

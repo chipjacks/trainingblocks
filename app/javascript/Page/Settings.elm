@@ -271,7 +271,17 @@ viewBody { trainingPaces, initialDragPosition, status } =
                     , viewIf (status /= Loading) viewAddButton
                     , column [] []
                     ]
-                , Html.text "Adjust your training paces to control how activities appear on your calendar."
+                , Html.text "Adjust your training paces to match your fitness level and training plan."
+                , Html.a
+                    [ Html.Attributes.href "https://www.rundoyen.com/running-pace-calculator/"
+                    , Html.Attributes.target "_blank"
+                    , style "margin-top" "0.5rem"
+                    ]
+                    [ row [ style "align-items" "center" ]
+                        [ Html.text "Calculator"
+                        , MonoIcons.icon (MonoIcons.externalLink "var(--blue-500)")
+                        ]
+                    ]
                 , row []
                     [ viewTrainingPaces (initialDragPosition /= Nothing) (Selection.selectedIndex trainingPaces) (Selection.toList trainingPaces)
                     , column [] []
@@ -301,8 +311,13 @@ config =
 viewTrainingPaces : Bool -> Int -> List PaceForm -> Html Msg
 viewTrainingPaces dragActive selectedIndex paces =
     let
+        ticksPerMinute =
+            4
+
         paceTicks =
-            List.range 4 8 |> List.reverse |> List.map ((*) 60)
+            List.range (config.minPace / 60 * ticksPerMinute |> round) (config.maxPace / 60 * ticksPerMinute |> round)
+                |> List.reverse
+                |> List.map (\tick -> toFloat tick / 4 * 60 |> round)
     in
     compactColumn
         [ Html.Attributes.id config.trainingPaceListId
@@ -326,19 +341,35 @@ viewPaceTick seconds =
         yOffset =
             (1 - (toFloat seconds - minPace) / (maxPace - minPace)) * sliderHeight
     in
-    row
-        [ style "margin-top" "5px"
-        , style "padding-top" "2px"
-        , style "padding-bottom" "3px"
-        , style "margin-bottom" "5px"
-        , style "position" "absolute"
-        , style "z-index" "0"
-        , style "top" (String.fromFloat yOffset ++ "px")
-        , style "width" "100%"
-        , borderStyle "border-bottom"
-        , style "color" "var(--grey-900)"
-        ]
-        [ text (Pace.paceToString seconds) ]
+    if modBy 60 seconds == 0 then
+        row
+            [ style "margin-top" "5px"
+            , style "padding-top" "2px"
+            , style "padding-bottom" "3px"
+            , style "margin-bottom" "5px"
+            , style "position" "absolute"
+            , style "z-index" "0"
+            , style "top" (String.fromFloat yOffset ++ "px")
+            , style "width" "100%"
+            , style "color" "var(--grey-900)"
+            ]
+            [ text (Pace.paceToString seconds)
+            , column [ borderStyle "border-top", style "margin-top" "0.7rem", style "margin-left" "1.5rem" ] []
+            ]
+
+    else
+        row
+            [ style "margin-top" "15px"
+            , style "width" "5px"
+            , style "height" "5px"
+            , style "position" "absolute"
+            , style "z-index" "0"
+            , style "top" (String.fromFloat yOffset ++ "px")
+            , style "left" "150px"
+            , style "background-color" "var(--grey-900)"
+            , style "border-radius" "50%"
+            ]
+            []
 
 
 viewPaceForm : Bool -> Int -> PaceForm -> Html Msg

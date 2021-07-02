@@ -217,6 +217,7 @@ select:focus { border-color: var(--blue-300); outline: none; }
 
 .button__tooltip--right { top: 50%; left: 100%; transform: translate(5px, -50%); }
 .button__tooltip--bottom { top: 100%; transform: translate(-20%, 5px); }
+.button__tooltip--left { top: 50%; right: 100%; transform: translate(-5px, -50%); }
 
 .button:hover > .button__tooltip {
   display: block;

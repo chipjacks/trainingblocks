@@ -25,6 +25,7 @@ type Color
 type Tooltip
     = Top
     | Right
+    | Left
     | Bottom
     | None
 
@@ -111,6 +112,7 @@ view { size, color, tooltip, label, onClick, iconM, attrs } =
                 [ class "button__tooltip"
                 , attributeIf (tooltip == Right) (class "button__tooltip--right")
                 , attributeIf (tooltip == Bottom) (class "button__tooltip--bottom")
+                , attributeIf (tooltip == Left) (class "button__tooltip--left")
                 ]
                 [ Html.text label ]
             )

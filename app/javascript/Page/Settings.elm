@@ -268,19 +268,20 @@ viewBody { trainingPaces, initialDragPosition, status } =
             [ compactColumn [ maxWidthForMobile ]
                 [ row [ style "align-items" "flex-end" ]
                     [ Html.h3 [ style "margin-bottom" "0.5rem", style "margin-right" "10px" ] [ Html.text "Training Paces" ]
-                    , viewIf (status /= Loading) viewAddButton
-                    , column [] []
                     ]
                 , Html.text "Adjust your training paces to match your fitness level and training plan."
-                , Html.a
-                    [ Html.Attributes.href "https://www.rundoyen.com/running-pace-calculator/"
-                    , Html.Attributes.target "_blank"
-                    , style "margin-top" "0.5rem"
-                    ]
-                    [ row [ style "align-items" "center" ]
+                , row [ style "align-items" "center", style "margin-top" "5px" ]
+                    [ Html.a
+                        [ Html.Attributes.href "https://www.rundoyen.com/running-pace-calculator/"
+                        , Html.Attributes.target "_blank"
+                        , style "display" "flex"
+                        , style "align-items" "center"
+                        ]
                         [ Html.text "Calculator"
                         , MonoIcons.icon (MonoIcons.externalLink "var(--blue-500)")
                         ]
+                    , column [] []
+                    , viewIf (status /= Loading) viewAddButton
                     ]
                 , row []
                     [ viewTrainingPaces (initialDragPosition /= Nothing) (Selection.selectedIndex trainingPaces) (Selection.toList trainingPaces)
@@ -433,7 +434,7 @@ viewPaceForm dragActive index { name, pace, yOffset, dragOffset, dragValue } =
 viewAddButton : Html Msg
 viewAddButton =
     Button.action "Add Pace" MonoIcons.add ClickedAddPace
-        |> Button.withAppearance Button.Small Button.Subtle Button.Right
+        |> Button.withAppearance Button.Small Button.Subtle Button.Left
         |> Button.view
 
 

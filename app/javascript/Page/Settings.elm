@@ -27,7 +27,7 @@ main =
         { init = \x -> init x
         , view = \model -> { title = "Settings | Rhino Log", body = [ view model ] }
         , update = \model msg -> update model msg
-        , subscriptions = \_ -> Sub.none
+        , subscriptions = \_ -> Ports.setDropTarget SetDropTarget
         }
 
 
@@ -44,18 +44,16 @@ initPaces paces =
             (\( name, pace ) ->
                 { name = Validate.init Ok name name
                 , pace = Validate.init Validate.parsePace pace (Pace.paceToString pace)
-                , yOffset = 0
-                , dragOffset = 0
-                , dragValue = Pace.paceToString pace
+                , dropTarget = False
+                , ordered = True
                 }
-                    |> updatePaceFormPosition 0
             )
         |> Selection.init
 
 
 type alias Model =
     { trainingPaces : Selection PaceForm
-    , initialDragPosition : Maybe ( Float, Float )
+    , dragging : Maybe ( Float, Float )
     , status : FormStatus
     }
 
@@ -63,9 +61,8 @@ type alias Model =
 type alias PaceForm =
     { name : Validate.Field String String
     , pace : Validate.Field String Int
-    , yOffset : Float
-    , dragOffset : Float
-    , dragValue : String
+    , dropTarget : Bool
+    , ordered : Bool
     }
 
 
@@ -84,10 +81,11 @@ type Msg
     | EditedName Int String
     | ClickedAddPace
     | ClickedRemovePace Int
-    | ClickedDragPace Int Int Float Float
+    | ClickedDragPace Int Int
+    | SetDropTarget Int
     | BlurredPace
     | PointerMoved Float Float
-    | PointerUp Float
+    | PointerUp
     | NoOp
 
 
@@ -157,37 +155,41 @@ update msg model =
             , Cmd.none
             )
 
-        ClickedDragPace index pointerId pageX pageY ->
+        ClickedDragPace index pointerId ->
             ( { model
-                | initialDragPosition = Just ( pageX, pageY )
-                , trainingPaces = Selection.select index model.trainingPaces
+                | trainingPaces =
+                    Selection.select index model.trainingPaces
+                , dragging = Just ( -100, -100 )
               }
             , Ports.setPointerCapture { targetId = config.trainingPaceListId, pointerId = pointerId }
             )
 
-        PointerMoved _ y ->
-            let
-                updateForm form =
-                    Maybe.map (\( _, iy ) -> y - iy) model.initialDragPosition
-                        |> Maybe.map (\dragOffset -> updatePaceFormPosition dragOffset form)
-                        |> Maybe.withDefault form
-            in
-            ( { model | trainingPaces = Selection.update updateForm model.trainingPaces }
+        SetDropTarget id ->
+            ( { model
+                | trainingPaces =
+                    Selection.move id model.trainingPaces
+                        |> Selection.update (\form -> { form | dropTarget = True })
+              }
             , Cmd.none
             )
 
-        PointerUp y ->
+        PointerMoved x y ->
+            ( { model | dragging = Just ( x, y ) }
+            , Cmd.none
+            )
+
+        PointerUp ->
             ( { model
-                | initialDragPosition = Nothing
-                , trainingPaces = Selection.update (\form -> { form | pace = Validate.update form.dragValue form.pace |> Validate.updateFallback } |> updatePaceFormPosition 0) model.trainingPaces
+                | dragging = Nothing
+                , trainingPaces = Selection.update (\form -> { form | dropTarget = False }) model.trainingPaces
               }
+                |> updatePaceOrdered
             , Cmd.none
             )
 
         BlurredPace ->
-            ( { model
-                | trainingPaces = Selection.update (\form -> { form | pace = Validate.updateFallback form.pace } |> updatePaceFormPosition 0) model.trainingPaces
-              }
+            ( { model | trainingPaces = Selection.update (\form -> { form | pace = Validate.updateFallback form.pace }) model.trainingPaces }
+                |> updatePaceOrdered
             , Cmd.none
             )
 
@@ -199,35 +201,28 @@ newTrainingPace : PaceForm
 newTrainingPace =
     { name = Validate.init Ok "" ""
     , pace = Validate.init Validate.parsePace config.maxPace ""
-    , yOffset = 0
-    , dragOffset = 0
-    , dragValue = ""
+    , ordered = True
+    , dropTarget = False
     }
-        |> updatePaceFormPosition 0
 
 
-updatePaceFormPosition : Float -> PaceForm -> PaceForm
-updatePaceFormPosition dragOffset form =
+updatePaceOrdered : Model -> Model
+updatePaceOrdered model =
     let
-        { minPace, maxPace, sliderHeight } =
-            config
+        selectedIndex =
+            Selection.selectedIndex model.trainingPaces
 
-        yOffset =
-            form.pace.fallback
-                |> (\seconds -> (1 - (toFloat seconds - minPace) / (maxPace - minPace)) * sliderHeight)
-
-        clampedDragOffset =
-            dragOffset
-                |> clamp -yOffset (sliderHeight - yOffset)
-
-        draggedPace =
-            (-clampedDragOffset / sliderHeight)
-                * (maxPace - minPace)
-                |> round
-                |> (+) form.pace.fallback
-                |> Pace.paceToString
+        newTrainingPaces =
+            Selection.toList model.trainingPaces
+                |> List.map .pace
+                |> List.foldl (\pace ( prevPace, ordered ) -> ( pace.result, (Result.map2 (<) pace.result prevPace |> Result.withDefault True) :: ordered )) ( Ok (60 * 30), [] )
+                |> Tuple.second
+                |> List.reverse
+                |> List.map2 (\form ordered -> { form | ordered = ordered }) (Selection.toList model.trainingPaces)
+                |> Selection.init
+                |> Selection.select selectedIndex
     in
-    { form | yOffset = yOffset, dragOffset = clampedDragOffset, dragValue = draggedPace }
+    { model | trainingPaces = newTrainingPaces }
 
 
 view : Model -> Html Msg
@@ -258,11 +253,7 @@ maxWidthForMobile =
 
 
 viewBody : Model -> Html Msg
-viewBody { trainingPaces, initialDragPosition, status } =
-    let
-        dragActive =
-            initialDragPosition /= Nothing
-    in
+viewBody { trainingPaces, dragging, status } =
     column [ style "margin" "5px" ]
         [ row [ style "justify-content" "space-between", style "flex-wrap" "wrap-reverse" ]
             [ compactColumn [ maxWidthForMobile ]
@@ -270,7 +261,7 @@ viewBody { trainingPaces, initialDragPosition, status } =
                     [ Html.h3 [ style "margin-bottom" "0.5rem", style "margin-right" "10px" ] [ Html.text "Training Paces" ]
                     ]
                 , Html.text "Adjust your training paces to match your fitness level and training plan."
-                , row [ style "align-items" "center", style "margin-top" "5px" ]
+                , row [ style "align-items" "center", style "margin-top" "10px", style "margin-bottom" "10px" ]
                     [ Html.a
                         [ Html.Attributes.href "https://www.rundoyen.com/running-pace-calculator/"
                         , Html.Attributes.target "_blank"
@@ -280,11 +271,13 @@ viewBody { trainingPaces, initialDragPosition, status } =
                         [ Html.text "Calculator"
                         , MonoIcons.icon (MonoIcons.externalLink "var(--blue-500)")
                         ]
-                    , column [] []
-                    , viewIf (status /= Loading) viewAddButton
                     ]
                 , row []
-                    [ viewTrainingPaces (initialDragPosition /= Nothing) (Selection.selectedIndex trainingPaces) (Selection.toList trainingPaces)
+                    [ column []
+                        [ viewTrainingPaces dragging (Selection.selectedIndex trainingPaces) (Selection.toList trainingPaces)
+                        , viewIf (status /= Loading) viewAddButton
+                        ]
+                    , viewMaybe dragging (\d -> viewDraggedPace d trainingPaces)
                     , column [] []
                     ]
                 ]
@@ -307,135 +300,6 @@ config =
     , minPace = 4 * 60
     , trainingPaceListId = "training-pace-list"
     }
-
-
-viewTrainingPaces : Bool -> Int -> List PaceForm -> Html Msg
-viewTrainingPaces dragActive selectedIndex paces =
-    let
-        ticksPerMinute =
-            4
-
-        paceTicks =
-            List.range (config.minPace / 60 * ticksPerMinute |> round) (config.maxPace / 60 * ticksPerMinute |> round)
-                |> List.reverse
-                |> List.map (\tick -> toFloat tick / 4 * 60 |> round)
-    in
-    compactColumn
-        [ Html.Attributes.id config.trainingPaceListId
-        , styleIf dragActive "touch-action" "none"
-        , attributeIf dragActive (onPointerMove PointerMoved)
-        , attributeIf dragActive (Html.Events.on "pointerup" (Decode.map PointerUp (Decode.field "y" Decode.float)))
-        , style "height" (String.fromInt config.sliderHeight ++ "px")
-        , style "position" "relative"
-        , style "width" "310px"
-        , style "margin-top" "1rem"
-        ]
-        (List.indexedMap (viewPaceForm dragActive) paces ++ List.map viewPaceTick paceTicks)
-
-
-viewPaceTick : Int -> Html Msg
-viewPaceTick seconds =
-    let
-        { minPace, maxPace, sliderHeight } =
-            config
-
-        yOffset =
-            (1 - (toFloat seconds - minPace) / (maxPace - minPace)) * sliderHeight
-    in
-    if modBy 60 seconds == 0 then
-        row
-            [ style "margin-top" "5px"
-            , style "padding-top" "2px"
-            , style "padding-bottom" "3px"
-            , style "margin-bottom" "5px"
-            , style "position" "absolute"
-            , style "z-index" "0"
-            , style "top" (String.fromFloat yOffset ++ "px")
-            , style "width" "100%"
-            , style "color" "var(--grey-900)"
-            ]
-            [ text (Pace.paceToString seconds)
-            , column [ borderStyle "border-top", style "margin-top" "0.7rem", style "margin-left" "1.5rem" ] []
-            ]
-
-    else
-        row
-            [ style "margin-top" "15px"
-            , style "width" "5px"
-            , style "height" "5px"
-            , style "position" "absolute"
-            , style "z-index" "0"
-            , style "top" (String.fromFloat yOffset ++ "px")
-            , style "left" "150px"
-            , style "background-color" "var(--grey-900)"
-            , style "border-radius" "50%"
-            ]
-            []
-
-
-viewPaceForm : Bool -> Int -> PaceForm -> Html Msg
-viewPaceForm dragActive index { name, pace, yOffset, dragOffset, dragValue } =
-    row
-        [ style "margin-top" "5px"
-        , style "margin-bottom" "5px"
-        , style "margin-left" "5px"
-        , style "position" "absolute"
-        , styleIf dragActive "pointer-events" "none"
-        , styleIf dragActive "touch-action" "none"
-        , styleIf (dragOffset /= 0) "z-index" "2"
-        , style "z-index" "1"
-        , style "top" (String.fromFloat (yOffset + dragOffset) ++ "px")
-        ]
-        [ Button.action "Drag" MonoIcons.drag NoOp
-            |> Button.withAttributes
-                [ class "row__button--drag"
-                , Html.Events.on "pointerdown"
-                    (Decode.map3 (ClickedDragPace index)
-                        (Decode.field "pointerId" Decode.int)
-                        (Decode.field "pageX" Decode.float)
-                        (Decode.field "pageY" Decode.float)
-                    )
-                ]
-            |> Button.withAppearance Button.Tiny Button.Subtle Button.None
-            |> Button.view
-        , UI.Input.pace (EditedPace index)
-            |> (\inputConfig ->
-                    case pace.result of
-                        Err Validate.MissingError ->
-                            inputConfig
-
-                        Err err ->
-                            UI.Input.withError err inputConfig
-
-                        _ ->
-                            inputConfig
-               )
-            |> UI.Input.withPlaceholder (Result.map Pace.paceToString pace.result |> Result.withDefault "mm:ss")
-            |> UI.Input.withAttributes [ Html.Events.onBlur BlurredPace ]
-            |> UI.Input.withAppearance UI.Input.Tiny
-            |> UI.Input.view
-                (if dragActive && dragOffset /= 0 then
-                    dragValue
-
-                 else
-                    pace.value
-                )
-        , compactColumn [ style "width" "5px" ] []
-        , UI.Input.text (EditedName index)
-            |> UI.Input.withResultError name.result
-            |> UI.Input.withAppearance UI.Input.Tiny
-            |> UI.Input.view name.value
-        , Button.action "Remove Pace" MonoIcons.remove (ClickedRemovePace index)
-            |> Button.withAppearance Button.Tiny Button.Subtle Button.Right
-            |> Button.view
-        ]
-
-
-viewAddButton : Html Msg
-viewAddButton =
-    Button.action "Add Pace" MonoIcons.add ClickedAddPace
-        |> Button.withAppearance Button.Small Button.Subtle Button.Left
-        |> Button.view
 
 
 viewStatusMessage : FormStatus -> Html Msg
@@ -464,4 +328,89 @@ viewSaveButton status =
                 Button.action "Save" MonoIcons.check ClickedSave
                     |> Button.withAppearance Button.Large Button.Primary Button.Bottom
                     |> Button.view
+        ]
+
+
+viewTrainingPaces : Maybe ( Float, Float ) -> Int -> List PaceForm -> Html Msg
+viewTrainingPaces dragging selectedIndex paces =
+    Html.node "list-dnd"
+        [ Html.Attributes.id config.trainingPaceListId
+        , attributeMaybe dragging (\_ -> onPointerMove PointerMoved)
+        , attributeMaybe dragging (\_ -> Html.Events.on "pointerup" (Decode.succeed PointerUp))
+        ]
+        (List.indexedMap viewPaceForm paces)
+
+
+viewPaceForm : Int -> PaceForm -> Html Msg
+viewPaceForm index { name, pace, dropTarget, ordered } =
+    row
+        [ style "margin-top" "5px"
+        , style "margin-bottom" "5px"
+        , class "drop-target"
+        , styleIf dropTarget "visibility" "hidden"
+        , Html.Attributes.attribute "data-drop-id" (String.fromInt index)
+        ]
+        [ Button.action "Drag" MonoIcons.drag NoOp
+            |> Button.withAttributes
+                [ class "row__button--drag"
+                , Html.Events.on "pointerdown" (Decode.map (ClickedDragPace index) (Decode.field "pointerId" Decode.int))
+                ]
+            |> Button.withAppearance Button.Small Button.Subtle Button.None
+            |> Button.view
+        , UI.Input.text (EditedName index)
+            |> UI.Input.withResultError name.result
+            |> UI.Input.view name.value
+        , compactColumn [ style "width" "10px" ] []
+        , UI.Input.pace (EditedPace index)
+            |> (\input ->
+                    case ( pace.result, ordered ) of
+                        ( Err Validate.MissingError, _ ) ->
+                            input
+
+                        ( Err err, _ ) ->
+                            UI.Input.withError err input
+
+                        ( Ok _, False ) ->
+                            UI.Input.withError Validate.ValueError input
+
+                        _ ->
+                            input
+               )
+            |> UI.Input.withPlaceholder (Result.map Pace.paceToString pace.result |> Result.withDefault "mm:ss")
+            |> UI.Input.withAttributes [ Html.Events.onBlur BlurredPace ]
+            |> UI.Input.view pace.value
+        , Button.action "Remove Pace" MonoIcons.remove (ClickedRemovePace index)
+            |> Button.withAppearance Button.Small Button.Subtle Button.Right
+            |> Button.view
+        ]
+
+
+viewDraggedPace : ( Float, Float ) -> Selection PaceForm -> Html Msg
+viewDraggedPace ( x, y ) trainingPaces =
+    let
+        paceForm =
+            viewMaybe
+                (Selection.get trainingPaces)
+                (\pace ->
+                    viewPaceForm (Selection.selectedIndex trainingPaces) { pace | dropTarget = False }
+                )
+    in
+    Html.div
+        [ style "position" "absolute"
+        , style "left" (String.fromFloat (x - 20) ++ "px")
+        , style "top" (String.fromFloat (y - 20) ++ "px")
+        , style "opacity" "0.5"
+        , style "touch-action" "none"
+        , Html.Attributes.id "dragged-element"
+        ]
+        [ paceForm
+        ]
+
+
+viewAddButton : Html Msg
+viewAddButton =
+    row [ style "justify-content" "flex-end" ]
+        [ Button.action "Add Pace" MonoIcons.add ClickedAddPace
+            |> Button.withAppearance Button.Small Button.Subtle Button.Right
+            |> Button.view
         ]

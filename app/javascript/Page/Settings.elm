@@ -96,9 +96,10 @@ update msg model =
             let
                 paces =
                     Selection.toList model.trainingPaces
+                        |> List.sortBy (\form -> form.pace.result |> Result.withDefault form.pace.fallback |> negate)
                         |> List.map (\{ name, pace } -> ( name.result |> Result.withDefault name.fallback, pace.result |> Result.withDefault pace.fallback ))
             in
-            ( { model | status = Posted }
+            ( { model | status = Posted, trainingPaces = initPaces paces }
             , Task.attempt PostedPaces (Api.postSettings paces)
             )
 
@@ -183,13 +184,11 @@ update msg model =
                 | dragging = Nothing
                 , trainingPaces = Selection.update (\form -> { form | dropTarget = False }) model.trainingPaces
               }
-                |> updatePaceOrdered
             , Cmd.none
             )
 
         BlurredPace ->
             ( { model | trainingPaces = Selection.update (\form -> { form | pace = Validate.updateFallback form.pace }) model.trainingPaces }
-                |> updatePaceOrdered
             , Cmd.none
             )
 
@@ -204,25 +203,6 @@ newTrainingPace =
     , ordered = True
     , dropTarget = False
     }
-
-
-updatePaceOrdered : Model -> Model
-updatePaceOrdered model =
-    let
-        selectedIndex =
-            Selection.selectedIndex model.trainingPaces
-
-        newTrainingPaces =
-            Selection.toList model.trainingPaces
-                |> List.map .pace
-                |> List.foldl (\pace ( prevPace, ordered ) -> ( pace.result, (Result.map2 (<) pace.result prevPace |> Result.withDefault True) :: ordered )) ( Ok (60 * 30), [] )
-                |> Tuple.second
-                |> List.reverse
-                |> List.map2 (\form ordered -> { form | ordered = ordered }) (Selection.toList model.trainingPaces)
-                |> Selection.init
-                |> Selection.select selectedIndex
-    in
-    { model | trainingPaces = newTrainingPaces }
 
 
 view : Model -> Html Msg

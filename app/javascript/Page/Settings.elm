@@ -76,7 +76,7 @@ type FormStatus
 type Msg
     = ClickedSave
     | GotSettings (Result Http.Error (List ( String, Int )))
-    | PostedPaces (Result Http.Error Bool)
+    | PostedPaces (List ( String, Int )) (Result Http.Error Bool)
     | EditedPace Int String
     | EditedName Int String
     | ClickedAddPace
@@ -98,9 +98,10 @@ update msg model =
                     Selection.toList model.trainingPaces
                         |> List.sortBy (\form -> form.pace.result |> Result.withDefault form.pace.fallback |> negate)
                         |> List.map (\{ name, pace } -> ( name.result |> Result.withDefault name.fallback, pace.result |> Result.withDefault pace.fallback ))
+                        |> List.filter (\( name, pace ) -> name /= "")
             in
-            ( { model | status = Posted, trainingPaces = initPaces paces }
-            , Task.attempt PostedPaces (Api.postSettings paces)
+            ( { model | status = Posted }
+            , Task.attempt (PostedPaces paces) (Api.postSettings paces)
             )
 
         GotSettings result ->
@@ -113,13 +114,13 @@ update msg model =
             , Cmd.none
             )
 
-        PostedPaces result ->
+        PostedPaces paces result ->
             ( case result of
                 Err error ->
                     { model | status = Error (Api.errorString error) }
 
                 _ ->
-                    { model | status = Success }
+                    { model | status = Success, trainingPaces = initPaces paces }
             , Cmd.none
             )
 
@@ -188,9 +189,13 @@ update msg model =
             )
 
         BlurredPace ->
-            ( { model | trainingPaces = Selection.update (\form -> { form | pace = Validate.updateFallback form.pace }) model.trainingPaces }
-            , Cmd.none
-            )
+            if model.status == Success then
+                ( { model | trainingPaces = Selection.update (\form -> { form | pace = Validate.updateFallback form.pace }) model.trainingPaces }
+                , Cmd.none
+                )
+
+            else
+                ( model, Cmd.none )
 
         NoOp ->
             ( model, Cmd.none )
@@ -253,7 +258,7 @@ viewBody { trainingPaces, dragging, status } =
                         ]
                     ]
                 , row []
-                    [ column []
+                    [ column [ styleIf (status == Posted) "opacity" "0.5" ]
                         [ viewTrainingPaces dragging (Selection.selectedIndex trainingPaces) (Selection.toList trainingPaces)
                         , viewIf (status /= Loading) viewAddButton
                         ]

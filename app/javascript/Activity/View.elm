@@ -7,12 +7,13 @@ import Html.Attributes exposing (class, style)
 import Html.Events
 import Json.Decode as Decode
 import Msg exposing (ActivityConfigs, Msg(..))
-import Pace exposing (StandardPaceList)
+import Pace exposing (StandardPace)
+import Pace.List exposing (PaceList)
 import UI.Layout exposing (column, compactColumn, row)
 import UI.Util exposing (attributeIf, borderStyle, stopPropagationOnClick, styleIf, viewMaybe)
 
 
-lapDescription : Maybe StandardPaceList -> LapData -> String
+lapDescription : Maybe (PaceList StandardPace) -> LapData -> String
 lapDescription pacesM lap =
     case lap of
         Individual data ->
@@ -26,7 +27,7 @@ lapDescription pacesM lap =
                 ]
 
 
-activityDescription : Maybe StandardPaceList -> ActivityData -> String
+activityDescription : Maybe (PaceList StandardPace) -> ActivityData -> String
 activityDescription pacesM data =
     let
         trainingPaceStr paceM =

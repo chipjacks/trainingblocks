@@ -9,6 +9,7 @@ import Http
 import Json.Decode as Decode
 import MonoIcons
 import Pace
+import Pace.List exposing (PaceList)
 import Ports
 import Selection exposing (Selection)
 import Task
@@ -75,8 +76,8 @@ type FormStatus
 
 type Msg
     = ClickedSave
-    | GotSettings (Result Http.Error (List ( String, Int )))
-    | PostedPaces (List ( String, Int )) (Result Http.Error Bool)
+    | GotSettings (Result Http.Error (PaceList String))
+    | PostedPaces (PaceList String) (Result Http.Error Bool)
     | EditedPace Int String
     | EditedName Int String
     | ClickedAddPace

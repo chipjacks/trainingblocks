@@ -8,7 +8,8 @@ import Date exposing (Date)
 import Emoji exposing (EmojiDict)
 import EmojiData exposing (EmojiData)
 import Http
-import Pace exposing (StandardPace, StandardPaceList)
+import Pace exposing (StandardPace)
+import Pace.List exposing (PaceList)
 import Store.History exposing (History)
 
 
@@ -26,7 +27,7 @@ type ActivityState
 
 
 type alias ActivityConfigs =
-    { paces : StandardPaceList
+    { paces : PaceList StandardPace
     , emojis : EmojiDict
     }
 

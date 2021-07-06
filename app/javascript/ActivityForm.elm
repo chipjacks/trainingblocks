@@ -21,7 +21,8 @@ import Json.Decode as Decode
 import MPRLevel
 import MonoIcons
 import Msg exposing (ActivityConfigs, ActivityState(..), Msg(..))
-import Pace exposing (StandardPaceList)
+import Pace exposing (StandardPace)
+import Pace.List exposing (PaceList)
 import Selection exposing (Selection)
 import Store
 import Svg exposing (Svg)
@@ -1123,7 +1124,7 @@ numberInput nameStr max attrs =
         )
 
 
-paceSelect : Maybe StandardPaceList -> (String -> Msg) -> String -> Result FieldError Int -> Html Msg
+paceSelect : Maybe (PaceList StandardPace) -> (String -> Msg) -> String -> Result FieldError Int -> Html Msg
 paceSelect pacesM msg paceStr result =
     let
         trainingPaces =

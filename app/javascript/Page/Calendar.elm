@@ -22,7 +22,8 @@ import Json.Decode as Decode
 import MPRLevel
 import MonoIcons
 import Msg exposing (ActivityConfigs, ActivityState(..), Msg(..))
-import Pace exposing (StandardPaceList)
+import Pace exposing (StandardPace)
+import Pace.List exposing (PaceList)
 import Ports
 import Random
 import Store
@@ -50,7 +51,7 @@ main =
 
 
 type Model
-    = Loading { todayM : Maybe Date, storeM : Maybe Store.Model, emojisM : Maybe EmojiDict, pacesM : Maybe StandardPaceList }
+    = Loading { todayM : Maybe Date, storeM : Maybe Store.Model, emojisM : Maybe EmojiDict, pacesM : Maybe (PaceList StandardPace) }
     | Loaded State
     | Error String
 

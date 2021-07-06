@@ -1,4 +1,4 @@
-module Pace exposing (StandardPace(..), StandardPaceList, calculate, paceFromString, paceToString, secondsToStandardPace, standardPace, standardPaceToSeconds, standardPaces)
+module Pace exposing (StandardPace(..), calculate, paceFromString, paceToString, secondsToStandardPace, standardPace, standardPaceToSeconds, standardPaces)
 
 import Activity.Types exposing (ActivityData, DistanceUnits(..))
 import Array exposing (Array)
@@ -8,6 +8,7 @@ import Enum exposing (Enum)
 import Json.Decode as Decode
 import MPRData
 import MPRLevel exposing (RunnerType(..))
+import Pace.List exposing (PaceList)
 import Parser
 
 
@@ -43,10 +44,6 @@ paceFromString str =
 -- TRAINING PACES
 
 
-type alias StandardPaceList =
-    List ( StandardPace, Int )
-
-
 standardPacesTable : RunnerType -> Array (Array ( String, String ))
 standardPacesTable runnerType =
     let
@@ -66,7 +63,7 @@ standardPacesTable runnerType =
         |> Array.map (\a -> Array.map (\t -> toTuple t |> Maybe.withDefault ( "", "" )) a)
 
 
-standardPaces : ( RunnerType, Int ) -> Maybe StandardPaceList
+standardPaces : ( RunnerType, Int ) -> Maybe (PaceList StandardPace)
 standardPaces ( runnerType, level ) =
     Array.get (level - 1) (standardPacesTable runnerType)
         |> Maybe.map
@@ -77,7 +74,7 @@ standardPaces ( runnerType, level ) =
             )
 
 
-standardPaceToSeconds : StandardPaceList -> StandardPace -> Int
+standardPaceToSeconds : PaceList StandardPace -> StandardPace -> Int
 standardPaceToSeconds paces tp =
     if tp == VeryEasy then
         List.head paces
@@ -85,18 +82,13 @@ standardPaceToSeconds paces tp =
             |> Maybe.withDefault 0
 
     else
-        List.filter (\( name, _ ) -> name == tp) paces
-            |> List.head
-            |> Maybe.map Tuple.second
+        Pace.List.lookupSeconds tp paces
             |> Maybe.withDefault 0
 
 
-secondsToStandardPace : StandardPaceList -> Int -> StandardPace
+secondsToStandardPace : PaceList StandardPace -> Int -> StandardPace
 secondsToStandardPace paces seconds =
-    List.filter (\( name, maxPaceSeconds ) -> seconds <= maxPaceSeconds) paces
-        |> List.reverse
-        |> List.head
-        |> Maybe.map Tuple.first
+    Pace.List.lookupValue seconds paces
         |> Maybe.withDefault VeryEasy
 
 

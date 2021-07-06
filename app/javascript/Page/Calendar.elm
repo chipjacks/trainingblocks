@@ -19,8 +19,10 @@ import Html.Attributes exposing (attribute, class, href, id, style)
 import Html.Events exposing (on)
 import Html.Lazy
 import Json.Decode as Decode
+import MPRLevel
 import MonoIcons
 import Msg exposing (ActivityConfigs, ActivityState(..), Msg(..))
+import Pace exposing (StandardPaceList)
 import Ports
 import Random
 import Store
@@ -48,7 +50,7 @@ main =
 
 
 type Model
-    = Loading { todayM : Maybe Date, storeM : Maybe Store.Model, emojisM : Maybe EmojiDict }
+    = Loading { todayM : Maybe Date, storeM : Maybe Store.Model, emojisM : Maybe EmojiDict, pacesM : Maybe StandardPaceList }
     | Loaded State
     | Error String
 
@@ -59,7 +61,7 @@ type State
 
 init : () -> ( Model, Effect )
 init _ =
-    ( Loading { todayM = Nothing, storeM = Nothing, emojisM = Nothing }
+    ( Loading { todayM = Nothing, storeM = Nothing, emojisM = Nothing, pacesM = Pace.standardPaces ( MPRLevel.Neutral, 44 ) }
     , Effect.Batch
         [ Effect.DateToday Jump
         , Effect.GetActivities
@@ -535,20 +537,21 @@ update msg model =
 updateLoading : Model -> ( Model, Effect )
 updateLoading model =
     case model of
-        Loading { todayM, storeM, emojisM } ->
-            Maybe.map3
-                (\today store emojis ->
+        Loading { todayM, storeM, emojisM, pacesM } ->
+            Maybe.map4
+                (\today store emojis paces ->
                     let
                         ( calendarModel, calendarEffect ) =
                             Calendar.init Msg.Month today today
                     in
-                    ( Loaded (State calendarModel store None (ActivityConfigs Nothing emojis))
+                    ( Loaded (State calendarModel store None (ActivityConfigs paces emojis))
                     , calendarEffect
                     )
                 )
                 todayM
                 storeM
                 emojisM
+                pacesM
                 |> Maybe.withDefault ( model, Effect.None )
 
         _ ->

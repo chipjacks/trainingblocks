@@ -21,7 +21,7 @@ import Json.Decode as Decode
 import MPRLevel
 import MonoIcons
 import Msg exposing (ActivityConfigs, ActivityState(..), Msg(..))
-import Pace exposing (TrainingPaceList)
+import Pace exposing (StandardPaceList)
 import Selection exposing (Selection)
 import Store
 import Svg exposing (Svg)
@@ -630,7 +630,7 @@ viewLaps configs completed editingLap isAutofillable lapSelection repeatSelectio
         viewLap index lap =
             Activity.View.listItem
                 { titleM = Nothing
-                , subtitle = Activity.View.lapDescription configs.paces lap
+                , subtitle = Activity.View.lapDescription (Just configs.paces) lap
                 , isActive = Selection.selectedIndex lapSelection == index
                 , handlePointerDown = Decode.succeed (SelectedLap index)
                 , handleDoubleClick = ClickedEdit
@@ -763,7 +763,7 @@ viewLapFields { emojis, paces } form =
             , column [ maxFieldWidth, style "flex-grow" "1" ] [ emojiSelect SelectedEmoji emojis form.emoji form.emojiSearch ]
             ]
         , row [ styleIf (form.activityType /= Activity.Types.Run) "visibility" "hidden" ]
-            [ column [ maxFieldWidth, style "flex-grow" "2" ] [ paceSelect paces SelectedPace form.pace form.validated.pace ]
+            [ column [ maxFieldWidth, style "flex-grow" "2" ] [ paceSelect (Just paces) SelectedPace form.pace form.validated.pace ]
             , column [ maxFieldWidth, style "flex-grow" "1" ] [ raceToggle CheckedRace form.race ]
             ]
         ]
@@ -1123,18 +1123,18 @@ numberInput nameStr max attrs =
         )
 
 
-paceSelect : Maybe TrainingPaceList -> (String -> Msg) -> String -> Result FieldError Int -> Html Msg
+paceSelect : Maybe StandardPaceList -> (String -> Msg) -> String -> Result FieldError Int -> Html Msg
 paceSelect pacesM msg paceStr result =
     let
         trainingPaces =
             pacesM
-                |> Maybe.map (List.map (\( name, ( minPace, maxPace ) ) -> Duration.stripTimeStr maxPace))
+                |> Maybe.map (List.map (\( name, maxPace ) -> Pace.paceToString maxPace))
                 |> Maybe.withDefault []
 
         trainingPaceStr =
             Result.toMaybe result
-                |> Maybe.map2 (\paces paceSecs -> Pace.secondsToTrainingPace paces paceSecs) pacesM
-                |> Maybe.map Pace.trainingPace.toString
+                |> Maybe.map2 (\paces paceSecs -> Pace.secondsToStandardPace paces paceSecs) pacesM
+                |> Maybe.map Pace.standardPace.toString
                 |> Maybe.withDefault ""
 
         isSlowerThan time =

@@ -48,7 +48,7 @@ main =
 
 
 type Model
-    = Loading (Maybe Date) (Maybe Store.Model) (Maybe EmojiDict)
+    = Loading { todayM : Maybe Date, storeM : Maybe Store.Model, emojisM : Maybe EmojiDict }
     | Loaded State
     | Error String
 
@@ -59,7 +59,7 @@ type State
 
 init : () -> ( Model, Effect )
 init _ =
-    ( Loading Nothing Nothing Nothing
+    ( Loading { todayM = Nothing, storeM = Nothing, emojisM = Nothing }
     , Effect.Batch
         [ Effect.DateToday Jump
         , Effect.GetActivities
@@ -75,18 +75,16 @@ init _ =
 update : Msg -> Model -> ( Model, Effect )
 update msg model =
     case model of
-        Loading dateM activitiesM emojisM ->
+        Loading state ->
             case msg of
                 Jump date ->
-                    Loading (Just date) activitiesM emojisM
+                    Loading { state | todayM = Just date }
                         |> updateLoading
 
                 GotActivities activitiesR ->
                     case activitiesR of
                         Ok ( revision, activities ) ->
-                            Loading dateM
-                                (Just (Store.init revision activities))
-                                emojisM
+                            Loading { state | storeM = Just (Store.init revision activities) }
                                 |> updateLoading
 
                         Err err ->
@@ -95,9 +93,8 @@ update msg model =
                 FetchedEmojis result ->
                     case result of
                         Ok emojis ->
-                            ( Loading dateM activitiesM (Just (Emoji.toDict emojis))
-                            , Effect.None
-                            )
+                            Loading { state | emojisM = Just (Emoji.toDict emojis) }
+                                |> updateLoading
 
                         _ ->
                             ( model, Effect.None )
@@ -538,14 +535,21 @@ update msg model =
 updateLoading : Model -> ( Model, Effect )
 updateLoading model =
     case model of
-        Loading (Just date) (Just store) (Just emojis) ->
-            let
-                ( calendarModel, calendarEffect ) =
-                    Calendar.init Msg.Month date date
-            in
-            ( Loaded (State calendarModel store None (ActivityConfigs Nothing emojis))
-            , calendarEffect
-            )
+        Loading { todayM, storeM, emojisM } ->
+            Maybe.map3
+                (\today store emojis ->
+                    let
+                        ( calendarModel, calendarEffect ) =
+                            Calendar.init Msg.Month today today
+                    in
+                    ( Loaded (State calendarModel store None (ActivityConfigs Nothing emojis))
+                    , calendarEffect
+                    )
+                )
+                todayM
+                storeM
+                emojisM
+                |> Maybe.withDefault ( model, Effect.None )
 
         _ ->
             ( model, Effect.None )
@@ -669,7 +673,7 @@ view model =
     let
         withBody skeleton =
             case model of
-                Loading _ _ _ ->
+                Loading _ ->
                     Skeleton.withBody
                         (expandingRow
                             [ style "justify-content" "center", style "align-items" "center", style "padding-top" "2rem" ]

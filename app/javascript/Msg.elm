@@ -28,6 +28,7 @@ type ActivityState
 
 type alias ActivityConfigs =
     { paces : PaceList StandardPace
+    , customPaces : PaceList String
     , emojis : EmojiDict
     }
 
@@ -41,6 +42,7 @@ type alias StoreData =
 type Msg
     = LoadToday Date
     | GotActivities (Result Http.Error ( String, List Activity ))
+    | GotSettings (Result Http.Error (PaceList String))
     | FetchedEmojis (Result Http.Error (List EmojiData))
     | VisibilityChange Events.Visibility
     | KeyPressed String

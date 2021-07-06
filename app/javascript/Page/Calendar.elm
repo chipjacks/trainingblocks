@@ -51,7 +51,7 @@ main =
 
 
 type Model
-    = Loading { todayM : Maybe Date, storeM : Maybe Store.Model, emojisM : Maybe EmojiDict, pacesM : Maybe (PaceList StandardPace) }
+    = Loading { todayM : Maybe Date, storeM : Maybe Store.Model, emojisM : Maybe EmojiDict, levelM : Maybe Int, pacesM : Maybe (PaceList String) }
     | Loaded State
     | Error String
 
@@ -62,11 +62,12 @@ type State
 
 init : () -> ( Model, Effect )
 init _ =
-    ( Loading { todayM = Nothing, storeM = Nothing, emojisM = Nothing, pacesM = Pace.standardPaces ( MPRLevel.Neutral, 44 ) }
+    ( Loading { todayM = Nothing, storeM = Nothing, emojisM = Nothing, levelM = Just 44, pacesM = Nothing }
     , Effect.Batch
         [ Effect.DateToday Jump
         , Effect.GetActivities
         , Effect.FetchEmojis
+        , Effect.GetSettings
         ]
     )
 
@@ -88,6 +89,15 @@ update msg model =
                     case activitiesR of
                         Ok ( revision, activities ) ->
                             Loading { state | storeM = Just (Store.init revision activities) }
+                                |> updateLoading
+
+                        Err err ->
+                            ( Error (Api.errorString err), Effect.None )
+
+                GotSettings settingsR ->
+                    case settingsR of
+                        Ok paces ->
+                            Loading { state | pacesM = Just paces }
                                 |> updateLoading
 
                         Err err ->
@@ -120,6 +130,9 @@ update msg model =
                         |> loaded
 
                 FetchedEmojis _ ->
+                    ( model, Effect.None )
+
+                GotSettings _ ->
                     ( model, Effect.None )
 
                 VisibilityChange visibility ->
@@ -538,20 +551,24 @@ update msg model =
 updateLoading : Model -> ( Model, Effect )
 updateLoading model =
     case model of
-        Loading { todayM, storeM, emojisM, pacesM } ->
-            Maybe.map4
-                (\today store emojis paces ->
+        Loading { todayM, storeM, emojisM, levelM, pacesM } ->
+            Maybe.map5
+                (\today store emojis level customPaces ->
                     let
                         ( calendarModel, calendarEffect ) =
                             Calendar.init Msg.Month today today
+
+                        paces =
+                            Pace.standardPaces ( MPRLevel.Neutral, level )
                     in
-                    ( Loaded (State calendarModel store None (ActivityConfigs paces emojis))
+                    ( Loaded (State calendarModel store None (ActivityConfigs paces customPaces emojis))
                     , calendarEffect
                     )
                 )
                 todayM
                 storeM
                 emojisM
+                levelM
                 pacesM
                 |> Maybe.withDefault ( model, Effect.None )
 

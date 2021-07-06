@@ -738,7 +738,7 @@ viewActivityFields emojis form =
 
 
 viewLapFields : ActivityConfigs -> ActivityForm -> Html Msg
-viewLapFields { emojis, paces } form =
+viewLapFields ({ emojis } as configs) form =
     let
         maxFieldWidth =
             style "max-width" "20rem"
@@ -764,7 +764,7 @@ viewLapFields { emojis, paces } form =
             , column [ maxFieldWidth, style "flex-grow" "1" ] [ emojiSelect SelectedEmoji emojis form.emoji form.emojiSearch ]
             ]
         , row [ styleIf (form.activityType /= Activity.Types.Run) "visibility" "hidden" ]
-            [ column [ maxFieldWidth, style "flex-grow" "2" ] [ paceSelect (Just paces) SelectedPace form.pace form.validated.pace ]
+            [ column [ maxFieldWidth, style "flex-grow" "2" ] [ paceSelect configs SelectedPace form.pace form.validated.pace ]
             , column [ maxFieldWidth, style "flex-grow" "1" ] [ raceToggle CheckedRace form.race ]
             ]
         ]
@@ -1124,17 +1124,16 @@ numberInput nameStr max attrs =
         )
 
 
-paceSelect : Maybe (PaceList StandardPace) -> (String -> Msg) -> String -> Result FieldError Int -> Html Msg
-paceSelect pacesM msg paceStr result =
+paceSelect : ActivityConfigs -> (String -> Msg) -> String -> Result FieldError Int -> Html Msg
+paceSelect { paces, customPaces } msg paceStr result =
     let
         trainingPaces =
-            pacesM
-                |> Maybe.map (List.map (\( name, maxPace ) -> Pace.paceToString maxPace))
-                |> Maybe.withDefault []
+            paces
+                |> List.map (\( name, maxPace ) -> Pace.paceToString maxPace)
 
         trainingPaceStr =
             Result.toMaybe result
-                |> Maybe.map2 (\paces paceSecs -> Pace.secondsToStandardPace paces paceSecs) pacesM
+                |> Maybe.map (\paceSecs -> Pace.secondsToStandardPace paces paceSecs)
                 |> Maybe.map Pace.standardPace.toString
                 |> Maybe.withDefault ""
 
@@ -1149,25 +1148,22 @@ paceSelect pacesM msg paceStr result =
     column []
         [ label "Pace" (paceStr /= "") (msg "")
         , column []
-            [ viewMaybe pacesM
-                (\_ ->
-                    row [ style "margin-top" "2px", style "margin-bottom" "2px", style "border-radius" "4px", style "overflow" "hidden", style "max-width" "10rem", style "margin-right" "10px" ]
-                        (List.map
-                            (\time ->
-                                column
-                                    [ style "background-color" "var(--green-500)"
-                                    , onClick (msg time)
-                                    , style "height" "0.5rem"
-                                    , style "margin-right" "1px"
-                                    , style "cursor" "pointer"
-                                    , styleIf (isSlowerThan time)
-                                        "background-color"
-                                        "var(--grey-300)"
-                                    ]
-                                    []
-                            )
-                            trainingPaces
-                        )
+            [ row [ style "margin-top" "2px", style "margin-bottom" "2px", style "border-radius" "4px", style "overflow" "hidden", style "max-width" "10rem", style "margin-right" "10px" ]
+                (List.map
+                    (\time ->
+                        column
+                            [ style "background-color" "var(--green-500)"
+                            , onClick (msg time)
+                            , style "height" "0.5rem"
+                            , style "margin-right" "1px"
+                            , style "cursor" "pointer"
+                            , styleIf (isSlowerThan time)
+                                "background-color"
+                                "var(--grey-300)"
+                            ]
+                            []
+                    )
+                    trainingPaces
                 )
             , row []
                 [ UI.Input.pace msg

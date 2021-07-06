@@ -63,7 +63,7 @@ standardPacesTable runnerType =
         |> Array.map (\a -> Array.map (\t -> toTuple t |> Maybe.withDefault ( "", "" )) a)
 
 
-standardPaces : ( RunnerType, Int ) -> Maybe (PaceList StandardPace)
+standardPaces : ( RunnerType, Int ) -> PaceList StandardPace
 standardPaces ( runnerType, level ) =
     Array.get (level - 1) (standardPacesTable runnerType)
         |> Maybe.map
@@ -72,6 +72,7 @@ standardPaces ( runnerType, level ) =
                     |> List.map2 Tuple.pair (List.map Tuple.second (List.drop 1 standardPace.list))
                     |> List.map (\( pace, ( min, max ) ) -> ( pace, paceFromString max |> Maybe.withDefault 0 ))
             )
+        |> Maybe.withDefault []
 
 
 standardPaceToSeconds : PaceList StandardPace -> StandardPace -> Int

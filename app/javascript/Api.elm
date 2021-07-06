@@ -5,6 +5,7 @@ import Activity.Types exposing (Activity)
 import Http
 import Json.Decode as Decode
 import Json.Encode as Encode
+import Pace.List exposing (PaceList)
 import Task exposing (Task)
 import Time exposing (Month(..))
 
@@ -90,7 +91,7 @@ getSettingsResolver =
         Decode.field "paces" (Decode.list paceDecoder)
 
 
-getSettings : Task Http.Error (List ( String, Int ))
+getSettings : Task Http.Error (PaceList String)
 getSettings =
     Http.task
         { method = "GET"
@@ -102,7 +103,7 @@ getSettings =
         }
 
 
-postSettings : List ( String, Int ) -> Task Http.Error Bool
+postSettings : PaceList String -> Task Http.Error Bool
 postSettings paces =
     let
         pacesEncoder ( name, pace ) =

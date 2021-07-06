@@ -13,6 +13,7 @@ import Browser.Events as Events
 import Calendar
 import Date exposing (Date)
 import Effect exposing (Effect)
+import Emoji exposing (EmojiDict)
 import Html exposing (Html, a, div, text)
 import Html.Attributes exposing (attribute, class, href, id, style)
 import Html.Events exposing (on)
@@ -47,21 +48,22 @@ main =
 
 
 type Model
-    = Loading (Maybe Date) (Maybe Store.Model)
+    = Loading (Maybe Date) (Maybe Store.Model) (Maybe EmojiDict)
     | Loaded State
     | Error String
 
 
 type State
-    = State Calendar.Model Store.Model ActivityState
+    = State Calendar.Model Store.Model ActivityState ActivityConfigs
 
 
 init : () -> ( Model, Effect )
 init _ =
-    ( Loading Nothing Nothing
+    ( Loading Nothing Nothing Nothing
     , Effect.Batch
         [ Effect.DateToday Jump
         , Effect.GetActivities
+        , Effect.FetchEmojis
         ]
     )
 
@@ -73,10 +75,10 @@ init _ =
 update : Msg -> Model -> ( Model, Effect )
 update msg model =
     case model of
-        Loading dateM activitiesM ->
+        Loading dateM activitiesM emojisM ->
             case msg of
                 Jump date ->
-                    Loading (Just date) activitiesM
+                    Loading (Just date) activitiesM emojisM
                         |> updateLoading
 
                 GotActivities activitiesR ->
@@ -84,10 +86,21 @@ update msg model =
                         Ok ( revision, activities ) ->
                             Loading dateM
                                 (Just (Store.init revision activities))
+                                emojisM
                                 |> updateLoading
 
                         Err err ->
                             ( Error (Api.errorString err), Effect.None )
+
+                FetchedEmojis result ->
+                    case result of
+                        Ok emojis ->
+                            ( Loading dateM activitiesM (Just (Emoji.toDict emojis))
+                            , Effect.None
+                            )
+
+                        _ ->
+                            ( model, Effect.None )
 
                 _ ->
                     ( model, Effect.None )
@@ -97,7 +110,7 @@ update msg model =
 
         Loaded state ->
             let
-                (State calendar store activityM) =
+                (State calendar store activityM configs) =
                     state
             in
             case msg of
@@ -107,7 +120,7 @@ update msg model =
                         |> loaded
 
                 FetchedEmojis _ ->
-                    updateStore msg state |> loaded
+                    ( model, Effect.None )
 
                 VisibilityChange visibility ->
                     case visibility of
@@ -125,7 +138,7 @@ update msg model =
                                 |> loaded
 
                         "Escape" ->
-                            ( Loaded (State calendar store None), Effect.None )
+                            updateActivityState None state |> loaded
 
                         _ ->
                             ( model, Effect.None )
@@ -140,9 +153,7 @@ update msg model =
                                 _ ->
                                     activityM
                     in
-                    ( Loaded (State calendar store newActivityM)
-                    , Effect.None
-                    )
+                    updateActivityState newActivityM state |> loaded
 
                 AutoScrollCalendar y ->
                     let
@@ -181,7 +192,7 @@ update msg model =
                                 _ ->
                                     activityM
                     in
-                    ( Loaded (State calendar store newActivityM), Effect.None )
+                    updateActivityState newActivityM state |> loaded
 
                 MoveTo date ->
                     case activityM of
@@ -194,7 +205,7 @@ update msg model =
                                     newActivityM =
                                         Moving { activity | date = date } x y
                                 in
-                                updateStore (Move date activity) (State calendar store newActivityM) |> loaded
+                                updateStore (Move date activity) (State calendar store newActivityM configs) |> loaded
 
                         _ ->
                             ( model, Effect.None )
@@ -203,16 +214,28 @@ update msg model =
                     ( model, Effect.None )
 
                 Create activity ->
-                    updateStore msg (State calendar store (Selected [ activity ])) |> loaded
+                    updateActivityState (Selected [ activity ]) state
+                        |> Tuple.first
+                        |> updateStore msg
+                        |> loaded
 
                 Group activities session ->
-                    updateStore msg (State calendar store (Selected [ session ])) |> loaded
+                    updateActivityState (Selected [ session ]) state
+                        |> Tuple.first
+                        |> updateStore msg
+                        |> loaded
 
                 Ungroup activities session ->
-                    updateStore msg (State calendar store (Selected activities)) |> loaded
+                    updateActivityState (Selected activities) state
+                        |> Tuple.first
+                        |> updateStore msg
+                        |> loaded
 
                 Update activity ->
-                    updateStore msg (State calendar store (Selected [ activity ])) |> loaded
+                    updateActivityState (Selected [ activity ]) state
+                        |> Tuple.first
+                        |> updateStore msg
+                        |> loaded
 
                 Move _ _ ->
                     updateStore msg state |> loaded
@@ -221,7 +244,10 @@ update msg model =
                     updateStore msg state |> loaded
 
                 Delete _ ->
-                    updateStore msg (State calendar store None) |> loaded
+                    updateActivityState None state
+                        |> Tuple.first
+                        |> updateStore msg
+                        |> loaded
 
                 Undo _ ->
                     updateStore msg state
@@ -276,7 +302,7 @@ update msg model =
                         form =
                             ActivityForm.init activity
                     in
-                    updateStore (Create activity) (State calendar store (Editing form))
+                    updateStore (Create activity) (State calendar store (Editing form) configs)
                         |> loaded
 
                 EditActivity activity ->
@@ -284,7 +310,8 @@ update msg model =
                         form =
                             ActivityForm.init activity
                     in
-                    ( Loaded <| State calendar store (Editing form), Effect.None )
+                    updateActivityState (Editing form) state
+                        |> loaded
 
                 SelectActivity activity shiftKey ->
                     case ( activityM, shiftKey ) of
@@ -312,13 +339,13 @@ update msg model =
                                         _ ->
                                             [ activity ]
                             in
-                            ( Loaded <| State calendar store (Selected list), Effect.None )
+                            updateActivityState (Selected list) state |> loaded
 
                         _ ->
-                            ( Loaded <| State calendar store (Selected [ activity ]), Effect.None )
+                            updateActivityState (Selected [ activity ]) state |> loaded
 
                 MoveActivity activity ->
-                    ( Loaded <| State calendar store (Moving activity -100 -100), Effect.None )
+                    ( Loaded <| State calendar store (Moving activity -100 -100) configs, Effect.None )
 
                 SelectedDate _ ->
                     updateActivityForm msg state
@@ -403,7 +430,8 @@ update msg model =
                                 |> loaded
 
                         _ ->
-                            ( Loaded (State calendar store None), Effect.None )
+                            updateActivityState None state
+                                |> loaded
 
                 ClickedEdit ->
                     case activityM of
@@ -416,7 +444,8 @@ update msg model =
                                 form =
                                     ActivityForm.init activity
                             in
-                            ( Loaded <| State calendar store (Editing form), Effect.None )
+                            updateActivityState (Editing form) state
+                                |> loaded
 
                         _ ->
                             ( model, Effect.None )
@@ -454,9 +483,12 @@ update msg model =
                                 |> loaded
 
                         Selected list ->
-                            ( Loaded <| State calendar store None
-                            , Effect.Batch (List.map (\a -> Store.cmd (Delete a)) list)
-                            )
+                            updateActivityState None state
+                                |> loaded
+                                |> Tuple.mapSecond
+                                    (\_ ->
+                                        Effect.Batch (List.map (\a -> Store.cmd (Delete a)) list)
+                                    )
 
                         _ ->
                             ( model, Effect.None )
@@ -495,7 +527,8 @@ update msg model =
                             ( model, Effect.None )
 
                 ClickedClose ->
-                    ( Loaded (State calendar store None), Effect.None )
+                    updateActivityState None state
+                        |> loaded
 
                 NewId _ ->
                     updateActivityForm msg state
@@ -505,13 +538,13 @@ update msg model =
 updateLoading : Model -> ( Model, Effect )
 updateLoading model =
     case model of
-        Loading (Just date) (Just store) ->
+        Loading (Just date) (Just store) (Just emojis) ->
             let
                 ( calendarModel, calendarEffect ) =
                     Calendar.init Msg.Month date date
             in
-            ( Loaded (State calendarModel store None)
-            , Effect.Batch [ calendarEffect, Effect.FetchEmojis ]
+            ( Loaded (State calendarModel store None (ActivityConfigs Nothing emojis))
+            , calendarEffect
             )
 
         _ ->
@@ -519,7 +552,7 @@ updateLoading model =
 
 
 updateActivityForm : Msg -> State -> ( State, Effect )
-updateActivityForm msg (State calendar store activityM) =
+updateActivityForm msg (State calendar store activityM configsM) =
     let
         ( newActivityM, cmd ) =
             case activityM of
@@ -529,23 +562,28 @@ updateActivityForm msg (State calendar store activityM) =
                 _ ->
                     ( activityM, Effect.None )
     in
-    ( State calendar store newActivityM, cmd )
+    ( State calendar store newActivityM configsM, cmd )
 
 
 updateCalendar : Msg -> State -> ( State, Effect )
-updateCalendar msg (State calendar store activityM) =
+updateCalendar msg (State calendar store activityM configs) =
     Calendar.update msg calendar
-        |> Tuple.mapFirst (\updated -> State updated store activityM)
+        |> Tuple.mapFirst (\updated -> State updated store activityM configs)
 
 
 updateStore : Msg -> State -> ( State, Effect )
-updateStore msg (State calendar store activityM) =
+updateStore msg (State calendar store activityM configs) =
     Store.update msg store
-        |> Tuple.mapFirst (\updated -> State calendar updated activityM)
+        |> Tuple.mapFirst (\updated -> State calendar updated activityM configs)
+
+
+updateActivityState : ActivityState -> State -> ( State, Effect )
+updateActivityState newActivityM (State calendar store activityM configs) =
+    ( State calendar store newActivityM configs, Effect.None )
 
 
 reloadActivityState : State -> State
-reloadActivityState (State calendar store activityM) =
+reloadActivityState (State calendar store activityM configs) =
     let
         reloadActivity activity =
             Store.get store .activities
@@ -568,7 +606,7 @@ reloadActivityState (State calendar store activityM) =
                 _ ->
                     None
     in
-    State calendar store newActivityM
+    State calendar store newActivityM configs
 
 
 loaded : ( State, Effect ) -> ( Model, Effect )
@@ -631,7 +669,7 @@ view model =
     let
         withBody skeleton =
             case model of
-                Loading _ _ ->
+                Loading _ _ _ ->
                     Skeleton.withBody
                         (expandingRow
                             [ style "justify-content" "center", style "align-items" "center", style "padding-top" "2rem" ]
@@ -642,10 +680,10 @@ view model =
                 Error errorString ->
                     Skeleton.withBody (text errorString) skeleton
 
-                Loaded (State calendar store activityM) ->
+                Loaded state ->
                     Skeleton.withContainer identity skeleton
                         |> Skeleton.withBody
-                            (viewBody (State calendar store activityM))
+                            (viewBody state)
     in
     Skeleton.default
         |> Skeleton.withNavbar (viewNavbar model)
@@ -654,13 +692,10 @@ view model =
 
 
 viewBody : State -> Html Msg
-viewBody (State calendar store activityM) =
+viewBody (State calendar store activityM configs) =
     let
         activities =
             Store.get store .activities
-
-        configs =
-            Store.get store .configs
 
         events =
             case activityM of
@@ -721,7 +756,7 @@ viewNavbar model =
             Maybe.map Store.needsFlush storeM |> Maybe.withDefault False
     in
     case model of
-        Loaded (State calendar store activityState) ->
+        Loaded (State calendar store activityState configs) ->
             Navbar.default
                 |> Navbar.withLoading (loading (Just store))
                 |> Navbar.withBackButton (Calendar.viewBackButton calendar)
@@ -784,7 +819,7 @@ keyPressDecoder =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     case model of
-        Loaded (State _ _ activityM) ->
+        Loaded (State _ _ activityM _) ->
             Sub.batch
                 [ Ports.selectDateFromScroll ReceiveSelectDate
                 , Events.onVisibilityChange VisibilityChange

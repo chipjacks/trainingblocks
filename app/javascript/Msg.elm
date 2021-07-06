@@ -34,7 +34,6 @@ type alias ActivityConfigs =
 type alias StoreData =
     { activities : List Activity
     , revision : String
-    , configs : ActivityConfigs
     }
 
 

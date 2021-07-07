@@ -2,8 +2,10 @@ module Page.Settings exposing (main)
 
 import Activity
 import Activity.Types exposing (RaceDistance)
+import ActivityForm
 import Api
 import Browser
+import Duration.View
 import Html exposing (Html, text)
 import Html.Attributes exposing (class, style)
 import Html.Events
@@ -19,6 +21,7 @@ import Task
 import UI
 import UI.Button as Button
 import UI.Input
+import UI.Label
 import UI.Layout exposing (column, compactColumn, expandingRow, row)
 import UI.Navbar as Navbar
 import UI.Select
@@ -472,14 +475,12 @@ viewRecentRaceInput raceDuration raceDistance =
         ( hrs, mins, secs ) =
             raceDuration.value
     in
-    row []
-        [ UI.Input.number (\h -> EditedDuration ( h, mins, secs )) 9
-            |> UI.Input.view hrs
-        , UI.Input.number (\m -> EditedDuration ( hrs, m, secs )) 60
-            |> UI.Input.view mins
-        , UI.Input.number (\s -> EditedDuration ( hrs, mins, s )) 60
-            |> UI.Input.view secs
+    row [ style "margin-top" "10px" ]
+        [ Duration.View.input EditedDuration ( hrs, mins, secs )
         , compactColumn [ style "width" "10px" ] []
-        , UI.Select.select SelectedRaceDistance ("" :: (Activity.raceDistance.list |> List.map Tuple.first))
-            |> UI.Select.view (raceDistance |> Maybe.map Activity.raceDistance.toString |> Maybe.withDefault "")
+        , column []
+            [ UI.Label.input "DISTANCE" |> UI.Label.view
+            , UI.Select.select SelectedRaceDistance ("" :: (Activity.raceDistance.list |> List.map Tuple.first))
+                |> UI.Select.view (raceDistance |> Maybe.map Activity.raceDistance.toString |> Maybe.withDefault "")
+            ]
         ]

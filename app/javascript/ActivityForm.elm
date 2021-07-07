@@ -1,4 +1,4 @@
-module ActivityForm exposing (init, initMove, update, view)
+module ActivityForm exposing (durationInput, init, initMove, update, view)
 
 import Actions
 import Activity
@@ -11,6 +11,7 @@ import ActivityShape
 import Date exposing (Date)
 import Distance
 import Duration
+import Duration.View
 import Effect exposing (Effect)
 import Emoji exposing (EmojiDict)
 import EmojiData exposing (EmojiData)
@@ -28,6 +29,7 @@ import Store
 import Svg exposing (Svg)
 import UI exposing (iconButton)
 import UI.Input
+import UI.Label
 import UI.Layout exposing (column, compactColumn, expandingRow, row)
 import UI.Select
 import UI.Toast
@@ -828,27 +830,19 @@ toActivityData model =
     }
 
 
-label : String -> Bool -> Msg -> Html Msg
+label : String -> Bool -> msg -> Html msg
 label name showClear onClear =
-    row []
-        [ Html.label
-            [ style "color" "var(--black-500)"
-            , style "font-size" "0.8rem"
-            ]
-            [ text name
-            ]
-        , viewIf showClear
-            (compactColumn
-                [ style "margin-left" "0.2rem"
-                , style "cursor" "pointer"
-                , style "margin-top" "-2px"
-                , style "margin-bottom" "-2px"
-                , onClick onClear
-                ]
-                [ MonoIcons.icon (MonoIcons.close "var(--grey-900)")
-                ]
-            )
-        ]
+    let
+        withOnClear =
+            if showClear then
+                UI.Label.withOnClear onClear
+
+            else
+                identity
+    in
+    UI.Label.field name
+        |> withOnClear
+        |> UI.Label.view
 
 
 descriptionInput : (String -> Msg) -> String -> Html Msg
@@ -1018,7 +1012,7 @@ emojiSelect msg emojis name search =
         ]
 
 
-durationInput : (( String, String, String ) -> Msg) -> ( String, String, String ) -> Html Msg
+durationInput : (( String, String, String ) -> msg) -> ( String, String, String ) -> Html msg
 durationInput msg ( hrs, mins, secs ) =
     let
         header str =
@@ -1027,37 +1021,7 @@ durationInput msg ( hrs, mins, secs ) =
     in
     column []
         [ label "Time" (hrs /= "" || mins /= "" || secs /= "") (msg ( "", "", "" ))
-        , row []
-            [ compactColumn [ style "width" "2.5rem" ]
-                [ header "HOURS"
-                , UI.Input.number (\h -> msg ( h, mins, secs )) 9
-                    |> UI.Input.withAttributes
-                        [ style "border-top-right-radius" "0"
-                        , style "border-bottom-right-radius" "0"
-                        ]
-                    |> UI.Input.view hrs
-                ]
-            , compactColumn [ style "width" "3.5rem" ]
-                [ header "MINS"
-                , UI.Input.number (\m -> msg ( hrs, m, secs )) 60
-                    |> UI.Input.withAttributes
-                        [ style "border-top-left-radius" "0"
-                        , style "border-bottom-left-radius" "0"
-                        , style "border-top-right-radius" "0"
-                        , style "border-bottom-right-radius" "0"
-                        ]
-                    |> UI.Input.view mins
-                ]
-            , compactColumn [ style "width" "3.5rem" ]
-                [ header "SECS"
-                , UI.Input.number (\s -> msg ( hrs, mins, s )) 60
-                    |> UI.Input.withAttributes
-                        [ style "border-top-left-radius" "0"
-                        , style "border-bottom-left-radius" "0"
-                        ]
-                    |> UI.Input.view secs
-                ]
-            ]
+        , Duration.View.input msg ( hrs, mins, secs )
         ]
 
 

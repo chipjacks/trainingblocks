@@ -78,6 +78,10 @@ input:focus { border-color: var(--blue-300); outline: 0; }
 
 .input--error { border-color: var(--red-100); }
 
+.label--field { color: var(--black-500); font-size: 0.8rem; }
+.label--input { color: var(--grey-900); font-size: 0.6rem; margin-bottom: 2px; }
+
+
 
 select { border: 1px solid var(--grey-300); border-radius: 0.25rem; padding: 0.5rem; font-size: 1rem; }
 select.input-small { padding: 0.3rem; }

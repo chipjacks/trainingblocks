@@ -960,13 +960,11 @@ repeatsInput msg countStrM result =
         , case countStrM of
             Just countStr ->
                 row []
-                    [ numberInput "repeats"
-                        99
-                        [ onInput msg
-                        , value countStr
-                        , style "width" "2.5rem"
-                        ]
-                        []
+                    [ UI.Input.number msg 99
+                        |> UI.Input.withAttributes
+                            [ style "width" "2.5rem"
+                            ]
+                        |> UI.Input.view countStr
                     ]
 
             Nothing ->
@@ -1032,38 +1030,32 @@ durationInput msg ( hrs, mins, secs ) =
         , row []
             [ compactColumn [ style "width" "2.5rem" ]
                 [ header "HOURS"
-                , numberInput "hours"
-                    9
-                    [ onInput (\h -> msg ( h, mins, secs ))
-                    , value hrs
-                    , style "border-top-right-radius" "0"
-                    , style "border-bottom-right-radius" "0"
-                    ]
-                    []
+                , UI.Input.number (\h -> msg ( h, mins, secs )) 9
+                    |> UI.Input.withAttributes
+                        [ style "border-top-right-radius" "0"
+                        , style "border-bottom-right-radius" "0"
+                        ]
+                    |> UI.Input.view hrs
                 ]
             , compactColumn [ style "width" "3.5rem" ]
                 [ header "MINS"
-                , numberInput "minutes"
-                    60
-                    [ onInput (\m -> msg ( hrs, m, secs ))
-                    , value mins
-                    , style "border-top-left-radius" "0"
-                    , style "border-bottom-left-radius" "0"
-                    , style "border-top-right-radius" "0"
-                    , style "border-bottom-right-radius" "0"
-                    ]
-                    []
+                , UI.Input.number (\m -> msg ( hrs, m, secs )) 60
+                    |> UI.Input.withAttributes
+                        [ style "border-top-left-radius" "0"
+                        , style "border-bottom-left-radius" "0"
+                        , style "border-top-right-radius" "0"
+                        , style "border-bottom-right-radius" "0"
+                        ]
+                    |> UI.Input.view mins
                 ]
             , compactColumn [ style "width" "3.5rem" ]
                 [ header "SECS"
-                , numberInput "seconds"
-                    60
-                    [ onInput (\s -> msg ( hrs, mins, s ))
-                    , value secs
-                    , style "border-top-left-radius" "0"
-                    , style "border-bottom-left-radius" "0"
-                    ]
-                    []
+                , UI.Input.number (\s -> msg ( hrs, mins, s )) 60
+                    |> UI.Input.withAttributes
+                        [ style "border-top-left-radius" "0"
+                        , style "border-bottom-left-radius" "0"
+                        ]
+                    |> UI.Input.view secs
                 ]
             ]
         ]
@@ -1077,25 +1069,27 @@ distanceInput msg dist units result =
                 Activity.distanceUnits.fromString unitStr
                     |> Maybe.withDefault Activity.Types.Miles
                     |> SelectedDistanceUnits
+
+        placeholder =
+            case ( dist, result ) of
+                ( "", Ok distance ) ->
+                    String.fromFloat distance
+
+                _ ->
+                    ""
     in
     column []
         [ label "Distance" (dist /= "") (msg "")
         , row []
-            [ numberInput "distance"
-                100000
-                [ onInput msg
-                , case ( dist, result ) of
-                    ( "", Ok distance ) ->
-                        Html.Attributes.placeholder (String.fromFloat distance)
-
-                    _ ->
-                        Html.Attributes.placeholder ""
-                , value dist
-                , style "width" "4rem"
-                , style "border-top-right-radius" "0"
-                , style "border-bottom-right-radius" "0"
-                ]
-                []
+            [ UI.Input.number msg 100000
+                |> UI.Input.withLabel "distance"
+                |> UI.Input.withPlaceholder placeholder
+                |> UI.Input.withAttributes
+                    [ style "width" "4rem"
+                    , style "border-top-right-radius" "0"
+                    , style "border-bottom-right-radius" "0"
+                    ]
+                |> UI.Input.view dist
             , UI.Select.select onUnitsSelect (Activity.distanceUnits.list |> List.map Tuple.first)
                 |> UI.Select.withAttributes
                     [ style "border-top-left-radius" "0"
@@ -1105,24 +1099,6 @@ distanceInput msg dist units result =
                 |> UI.Select.view (Activity.distanceUnits.toString units)
             ]
         ]
-
-
-numberInput : String -> Int -> List (Html.Attribute Msg) -> (List (Html Msg) -> Html Msg)
-numberInput nameStr max attrs =
-    input
-        ([ Html.Attributes.type_ "number"
-         , class "input"
-         , Html.Attributes.min "0"
-         , Html.Attributes.max (String.fromInt max)
-         , Html.Attributes.step "1"
-         , Html.Attributes.maxlength (String.length (String.fromInt max))
-         , Html.Attributes.autocomplete False
-         , name nameStr
-         , Html.Attributes.id nameStr
-         , Html.Attributes.attribute "aria-label" nameStr
-         ]
-            ++ attrs
-        )
 
 
 paceSelect : ActivityConfigs -> (String -> Msg) -> String -> Result FieldError Int -> Html Msg

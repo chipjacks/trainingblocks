@@ -29,6 +29,7 @@ import Svg exposing (Svg)
 import UI exposing (iconButton)
 import UI.Input
 import UI.Layout exposing (column, compactColumn, expandingRow, row)
+import UI.Select
 import UI.Toast
 import UI.Util exposing (attributeIf, borderStyle, stopPropagationOnClick, styleIf, viewIf, viewMaybe)
 import Validate exposing (FieldError(..))
@@ -1071,11 +1072,11 @@ durationInput msg ( hrs, mins, secs ) =
 distanceInput : (String -> Msg) -> String -> DistanceUnits -> Result FieldError Float -> Html Msg
 distanceInput msg dist units result =
     let
-        eventDecoder =
-            Decode.at [ "target", "value" ] Decode.string
-                |> Decode.map Activity.distanceUnits.fromString
-                |> Decode.map (Maybe.withDefault Activity.Types.Miles)
-                |> Decode.map SelectedDistanceUnits
+        onUnitsSelect =
+            \unitStr ->
+                Activity.distanceUnits.fromString unitStr
+                    |> Maybe.withDefault Activity.Types.Miles
+                    |> SelectedDistanceUnits
     in
     column []
         [ label "Distance" (dist /= "") (msg "")
@@ -1095,22 +1096,13 @@ distanceInput msg dist units result =
                 , style "border-bottom-right-radius" "0"
                 ]
                 []
-            , Html.select
-                [ style "border-top-left-radius" "0"
-                , style "border-bottom-left-radius" "0"
-                , style "border-left-width" "0"
-                , Html.Events.on "change" eventDecoder
-                ]
-                (List.map
-                    (\( unitStr, unitOpt ) ->
-                        Html.option
-                            [ Html.Attributes.value unitStr
-                            , Html.Attributes.selected (unitOpt == units)
-                            ]
-                            [ Html.text unitStr ]
-                    )
-                    Activity.distanceUnits.list
-                )
+            , UI.Select.select onUnitsSelect (Activity.distanceUnits.list |> List.map Tuple.first)
+                |> UI.Select.withAttributes
+                    [ style "border-top-left-radius" "0"
+                    , style "border-bottom-left-radius" "0"
+                    , style "border-left-width" "0"
+                    ]
+                |> UI.Select.view (Activity.distanceUnits.toString units)
             ]
         ]
 
@@ -1156,10 +1148,8 @@ paceSelect { paces, customPaces } msg paceStr result =
                 Ok pace ->
                     time < pace
 
-        eventDecoder =
-            Decode.at [ "target", "value" ] Decode.string
-                |> Decode.andThen (\name -> Pace.List.lookupSeconds name allPaces |> Maybe.map Pace.paceToString |> Maybe.withDefault "" |> Decode.succeed)
-                |> Decode.map SelectedPace
+        onPaceSelect =
+            \name -> Pace.List.lookupSeconds name allPaces |> Maybe.map Pace.paceToString |> Maybe.withDefault "" |> SelectedPace
     in
     column []
         [ label "Pace" (paceStr /= "") (msg "")
@@ -1200,22 +1190,13 @@ paceSelect { paces, customPaces } msg paceStr result =
                         , style "border-bottom-right-radius" "0"
                         ]
                     |> UI.Input.view paceStr
-                , Html.select
-                    [ style "border-top-left-radius" "0"
-                    , style "border-bottom-left-radius" "0"
-                    , style "border-left-width" "0"
-                    , Html.Events.on "change" eventDecoder
-                    ]
-                    (List.map
-                        (\( str, secs ) ->
-                            Html.option
-                                [ Html.Attributes.value str
-                                , Html.Attributes.selected (str == trainingPaceStr)
-                                ]
-                                [ Html.text str ]
-                        )
-                        allPaces
-                    )
+                , UI.Select.select onPaceSelect (allPaces |> List.map Tuple.first)
+                    |> UI.Select.withAttributes
+                        [ style "border-top-left-radius" "0"
+                        , style "border-bottom-left-radius" "0"
+                        , style "border-left-width" "0"
+                        ]
+                    |> UI.Select.view trainingPaceStr
                 ]
             ]
         ]

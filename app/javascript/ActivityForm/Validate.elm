@@ -5,7 +5,7 @@ import ActivityForm.Types exposing (ActivityForm, ValidatedFields)
 import Date exposing (Date)
 import Distance
 import Pace
-import Validate exposing (FieldError(..), parsePace)
+import Validate exposing (FieldError(..), parseDuration, parsePace)
 
 
 init : ValidatedFields
@@ -83,32 +83,6 @@ parseRepeats strM =
 
                 Just num ->
                     Ok num
-
-
-parseDuration : ( String, String, String ) -> Result FieldError Int
-parseDuration ( hrs, mins, secs ) =
-    let
-        toIntResult str =
-            if str == "" then
-                Ok 0
-
-            else
-                String.toInt str |> Result.fromMaybe ParseError
-
-        handleZeroTime result =
-            case result of
-                Ok 0 ->
-                    Err ValueError
-
-                _ ->
-                    result
-    in
-    Result.map3
-        (\h m s -> h * 60 * 60 + m * 60 + s)
-        (toIntResult hrs)
-        (toIntResult mins)
-        (toIntResult secs)
-        |> handleZeroTime
 
 
 parseDistance : String -> Result FieldError Float

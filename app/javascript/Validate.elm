@@ -1,4 +1,4 @@
-module Validate exposing (Field, FieldError(..), init, parsePace, update, updateFallback)
+module Validate exposing (Field, FieldError(..), init, parsePace, update, updateFallback, parseDuration)
 
 import Pace
 
@@ -49,3 +49,29 @@ parsePace str =
 
         _ ->
             Pace.paceFromString str |> Result.fromMaybe ParseError
+
+
+parseDuration : ( String, String, String ) -> Result FieldError Int
+parseDuration ( hrs, mins, secs ) =
+    let
+        toIntResult str =
+            if str == "" then
+                Ok 0
+
+            else
+                String.toInt str |> Result.fromMaybe ParseError
+
+        handleZeroTime result =
+            case result of
+                Ok 0 ->
+                    Err ValueError
+
+                _ ->
+                    result
+    in
+    Result.map3
+        (\h m s -> h * 60 * 60 + m * 60 + s)
+        (toIntResult hrs)
+        (toIntResult mins)
+        (toIntResult secs)
+        |> handleZeroTime

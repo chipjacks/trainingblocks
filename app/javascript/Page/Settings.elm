@@ -9,6 +9,7 @@ import Html.Attributes exposing (class, style)
 import Html.Events
 import Http
 import Json.Decode as Decode
+import MPRLevel
 import MonoIcons
 import Pace
 import Pace.List exposing (PaceList)
@@ -37,7 +38,7 @@ main =
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( Model (initPaces []) Nothing Nothing Loading
+    ( Model (initPaces []) Nothing Nothing initRaceDuration (Err "") Loading
     , Task.attempt GotSettings Api.getSettings
     )
 
@@ -55,10 +56,16 @@ initPaces paces =
         |> Selection.init
 
 
+initRaceDuration =
+    Validate.init Validate.parseDuration 0 ( "", "", "" )
+
+
 type alias Model =
     { trainingPaces : Selection PaceForm
     , dragging : Maybe ( Float, Float )
     , raceDistance : Maybe RaceDistance
+    , raceDuration : Validate.Field ( String, String, String ) Int
+    , level : Result String Int
     , status : FormStatus
     }
 
@@ -92,6 +99,7 @@ type Msg
     | PointerMoved Float Float
     | PointerUp
     | SelectedRaceDistance String
+    | EditedDuration ( String, String, String )
     | NoOp
 
 
@@ -205,11 +213,39 @@ update msg model =
 
         SelectedRaceDistance str ->
             ( { model | raceDistance = Activity.raceDistance.fromString str }
+                |> updateLevel
+            , Cmd.none
+            )
+
+        EditedDuration value ->
+            ( { model | raceDuration = Validate.update value model.raceDuration }
+                |> updateLevel
             , Cmd.none
             )
 
         NoOp ->
             ( model, Cmd.none )
+
+
+updateLevel : Model -> Model
+updateLevel model =
+    let
+        levelM =
+            Maybe.map Activity.raceDistance.toString model.raceDistance
+                |> Result.fromMaybe "Please select a distance."
+                |> Result.andThen
+                    (\distance ->
+                        model.raceDuration.result
+                            |> Result.mapError (\_ -> "Please enter a valid time.")
+                            |> Result.map (\duration -> ( distance, duration ))
+                    )
+                |> Result.andThen
+                    (\( distance, duration ) ->
+                        MPRLevel.lookup MPRLevel.Neutral distance duration
+                            |> Result.map Tuple.second
+                    )
+    in
+    { model | level = levelM }
 
 
 newTrainingPace : PaceForm
@@ -249,7 +285,7 @@ maxWidthForMobile =
 
 
 viewBody : Model -> Html Msg
-viewBody { trainingPaces, dragging, status, raceDistance } =
+viewBody { trainingPaces, dragging, status, raceDistance, raceDuration, level } =
     column [ style "margin" "5px" ]
         [ row [ style "justify-content" "space-between", style "flex-wrap" "wrap-reverse" ]
             [ compactColumn [ maxWidthForMobile ]
@@ -283,8 +319,8 @@ viewBody { trainingPaces, dragging, status, raceDistance } =
                 , Html.div [ style "color" "var(--green-900)", style "margin-top" "0.5rem" ] [ Html.text "Connected ✓" ]
                 , Html.h3 [ style "margin-bottom" "0.5rem", style "margin-right" "10px" ] [ Html.text "Fitness Level" ]
                 , Html.text "Enter a recent race time to calculate your fitness level."
-                , Html.div [ style "color" "var(--orange-500)", style "margin-top" "0.5rem", style "margin-bottom" "0.5rem" ] [ Html.text "Level 44" ]
-                , viewRecentRaceInput raceDistance
+                , viewRecentRaceInput raceDuration raceDistance
+                , viewLevelResult level
                 ]
             , compactColumn []
                 [ viewSaveButton status
@@ -416,11 +452,34 @@ viewAddButton =
         ]
 
 
-viewRecentRaceInput : Maybe RaceDistance -> Html Msg
-viewRecentRaceInput raceDistance =
+viewLevelResult : Result String Int -> Html msg
+viewLevelResult level =
+    let
+        ( color, str ) =
+            case level of
+                Ok num ->
+                    ( "var(--green-900)", "Level " ++ String.fromInt num )
+
+                Err err ->
+                    ( "var(--orange-500)", err )
+    in
+    row [ style "color" color, style "margin-top" "0.5rem", style "margin-bottom" "0.5rem", style "height" "1rem" ] [ Html.text str ]
+
+
+viewRecentRaceInput : Validate.Field ( String, String, String ) Int -> Maybe RaceDistance -> Html Msg
+viewRecentRaceInput raceDuration raceDistance =
+    let
+        ( hrs, mins, secs ) =
+            raceDuration.value
+    in
     row []
-        [ UI.Input.text (\_ -> NoOp)
-            |> UI.Input.view ""
-        , UI.Select.select SelectedRaceDistance (Activity.raceDistance.list |> List.map Tuple.first)
-            |> UI.Select.view (raceDistance |> Maybe.map Activity.raceDistance.toString |> Maybe.withDefault "5k")
+        [ UI.Input.number (\h -> EditedDuration ( h, mins, secs )) 9
+            |> UI.Input.view hrs
+        , UI.Input.number (\m -> EditedDuration ( hrs, m, secs )) 60
+            |> UI.Input.view mins
+        , UI.Input.number (\s -> EditedDuration ( hrs, mins, s )) 60
+            |> UI.Input.view secs
+        , compactColumn [ style "width" "10px" ] []
+        , UI.Select.select SelectedRaceDistance ("" :: (Activity.raceDistance.list |> List.map Tuple.first))
+            |> UI.Select.view (raceDistance |> Maybe.map Activity.raceDistance.toString |> Maybe.withDefault "")
         ]

@@ -239,7 +239,14 @@ updateLevel model =
                 |> Result.andThen
                     (\distance ->
                         model.raceDuration.result
-                            |> Result.mapError (\_ -> "Please enter a valid time.")
+                            |> Result.mapError
+                                (\err ->
+                                    if err == Validate.MissingError then
+                                        "Please enter a valid time."
+
+                                    else
+                                        ""
+                                )
                             |> Result.map (\duration -> ( distance, duration ))
                     )
                 |> Result.andThen
@@ -476,11 +483,11 @@ viewRecentRaceInput raceDuration raceDistance =
             raceDuration.value
     in
     row [ style "margin-top" "10px" ]
-        [ Duration.View.input EditedDuration ( hrs, mins, secs )
-        , compactColumn [ style "width" "10px" ] []
-        , column []
+        [ column []
             [ UI.Label.input "DISTANCE" |> UI.Label.view
-            , UI.Select.select SelectedRaceDistance ("" :: (Activity.raceDistance.list |> List.map Tuple.first))
+            , UI.Select.select SelectedRaceDistance ("" :: (Activity.raceDistance.list |> List.filter (\( _, dist ) -> dist /= Activity.Types.OtherDistance) |> List.map Tuple.first))
                 |> UI.Select.view (raceDistance |> Maybe.map Activity.raceDistance.toString |> Maybe.withDefault "")
             ]
+        , compactColumn [ style "width" "10px" ] []
+        , Duration.View.input EditedDuration ( hrs, mins, secs )
         ]

@@ -408,10 +408,19 @@ update msg model =
             , Effect.None
             )
 
-        SelectedPace str ->
+        EditedPace str ->
             ( updateActivity { model | pace = str }
             , Effect.None
             )
+
+        SelectedPace str ->
+            if str /= "" then
+                ( updateActivity { model | pace = str }
+                , Effect.None
+                )
+
+            else
+                ( model, Effect.None )
 
         EditedDistance dist ->
             ( updateActivity { model | distance = dist }
@@ -764,7 +773,7 @@ viewLapFields ({ emojis } as configs) form =
             , column [ maxFieldWidth, style "flex-grow" "1" ] [ emojiSelect SelectedEmoji emojis form.emoji form.emojiSearch ]
             ]
         , row [ styleIf (form.activityType /= Activity.Types.Run) "visibility" "hidden" ]
-            [ column [ maxFieldWidth, style "flex-grow" "2" ] [ paceSelect configs SelectedPace form.pace form.validated.pace ]
+            [ column [ maxFieldWidth, style "flex-grow" "2" ] [ paceSelect configs EditedPace form.pace form.validated.pace ]
             , column [ maxFieldWidth, style "flex-grow" "1" ] [ raceToggle CheckedRace form.race ]
             ]
         ]
@@ -1127,14 +1136,16 @@ numberInput nameStr max attrs =
 paceSelect : ActivityConfigs -> (String -> Msg) -> String -> Result FieldError Int -> Html Msg
 paceSelect { paces, customPaces } msg paceStr result =
     let
-        trainingPaces =
+        allPaces =
             paces
-                |> List.map (\( name, maxPace ) -> Pace.paceToString maxPace)
+                |> List.map (\( stdPace, maxPace ) -> ( Pace.standardPace.toString stdPace, maxPace ))
+                |> (++) customPaces
+                |> List.sortBy Tuple.second
+                |> List.reverse
 
         trainingPaceStr =
             Result.toMaybe result
-                |> Maybe.map (\paceSecs -> Pace.secondsToStandardPace paces paceSecs)
-                |> Maybe.map Pace.standardPace.toString
+                |> Maybe.map (\paceSecs -> Pace.List.lookupValue paceSecs allPaces |> Maybe.withDefault "")
                 |> Maybe.withDefault ""
 
         isSlowerThan time =
@@ -1143,17 +1154,22 @@ paceSelect { paces, customPaces } msg paceStr result =
                     True
 
                 Ok pace ->
-                    (Pace.paceFromString time |> Maybe.withDefault 0) < pace
+                    time < pace
+
+        eventDecoder =
+            Decode.at [ "target", "value" ] Decode.string
+                |> Decode.andThen (\name -> Pace.List.lookupSeconds name allPaces |> Maybe.map Pace.paceToString |> Maybe.withDefault "" |> Decode.succeed)
+                |> Decode.map SelectedPace
     in
     column []
         [ label "Pace" (paceStr /= "") (msg "")
         , column []
             [ row [ style "margin-top" "2px", style "margin-bottom" "2px", style "border-radius" "4px", style "overflow" "hidden", style "max-width" "10rem", style "margin-right" "10px" ]
                 (List.map
-                    (\time ->
+                    (\( _, time ) ->
                         column
                             [ style "background-color" "var(--green-500)"
-                            , onClick (msg time)
+                            , onClick (msg (Pace.paceToString time))
                             , style "height" "0.5rem"
                             , style "margin-right" "1px"
                             , style "cursor" "pointer"
@@ -1163,7 +1179,7 @@ paceSelect { paces, customPaces } msg paceStr result =
                             ]
                             []
                     )
-                    trainingPaces
+                    paces
                 )
             , row []
                 [ UI.Input.pace msg
@@ -1179,8 +1195,27 @@ paceSelect { paces, customPaces } msg paceStr result =
                                     config
                        )
                     |> UI.Input.withPlaceholder (Result.map Pace.paceToString result |> Result.withDefault "mm:ss")
+                    |> UI.Input.withAttributes
+                        [ style "border-top-right-radius" "0"
+                        , style "border-bottom-right-radius" "0"
+                        ]
                     |> UI.Input.view paceStr
-                , compactColumn [ style "margin-left" "5px", style "font-size" "0.8rem", style "justify-content" "center" ] [ text trainingPaceStr ]
+                , Html.select
+                    [ style "border-top-left-radius" "0"
+                    , style "border-bottom-left-radius" "0"
+                    , style "border-left-width" "0"
+                    , Html.Events.on "change" eventDecoder
+                    ]
+                    (List.map
+                        (\( str, secs ) ->
+                            Html.option
+                                [ Html.Attributes.value str
+                                , Html.Attributes.selected (str == trainingPaceStr)
+                                ]
+                                [ Html.text str ]
+                        )
+                        allPaces
+                    )
                 ]
             ]
         ]

@@ -10,6 +10,7 @@ import EmojiData exposing (EmojiData)
 import Http
 import Pace exposing (StandardPace)
 import Pace.List exposing (PaceList)
+import Settings exposing (Settings)
 import Store.History exposing (History)
 
 
@@ -42,7 +43,7 @@ type alias StoreData =
 type Msg
     = LoadToday Date
     | GotActivities (Result Http.Error ( String, List Activity ))
-    | GotSettings (Result Http.Error (PaceList String))
+    | GotSettings (Result Http.Error Settings)
     | FetchedEmojis (Result Http.Error (List EmojiData))
     | VisibilityChange Events.Visibility
     | KeyPressed String

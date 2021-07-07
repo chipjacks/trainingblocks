@@ -17,6 +17,7 @@ import Pace
 import Pace.List exposing (PaceList)
 import Ports
 import Selection exposing (Selection)
+import Settings exposing (Settings)
 import Task
 import UI
 import UI.Button as Button
@@ -41,7 +42,7 @@ main =
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( Model (initPaces []) Nothing Nothing initRaceDuration (Err "") Loading
+    ( Model (initPaces []) Nothing Nothing initRaceDuration (Err "") Loading (Err "")
     , Task.attempt GotSettings Api.getSettings
     )
 
@@ -70,6 +71,7 @@ type alias Model =
     , raceDuration : Validate.Field ( String, String, String ) Int
     , level : Result String Int
     , status : FormStatus
+    , result : Result String Settings
     }
 
 
@@ -89,9 +91,9 @@ type FormStatus
 
 
 type Msg
-    = ClickedSave
-    | GotSettings (Result Http.Error (PaceList String))
-    | PostedPaces (PaceList String) (Result Http.Error Bool)
+    = ClickedSave Settings
+    | GotSettings (Result Http.Error Settings)
+    | PostedSettings Settings (Result Http.Error Bool)
     | EditedPace Int String
     | EditedName Int String
     | ClickedAddPace
@@ -109,35 +111,29 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        ClickedSave ->
-            let
-                paces =
-                    Selection.toList model.trainingPaces
-                        |> List.sortBy (\form -> form.pace.result |> Result.withDefault form.pace.fallback |> negate)
-                        |> List.map (\{ name, pace } -> ( name.result |> Result.withDefault name.fallback, pace.result |> Result.withDefault pace.fallback ))
-                        |> List.filter (\( name, pace ) -> name /= "")
-            in
+        ClickedSave settings ->
             ( { model | status = Posted }
-            , Task.attempt (PostedPaces paces) (Api.postSettings paces)
+            , Task.attempt (PostedSettings settings) (Api.postSettings settings)
             )
 
         GotSettings result ->
             ( case result of
                 Err error ->
-                    { model | status = Error (Api.errorString error) }
+                    { model | status = Error "There was an issue loading your settings, please try again." }
 
-                Ok paces ->
-                    { model | status = Success, trainingPaces = initPaces paces }
+                Ok settings ->
+                    { model | status = Success, trainingPaces = initPaces settings.paces }
+                        |> updateResult
             , Cmd.none
             )
 
-        PostedPaces paces result ->
+        PostedSettings settings result ->
             ( case result of
                 Err error ->
                     { model | status = Error (Api.errorString error) }
 
                 _ ->
-                    { model | status = Success, trainingPaces = initPaces paces }
+                    { model | status = Success, trainingPaces = initPaces settings.paces }
             , Cmd.none
             )
 
@@ -148,6 +144,7 @@ update msg model =
                         |> Selection.update (\form -> { form | pace = Validate.update str form.pace })
             in
             ( { model | trainingPaces = newTrainingPaces }
+                |> updateResult
             , Cmd.none
             )
 
@@ -157,7 +154,10 @@ update msg model =
                     Selection.select index model.trainingPaces
                         |> Selection.update (\form -> { form | name = Validate.update str form.name })
             in
-            ( { model | trainingPaces = newTrainingPaces }, Cmd.none )
+            ( { model | trainingPaces = newTrainingPaces }
+                |> updateResult
+            , Cmd.none
+            )
 
         ClickedAddPace ->
             ( { model | trainingPaces = Selection.add newTrainingPace model.trainingPaces }
@@ -171,6 +171,7 @@ update msg model =
                         |> Selection.delete
             in
             ( { model | trainingPaces = newTrainingPaces }
+                |> updateResult
             , Cmd.none
             )
 
@@ -202,12 +203,14 @@ update msg model =
                 | dragging = Nothing
                 , trainingPaces = Selection.update (\form -> { form | dropTarget = False }) model.trainingPaces
               }
+                |> updateResult
             , Cmd.none
             )
 
         BlurredPace ->
             if model.status == Success then
                 ( { model | trainingPaces = Selection.update (\form -> { form | pace = Validate.updateFallback form.pace }) model.trainingPaces }
+                    |> updateResult
                 , Cmd.none
                 )
 
@@ -217,12 +220,14 @@ update msg model =
         SelectedRaceDistance str ->
             ( { model | raceDistance = Activity.raceDistance.fromString str }
                 |> updateLevel
+                |> updateResult
             , Cmd.none
             )
 
         EditedDuration value ->
             ( { model | raceDuration = Validate.update value model.raceDuration }
                 |> updateLevel
+                |> updateResult
             , Cmd.none
             )
 
@@ -256,6 +261,33 @@ updateLevel model =
                     )
     in
     { model | level = levelM }
+
+
+updateResult : Model -> Model
+updateResult model =
+    let
+        paces =
+            Selection.toList model.trainingPaces
+                |> List.sortBy (\form -> form.pace.result |> Result.withDefault form.pace.fallback |> negate)
+                |> List.map (\{ name, pace } -> ( name.result |> Result.withDefault name.fallback, pace.result |> Result.withDefault pace.fallback ))
+                |> List.filter (\( name, pace ) -> name /= "")
+
+        result =
+            Result.map3
+                (\distance duration level ->
+                    { paces = paces
+                    , raceDistance = distance
+                    , raceDuration = duration
+                    , level = level
+                    }
+                )
+                (model.raceDistance |> Result.fromMaybe "Please enter a recent race.")
+                (model.raceDuration.result
+                    |> Result.mapError (\_ -> "Please enter a recent race.")
+                )
+                model.level
+    in
+    { model | result = result }
 
 
 newTrainingPace : PaceForm
@@ -295,7 +327,7 @@ maxWidthForMobile =
 
 
 viewBody : Model -> Html Msg
-viewBody { trainingPaces, dragging, status, raceDistance, raceDuration, level } =
+viewBody { trainingPaces, dragging, status, raceDistance, raceDuration, level, result } =
     column [ style "margin" "5px" ]
         [ row [ style "justify-content" "space-between", style "flex-wrap" "wrap-reverse" ]
             [ compactColumn [ maxWidthForMobile ]
@@ -332,9 +364,9 @@ viewBody { trainingPaces, dragging, status, raceDistance, raceDuration, level } 
                 , viewRecentRaceInput raceDuration raceDistance
                 , viewLevelResult level
                 ]
-            , compactColumn []
-                [ viewSaveButton status
-                , viewStatusMessage status
+            , compactColumn [ maxWidthForMobile ]
+                [ viewSaveButton status result
+                , viewStatusMessage status result
                 ]
             ]
         ]
@@ -348,11 +380,14 @@ config =
     }
 
 
-viewStatusMessage : FormStatus -> Html Msg
-viewStatusMessage status =
-    row [ style "height" "1rem", style "justify-content" "flex-end", style "color" "var(--red-700)" ]
-        (case status of
-            Error string ->
+viewStatusMessage : FormStatus -> Result String Settings -> Html Msg
+viewStatusMessage status result =
+    row [ style "justify-content" "flex-end", style "color" "var(--red-700)" ]
+        (case ( status, result ) of
+            ( Error string, _ ) ->
+                [ text string ]
+
+            ( _, Err string ) ->
                 [ text string ]
 
             _ ->
@@ -360,19 +395,24 @@ viewStatusMessage status =
         )
 
 
-viewSaveButton : FormStatus -> Html Msg
-viewSaveButton status =
-    row [ style "justify-content" "center", style "margin-top" "1rem", style "min-width" "6rem" ]
-        [ case status of
-            Posted ->
+viewSaveButton : FormStatus -> Result String Settings -> Html Msg
+viewSaveButton status result =
+    row [ style "justify-content" "flex-end", style "margin-top" "1rem", style "min-width" "6rem" ]
+        [ case ( status, result ) of
+            ( Posted, _ ) ->
                 UI.spinner "2rem"
 
-            Loading ->
+            ( Loading, _ ) ->
                 UI.spinner "2rem"
 
-            _ ->
-                Button.action "Save" MonoIcons.check ClickedSave
+            ( _, Ok settings ) ->
+                Button.action "Save" MonoIcons.check (ClickedSave settings)
                     |> Button.withAppearance Button.Large Button.Primary Button.Bottom
+                    |> Button.view
+
+            ( _, Err err ) ->
+                Button.action "Save" MonoIcons.check NoOp
+                    |> Button.withAppearance Button.Large Button.Subtle Button.Bottom
                     |> Button.view
         ]
 

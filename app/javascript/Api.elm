@@ -6,6 +6,7 @@ import Http
 import Json.Decode as Decode
 import Json.Encode as Encode
 import Pace.List exposing (PaceList)
+import Settings exposing (Settings)
 import Task exposing (Task)
 import Time exposing (Month(..))
 
@@ -83,15 +84,10 @@ settingsRoute =
 
 
 getSettingsResolver =
-    let
-        paceDecoder =
-            Decode.map2 Tuple.pair (Decode.field "name" Decode.string) (Decode.field "pace" Decode.int)
-    in
-    handleJsonResponse <|
-        Decode.field "paces" (Decode.list paceDecoder)
+    handleJsonResponse Settings.decoder
 
 
-getSettings : Task Http.Error (PaceList String)
+getSettings : Task Http.Error Settings
 getSettings =
     Http.task
         { method = "GET"
@@ -103,25 +99,15 @@ getSettings =
         }
 
 
-postSettings : PaceList String -> Task Http.Error Bool
-postSettings paces =
-    let
-        pacesEncoder ( name, pace ) =
-            Encode.object
-                [ ( "name", Encode.string name )
-                , ( "pace", Encode.int pace )
-                ]
-    in
+postSettings : Settings -> Task Http.Error Bool
+postSettings settings =
     Http.task
         { method = "POST"
         , headers = [ Http.header "Content-Type" "application/json" ]
         , url = settingsRoute
         , body =
             Http.jsonBody
-                (Encode.object
-                    [ ( "paces", Encode.list pacesEncoder paces )
-                    ]
-                )
+                (Settings.encoder settings)
         , resolver =
             Http.stringResolver <|
                 handleJsonResponse <|

@@ -1,5 +1,7 @@
 module Page.Settings exposing (main)
 
+import Activity
+import Activity.Types exposing (RaceDistance)
 import Api
 import Browser
 import Html exposing (Html, text)
@@ -18,6 +20,7 @@ import UI.Button as Button
 import UI.Input
 import UI.Layout exposing (column, compactColumn, expandingRow, row)
 import UI.Navbar as Navbar
+import UI.Select
 import UI.Skeleton as Skeleton
 import UI.Util exposing (attributeIf, attributeMaybe, borderStyle, onPointerMove, styleIf, viewIf, viewMaybe)
 import Validate exposing (Field)
@@ -34,7 +37,7 @@ main =
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( Model (initPaces []) Nothing Loading
+    ( Model (initPaces []) Nothing Nothing Loading
     , Task.attempt GotSettings Api.getSettings
     )
 
@@ -55,6 +58,7 @@ initPaces paces =
 type alias Model =
     { trainingPaces : Selection PaceForm
     , dragging : Maybe ( Float, Float )
+    , raceDistance : Maybe RaceDistance
     , status : FormStatus
     }
 
@@ -87,6 +91,7 @@ type Msg
     | BlurredPace
     | PointerMoved Float Float
     | PointerUp
+    | SelectedRaceDistance String
     | NoOp
 
 
@@ -198,6 +203,11 @@ update msg model =
             else
                 ( model, Cmd.none )
 
+        SelectedRaceDistance str ->
+            ( { model | raceDistance = Activity.raceDistance.fromString str }
+            , Cmd.none
+            )
+
         NoOp ->
             ( model, Cmd.none )
 
@@ -239,14 +249,14 @@ maxWidthForMobile =
 
 
 viewBody : Model -> Html Msg
-viewBody { trainingPaces, dragging, status } =
+viewBody { trainingPaces, dragging, status, raceDistance } =
     column [ style "margin" "5px" ]
         [ row [ style "justify-content" "space-between", style "flex-wrap" "wrap-reverse" ]
             [ compactColumn [ maxWidthForMobile ]
                 [ row [ style "align-items" "flex-end" ]
                     [ Html.h3 [ style "margin-bottom" "0.5rem", style "margin-right" "10px" ] [ Html.text "Training Paces" ]
                     ]
-                , Html.text "Adjust your training paces to match your fitness level and training plan."
+                , Html.text "Add custom paces to match your workouts and training plan."
                 , row [ style "align-items" "center", style "margin-top" "10px", style "margin-bottom" "10px" ]
                     [ Html.a
                         [ Html.Attributes.href "https://www.rundoyen.com/running-pace-calculator/"
@@ -271,6 +281,10 @@ viewBody { trainingPaces, dragging, status } =
                 [ Html.h3 [ style "margin-bottom" "0.5rem", style "margin-right" "10px" ] [ Html.text "Strava Account" ]
                 , Html.text "Sign in with Strava to import your activities."
                 , Html.div [ style "color" "var(--green-900)", style "margin-top" "0.5rem" ] [ Html.text "Connected ✓" ]
+                , Html.h3 [ style "margin-bottom" "0.5rem", style "margin-right" "10px" ] [ Html.text "Fitness Level" ]
+                , Html.text "Enter a recent race time to calculate your fitness level."
+                , Html.div [ style "color" "var(--orange-500)", style "margin-top" "0.5rem", style "margin-bottom" "0.5rem" ] [ Html.text "Level 44" ]
+                , viewRecentRaceInput raceDistance
                 ]
             , compactColumn []
                 [ viewSaveButton status
@@ -399,4 +413,14 @@ viewAddButton =
         [ Button.action "Add Pace" MonoIcons.add ClickedAddPace
             |> Button.withAppearance Button.Small Button.Subtle Button.Right
             |> Button.view
+        ]
+
+
+viewRecentRaceInput : Maybe RaceDistance -> Html Msg
+viewRecentRaceInput raceDistance =
+    row []
+        [ UI.Input.text (\_ -> NoOp)
+            |> UI.Input.view ""
+        , UI.Select.select SelectedRaceDistance (Activity.raceDistance.list |> List.map Tuple.first)
+            |> UI.Select.view (raceDistance |> Maybe.map Activity.raceDistance.toString |> Maybe.withDefault "5k")
         ]

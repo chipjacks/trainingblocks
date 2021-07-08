@@ -119,7 +119,11 @@ update msg model =
         GotSettings result ->
             ( case result of
                 Err error ->
-                    { model | status = Error "There was an issue loading your settings, please try again." }
+                    let
+                        debug =
+                            Debug.log "error" (Api.errorString error)
+                    in
+                    { model | status = Error strings.loadError }
 
                 Ok settings ->
                     { model | status = Success, trainingPaces = initPaces settings.paces }
@@ -240,14 +244,14 @@ updateLevel model =
     let
         levelM =
             Maybe.map Activity.raceDistance.toString model.raceDistance
-                |> Result.fromMaybe "Please select a distance."
+                |> Result.fromMaybe strings.invalidDistanceError
                 |> Result.andThen
                     (\distance ->
                         model.raceDuration.result
                             |> Result.mapError
                                 (\err ->
                                     if err == Validate.MissingError then
-                                        "Please enter a valid time."
+                                        strings.invalidTimeError
 
                                     else
                                         ""
@@ -258,6 +262,7 @@ updateLevel model =
                     (\( distance, duration ) ->
                         MPRLevel.lookup MPRLevel.Neutral distance duration
                             |> Result.map Tuple.second
+                            |> Result.mapError (\_ -> strings.invalidTimeError)
                     )
     in
     { model | level = levelM }
@@ -272,6 +277,9 @@ updateResult model =
                 |> List.map (\{ name, pace } -> ( name.result |> Result.withDefault name.fallback, pace.result |> Result.withDefault pace.fallback ))
                 |> List.filter (\( name, pace ) -> name /= "")
 
+        withMissingRaceError =
+            Result.mapError (\_ -> strings.missingRaceError)
+
         result =
             Result.map3
                 (\distance duration level ->
@@ -281,11 +289,9 @@ updateResult model =
                     , level = level
                     }
                 )
-                (model.raceDistance |> Result.fromMaybe "Please enter a recent race.")
-                (model.raceDuration.result
-                    |> Result.mapError (\_ -> "Please enter a recent race.")
-                )
-                model.level
+                (model.raceDistance |> Result.fromMaybe "" |> withMissingRaceError)
+                (model.raceDuration.result |> withMissingRaceError)
+                (model.level |> withMissingRaceError)
     in
     { model | result = result }
 
@@ -373,10 +379,16 @@ viewBody { trainingPaces, dragging, status, raceDistance, raceDuration, level, r
 
 
 config =
-    { sliderHeight = 600
-    , maxPace = 8 * 60
-    , minPace = 4 * 60
+    { maxPace = 8 * 60
     , trainingPaceListId = "training-pace-list"
+    }
+
+
+strings =
+    { loadError = "There was an issue loading your settings, please try again."
+    , invalidTimeError = "Please enter a valid time."
+    , invalidDistanceError = "Please select a distance."
+    , missingRaceError = "Please enter a recent race."
     }
 
 

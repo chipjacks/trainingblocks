@@ -8,14 +8,23 @@ class SettingsController < ApplicationController
 
     respond_to do |format|
       format.html
-      format.json { render json: { paces: current_user.setting.paces } }
+      format.json { render json: current_user.setting.as_json(only: required_fields) }
     end
   end
 
   def update
-    current_user.setting.paces = params[:paces]
-    current_user.setting.save
+    current_user.setting.update!(setting_params)
 
     render json: { ok: true }
   end
+
+  private
+
+    def setting_params
+      params.permit(*required_fields)
+    end
+
+    def required_fields
+      %w(paces race_distance race_duration level)
+    end
 end

@@ -40,6 +40,9 @@ ActiveRecord::Schema.define(version: 2021_07_01_184905) do
   create_table "settings", force: :cascade do |t|
     t.bigint "user_id"
     t.json "paces"
+    t.string "race_distance"
+    t.integer "race_duration"
+    t.integer "level"
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.index ["user_id"], name: "index_settings_on_user_id", unique: true

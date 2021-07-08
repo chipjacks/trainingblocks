@@ -21,7 +21,7 @@ class SettingsController < ApplicationController
   private
 
     def setting_params
-      params.permit(*required_fields)
+      params.permit([ { paces: [ :name, :pace ] }, :race_distance, :race_duration, :level ])
     end
 
     def required_fields

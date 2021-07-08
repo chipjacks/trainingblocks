@@ -5,6 +5,7 @@ import Activity.Types exposing (RaceDistance)
 import ActivityForm
 import Api
 import Browser
+import Duration
 import Duration.View
 import Html exposing (Html, text)
 import Html.Attributes exposing (class, style)
@@ -42,7 +43,7 @@ main =
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( Model (initPaces []) Nothing Nothing initRaceDuration (Err "") Loading (Err "")
+    ( Model (initPaces []) Nothing Nothing (initRaceDuration Nothing) (Err "") Loading (Err "")
     , Task.attempt GotSettings Api.getSettings
     )
 
@@ -60,8 +61,13 @@ initPaces paces =
         |> Selection.init
 
 
-initRaceDuration =
-    Validate.init Validate.parseDuration 0 ( "", "", "" )
+initRaceDuration secsM =
+    case secsM of
+        Just secs ->
+            Validate.init Validate.parseDuration secs (Duration.toHrsMinsSecs secs |> (\( h, m, s ) -> ( String.fromInt h, String.fromInt m, String.fromInt s )))
+
+        Nothing ->
+            Validate.init Validate.parseDuration 0 ( "", "", "" )
 
 
 type alias Model =
@@ -126,7 +132,13 @@ update msg model =
                     { model | status = Error strings.loadError }
 
                 Ok settings ->
-                    { model | status = Success, trainingPaces = initPaces settings.paces }
+                    { model
+                        | status = Success
+                        , trainingPaces = initPaces settings.paces
+                        , raceDistance = Just settings.raceDistance
+                        , raceDuration = initRaceDuration (Just settings.raceDuration)
+                    }
+                        |> updateLevel
                         |> updateResult
             , Cmd.none
             )

@@ -334,42 +334,41 @@ maxWidthForMobile =
 
 viewBody : Model -> Html Msg
 viewBody { trainingPaces, dragging, status, raceDistance, raceDuration, level, result } =
+    let
+        headerMargin =
+            style "margin" "20px 0 5px 0"
+    in
     column [ style "margin" "5px" ]
-        [ row [ style "justify-content" "space-between", style "flex-wrap" "wrap-reverse" ]
+        [ row []
+            [ viewStatusMessage status result
+            , viewSaveButton status result
+            ]
+        , row [ style "justify-content" "space-around", style "flex-wrap" "wrap" ]
             [ compactColumn [ maxWidthForMobile ]
-                [ row [ style "align-items" "flex-end" ]
-                    [ Html.h3 [ style "margin-bottom" "0.5rem", style "margin-right" "10px" ] [ Html.text "Training Paces" ]
-                    ]
-                , Html.text "Add custom paces to match your workouts and training plan."
-                , row [ style "align-items" "center", style "margin-top" "10px", style "margin-bottom" "10px" ]
-                    [ Html.a
-                        [ Html.Attributes.href "https://www.rundoyen.com/running-pace-calculator/"
-                        , Html.Attributes.target "_blank"
-                        , style "display" "flex"
-                        , style "align-items" "center"
-                        ]
-                        [ Html.text "Calculator"
-                        , MonoIcons.icon (MonoIcons.externalLink "var(--blue-500)")
-                        ]
-                    ]
-                , row []
-                    [ column [ styleIf (status == Posted) "opacity" "0.5" ]
-                        [ viewTrainingPaces dragging (Selection.selectedIndex trainingPaces) (Selection.toList trainingPaces)
-                        , viewIf (status /= Loading) viewAddButton
-                        ]
-                    , viewMaybe dragging (\d -> viewDraggedPace d trainingPaces)
-                    , column [] []
-                    ]
-                ]
-            , compactColumn [ maxWidthForMobile ]
-                [ Html.h3 [ style "margin-bottom" "0.5rem", style "margin-right" "10px" ] [ Html.text "Recent Race" ]
+                [ Html.h3 [ headerMargin ] [ Html.text "Recent Race" ]
                 , Html.text "Enter a recent race time to calculate your fitness level."
-                , viewRecentRaceInput raceDuration raceDistance
+                , row [] [ viewRecentRaceInput raceDuration raceDistance ]
                 , viewLevelResult level
                 ]
             , compactColumn [ maxWidthForMobile ]
-                [ viewSaveButton status result
-                , viewStatusMessage status result
+                [ row [ style "align-items" "flex-end" ]
+                    [ Html.h3 [ headerMargin ] [ Html.text "Standard Paces" ]
+                    ]
+                , Html.text "These paces will be used to adjust your log to your current fitness level."
+                , viewStandardPaces level
+                ]
+            , compactColumn [ maxWidthForMobile ]
+                [ row [ style "align-items" "flex-end" ]
+                    [ Html.h3 [ headerMargin ] [ Html.text "Custom Paces" ]
+                    ]
+                , Html.text "Add additional paces used in your workouts and training plan."
+                , row [ style "margin-top" "10px", style "margin-bottom" "30px" ]
+                    [ column [ styleIf (status == Posted) "opacity" "0.5" ]
+                        [ viewTrainingPaces dragging (Selection.selectedIndex trainingPaces) (Selection.toList trainingPaces)
+                        , viewIf (status /= Loading) viewAddButton
+                        , viewMaybe dragging (\d -> viewDraggedPace d trainingPaces)
+                        ]
+                    ]
                 ]
             ]
         ]
@@ -392,7 +391,7 @@ strings =
 
 viewStatusMessage : FormStatus -> Result String Settings -> Html Msg
 viewStatusMessage status result =
-    row [ style "justify-content" "flex-end", style "color" "var(--red-700)" ]
+    column [ style "color" "var(--orange-500)", style "justify-content" "center", style "margin-left" "10px" ]
         (case ( status, result ) of
             ( Error string, _ ) ->
                 [ text string ]
@@ -407,7 +406,7 @@ viewStatusMessage status result =
 
 viewSaveButton : FormStatus -> Result String Settings -> Html Msg
 viewSaveButton status result =
-    row [ style "justify-content" "flex-end", style "margin-top" "1rem", style "min-width" "6rem" ]
+    compactColumn [ style "align-items" "flex-end", style "margin-top" "10px", style "min-width" "6rem" ]
         [ case ( status, result ) of
             ( Posted, _ ) ->
                 UI.spinner "2rem"
@@ -424,6 +423,34 @@ viewSaveButton status result =
                 Button.action "Save" MonoIcons.check NoOp
                     |> Button.withAppearance Button.Large Button.Subtle Button.Bottom
                     |> Button.view
+        ]
+
+
+viewStandardPaces : Result String Int -> Html msg
+viewStandardPaces levelR =
+    let
+        paces =
+            Result.map
+                (\level ->
+                    Pace.standardPaces ( MPRLevel.Neutral, level )
+                        |> List.map Tuple.second
+                        |> List.map Pace.paceToString
+                )
+                levelR
+                |> Result.withDefault (List.repeat (List.length Pace.standardPace.list) "")
+    in
+    row [ style "margin-top" "10px", style "margin-bottom" "10px" ]
+        [ compactColumn []
+            (List.map2
+                (\name pace ->
+                    row [ style "margin-top" "8px", style "padding-bottom" "5px", borderStyle "border-bottom", style "min-width" "200px" ]
+                        [ column [] [ text name ]
+                        , column [ style "align-items" "flex-end" ] [ text pace ]
+                        ]
+                )
+                (Pace.standardPace.list |> List.drop 1 |> List.map Tuple.first)
+                paces
+            )
         ]
 
 
@@ -524,7 +551,7 @@ viewLevelResult level =
                 Err err ->
                     ( "var(--orange-500)", err )
     in
-    row [ style "color" color, style "margin-top" "0.5rem", style "margin-bottom" "0.5rem", style "height" "1rem" ] [ Html.text str ]
+    row [ style "color" color, style "margin-top" "5px", style "height" "1rem" ] [ Html.text str ]
 
 
 viewRecentRaceInput : Validate.Field ( String, String, String ) Int -> Maybe RaceDistance -> Html Msg
@@ -533,12 +560,13 @@ viewRecentRaceInput raceDuration raceDistance =
         ( hrs, mins, secs ) =
             raceDuration.value
     in
-    row [ style "margin-top" "10px" ]
-        [ column []
-            [ UI.Label.input "DISTANCE" |> UI.Label.view
-            , UI.Select.select SelectedRaceDistance ("" :: (Activity.raceDistance.list |> List.filter (\( _, dist ) -> dist /= Activity.Types.OtherDistance) |> List.map Tuple.first))
-                |> UI.Select.view (raceDistance |> Maybe.map Activity.raceDistance.toString |> Maybe.withDefault "")
+    column [ style "margin-top" "10px" ]
+        [ row []
+            [ compactColumn []
+                [ UI.Label.input "DISTANCE" |> UI.Label.view
+                , UI.Select.select SelectedRaceDistance ("" :: (Activity.raceDistance.list |> List.filter (\( _, dist ) -> dist /= Activity.Types.OtherDistance) |> List.map Tuple.first))
+                    |> UI.Select.view (raceDistance |> Maybe.map Activity.raceDistance.toString |> Maybe.withDefault "")
+                ]
             ]
-        , compactColumn [ style "width" "10px" ] []
-        , Duration.View.input EditedDuration ( hrs, mins, secs )
+        , row [ style "margin-top" "10px" ] [ Duration.View.input EditedDuration ( hrs, mins, secs ) ]
         ]

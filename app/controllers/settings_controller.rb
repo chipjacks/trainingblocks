@@ -1,9 +1,9 @@
 class SettingsController < ApplicationController
   before_action :authenticate_user!
 
-  def index
+  def show
     if !current_user.setting
-      current_user.create_setting({ paces: []})
+      current_user.create_setting()
     end
 
     respond_to do |format|

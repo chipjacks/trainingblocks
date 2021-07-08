@@ -1,4 +1,4 @@
-module Api exposing (errorString, getActivities, getActivitiesResolver, getSettings, postActivities, postSettings)
+module Api exposing (errorString, getActivities, getActivitiesResolver, getSettings, postActivities, putSettings)
 
 import Activity
 import Activity.Types exposing (Activity)
@@ -84,10 +84,15 @@ settingsRoute =
 
 
 getSettingsResolver =
-    handleJsonResponse Settings.decoder
+    handleJsonResponse
+        (Decode.oneOf
+            [ Settings.decoder |> Decode.map Just
+            , Decode.succeed Nothing
+            ]
+        )
 
 
-getSettings : Task Http.Error Settings
+getSettings : Task Http.Error (Maybe Settings)
 getSettings =
     Http.task
         { method = "GET"
@@ -99,10 +104,10 @@ getSettings =
         }
 
 
-postSettings : Settings -> Task Http.Error Bool
-postSettings settings =
+putSettings : Settings -> Task Http.Error Bool
+putSettings settings =
     Http.task
-        { method = "POST"
+        { method = "PUT"
         , headers = [ Http.header "Content-Type" "application/json" ]
         , url = settingsRoute
         , body =

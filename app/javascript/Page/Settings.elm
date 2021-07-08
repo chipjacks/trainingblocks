@@ -98,7 +98,7 @@ type FormStatus
 
 type Msg
     = ClickedSave Settings
-    | GotSettings (Result Http.Error Settings)
+    | GotSettings (Result Http.Error (Maybe Settings))
     | PostedSettings Settings (Result Http.Error Bool)
     | EditedPace Int String
     | EditedName Int String
@@ -119,7 +119,7 @@ update msg model =
     case msg of
         ClickedSave settings ->
             ( { model | status = Posted }
-            , Task.attempt (PostedSettings settings) (Api.postSettings settings)
+            , Task.attempt (PostedSettings settings) (Api.putSettings settings)
             )
 
         GotSettings result ->
@@ -131,7 +131,7 @@ update msg model =
                     in
                     { model | status = Error strings.loadError }
 
-                Ok settings ->
+                Ok (Just settings) ->
                     { model
                         | status = Success
                         , trainingPaces = initPaces settings.paces
@@ -140,6 +140,9 @@ update msg model =
                     }
                         |> updateLevel
                         |> updateResult
+
+                Ok Nothing ->
+                    { model | status = Success }
             , Cmd.none
             )
 

@@ -43,7 +43,7 @@ type alias StoreData =
 type Msg
     = LoadToday Date
     | GotActivities (Result Http.Error ( String, List Activity ))
-    | GotSettings (Result Http.Error Settings)
+    | GotSettings (Result Http.Error (Maybe Settings))
     | FetchedEmojis (Result Http.Error (List EmojiData))
     | VisibilityChange Events.Visibility
     | KeyPressed String

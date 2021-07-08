@@ -329,7 +329,7 @@ view model =
 
 
 maxWidthForMobile =
-    style "width" "310px"
+    style "width" config.mobileWidth
 
 
 viewBody : Model -> Html Msg
@@ -362,10 +362,7 @@ viewBody { trainingPaces, dragging, status, raceDistance, raceDuration, level, r
                     ]
                 ]
             , compactColumn [ maxWidthForMobile ]
-                [ Html.h3 [ style "margin-bottom" "0.5rem", style "margin-right" "10px" ] [ Html.text "Strava Account" ]
-                , Html.text "Sign in with Strava to import your activities."
-                , Html.div [ style "color" "var(--green-900)", style "margin-top" "0.5rem" ] [ Html.text "Connected ✓" ]
-                , Html.h3 [ style "margin-bottom" "0.5rem", style "margin-right" "10px" ] [ Html.text "Fitness Level" ]
+                [ Html.h3 [ style "margin-bottom" "0.5rem", style "margin-right" "10px" ] [ Html.text "Recent Race" ]
                 , Html.text "Enter a recent race time to calculate your fitness level."
                 , viewRecentRaceInput raceDuration raceDistance
                 , viewLevelResult level
@@ -381,6 +378,7 @@ viewBody { trainingPaces, dragging, status, raceDistance, raceDuration, level, r
 config =
     { maxPace = 8 * 60
     , trainingPaceListId = "training-pace-list"
+    , mobileWidth = "310px"
     }
 
 
@@ -446,6 +444,7 @@ viewPaceForm index { name, pace, dropTarget, ordered } =
         , style "margin-bottom" "5px"
         , class "drop-target"
         , styleIf dropTarget "visibility" "hidden"
+        , style "align-items" "center"
         , Html.Attributes.attribute "data-drop-id" (String.fromInt index)
         ]
         [ Button.action "Drag" MonoIcons.drag NoOp
@@ -453,12 +452,12 @@ viewPaceForm index { name, pace, dropTarget, ordered } =
                 [ class "row__button--drag"
                 , Html.Events.on "pointerdown" (Decode.map (ClickedDragPace index) (Decode.field "pointerId" Decode.int))
                 ]
-            |> Button.withAppearance Button.Small Button.Subtle Button.None
+            |> Button.withAppearance Button.Tiny Button.Subtle Button.None
             |> Button.view
         , UI.Input.text (EditedName index)
             |> UI.Input.withResultError name.result
             |> UI.Input.view name.value
-        , compactColumn [ style "width" "10px" ] []
+        , compactColumn [ style "width" "5px" ] []
         , UI.Input.pace (EditedPace index)
             |> (\input ->
                     case ( pace.result, ordered ) of
@@ -507,7 +506,7 @@ viewDraggedPace ( x, y ) trainingPaces =
 
 viewAddButton : Html Msg
 viewAddButton =
-    row [ style "justify-content" "flex-end" ]
+    row []
         [ Button.action "Add Pace" MonoIcons.add ClickedAddPace
             |> Button.withAppearance Button.Small Button.Subtle Button.Right
             |> Button.view

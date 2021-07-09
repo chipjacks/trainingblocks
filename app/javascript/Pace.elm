@@ -21,7 +21,15 @@ calculate duration distance =
 
 paceToString : Int -> String
 paceToString seconds =
-    Duration.toString seconds
+    let
+        result =
+            Duration.toString seconds
+    in
+    if String.contains ":" result then
+        result
+
+    else
+        result ++ ":00"
 
 
 paceFromString : String -> Maybe Int

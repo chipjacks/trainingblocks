@@ -11,6 +11,7 @@ import Duration.View
 import Html exposing (Html, text)
 import Html.Attributes exposing (class, style)
 import Html.Events
+import Html.Keyed
 import Http
 import Json.Decode as Decode
 import MPRLevel
@@ -406,14 +407,26 @@ viewStatusMessage status result =
     column [ style "color" "var(--orange-500)", style "justify-content" "center", style "margin-left" "10px" ]
         (case ( status, result ) of
             ( Error string, _ ) ->
-                [ text string ]
+                [ viewDelayedMessage string (text string) ]
 
             ( _, Err string ) ->
-                [ text string ]
+                [ viewDelayedMessage string (text string) ]
 
             _ ->
                 []
         )
+
+
+viewDelayedMessage : String -> Html msg -> Html msg
+viewDelayedMessage key content =
+    Html.Keyed.node "div"
+        []
+        [ ( key
+          , Html.div
+                [ style "animation" "appear 0.5s ease 1s", style "animation-fill-mode" "backwards" ]
+                [ content ]
+          )
+        ]
 
 
 viewSaveButton : FormStatus -> Result String Settings -> Html Msg
@@ -563,7 +576,8 @@ viewLevelResult level =
                 Err err ->
                     ( "var(--orange-500)", err )
     in
-    row [ style "color" color, style "margin-top" "5px", style "height" "1rem" ] [ Html.text str ]
+    viewDelayedMessage str
+        (Html.div [ style "color" color, style "margin-top" "5px", style "height" "1rem" ] [ Html.text str ])
 
 
 viewRecentRaceInput : Validate.Field ( String, String, String ) Int -> Maybe RaceDistance -> Html Msg

@@ -175,14 +175,18 @@ select:focus { border-color: var(--blue-300); outline: none; }
 
 .modal {
   position: fixed;
-  top: Min(10%, 10rem);
-  height: Min(90%, 35rem);
-  width: Min(100%, 40rem);
+  top: 140px;
+  height: 560px;
+  max-height: 100%;
+  width: 398px;
+  max-width: 100%;
   background-color: white;
   z-index: 11;
   animation: slidein-bottom 0.5s;
   border-radius: 5px;
 }
+
+@media screen and (max-height: 700px) { .modal { top: 0; height: 100%; } }
 
 .dimmer {
   position: absolute;

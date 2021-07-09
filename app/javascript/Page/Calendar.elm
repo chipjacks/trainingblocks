@@ -855,15 +855,18 @@ viewUndoToastM : Maybe ( Int, String, Msg ) -> Html Msg
 viewUndoToastM eventM =
     viewMaybe eventM
         (\( stackHeight, name, msg ) ->
-            UI.Toast.view False stackHeight <|
-                row []
-                    [ text name
-                    , Html.a
-                        [ Html.Events.onClick msg
-                        , style "margin-left" "0.5rem"
+            UI.Toast.bottom
+                |> UI.Toast.withStackHeight stackHeight
+                |> UI.Toast.view
+                    (row []
+                        [ text name
+                        , Html.a
+                            [ Html.Events.onClick msg
+                            , style "margin-left" "0.5rem"
+                            ]
+                            [ text "Undo" ]
                         ]
-                        [ text "Undo" ]
-                    ]
+                    )
         )
 
 

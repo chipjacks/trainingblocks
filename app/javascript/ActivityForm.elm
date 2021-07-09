@@ -589,8 +589,10 @@ view configs activityM =
     case activityM of
         Editing model ->
             if model.date == Nothing then
-                UI.Toast.view True 1 <|
-                    row [] [ text "Select Date" ]
+                UI.Toast.top
+                    |> UI.Toast.withAttributes [ style "top" "70px" ]
+                    |> UI.Toast.view
+                        (row [] [ text "Select Date" ])
 
             else
                 row [ class "dimmer", stopPropagationOnClick (Decode.succeed ClickedClose) ]

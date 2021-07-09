@@ -30,6 +30,7 @@ import UI.Layout exposing (column, compactColumn, expandingRow, row)
 import UI.Navbar as Navbar
 import UI.Select
 import UI.Skeleton as Skeleton
+import UI.Toast
 import UI.Util exposing (attributeIf, attributeMaybe, borderStyle, onPointerMove, styleIf, viewIf, viewMaybe)
 import Validate exposing (Field)
 
@@ -352,9 +353,9 @@ viewBody { trainingPaces, dragging, status, raceDistance, raceDuration, level, r
             style "margin" "20px 0 5px 0"
     in
     column [ style "margin" "5px" ]
-        [ row []
-            [ viewStatusMessage status result
-            , viewSaveButton status result
+        [ viewStatusMessage status result
+        , row [ style "justify-content" "flex-end" ]
+            [ viewSaveButton status result
             ]
         , row [ style "justify-content" "space-around", style "flex-wrap" "wrap" ]
             [ compactColumn [ maxWidthForMobile ]
@@ -404,17 +405,21 @@ strings =
 
 viewStatusMessage : FormStatus -> Result String Settings -> Html Msg
 viewStatusMessage status result =
-    column [ style "color" "var(--orange-500)", style "justify-content" "center", style "margin-left" "10px" ]
-        (case ( status, result ) of
-            ( Error string, _ ) ->
-                [ viewDelayedMessage string (text string) ]
+    let
+        viewMessage str =
+            UI.Toast.top
+                |> UI.Toast.view (text str)
+                |> viewDelayedMessage str
+    in
+    case ( status, result ) of
+        ( Error string, _ ) ->
+            viewMessage string
 
-            ( _, Err string ) ->
-                [ viewDelayedMessage string (text string) ]
+        ( _, Err string ) ->
+            viewMessage string
 
-            _ ->
-                []
-        )
+        _ ->
+            text ""
 
 
 viewDelayedMessage : String -> Html msg -> Html msg

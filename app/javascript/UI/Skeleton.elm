@@ -25,7 +25,7 @@ defaultContainer : Html msg -> Html msg
 defaultContainer =
     \body ->
         expandingRow [ style "overflow-y" "scroll" ]
-            [ column [ class "container" ]
+            [ column [ class "container", style "position" "relative" ]
                 [ body ]
             ]
 

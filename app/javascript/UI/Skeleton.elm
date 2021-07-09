@@ -48,7 +48,7 @@ withBody body config =
 view : Config msg -> Html msg
 view { navbar, container, body } =
     column
-        [ style "height" "100vh", style "width" "100vw", style "position" "absolute" ]
+        [ style "height" "100%", style "width" "100%", style "position" "absolute" ]
         [ navbar
         , container body
         ]

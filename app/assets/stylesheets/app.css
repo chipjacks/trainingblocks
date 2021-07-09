@@ -51,8 +51,6 @@
 */
 
 /* CONTAINERS */
-html, body { overflow: hidden; margin: 0; }
-body { width: 100vw; height: 100vh; }
 @media screen and (max-width: 340px) { html { font-size: 14px; } }
 @media screen and (max-width: 390px) { html { font-size: 15px; } }
 .container { max-width: 1000px; min-width: 300px; margin-left: auto; margin-right: auto;}
@@ -86,6 +84,7 @@ input:focus { border-color: var(--blue-300); outline: 0; }
 select { border: 1px solid var(--grey-300); border-radius: 0.25rem; padding: 0.45rem; font-size: 1rem; }
 select.input-small { padding: 0.3rem; }
 select:focus { border-color: var(--blue-300); outline: none; }
+
 .button {
   position: relative;
   height: min-content;
@@ -176,9 +175,9 @@ select:focus { border-color: var(--blue-300); outline: none; }
 
 .modal {
   position: fixed;
-  top: Min(10vh, 10rem);
-  height: Min(90vh, 35rem);
-  width: Min(100vw, 40rem);
+  top: Min(10%, 10rem);
+  height: Min(90%, 35rem);
+  width: Min(100%, 40rem);
   background-color: white;
   z-index: 11;
   animation: slidein-bottom 0.5s;
@@ -190,7 +189,7 @@ select:focus { border-color: var(--blue-300); outline: none; }
   top: 0;
   right: 0;
   left: 0;
-  height: 100%;
+  bottom: 0;
   background-color: rgba(0,0,0,0.5);
   display: flex;
   justify-content: center;

@@ -10,7 +10,7 @@ import UI.Layout exposing (column, compactColumn, row)
 input : (( String, String, String ) -> msg) -> ( String, String, String ) -> Html msg
 input msg ( hrs, mins, secs ) =
     row []
-        [ compactColumn [ style "width" "2.5rem" ]
+        [ compactColumn [ style "width" "3rem" ]
             [ UI.Label.input "HOURS" |> UI.Label.view
             , UI.Input.number (\h -> msg ( h, mins, secs )) 9
                 |> UI.Input.withAttributes

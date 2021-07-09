@@ -609,9 +609,9 @@ view configs activityM =
                             , compactColumn
                                 [ style "position" "absolute"
                                 , style "top" "0"
+                                , style "bottom" "0"
                                 , style "z-index" "5"
                                 , style "background-color" "white"
-                                , style "height" "100%"
                                 , style "transition" "right 0.5s"
                                 , if model.editingLap then
                                     style "right" "0"
@@ -742,7 +742,7 @@ viewActivityFields emojis form =
     in
     column []
         [ row [ style "margin-bottom" "10px" ]
-            [ column [ maxFieldWidth ] [ dateSelect ClickedMove form.date ]
+            [ column [ maxFieldWidth ] [ row [] [ dateSelect ClickedMove form.date ] ]
             , column [ style "align-items" "flex-end" ] [ Actions.viewFormActions ]
             ]
         , row [ style "max-width" "40rem" ]
@@ -756,28 +756,30 @@ viewLapFields ({ emojis } as configs) form =
     let
         maxFieldWidth =
             style "max-width" "20rem"
+
+        marginTop =
+            style "margin-top" "10px"
     in
     column
-        [ style "justify-content" "space-between"
-        , style "max-height" "25rem"
+        [ style "max-height" "25rem"
         , style "flex-grow" "5"
         , style "padding-bottom" "1rem"
         ]
-        [ row []
+        [ expandingRow []
             [ column [ maxFieldWidth ] [ Actions.viewLapActions True ] ]
-        , row []
+        , expandingRow [ marginTop ]
             [ column [ maxFieldWidth, style "flex-grow" "2" ] [ activityTypeSelect SelectedActivityType form.activityType ]
             , column [ maxFieldWidth, style "flex-grow" "1" ] [ repeatsInput EditedRepeats form.repeats form.validated.repeats ]
             ]
-        , row []
+        , expandingRow [ marginTop ]
             [ column [ maxFieldWidth, style "flex-grow" "2" ] [ durationInput EditedDuration form.duration ]
             , column [ maxFieldWidth, style "flex-grow" "1" ] [ effortSelect SelectedEffort form.effort ]
             ]
-        , row []
+        , expandingRow [ marginTop ]
             [ column [ maxFieldWidth, style "flex-grow" "2", styleIf (form.activityType /= Activity.Types.Run) "visibility" "hidden" ] [ distanceInput EditedDistance form.distance form.distanceUnits form.validated.distance ]
             , column [ maxFieldWidth, style "flex-grow" "1" ] [ emojiSelect SelectedEmoji emojis form.emoji form.emojiSearch ]
             ]
-        , row [ styleIf (form.activityType /= Activity.Types.Run) "visibility" "hidden" ]
+        , expandingRow [ marginTop, styleIf (form.activityType /= Activity.Types.Run) "visibility" "hidden" ]
             [ column [ maxFieldWidth, style "flex-grow" "2" ] [ paceSelect configs EditedPace form.pace form.validated.pace ]
             , column [ maxFieldWidth, style "flex-grow" "1" ] [ raceToggle CheckedRace form.race ]
             ]

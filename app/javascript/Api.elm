@@ -1,24 +1,22 @@
-module Api exposing (errorString, getActivities, getActivitiesResolver, postActivities)
+module Api exposing (errorString, getActivities, getActivitiesResolver, getSettings, postActivities, putSettings)
 
 import Activity
 import Activity.Types exposing (Activity)
 import Http
 import Json.Decode as Decode
 import Json.Encode as Encode
+import Pace.List exposing (PaceList)
+import Settings exposing (Settings)
 import Task exposing (Task)
 import Time exposing (Month(..))
 
 
 
--- CONFIG
+-- ACTIVITIES
 
 
-storeUrl =
+activitiesRoute =
     "/activities"
-
-
-
--- ROUTES
 
 
 getActivitiesResolver =
@@ -33,7 +31,7 @@ getActivities =
     Http.task
         { method = "GET"
         , headers = [ Http.header "Content-Type" "application/json" ]
-        , url = storeUrl
+        , url = activitiesRoute
         , body = Http.emptyBody
         , resolver = Http.stringResolver <| getActivitiesResolver
         , timeout = Nothing
@@ -58,7 +56,7 @@ postActivities revision orderUpdates activityUpdates =
     Http.task
         { method = "POST"
         , headers = [ Http.header "Content-Type" "application/json" ]
-        , url = storeUrl
+        , url = activitiesRoute
         , body =
             Http.jsonBody
                 (Encode.object
@@ -73,6 +71,52 @@ postActivities revision orderUpdates activityUpdates =
                     Decode.map2 Tuple.pair
                         (Decode.field "rev" Decode.string)
                         (Decode.field "ok" Decode.bool)
+        , timeout = Nothing
+        }
+
+
+
+-- SETTINGS
+
+
+settingsRoute =
+    "/settings"
+
+
+getSettingsResolver =
+    handleJsonResponse
+        (Decode.oneOf
+            [ Settings.decoder |> Decode.map Just
+            , Decode.succeed Nothing
+            ]
+        )
+
+
+getSettings : Task Http.Error (Maybe Settings)
+getSettings =
+    Http.task
+        { method = "GET"
+        , headers = [ Http.header "Content-Type" "application/json" ]
+        , url = settingsRoute ++ ".json"
+        , body = Http.emptyBody
+        , resolver = Http.stringResolver <| getSettingsResolver
+        , timeout = Nothing
+        }
+
+
+putSettings : Settings -> Task Http.Error Bool
+putSettings settings =
+    Http.task
+        { method = "PUT"
+        , headers = [ Http.header "Content-Type" "application/json" ]
+        , url = settingsRoute
+        , body =
+            Http.jsonBody
+                (Settings.encoder settings)
+        , resolver =
+            Http.stringResolver <|
+                handleJsonResponse <|
+                    Decode.field "ok" Decode.bool
         , timeout = Nothing
         }
 

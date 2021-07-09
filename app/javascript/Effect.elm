@@ -23,6 +23,7 @@ type Effect
         , activityUpdates : List ( String, Activity )
         }
     | GetActivities
+    | GetSettings
     | FetchEmojis
     | DateToday (Date.Date -> Msg)
     | ScrollToSelectedDate
@@ -46,6 +47,9 @@ perform effect =
 
         GetActivities ->
             Task.attempt GotActivities Api.getActivities
+
+        GetSettings ->
+            Task.attempt GotSettings Api.getSettings
 
         FetchEmojis ->
             Task.attempt FetchedEmojis EmojiData.Fetch.task

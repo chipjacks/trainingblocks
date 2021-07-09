@@ -5,6 +5,10 @@ Rails.application.routes.draw do
 
   root to: "home#index"
 
+  get 'calendar', to: 'calendar#index'
+
+  resource :settings, only: [:show, :update]
+
   get 'activities', to: 'activities#index'
   post 'activities', to: 'activities#batch_update'
 

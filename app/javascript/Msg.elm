@@ -8,7 +8,9 @@ import Date exposing (Date)
 import Emoji exposing (EmojiDict)
 import EmojiData exposing (EmojiData)
 import Http
-import Pace exposing (TrainingPace, TrainingPaceList)
+import Pace exposing (StandardPace)
+import Pace.List exposing (PaceList)
+import Settings exposing (Settings)
 import Store.History exposing (History)
 
 
@@ -26,7 +28,8 @@ type ActivityState
 
 
 type alias ActivityConfigs =
-    { paces : Maybe TrainingPaceList
+    { paces : PaceList StandardPace
+    , customPaces : PaceList String
     , emojis : EmojiDict
     }
 
@@ -34,13 +37,13 @@ type alias ActivityConfigs =
 type alias StoreData =
     { activities : List Activity
     , revision : String
-    , configs : ActivityConfigs
     }
 
 
 type Msg
     = LoadToday Date
     | GotActivities (Result Http.Error ( String, List Activity ))
+    | GotSettings (Result Http.Error (Maybe Settings))
     | FetchedEmojis (Result Http.Error (List EmojiData))
     | VisibilityChange Events.Visibility
     | KeyPressed String
@@ -88,6 +91,7 @@ type Msg
     | SelectedActivityType Activity.Types.ActivityType
     | EditedDuration ( String, String, String )
     | SelectedEffort (Maybe Activity.Types.Effort)
+    | EditedPace String
     | SelectedPace String
     | CheckedRace
     | ClickedSubmit

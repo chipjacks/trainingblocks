@@ -7,8 +7,9 @@ import EmojiData exposing (EmojiData)
 import Html exposing (Html, div)
 import Html.Attributes exposing (class, style)
 import Msg exposing (ActivityConfigs)
-import Pace exposing (TrainingPace)
-import Skeleton exposing (column, row, styleIf, viewMaybe)
+import Pace exposing (StandardPace)
+import UI.Layout exposing (column, row)
+import UI.Util exposing (styleIf, viewMaybe)
 
 
 type Shape
@@ -28,7 +29,7 @@ view : ActivityConfigs -> ActivityData -> Html msg
 view { paces, emojis } data =
     let
         width paceM =
-            Maybe.map2 Pace.secondsToTrainingPace paces paceM
+            Maybe.map (Pace.secondsToStandardPace paces) paceM
                 |> Maybe.withDefault Pace.Easy
                 |> toWidth
 
@@ -133,7 +134,7 @@ toHeight duration =
     toFloat duration / 600
 
 
-toWidth : TrainingPace -> Float
+toWidth : StandardPace -> Float
 toWidth pace =
     case pace of
         Pace.VeryEasy ->

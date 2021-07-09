@@ -24,13 +24,7 @@ type Model
 
 init : String -> List Activity -> Model
 init revision activities =
-    let
-        configs =
-            { paces = Nothing
-            , emojis = Dict.empty
-            }
-    in
-    Model (StoreData activities revision configs |> updatePaces) History.init
+    Model (StoreData activities revision) History.init
 
 
 get : Model -> (StoreData -> b) -> b
@@ -86,15 +80,12 @@ updateState msg state =
     case msg of
         Create activity ->
             { state | activities = updateActivity activity True state.activities }
-                |> updatePaces
 
         Update activity ->
             { state | activities = updateActivity activity False state.activities }
-                |> updatePaces
 
         Delete activity ->
             { state | activities = List.filter (\a -> a.id /= activity.id) state.activities }
-                |> updatePaces
 
         Group activities session ->
             let
@@ -121,30 +112,6 @@ updateState msg state =
 
         _ ->
             state
-
-
-updatePaces : StoreData -> StoreData
-updatePaces state =
-    let
-        levelM =
-            state.activities
-                |> List.filterMap Activity.mprLevel
-                |> List.reverse
-                |> List.head
-
-        trainingPacesM =
-            levelM
-                |> Maybe.andThen
-                    (\level ->
-                        Pace.trainingPaces ( MPRLevel.Neutral, level )
-                    )
-    in
-    updateConfigs (\c -> { c | paces = trainingPacesM }) state
-
-
-updateConfigs : (ActivityConfigs -> ActivityConfigs) -> StoreData -> StoreData
-updateConfigs transform state =
-    { state | configs = transform state.configs }
 
 
 update : Msg -> Model -> ( Model, Effect )
@@ -191,23 +158,12 @@ update msg (Model state history) =
                     let
                         newState =
                             List.foldr (\rmsg rs -> updateState rmsg rs) { state | activities = activities, revision = revision } (History.events history)
-                                |> updatePaces
                     in
                     ( Model newState history
                     , debounceFlush (History.version history)
                     )
 
                 Err _ ->
-                    ( model, Effect.None )
-
-        FetchedEmojis result ->
-            case result of
-                Ok emojis ->
-                    ( Model (updateConfigs (\c -> { c | emojis = Emoji.toDict emojis }) state) history
-                    , Effect.None
-                    )
-
-                _ ->
                     ( model, Effect.None )
 
         Undo ( prevMsg, prevState ) ->

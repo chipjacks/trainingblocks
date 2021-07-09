@@ -1,17 +1,17 @@
-module ActivityForm exposing (init, initMove, update, view)
+module ActivityForm exposing (durationInput, init, initMove, update, view)
 
-import Actions exposing (actionButton)
+import Actions
 import Activity
 import Activity.Laps
 import Activity.Types exposing (Activity, ActivityData, ActivityType, Completion(..), DistanceUnits(..), LapData(..))
 import Activity.View
-import ActivityForm.Selection as Selection
-import ActivityForm.Types exposing (ActivityForm, FieldError(..), Selection, ValidatedFields)
-import ActivityForm.Validate as Validate exposing (validate)
+import ActivityForm.Types exposing (ActivityForm, ValidatedFields)
+import ActivityForm.Validate exposing (validate)
 import ActivityShape
 import Date exposing (Date)
 import Distance
 import Duration
+import Duration.View
 import Effect exposing (Effect)
 import Emoji exposing (EmojiDict)
 import EmojiData exposing (EmojiData)
@@ -22,10 +22,19 @@ import Json.Decode as Decode
 import MPRLevel
 import MonoIcons
 import Msg exposing (ActivityConfigs, ActivityState(..), Msg(..))
-import Pace exposing (TrainingPaceList)
-import Skeleton exposing (attributeIf, borderStyle, column, compactColumn, expandingRow, iconButton, row, stopPropagationOnClick, styleIf, viewIf, viewMaybe)
+import Pace exposing (StandardPace)
+import Pace.List exposing (PaceList)
+import Selection exposing (Selection)
 import Store
 import Svg exposing (Svg)
+import UI exposing (iconButton)
+import UI.Input
+import UI.Label
+import UI.Layout exposing (column, compactColumn, expandingRow, row)
+import UI.Select
+import UI.Toast
+import UI.Util exposing (attributeIf, borderStyle, stopPropagationOnClick, styleIf, viewIf, viewMaybe)
+import Validate exposing (FieldError(..))
 
 
 init : Activity -> ActivityForm
@@ -108,7 +117,7 @@ initFromSelection activity editingLap completion laps repeatM =
     , editingLap = editingLap
     , laps = laps
     , repeat = newRepeatM
-    , validated = Validate.init
+    , validated = ActivityForm.Validate.init
     , date = Just activity.date
     , description = activity.description
     , repeats = Maybe.map String.fromInt countM
@@ -402,10 +411,19 @@ update msg model =
             , Effect.None
             )
 
-        SelectedPace str ->
+        EditedPace str ->
             ( updateActivity { model | pace = str }
             , Effect.None
             )
+
+        SelectedPace str ->
+            if str /= "" then
+                ( updateActivity { model | pace = str }
+                , Effect.None
+                )
+
+            else
+                ( model, Effect.None )
 
         EditedDistance dist ->
             ( updateActivity { model | distance = dist }
@@ -571,8 +589,10 @@ view configs activityM =
     case activityM of
         Editing model ->
             if model.date == Nothing then
-                Skeleton.toast True 1 <|
-                    row [] [ text "Select Date" ]
+                UI.Toast.top
+                    |> UI.Toast.withAttributes [ style "top" "70px" ]
+                    |> UI.Toast.view
+                        (row [] [ text "Select Date" ])
 
             else
                 row [ class "dimmer", stopPropagationOnClick (Decode.succeed ClickedClose) ]
@@ -625,7 +645,7 @@ viewLaps configs completed editingLap isAutofillable lapSelection repeatSelectio
         viewLap index lap =
             Activity.View.listItem
                 { titleM = Nothing
-                , subtitle = Activity.View.lapDescription configs.paces lap
+                , subtitle = Activity.View.lapDescription Nothing lap
                 , isActive = Selection.selectedIndex lapSelection == index
                 , handlePointerDown = Decode.succeed (SelectedLap index)
                 , handleDoubleClick = ClickedEdit
@@ -656,9 +676,9 @@ viewLaps configs completed editingLap isAutofillable lapSelection repeatSelectio
                     ]
                     [ completionToggle CheckedCompleted completed
                     , viewIf ((Selection.toList lapSelection |> List.isEmpty) && isAutofillable)
-                        (Html.button [ class "button medium", onClick ClickedAutofill ] [ text "Autofill" ])
+                        (Html.button [ class "button button--medium", onClick ClickedAutofill ] [ text "Autofill" ])
                     , viewIf (not (Selection.toList lapSelection |> List.isEmpty))
-                        (Html.button [ class "button medium", onClick ClickedClearLaps ] [ text "Clear" ])
+                        (Html.button [ class "button button--medium", onClick ClickedClearLaps ] [ text "Clear" ])
                     ]
               ]
             , Selection.toList lapSelection
@@ -732,7 +752,7 @@ viewActivityFields emojis form =
 
 
 viewLapFields : ActivityConfigs -> ActivityForm -> Html Msg
-viewLapFields { emojis, paces } form =
+viewLapFields ({ emojis } as configs) form =
     let
         maxFieldWidth =
             style "max-width" "20rem"
@@ -758,7 +778,7 @@ viewLapFields { emojis, paces } form =
             , column [ maxFieldWidth, style "flex-grow" "1" ] [ emojiSelect SelectedEmoji emojis form.emoji form.emojiSearch ]
             ]
         , row [ styleIf (form.activityType /= Activity.Types.Run) "visibility" "hidden" ]
-            [ column [ maxFieldWidth, style "flex-grow" "2" ] [ paceSelect paces SelectedPace form.pace form.validated.pace ]
+            [ column [ maxFieldWidth, style "flex-grow" "2" ] [ paceSelect configs EditedPace form.pace form.validated.pace ]
             , column [ maxFieldWidth, style "flex-grow" "1" ] [ raceToggle CheckedRace form.race ]
             ]
         ]
@@ -812,44 +832,34 @@ toActivityData model =
     }
 
 
-label : String -> Bool -> Msg -> Html Msg
+label : String -> Bool -> msg -> Html msg
 label name showClear onClear =
-    row []
-        [ Html.label
-            [ style "color" "var(--black-500)"
-            , style "font-size" "0.8rem"
-            ]
-            [ text name
-            ]
-        , viewIf showClear
-            (compactColumn
-                [ style "margin-left" "0.2rem"
-                , style "cursor" "pointer"
-                , style "margin-top" "-2px"
-                , style "margin-bottom" "-2px"
-                , onClick onClear
-                ]
-                [ MonoIcons.icon (MonoIcons.close "var(--grey-900)")
-                ]
-            )
-        ]
+    let
+        withOnClear =
+            if showClear then
+                UI.Label.withOnClear onClear
+
+            else
+                identity
+    in
+    UI.Label.field name
+        |> withOnClear
+        |> UI.Label.view
 
 
 descriptionInput : (String -> Msg) -> String -> Html Msg
 descriptionInput msg str =
     column []
         [ label "Description" (str /= "") (msg "")
-        , input
-            [ type_ "text"
-            , Html.Attributes.id "description"
-            , Html.Attributes.attribute "aria-label" "Description"
-            , Html.Attributes.autocomplete False
-            , onInput msg
-            , name "description"
-            , value str
-            , style "margin-top" "3px"
-            ]
-            []
+        , UI.Input.text msg
+            |> UI.Input.withAttributes
+                [ Html.Attributes.id "description"
+                , Html.Attributes.attribute "aria-label" "Description"
+                , Html.Attributes.autocomplete False
+                , name "description"
+                , style "margin-top" "3px"
+                ]
+            |> UI.Input.view str
         ]
 
 
@@ -922,14 +932,14 @@ completionToggle msg completed =
     column []
         [ row [ class "button-group" ]
             [ Html.button
-                [ class "button medium"
+                [ class "button button--medium"
                 , style "text-align" "center"
                 , attributeIf (completed == Activity.Types.Completed) (onClick msg)
                 , styleIf (completed == Activity.Types.Planned) "background-color" "var(--grey-500)"
                 ]
                 [ text "Planned" ]
             , Html.button
-                [ class "button medium"
+                [ class "button button--medium"
                 , style "text-align" "center"
                 , attributeIf (completed == Activity.Types.Planned) (onClick msg)
                 , styleIf (completed == Activity.Types.Completed) "background-color" "var(--grey-500)"
@@ -946,13 +956,11 @@ repeatsInput msg countStrM result =
         , case countStrM of
             Just countStr ->
                 row []
-                    [ numberInput "repeats"
-                        99
-                        [ onInput msg
-                        , value countStr
-                        , style "width" "2.5rem"
-                        ]
-                        []
+                    [ UI.Input.number msg 99
+                        |> UI.Input.withAttributes
+                            [ style "width" "2.5rem"
+                            ]
+                        |> UI.Input.view countStr
                     ]
 
             Nothing ->
@@ -1006,7 +1014,7 @@ emojiSelect msg emojis name search =
         ]
 
 
-durationInput : (( String, String, String ) -> Msg) -> ( String, String, String ) -> Html Msg
+durationInput : (( String, String, String ) -> msg) -> ( String, String, String ) -> Html msg
 durationInput msg ( hrs, mins, secs ) =
     let
         header str =
@@ -1015,123 +1023,63 @@ durationInput msg ( hrs, mins, secs ) =
     in
     column []
         [ label "Time" (hrs /= "" || mins /= "" || secs /= "") (msg ( "", "", "" ))
-        , row []
-            [ compactColumn [ style "width" "2.5rem" ]
-                [ header "HOURS"
-                , numberInput "hours"
-                    9
-                    [ onInput (\h -> msg ( h, mins, secs ))
-                    , value hrs
-                    , style "border-top-right-radius" "0"
-                    , style "border-bottom-right-radius" "0"
-                    ]
-                    []
-                ]
-            , compactColumn [ style "width" "3.5rem" ]
-                [ header "MINS"
-                , numberInput "minutes"
-                    60
-                    [ onInput (\m -> msg ( hrs, m, secs ))
-                    , value mins
-                    , style "border-top-left-radius" "0"
-                    , style "border-bottom-left-radius" "0"
-                    , style "border-top-right-radius" "0"
-                    , style "border-bottom-right-radius" "0"
-                    ]
-                    []
-                ]
-            , compactColumn [ style "width" "3.5rem" ]
-                [ header "SECS"
-                , numberInput "seconds"
-                    60
-                    [ onInput (\s -> msg ( hrs, mins, s ))
-                    , value secs
-                    , style "border-top-left-radius" "0"
-                    , style "border-bottom-left-radius" "0"
-                    ]
-                    []
-                ]
-            ]
+        , Duration.View.input msg ( hrs, mins, secs )
         ]
 
 
 distanceInput : (String -> Msg) -> String -> DistanceUnits -> Result FieldError Float -> Html Msg
 distanceInput msg dist units result =
     let
-        eventDecoder =
-            Decode.at [ "target", "value" ] Decode.string
-                |> Decode.map Activity.distanceUnits.fromString
-                |> Decode.map (Maybe.withDefault Activity.Types.Miles)
-                |> Decode.map SelectedDistanceUnits
+        onUnitsSelect =
+            \unitStr ->
+                Activity.distanceUnits.fromString unitStr
+                    |> Maybe.withDefault Activity.Types.Miles
+                    |> SelectedDistanceUnits
+
+        placeholder =
+            case ( dist, result ) of
+                ( "", Ok distance ) ->
+                    String.fromFloat distance
+
+                _ ->
+                    ""
     in
     column []
         [ label "Distance" (dist /= "") (msg "")
         , row []
-            [ numberInput "distance"
-                100000
-                [ onInput msg
-                , case ( dist, result ) of
-                    ( "", Ok distance ) ->
-                        Html.Attributes.placeholder (String.fromFloat distance)
-
-                    _ ->
-                        Html.Attributes.placeholder ""
-                , value dist
-                , style "width" "4rem"
-                , style "border-top-right-radius" "0"
-                , style "border-bottom-right-radius" "0"
-                ]
-                []
-            , Html.select
-                [ style "border-top-left-radius" "0"
-                , style "border-bottom-left-radius" "0"
-                , style "border-left-width" "0"
-                , Html.Events.on "change" eventDecoder
-                ]
-                (List.map
-                    (\( unitStr, unitOpt ) ->
-                        Html.option
-                            [ Html.Attributes.value unitStr
-                            , Html.Attributes.selected (unitOpt == units)
-                            ]
-                            [ Html.text unitStr ]
-                    )
-                    Activity.distanceUnits.list
-                )
+            [ UI.Input.number msg 100000
+                |> UI.Input.withLabel "distance"
+                |> UI.Input.withPlaceholder placeholder
+                |> UI.Input.withAttributes
+                    [ style "width" "4rem"
+                    , style "border-top-right-radius" "0"
+                    , style "border-bottom-right-radius" "0"
+                    ]
+                |> UI.Input.view dist
+            , UI.Select.select onUnitsSelect (Activity.distanceUnits.list |> List.map Tuple.first)
+                |> UI.Select.withAttributes
+                    [ style "border-top-left-radius" "0"
+                    , style "border-bottom-left-radius" "0"
+                    , style "border-left-width" "0"
+                    ]
+                |> UI.Select.view (Activity.distanceUnits.toString units)
             ]
         ]
 
 
-numberInput : String -> Int -> List (Html.Attribute Msg) -> (List (Html Msg) -> Html Msg)
-numberInput nameStr max attrs =
-    input
-        ([ Html.Attributes.type_ "number"
-         , class "input"
-         , Html.Attributes.min "0"
-         , Html.Attributes.max (String.fromInt max)
-         , Html.Attributes.step "1"
-         , Html.Attributes.maxlength (String.length (String.fromInt max))
-         , Html.Attributes.autocomplete False
-         , name nameStr
-         , Html.Attributes.id nameStr
-         , Html.Attributes.attribute "aria-label" nameStr
-         ]
-            ++ attrs
-        )
-
-
-paceSelect : Maybe TrainingPaceList -> (String -> Msg) -> String -> Result FieldError Int -> Html Msg
-paceSelect pacesM msg paceStr result =
+paceSelect : ActivityConfigs -> (String -> Msg) -> String -> Result FieldError Int -> Html Msg
+paceSelect { paces, customPaces } msg paceStr result =
     let
-        trainingPaces =
-            pacesM
-                |> Maybe.map (List.map (\( name, ( minPace, maxPace ) ) -> Duration.stripTimeStr maxPace))
-                |> Maybe.withDefault []
+        allPaces =
+            paces
+                |> List.map (\( stdPace, maxPace ) -> ( Pace.standardPace.toString stdPace, maxPace ))
+                |> (++) customPaces
+                |> List.sortBy Tuple.second
+                |> List.reverse
 
         trainingPaceStr =
             Result.toMaybe result
-                |> Maybe.map2 (\paces paceSecs -> Pace.secondsToTrainingPace paces paceSecs) pacesM
-                |> Maybe.map Pace.trainingPace.toString
+                |> Maybe.map (\paceSecs -> Pace.List.lookupValue paceSecs allPaces |> Maybe.withDefault "")
                 |> Maybe.withDefault ""
 
         isSlowerThan time =
@@ -1140,46 +1088,57 @@ paceSelect pacesM msg paceStr result =
                     True
 
                 Ok pace ->
-                    (Pace.paceFromString time |> Maybe.withDefault 0) < pace
+                    time < pace
+
+        onPaceSelect =
+            \name -> Pace.List.lookupSeconds name allPaces |> Maybe.map Pace.paceToString |> Maybe.withDefault "" |> SelectedPace
     in
     column []
         [ label "Pace" (paceStr /= "") (msg "")
         , column []
-            [ viewMaybe pacesM
-                (\_ ->
-                    row [ style "margin-top" "2px", style "margin-bottom" "2px", style "border-radius" "4px", style "overflow" "hidden", style "max-width" "10rem", style "margin-right" "10px" ]
-                        (List.map
-                            (\time ->
-                                column
-                                    [ style "background-color" "var(--green-500)"
-                                    , onClick (msg time)
-                                    , style "height" "0.5rem"
-                                    , style "margin-right" "1px"
-                                    , style "cursor" "pointer"
-                                    , styleIf (isSlowerThan time)
-                                        "background-color"
-                                        "var(--grey-300)"
-                                    ]
-                                    []
-                            )
-                            trainingPaces
-                        )
+            [ row [ style "margin-top" "2px", style "margin-bottom" "2px", style "border-radius" "4px", style "overflow" "hidden", style "max-width" "10rem", style "margin-right" "10px" ]
+                (List.map
+                    (\( _, time ) ->
+                        column
+                            [ style "background-color" "var(--green-500)"
+                            , onClick (msg (Pace.paceToString time))
+                            , style "height" "0.5rem"
+                            , style "margin-right" "1px"
+                            , style "cursor" "pointer"
+                            , styleIf (isSlowerThan time)
+                                "background-color"
+                                "var(--grey-300)"
+                            ]
+                            []
+                    )
+                    paces
                 )
             , row []
-                [ input
-                    [ onInput msg
-                    , class "input"
-                    , style "width" "3rem"
-                    , value paceStr
-                    , case ( paceStr, result ) of
-                        ( "", Ok pace ) ->
-                            Html.Attributes.placeholder (Pace.paceToString pace)
+                [ UI.Input.pace msg
+                    |> (\config ->
+                            case result of
+                                Err MissingError ->
+                                    config
 
-                        _ ->
-                            Html.Attributes.placeholder "mm:ss"
-                    ]
-                    []
-                , compactColumn [ style "margin-left" "5px", style "font-size" "0.8rem", style "justify-content" "center" ] [ text trainingPaceStr ]
+                                Err err ->
+                                    UI.Input.withError err config
+
+                                _ ->
+                                    config
+                       )
+                    |> UI.Input.withPlaceholder (Result.map Pace.paceToString result |> Result.withDefault "mm:ss")
+                    |> UI.Input.withAttributes
+                        [ style "border-top-right-radius" "0"
+                        , style "border-bottom-right-radius" "0"
+                        ]
+                    |> UI.Input.view paceStr
+                , UI.Select.select onPaceSelect (allPaces |> List.map Tuple.first)
+                    |> UI.Select.withAttributes
+                        [ style "border-top-left-radius" "0"
+                        , style "border-bottom-left-radius" "0"
+                        , style "border-left-width" "0"
+                        ]
+                    |> UI.Select.view trainingPaceStr
                 ]
             ]
         ]

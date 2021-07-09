@@ -1,4 +1,4 @@
-module Calendar exposing (Model, get, handleScroll, init, update, view, viewHeader, viewMenu)
+module Calendar exposing (Model, get, handleScroll, init, update, view, viewBackButton, viewHeader, viewMenu)
 
 import Actions exposing (viewActivityActions, viewMultiSelectActions, viewPopoverActions)
 import Activity
@@ -19,11 +19,12 @@ import Json.Decode as Decode
 import MonoIcons
 import Msg exposing (ActivityConfigs, ActivityState(..), Msg(..), Zoom(..))
 import Pace
-import Ports exposing (scrollToSelectedDate)
 import Process
-import Skeleton exposing (attributeIf, borderStyle, column, compactColumn, dropdown, expandingRow, iconButton, row, spinner, stopPropagationOnClick, styleIf, viewIf, viewMaybe)
 import Task
 import Time exposing (Month(..))
+import UI exposing (dropdown, iconButton, spinner)
+import UI.Layout exposing (column, compactColumn, expandingRow, row)
+import UI.Util exposing (attributeIf, borderStyle, stopPropagationOnClick, styleIf, viewIf, viewMaybe)
 
 
 type
@@ -98,27 +99,20 @@ update msg model =
 -- VIEW MENU
 
 
-viewMenu : Model -> Html Msg
+viewMenu : Model -> List (Html Msg)
 viewMenu model =
     let
         (Model zoom start end selected today scrollCompleted) =
             model
     in
-    row []
-        [ compactColumn [ style "justify-content" "center" ]
-            [ viewBackButton model
-            ]
-        , column []
-            [ row [ style "justify-content" "center" ]
-                [ viewDatePicker model
-                , button
-                    [ style "margin-left" "0.2rem"
-                    , onClick (Jump today)
-                    ]
-                    [ text "Today" ]
-                ]
-            ]
+    [ viewDatePicker model
+    , button
+        [ style "margin-left" "0.2rem"
+        , class "button"
+        , onClick (Jump today)
         ]
+        [ text "Today" ]
+    ]
 
 
 viewBackButton : Model -> Html Msg
@@ -129,7 +123,7 @@ viewBackButton model =
     in
     case zoom of
         Year ->
-            Skeleton.logo
+            UI.logo
 
         Month ->
             a [ class "button row", style "margin-right" "0.2rem", style "align-items" "bottom", onClick (ChangeZoom Year Nothing) ]
@@ -153,12 +147,12 @@ viewDatePicker model =
     case zoom of
         Year ->
             dropdown False
-                (button [] [ text (Date.format "yyyy" selected) ])
+                (button [ class "button" ] [ text (Date.format "yyyy" selected) ])
                 (listYears today Jump)
 
         Month ->
             dropdown False
-                (button [] [ text (Date.format "MMMM" selected) ])
+                (button [ class "button" ] [ text (Date.format "MMMM" selected) ])
                 (listMonths selected Jump)
 
         Day ->
@@ -551,7 +545,7 @@ viewActivity activeIds isActiveDate configs activity =
     in
     Activity.View.listItem
         { titleM = Just activity.description
-        , subtitle = Activity.View.activityDescription configs.paces (Activity.Laps.visible activity |> Activity.Laps.sum)
+        , subtitle = Activity.View.activityDescription Nothing (Activity.Laps.visible activity |> Activity.Laps.sum)
         , isActive = isActive
         , handlePointerDown = selectActivityDecoder activity
         , handleDoubleClick = EditActivity activity

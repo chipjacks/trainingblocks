@@ -407,9 +407,13 @@ viewStatusMessage : FormStatus -> Result String Settings -> Html Msg
 viewStatusMessage status result =
     let
         viewMessage str =
-            UI.Toast.top
-                |> UI.Toast.view (text str)
-                |> viewDelayedMessage str
+            if str /= "" then
+                UI.Toast.top
+                    |> UI.Toast.view (text str)
+                    |> viewDelayedMessage str
+
+            else
+                text ""
     in
     case ( status, result ) of
         ( Error string, _ ) ->

@@ -5,6 +5,7 @@ import Activity.Types exposing (RaceDistance)
 import ActivityForm
 import Api
 import Browser
+import Browser.Navigation
 import Duration
 import Duration.View
 import Html exposing (Html, text)
@@ -143,14 +144,14 @@ update msg model =
             )
 
         PostedSettings settings result ->
-            ( case result of
+            case result of
                 Err error ->
-                    { model | status = Error (Api.errorString error) }
+                    ( { model | status = Error (Api.errorString error) }, Cmd.none )
 
                 _ ->
-                    { model | status = Success, trainingPaces = initPaces settings.paces }
-            , Cmd.none
-            )
+                    ( { model | status = Success, trainingPaces = initPaces settings.paces }
+                    , Browser.Navigation.load "/calendar"
+                    )
 
         EditedPace index str ->
             let

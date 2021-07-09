@@ -765,7 +765,7 @@ viewLapFields ({ emojis } as configs) form =
         , style "flex-grow" "5"
         , style "padding-bottom" "1rem"
         ]
-        [ expandingRow []
+        [ row [ style "margin-bottom" "10px" ]
             [ column [ maxFieldWidth ] [ Actions.viewLapActions True ] ]
         , expandingRow [ marginTop ]
             [ column [ maxFieldWidth, style "flex-grow" "2" ] [ activityTypeSelect SelectedActivityType form.activityType ]

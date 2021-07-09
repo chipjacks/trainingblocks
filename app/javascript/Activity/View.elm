@@ -31,16 +31,11 @@ activityDescription : Maybe (PaceList StandardPace) -> ActivityData -> String
 activityDescription pacesM data =
     let
         trainingPaceStr paceM =
-            case ( paceM, pacesM ) of
-                ( Just pace, Just paces ) ->
-                    Pace.secondsToStandardPace paces pace
-                        |> Pace.standardPace.toString
-                        |> String.toLower
-
-                ( Just pace, Nothing ) ->
+            case paceM of
+                Just pace ->
                     " at " ++ Pace.paceToString pace ++ " pace"
 
-                _ ->
+                Nothing ->
                     ""
     in
     String.join " "

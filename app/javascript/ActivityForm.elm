@@ -643,7 +643,7 @@ viewLaps configs completed editingLap isAutofillable lapSelection repeatSelectio
         viewLap index lap =
             Activity.View.listItem
                 { titleM = Nothing
-                , subtitle = Activity.View.lapDescription (Just configs.paces) lap
+                , subtitle = Activity.View.lapDescription Nothing lap
                 , isActive = Selection.selectedIndex lapSelection == index
                 , handlePointerDown = Decode.succeed (SelectedLap index)
                 , handleDoubleClick = ClickedEdit

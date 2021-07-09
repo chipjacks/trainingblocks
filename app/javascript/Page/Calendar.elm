@@ -53,6 +53,7 @@ main =
 type Model
     = Loading { todayM : Maybe Date, storeM : Maybe Store.Model, emojisM : Maybe EmojiDict, levelM : Maybe Int, pacesM : Maybe (PaceList String) }
     | Loaded State
+    | MissingSettings
     | Error String
 
 
@@ -62,7 +63,7 @@ type State
 
 init : () -> ( Model, Effect )
 init _ =
-    ( Loading { todayM = Nothing, storeM = Nothing, emojisM = Nothing, levelM = Just 44, pacesM = Nothing }
+    ( Loading { todayM = Nothing, storeM = Nothing, emojisM = Nothing, levelM = Nothing, pacesM = Nothing }
     , Effect.Batch
         [ Effect.DateToday Jump
         , Effect.GetActivities
@@ -101,8 +102,7 @@ update msg model =
                                 |> updateLoading
 
                         Ok Nothing ->
-                            Loading { state | pacesM = Just [] }
-                                |> updateLoading
+                            ( MissingSettings, Effect.None )
 
                         Err err ->
                             ( Error (Api.errorString err), Effect.None )
@@ -120,6 +120,9 @@ update msg model =
                     ( model, Effect.None )
 
         Error _ ->
+            ( model, Effect.None )
+
+        MissingSettings ->
             ( model, Effect.None )
 
         Loaded state ->
@@ -703,15 +706,13 @@ view model =
         withBody skeleton =
             case model of
                 Loading _ ->
-                    Skeleton.withBody
-                        (expandingRow
-                            [ style "justify-content" "center", style "align-items" "center", style "padding-top" "2rem" ]
-                            [ spinner "3rem" ]
-                        )
-                        skeleton
+                    Skeleton.withBody (viewNotice (spinner "3rem") []) skeleton
 
                 Error errorString ->
-                    Skeleton.withBody (text errorString) skeleton
+                    Skeleton.withBody (viewErrorNotice errorString) skeleton
+
+                MissingSettings ->
+                    Skeleton.withBody viewMissingSettingsNotice skeleton
 
                 Loaded state ->
                     Skeleton.withContainer identity skeleton
@@ -722,6 +723,32 @@ view model =
         |> Skeleton.withNavbar (viewNavbar model)
         |> withBody
         |> Skeleton.view
+
+
+viewMissingSettingsNotice : Html msg
+viewMissingSettingsNotice =
+    viewNotice (MonoIcons.icon (MonoIcons.settings "var(--grey-900)"))
+        [ text "Please configure your"
+        , a [ href "/settings", style "margin-left" "0.5rem", style "margin-right" "0.5rem" ] [ text "settings" ]
+        , text "before continuing."
+        ]
+
+
+viewErrorNotice : String -> Html msg
+viewErrorNotice str =
+    viewNotice (MonoIcons.icon (MonoIcons.warning "var(--grey-900)")) [ text str ]
+
+
+viewNotice : Html msg -> List (Html msg) -> Html msg
+viewNotice icon message =
+    expandingRow
+        [ style "justify-content" "center", style "align-items" "center", style "padding-top" "2rem" ]
+        [ compactColumn [ style "width" "300px", style "font-size" "3rem", style "align-items" "center" ]
+            [ icon
+            , div [ style "font-size" "1.5rem", style "text-align" "center" ]
+                message
+            ]
+        ]
 
 
 viewBody : State -> Html Msg

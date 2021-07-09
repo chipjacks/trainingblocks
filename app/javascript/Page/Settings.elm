@@ -125,10 +125,6 @@ update msg model =
         GotSettings result ->
             ( case result of
                 Err error ->
-                    let
-                        debug =
-                            Debug.log "error" (Api.errorString error)
-                    in
                     { model | status = Error strings.loadError }
 
                 Ok (Just settings) ->

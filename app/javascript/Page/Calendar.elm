@@ -98,7 +98,7 @@ update msg model =
                 GotSettings settingsR ->
                     case settingsR of
                         Ok (Just settings) ->
-                            Loading { state | pacesM = Just settings.paces }
+                            Loading { state | pacesM = Just settings.paces, levelM = Just settings.level }
                                 |> updateLoading
 
                         Ok Nothing ->

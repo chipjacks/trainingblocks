@@ -5,11 +5,27 @@ import Activity.Laps
 import Activity.Types exposing (Activity, ActivityData, RaceDistance)
 import Api
 import Browser
+import Date exposing (Date)
 import Html exposing (Html)
 import Html.Attributes exposing (class, style)
 import Http
+import LineChart
+import LineChart.Area as Area
+import LineChart.Axis as Axis
+import LineChart.Axis.Intersection as Intersection
+import LineChart.Colors as Colors
+import LineChart.Container as Container
+import LineChart.Dots as Dots
+import LineChart.Events as Events
+import LineChart.Grid as Grid
+import LineChart.Interpolation as Interpolation
+import LineChart.Junk as Junk
+import LineChart.Legends as Legends
+import LineChart.Line as Line
 import MonoIcons
+import Svg exposing (Svg)
 import Task
+import Time
 import UI.Layout exposing (column, compactColumn, expandingRow, row)
 import UI.Navbar as Navbar
 import UI.Skeleton as Skeleton
@@ -32,7 +48,7 @@ init _ =
 
 
 type alias Model =
-    { races : List ActivityData
+    { races : List Activity
     }
 
 
@@ -46,12 +62,7 @@ update msg model =
         GotActivities result ->
             case result of
                 Ok ( _, activities ) ->
-                    let
-                        races =
-                            List.concatMap Activity.Laps.listData activities
-                                |> List.filter (\l -> l.race /= Nothing)
-                    in
-                    ( { model | races = races }, Cmd.none )
+                    ( { model | races = activities }, Cmd.none )
 
                 Err err ->
                     ( model, Cmd.none )
@@ -79,5 +90,43 @@ view model =
         |> Skeleton.view
 
 
+viewBody : Model -> Html msg
 viewBody model =
-    Html.text "loaded"
+    viewChart model.races
+
+
+viewChart : List Activity -> Svg msg
+viewChart races =
+    let
+        chartConfig : LineChart.Config { a | level : Int, date : Date } msg
+        chartConfig =
+            { y = Axis.default 400 "Level" (.level >> toFloat)
+            , x = Axis.time Time.utc 700 "Date" (.date >> dateToPosixTime >> toFloat)
+            , container = Container.default "line-chart-1"
+            , interpolation = Interpolation.default
+            , intersection = Intersection.default
+            , legends = Legends.default
+            , events = Events.default
+            , junk = Junk.default
+            , grid = Grid.default
+            , area = Area.default
+            , line = Line.default
+            , dots = Dots.default
+            }
+
+        points =
+            List.filterMap
+                (\a -> Activity.mprLevel a |> Maybe.map (\l -> { date = a.date, level = l }))
+                races
+    in
+    LineChart.viewCustom chartConfig [ LineChart.line Colors.blueLight Dots.square "Level" points ]
+
+
+epochStartOffset : Int
+epochStartOffset =
+    719162
+
+
+dateToPosixTime : Date.Date -> Int
+dateToPosixTime date =
+    (Date.toRataDie date - epochStartOffset) * (1000 * 60 * 60 * 24) - (1000 * 60 * 60 * 24)

@@ -1,45 +1,48 @@
 module Tests.ActivityForm exposing (all)
 
 import Effect exposing (Effect)
-import Main
 import Msg exposing (Msg)
+import Page.Calendar exposing (Model, init, view)
 import ProgramTest exposing (..)
 import Test exposing (..)
+import Test.Html.Event as Event
 import Test.Html.Query as Query
-import Test.Html.Selector exposing (class, id, tag, text)
+import Test.Html.Selector exposing (class, id, text, attribute)
+import Html.Attributes
 import Tests.Effects
+import Json.Encode as Encode
 
 
-start : ProgramTest Main.Model Msg Effect
+start : ProgramTest Model Msg Effect
 start =
     ProgramTest.createDocument
-        { init = \_ -> Main.init ()
-        , update = Main.update
-        , view = \m -> { title = "Test", body = [ Main.view m ] }
+        { init = \_ -> init ()
+        , update = Page.Calendar.update
+        , view = \m -> { title = "Test", body = [ view m ] }
         }
         |> ProgramTest.withSimulatedEffects Tests.Effects.simulateEffects
         |> ProgramTest.start ()
 
 
-openForm : ProgramTest Main.Model Msg Effect -> ProgramTest Main.Model Msg Effect
+pointerDownButton label =
+    ProgramTest.simulateDomEvent
+        (\h -> Query.findAll [ attribute (Html.Attributes.attribute "aria-label" label) ] h |> Query.first)
+        (Event.custom "pointerdown" (Encode.object []))
+
+
+openForm : ProgramTest Model Msg Effect -> ProgramTest Model Msg Effect
 openForm program =
     program
-        |> ProgramTest.simulateHttpOk
-            "GET"
-            "activities"
-            """{"rev":"K001", "activities":[]}"""
-        |> ProgramTest.within
-            (\h -> Query.findAll [ class "add-button" ] h |> Query.first)
-            (clickButton "Add")
+        |> pointerDownButton "Add Activity"
         |> ensureViewHas
             [ id "activity-form"
             ]
 
 
-submitForm : ProgramTest Main.Model Msg Effect -> ProgramTest Main.Model Msg Effect
+submitForm : ProgramTest Model Msg Effect -> ProgramTest Model Msg Effect
 submitForm program =
     program
-        |> clickButton "Save"
+        |> pointerDownButton "Save"
 
 
 all : Test

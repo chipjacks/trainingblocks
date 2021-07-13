@@ -1,4 +1,4 @@
-module Api exposing (errorString, getActivities, getActivitiesResolver, getSettings, postActivities, putSettings)
+module Api exposing (errorString, getActivities, getSettings, postActivities, putSettings)
 
 import Activity
 import Activity.Types exposing (Activity)
@@ -19,7 +19,7 @@ activitiesRoute =
     "/activities"
 
 
-getActivitiesResolver : Http.Response String -> Result Http.Error (String, List Activity)
+getActivitiesResolver : Http.Response String -> Result Http.Error ( String, List Activity )
 getActivitiesResolver =
     handleJsonResponse <|
         Decode.map2 Tuple.pair

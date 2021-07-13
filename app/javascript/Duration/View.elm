@@ -1,7 +1,7 @@
 module Duration.View exposing (input)
 
 import Html exposing (Html)
-import Html.Attributes exposing (style)
+import Html.Attributes exposing (attribute, id, style)
 import UI.Input
 import UI.Label
 import UI.Layout exposing (compactColumn, row)
@@ -16,6 +16,8 @@ input msg ( hrs, mins, secs ) =
                 |> UI.Input.withAttributes
                     [ style "border-top-right-radius" "0"
                     , style "border-bottom-right-radius" "0"
+                    , attribute "aria-label" "hours"
+                    , id "hours"
                     ]
                 |> UI.Input.view hrs
             ]
@@ -27,6 +29,8 @@ input msg ( hrs, mins, secs ) =
                     , style "border-bottom-left-radius" "0"
                     , style "border-top-right-radius" "0"
                     , style "border-bottom-right-radius" "0"
+                    , attribute "aria-label" "minutes"
+                    , id "minutes"
                     ]
                 |> UI.Input.view mins
             ]
@@ -36,6 +40,8 @@ input msg ( hrs, mins, secs ) =
                 |> UI.Input.withAttributes
                     [ style "border-top-left-radius" "0"
                     , style "border-bottom-left-radius" "0"
+                    , attribute "aria-label" "secs"
+                    , id "secs"
                     ]
                 |> UI.Input.view secs
             ]

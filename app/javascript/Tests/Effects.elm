@@ -22,20 +22,20 @@ simulateEffects effect =
         Effect.Batch effects ->
             SimulatedEffect.Cmd.batch (List.map simulateEffects effects)
 
-        Effect.PostActivities _ {  } ->
+        Effect.PostActivities _ _ ->
             SimulatedEffect.Cmd.none
 
         Effect.GetActivities ->
             SimulatedEffect.Task.attempt Msg.GotActivities
-                (SimulatedEffect.Http.task
-                    { method = "GET"
-                    , headers = []
-                    , url = "activities"
-                    , body = SimulatedEffect.Http.emptyBody
-                    , timeout = Nothing
-                    , resolver = SimulatedEffect.Http.stringResolver <| Api.getActivitiesResolver
-                    }
-                )
+                (SimulatedEffect.Task.succeed ( "rev", [] ))
+
+        Effect.GetSettings ->
+            SimulatedEffect.Task.attempt Msg.GotSettings
+                (SimulatedEffect.Task.succeed (Just { paces = [], raceDistance = Activity.Types.FiveK, raceDuration = 60 * 17, level = 44 }))
+
+        Effect.FetchEmojis ->
+            SimulatedEffect.Task.attempt Msg.FetchedEmojis
+                (SimulatedEffect.Task.succeed [])
 
         Effect.DateToday toMsg ->
             SimulatedEffect.Task.perform toMsg

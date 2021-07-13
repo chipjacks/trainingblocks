@@ -4,6 +4,7 @@ import Expect exposing (Expectation)
 import Fuzz
 import MPRLevel
 import Pace exposing (..)
+import Pace.List exposing (PaceList)
 import Test exposing (..)
 
 
@@ -31,28 +32,28 @@ suite =
                 \_ ->
                     Expect.equal (paceFromString "0:30") (Just 30)
             ]
-        , describe "trainingPaceToSeconds" <|
+        , describe "standardPaceToSeconds" <|
             [ test "returns the correct max pace in seconds" <|
                 \_ ->
-                    Expect.equal (trainingPaceToSeconds (paces 47) Easy) (7 * 60 + 35)
+                    Expect.equal (standardPaceToSeconds (paces 47) Easy) (Just (7 * 60 + 35))
             ]
-        , describe "secondsToTrainingPace" <|
+        , describe "secondsToStandardPace" <|
             [ test "returns the correct training pace for brisk" <|
                 \_ ->
-                    Expect.equal (secondsToTrainingPace (paces 44) (6 * 60 + 29)) Brisk
+                    Expect.equal (secondsToStandardPace (paces 44) (6 * 60 + 29)) (Just Brisk)
             , test "returns the correct training pace for fast" <|
                 \_ ->
-                    Expect.equal (secondsToTrainingPace (paces 44) (5 * 60 + 9)) Fast
+                    Expect.equal (secondsToStandardPace (paces 44) (5 * 60 + 9)) (Just Fast)
             , fuzz2 (Fuzz.intRange 1 60)
-                (Fuzz.oneOf (List.map (Tuple.second >> Fuzz.constant) trainingPace.list))
-                "reverses trainingPaceToSeconds"
+                (Fuzz.oneOf (List.map (Tuple.second >> Fuzz.constant) standardPace.list))
+                "reverses standardPaceToSeconds"
               <|
                 \level pace ->
-                    Expect.equal (trainingPaceToSeconds (paces level) pace |> secondsToTrainingPace (paces level)) pace
+                    Expect.equal (standardPaceToSeconds (paces level) pace |> Maybe.andThen (secondsToStandardPace (paces level))) (Just pace)
             ]
         ]
 
 
+paces : Int -> PaceList StandardPace
 paces level =
-    trainingPaces ( MPRLevel.Neutral, level )
-        |> Maybe.withDefault []
+    standardPaces ( MPRLevel.Neutral, level )

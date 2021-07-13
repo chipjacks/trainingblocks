@@ -27,9 +27,12 @@ view : ActivityConfigs -> ActivityData -> Html msg
 view { paces, emojis } data =
     let
         width paceM =
-            Maybe.map (Pace.secondsToStandardPace paces) paceM
-                |> Maybe.withDefault Pace.Easy
-                |> toWidth
+            case paceM |> Maybe.andThen (Pace.secondsToStandardPace paces) of
+                Just sp ->
+                    toWidth sp
+
+                _ ->
+                    0.5
 
         height =
             Maybe.withDefault (30 * 60) data.duration |> toHeight
@@ -135,9 +138,6 @@ toHeight duration =
 toWidth : StandardPace -> Float
 toWidth pace =
     case pace of
-        Pace.VeryEasy ->
-            0.5
-
         Pace.Easy ->
             1
 

@@ -414,13 +414,9 @@ update msg model =
             )
 
         SelectedPace str ->
-            if str /= "" then
-                ( updateActivity { model | pace = str }
-                , Effect.None
-                )
-
-            else
-                ( model, Effect.None )
+            ( updateActivity { model | pace = str }
+            , Effect.None
+            )
 
         EditedDistance dist ->
             ( updateActivity { model | distance = dist }
@@ -1122,7 +1118,7 @@ paceSelect { paces, customPaces } msg paceStr result =
                         , style "border-bottom-right-radius" "0"
                         ]
                     |> UI.Input.view paceStr
-                , UI.Select.select onPaceSelect (allPaces |> List.map Tuple.first)
+                , UI.Select.select onPaceSelect ("" :: (allPaces |> List.map Tuple.first))
                     |> UI.Select.withAttributes
                         [ style "border-top-left-radius" "0"
                         , style "border-bottom-left-radius" "0"

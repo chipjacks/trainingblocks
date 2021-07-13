@@ -77,33 +77,24 @@ standardPaces ( runnerType, level ) =
         |> Maybe.map
             (\arr ->
                 Array.toList arr
-                    |> List.map2 Tuple.pair (List.map Tuple.second (List.drop 1 standardPace.list))
+                    |> List.map2 Tuple.pair (List.map Tuple.second standardPace.list)
                     |> List.map (\( pace, ( _, max ) ) -> ( pace, paceFromString max |> Maybe.withDefault 0 ))
             )
         |> Maybe.withDefault []
 
 
-standardPaceToSeconds : PaceList StandardPace -> StandardPace -> Int
+standardPaceToSeconds : PaceList StandardPace -> StandardPace -> Maybe Int
 standardPaceToSeconds paces tp =
-    if tp == VeryEasy then
-        List.head paces
-            |> Maybe.map Tuple.second
-            |> Maybe.withDefault 0
-
-    else
-        Pace.List.lookupSeconds tp paces
-            |> Maybe.withDefault 0
+    Pace.List.lookupSeconds tp paces
 
 
-secondsToStandardPace : PaceList StandardPace -> Int -> StandardPace
+secondsToStandardPace : PaceList StandardPace -> Int -> Maybe StandardPace
 secondsToStandardPace paces seconds =
     Pace.List.lookupValue seconds paces
-        |> Maybe.withDefault VeryEasy
 
 
 type StandardPace
-    = VeryEasy
-    | Easy
+    = Easy
     | Moderate
     | Steady
     | Brisk
@@ -117,8 +108,7 @@ type StandardPace
 standardPace : Enum StandardPace
 standardPace =
     Enum.create
-        [ ( "Very Easy", VeryEasy )
-        , ( "Easy", Easy )
+        [ ( "Easy", Easy )
         , ( "Moderate", Moderate )
         , ( "Steady", Steady )
         , ( "Brisk", Brisk )

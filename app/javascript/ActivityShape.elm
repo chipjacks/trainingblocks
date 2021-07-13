@@ -1,15 +1,13 @@
 module ActivityShape exposing (Color(..), colorString, view)
 
-import Activity
 import Activity.Types exposing (ActivityData, ActivityType(..), Completion(..), Effort(..), Seconds)
-import Emoji exposing (EmojiDict)
+import Emoji
 import EmojiData exposing (EmojiData)
 import Html exposing (Html, div)
 import Html.Attributes exposing (class, style)
 import Msg exposing (ActivityConfigs)
 import Pace exposing (StandardPace)
-import UI.Layout exposing (column, row)
-import UI.Util exposing (styleIf, viewMaybe)
+import UI.Util exposing (viewMaybe)
 
 
 type Shape

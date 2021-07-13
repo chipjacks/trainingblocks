@@ -5,7 +5,6 @@ import Activity.Types exposing (Activity)
 import Http
 import Json.Decode as Decode
 import Json.Encode as Encode
-import Pace.List exposing (PaceList)
 import Settings exposing (Settings)
 import Task exposing (Task)
 import Time exposing (Month(..))
@@ -15,10 +14,12 @@ import Time exposing (Month(..))
 -- ACTIVITIES
 
 
+activitiesRoute : String
 activitiesRoute =
     "/activities"
 
 
+getActivitiesResolver : Http.Response String -> Result Http.Error (String, List Activity)
 getActivitiesResolver =
     handleJsonResponse <|
         Decode.map2 Tuple.pair
@@ -79,10 +80,12 @@ postActivities revision orderUpdates activityUpdates =
 -- SETTINGS
 
 
+settingsRoute : String
 settingsRoute =
     "/settings"
 
 
+getSettingsResolver : Http.Response String -> Result Http.Error (Maybe Settings)
 getSettingsResolver =
     handleJsonResponse
         (Decode.oneOf

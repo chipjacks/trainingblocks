@@ -6,7 +6,7 @@ import Html exposing (Html, a, div, text)
 import Html.Attributes exposing (class, style)
 import Html.Events
 import Json.Decode as Decode
-import Msg exposing (ActivityConfigs, Msg(..))
+import Msg exposing (Msg(..))
 import Pace exposing (StandardPace)
 import Pace.List exposing (PaceList)
 import UI.Layout exposing (column, compactColumn, row)
@@ -28,7 +28,7 @@ lapDescription pacesM lap =
 
 
 activityDescription : Maybe (PaceList StandardPace) -> ActivityData -> String
-activityDescription pacesM data =
+activityDescription _ data =
     let
         trainingPaceStr paceM =
             case paceM of

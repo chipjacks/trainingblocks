@@ -91,7 +91,7 @@ withResultError result config =
         Err error ->
             { config | error = Just error }
 
-        Ok str ->
+        Ok _ ->
             config
 
 

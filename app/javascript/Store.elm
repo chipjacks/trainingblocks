@@ -1,17 +1,11 @@
 module Store exposing (Model, cmd, get, init, needsFlush, undoMsg, update)
 
-import Activity
 import Activity.Types exposing (Activity, Id)
 import Api
 import Date exposing (Date)
-import Dict exposing (Dict)
 import Effect exposing (Effect)
-import Emoji
-import EmojiData exposing (EmojiData)
 import Http
-import MPRLevel
-import Msg exposing (ActivityConfigs, Msg(..), StoreData)
-import Pace
+import Msg exposing (Msg(..), StoreData)
 import Process
 import Set
 import Store.History as History exposing (History)
@@ -166,7 +160,7 @@ update msg (Model state history) =
                 Err _ ->
                     ( model, Effect.None )
 
-        Undo ( prevMsg, prevState ) ->
+        Undo ( _, prevState ) ->
             let
                 newHistory =
                     History.pop history |> Tuple.second
@@ -316,7 +310,7 @@ orderUpdates activities msgs =
                 Ungroup _ session ->
                     Just session.date
 
-                Move date a ->
+                Move date _ ->
                     Just date
 
                 Shift _ a ->

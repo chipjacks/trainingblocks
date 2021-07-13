@@ -2,7 +2,6 @@ module Msg exposing (ActivityConfigs, ActivityState(..), Msg(..), StoreData, Zoo
 
 import Activity.Types exposing (Activity)
 import ActivityForm.Types exposing (ActivityForm)
-import Browser.Dom as Dom
 import Browser.Events as Events
 import Date exposing (Date)
 import Emoji exposing (EmojiDict)

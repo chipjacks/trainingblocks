@@ -2,7 +2,6 @@ module Page.Settings exposing (main)
 
 import Activity
 import Activity.Types exposing (RaceDistance)
-import ActivityForm
 import Api
 import Browser
 import Browser.Navigation
@@ -17,7 +16,6 @@ import Json.Decode as Decode
 import MPRLevel
 import MonoIcons
 import Pace
-import Pace.List exposing (PaceList)
 import Ports
 import Selection exposing (Selection)
 import Settings exposing (Settings)
@@ -26,15 +24,16 @@ import UI
 import UI.Button as Button
 import UI.Input
 import UI.Label
-import UI.Layout exposing (column, compactColumn, expandingRow, row)
+import UI.Layout exposing (column, compactColumn, row)
 import UI.Navbar as Navbar
 import UI.Select
 import UI.Skeleton as Skeleton
 import UI.Toast
-import UI.Util exposing (attributeIf, attributeMaybe, borderStyle, onPointerMove, styleIf, viewIf, viewMaybe)
+import UI.Util exposing (attributeMaybe, borderStyle, onPointerMove, styleIf, viewIf, viewMaybe)
 import Validate exposing (Field)
 
 
+main : Program () Model Msg
 main =
     Browser.document
         { init = \x -> init x
@@ -51,6 +50,7 @@ init _ =
     )
 
 
+initPaces : List ( a, Int ) -> Selection { name : Field a a, pace : Field String Int, dropTarget : Bool, ordered : Bool }
 initPaces paces =
     paces
         |> List.map
@@ -64,6 +64,7 @@ initPaces paces =
         |> Selection.init
 
 
+initRaceDuration : Maybe Int -> Field ( String, String, String ) Int
 initRaceDuration secsM =
     case secsM of
         Just secs ->
@@ -127,7 +128,7 @@ update msg model =
 
         GotSettings result ->
             ( case result of
-                Err error ->
+                Err _ ->
                     { model | status = Error strings.loadError }
 
                 Ok (Just settings) ->
@@ -289,7 +290,7 @@ updateResult model =
             Selection.toList model.trainingPaces
                 |> List.sortBy (\form -> form.pace.result |> Result.withDefault form.pace.fallback |> negate)
                 |> List.map (\{ name, pace } -> ( name.result |> Result.withDefault name.fallback, pace.result |> Result.withDefault pace.fallback ))
-                |> List.filter (\( name, pace ) -> name /= "")
+                |> List.filter (\( name, _ ) -> name /= "")
 
         withMissingRaceError =
             Result.mapError (\_ -> strings.missingRaceError)
@@ -342,6 +343,7 @@ view model =
         |> Skeleton.view
 
 
+maxWidthForMobile : Html.Attribute msg
 maxWidthForMobile =
     style "width" config.mobileWidth
 
@@ -388,6 +390,7 @@ viewBody { trainingPaces, dragging, status, raceDistance, raceDuration, level, r
         ]
 
 
+config : { maxPace : number, trainingPaceListId : String, mobileWidth : String }
 config =
     { maxPace = 8 * 60
     , trainingPaceListId = "training-pace-list"
@@ -395,6 +398,7 @@ config =
     }
 
 
+strings : { loadError : String, invalidTimeError : String, invalidDistanceError : String, missingRaceError : String }
 strings =
     { loadError = "There was an issue loading your settings, please try again."
     , invalidTimeError = "Please enter a valid time."
@@ -453,7 +457,7 @@ viewSaveButton status result =
                     |> Button.withAppearance Button.Large Button.Primary Button.Bottom
                     |> Button.view
 
-            ( _, Err err ) ->
+            ( _, Err _ ) ->
                 Button.action "Save" MonoIcons.check NoOp
                     |> Button.withAppearance Button.Large Button.Subtle Button.Bottom
                     |> Button.view
@@ -489,7 +493,7 @@ viewStandardPaces levelR =
 
 
 viewTrainingPaces : Maybe ( Float, Float ) -> Int -> List PaceForm -> Html Msg
-viewTrainingPaces dragging selectedIndex paces =
+viewTrainingPaces dragging _ paces =
     Html.node "list-dnd"
         [ Html.Attributes.id config.trainingPaceListId
         , attributeMaybe dragging (\_ -> onPointerMove PointerMoved)

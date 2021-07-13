@@ -1,30 +1,27 @@
 module Calendar exposing (Model, get, handleScroll, init, update, view, viewBackButton, viewHeader, viewMenu)
 
 import Actions exposing (viewActivityActions, viewMultiSelectActions, viewPopoverActions)
-import Activity
 import Activity.Laps
 import Activity.Types exposing (Activity)
 import Activity.View
 import ActivityShape
 import Browser.Dom as Dom
 import Date exposing (Date)
-import Duration
 import Effect exposing (Effect)
 import Html exposing (Html, a, button, div, text)
 import Html.Attributes exposing (attribute, class, id, style)
-import Html.Events exposing (on, onClick)
+import Html.Events exposing (onClick)
 import Html.Keyed
 import Html.Lazy
 import Json.Decode as Decode
 import MonoIcons
 import Msg exposing (ActivityConfigs, ActivityState(..), Msg(..), Zoom(..))
-import Pace
 import Process
 import Task
 import Time exposing (Month(..))
-import UI exposing (dropdown, iconButton, spinner)
-import UI.Layout exposing (column, compactColumn, expandingRow, row)
-import UI.Util exposing (attributeIf, borderStyle, stopPropagationOnClick, styleIf, viewIf, viewMaybe)
+import UI exposing (dropdown, spinner)
+import UI.Layout exposing (column, compactColumn, row)
+import UI.Util exposing (attributeIf, stopPropagationOnClick, styleIf, viewIf)
 
 
 type
@@ -102,7 +99,7 @@ update msg model =
 viewMenu : Model -> List (Html Msg)
 viewMenu model =
     let
-        (Model zoom start end selected today scrollCompleted) =
+        (Model _ _ _ _ today _) =
             model
     in
     [ viewDatePicker model
@@ -118,7 +115,7 @@ viewMenu model =
 viewBackButton : Model -> Html Msg
 viewBackButton model =
     let
-        (Model zoom start end selected today scrollCompleted) =
+        (Model zoom _ _ selected _ _) =
             model
     in
     case zoom of
@@ -141,7 +138,7 @@ viewBackButton model =
 viewDatePicker : Model -> Html Msg
 viewDatePicker model =
     let
-        (Model zoom start end selected today scrollCompleted) =
+        (Model zoom _ _ selected today _) =
             model
     in
     case zoom of
@@ -202,25 +199,24 @@ filterActivities start end activities =
 view : Model -> List Activity -> String -> Int -> Bool -> ActivityConfigs -> Html Msg
 view model activities activeId activeRataDie isMoving configs =
     let
-        (Model zoom start end selected today scrollCompleted) =
+        (Model zoom start end selected today _) =
             model
 
         dayRows date =
-            List.concat
-                [ [ ( Date.toIsoString date, Html.Lazy.lazy4 viewDay (date == today) (date == selected) isMoving (Date.toRataDie date) ) ]
-                , filterActivities date date activities
-                    |> List.map
-                        (\activity ->
-                            ( activity.id
-                            , Html.Lazy.lazy4 viewActivity
-                                activeId
-                                (Date.toRataDie date == activeRataDie)
-                                configs
-                                activity
+            ( Date.toIsoString date, Html.Lazy.lazy4 viewDay (date == today) (date == selected) isMoving (Date.toRataDie date) )
+                :: (filterActivities date date activities
+                        |> List.map
+                            (\activity ->
+                                ( activity.id
+                                , Html.Lazy.lazy4 viewActivity
+                                    activeId
+                                    (Date.toRataDie date == activeRataDie)
+                                    configs
+                                    activity
+                                )
                             )
-                        )
-                , [ ( Date.toIsoString date ++ "+", Html.Lazy.lazy viewAddButton date ) ]
-                ]
+                   )
+                ++ [ ( Date.toIsoString date ++ "+", Html.Lazy.lazy viewAddButton date ) ]
 
         body =
             case zoom of
@@ -261,11 +257,10 @@ view model activities activeId activeRataDie isMoving configs =
         , attributeIf (activeId /= "") (stopPropagationOnClick (Decode.succeed ClickedClose))
         ]
     <|
-        List.concat
-            [ [ ( "loadingup", loadingSpinner ) ]
-            , body
-            , [ ( "loadingdown", loadingSpinner ) ]
-            ]
+        (( "loadingup", loadingSpinner )
+            :: body
+            ++ [ ( "loadingdown", loadingSpinner ) ]
+        )
 
 
 viewActivityShape : Activity -> Bool -> Bool -> ActivityConfigs -> Html Msg
@@ -299,7 +294,7 @@ viewActivityShape activity isActive isMonthView configs =
 
 
 handleScroll : Model -> Html.Attribute Msg
-handleScroll (Model zoom start end _ _ scrollCompleted) =
+handleScroll (Model _ start end _ _ scrollCompleted) =
     let
         loadMargin =
             10
@@ -339,7 +334,7 @@ returnScroll previousHeight =
                     , Dom.setViewportOf "main" 0 (info.scene.height - toFloat previousHeight)
                     ]
             )
-        |> Task.attempt (\result -> ScrollCompleted)
+        |> Task.attempt (\_ -> ScrollCompleted)
         |> Effect.Cmd
 
 

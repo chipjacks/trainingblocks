@@ -1,7 +1,7 @@
 module UI.Select exposing (select, view, withAttributes)
 
-import Html exposing (Html, select)
-import Html.Attributes exposing (class, style, value)
+import Html exposing (Html)
+import Html.Attributes
 import Html.Events
 import Json.Decode as Decode
 
@@ -34,9 +34,8 @@ view currentValue config =
                 |> Decode.map config.onChange
     in
     Html.select
-        ([ Html.Events.on "change" eventDecoder
-         ]
-            ++ config.attrs
+        (Html.Events.on "change" eventDecoder
+            :: config.attrs
         )
         (List.map
             (\str ->

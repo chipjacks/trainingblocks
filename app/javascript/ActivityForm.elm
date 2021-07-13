@@ -5,7 +5,7 @@ import Activity
 import Activity.Laps
 import Activity.Types exposing (Activity, ActivityData, ActivityType, Completion(..), DistanceUnits(..), LapData(..))
 import Activity.View
-import ActivityForm.Types exposing (ActivityForm, ValidatedFields)
+import ActivityForm.Types exposing (ActivityForm)
 import ActivityForm.Validate exposing (validate)
 import ActivityShape
 import Date exposing (Date)
@@ -14,26 +14,23 @@ import Duration
 import Duration.View
 import Effect exposing (Effect)
 import Emoji exposing (EmojiDict)
-import EmojiData exposing (EmojiData)
 import Html exposing (Html, a, button, input, text)
-import Html.Attributes exposing (class, name, placeholder, style, type_, value)
-import Html.Events exposing (on, onClick, onFocus, onInput)
+import Html.Attributes exposing (class, name, placeholder, style, value)
+import Html.Events exposing (onClick, onFocus, onInput)
 import Json.Decode as Decode
-import MPRLevel
 import MonoIcons
 import Msg exposing (ActivityConfigs, ActivityState(..), Msg(..))
-import Pace exposing (StandardPace)
-import Pace.List exposing (PaceList)
+import Pace
+import Pace.List
 import Selection exposing (Selection)
 import Store
-import Svg exposing (Svg)
 import UI exposing (iconButton)
 import UI.Input
 import UI.Label
 import UI.Layout exposing (column, compactColumn, expandingRow, row)
 import UI.Select
 import UI.Toast
-import UI.Util exposing (attributeIf, borderStyle, stopPropagationOnClick, styleIf, viewIf, viewMaybe)
+import UI.Util exposing (attributeIf, borderStyle, stopPropagationOnClick, styleIf, viewIf)
 import Validate exposing (FieldError(..))
 
 
@@ -82,7 +79,7 @@ initFromSelection activity editingLap completion laps repeatM =
                     , Just count
                     )
 
-                ( Repeats count list, Just repeat ) ->
+                ( Repeats count _, Just repeat ) ->
                     ( Selection.get repeat |> Maybe.withDefault Activity.initActivityData
                     , if editingLap then
                         Just repeat
@@ -179,7 +176,7 @@ update msg model =
                             , Just (Selection.init [ data ])
                             )
 
-                        Just (Repeats count list) ->
+                        Just (Repeats _ list) ->
                             ( Selection.set (Individual (List.head list |> Maybe.withDefault Activity.initActivityData)) model.laps
                             , Nothing
                             )
@@ -364,7 +361,7 @@ update msg model =
                         model.editingLap
             in
             ( updateActiveSelection
-                (\m ->
+                (\_ ->
                     ( Selection.init newLaps
                     , Nothing
                     )
@@ -389,14 +386,14 @@ update msg model =
                             model.activity.laps
                                 |> List.map (Activity.Laps.updateField updateCompleted)
             in
-            ( updateActiveSelection (\m -> ( Selection.init newLaps, Nothing )) model
+            ( updateActiveSelection (\_ -> ( Selection.init newLaps, Nothing )) model
                 |> updateFromSelection
                 |> updateActivity
             , Effect.None
             )
 
         ClickedClearLaps ->
-            ( updateActiveSelection (\m -> ( Selection.init [], Nothing )) { model | editingLap = False }
+            ( updateActiveSelection (\_ -> ( Selection.init [], Nothing )) { model | editingLap = False }
                 |> updateActivity
             , Effect.None
             )
@@ -511,7 +508,7 @@ updateRace model =
     let
         newRace =
             case ( model.validated.distance, model.race ) of
-                ( Ok distance, Just race ) ->
+                ( Ok distance, Just _ ) ->
                     Distance.toRaceDistance (Distance.toMeters model.distanceUnits distance)
                         |> Just
 
@@ -548,7 +545,7 @@ updateActivity model =
         |> updateActiveSelection
             (\m ->
                 case ( Selection.get m.laps, m.repeat ) of
-                    ( Just (Repeats count list), Just repeat ) ->
+                    ( Just (Repeats count _), Just repeat ) ->
                         let
                             selection =
                                 Selection.set (toActivityData m) repeat
@@ -664,34 +661,30 @@ viewLaps configs completed editingLap isAutofillable lapSelection repeatSelectio
         [ style "overflow-y" "scroll"
         , style "overflow-x" "hidden"
         ]
-        (List.concat
-            [ [ row
-                    [ style "position" "sticky"
-                    , style "top" "0"
-                    , style "z-index" "4"
-                    , style "padding" "0.5rem"
-                    , style "height" "1.8rem"
-                    , style "align-items" "space-between"
-                    , style "background-color" "white"
-                    ]
-                    [ completionToggle CheckedCompleted completed
-                    , viewIf ((Selection.toList lapSelection |> List.isEmpty) && isAutofillable)
-                        (Html.button [ class "button button--medium", onClick ClickedAutofill ] [ text "Autofill" ])
-                    , viewIf (not (Selection.toList lapSelection |> List.isEmpty))
-                        (Html.button [ class "button button--medium", onClick ClickedClearLaps ] [ text "Clear" ])
-                    ]
-              ]
-            , Selection.toList lapSelection
-                |> List.indexedMap viewLap
-            , [ row [ style "padding" "0.5rem 0.5rem" ] [ viewAddButton ClickedAddLap ] ]
+        (row
+            [ style "position" "sticky"
+            , style "top" "0"
+            , style "z-index" "4"
+            , style "padding" "0.5rem"
+            , style "height" "1.8rem"
+            , style "align-items" "space-between"
+            , style "background-color" "white"
             ]
+            [ completionToggle CheckedCompleted completed
+            , viewIf ((Selection.toList lapSelection |> List.isEmpty) && isAutofillable)
+                (Html.button [ class "button button--medium", onClick ClickedAutofill ] [ text "Autofill" ])
+            , viewIf (not (Selection.toList lapSelection |> List.isEmpty))
+                (Html.button [ class "button button--medium", onClick ClickedClearLaps ] [ text "Clear" ])
+            ]
+            :: (Selection.toList lapSelection |> List.indexedMap viewLap)
+            ++ [ row [ style "padding" "0.5rem 0.5rem" ] [ viewAddButton ClickedAddLap ] ]
         )
 
 
 viewActivityShape : ActivityConfigs -> Int -> Int -> LapData -> Maybe (Selection ActivityData) -> List (Html Msg)
 viewActivityShape configs selectedLap lapIndex lap repeatM =
     case ( selectedLap == lapIndex, lap, repeatM ) of
-        ( True, Repeats count list, Just repeat ) ->
+        ( True, Repeats _ _, Just repeat ) ->
             List.concat
                 [ List.indexedMap
                     (\i data ->
@@ -724,8 +717,8 @@ viewActivityShape configs selectedLap lapIndex lap repeatM =
                             [ ActivityShape.view configs data ]
 
                 Repeats count list ->
-                    [ row [ style "padding-top" "0.5rem" ] [] ]
-                        ++ List.map (\data -> row [ onClick (SelectedLap lapIndex) ] [ ActivityShape.view configs data ]) list
+                    row [ style "padding-top" "0.5rem" ] []
+                        :: List.map (\data -> row [ onClick (SelectedLap lapIndex) ] [ ActivityShape.view configs data ]) list
                         ++ [ row [ style "padding" "5px", style "color" "var(--black-300)", style "font-size" "0.8rem" ] [ text ("x " ++ String.fromInt count) ] ]
 
 
@@ -735,7 +728,7 @@ viewAddButton msg =
 
 
 viewActivityFields : EmojiDict -> ActivityForm -> Html Msg
-viewActivityFields emojis form =
+viewActivityFields _ form =
     let
         maxFieldWidth =
             style "max-width" "20rem"
@@ -952,7 +945,7 @@ completionToggle msg completed =
 
 
 repeatsInput : (String -> Msg) -> Maybe String -> Result FieldError Int -> Html Msg
-repeatsInput msg countStrM result =
+repeatsInput msg countStrM _ =
     column [ style "max-width" "6rem" ]
         [ label "Repeats" (countStrM /= Just "" && countStrM /= Nothing) ClickedRepeat
         , case countStrM of
@@ -1018,11 +1011,6 @@ emojiSelect msg emojis name search =
 
 durationInput : (( String, String, String ) -> msg) -> ( String, String, String ) -> Html msg
 durationInput msg ( hrs, mins, secs ) =
-    let
-        header str =
-            row [ style "font-size" "0.6rem", style "color" "var(--grey-900)", style "margin-bottom" "2px" ]
-                [ text str ]
-    in
     column []
         [ label "Time" (hrs /= "" || mins /= "" || secs /= "") (msg ( "", "", "" ))
         , Duration.View.input msg ( hrs, mins, secs )

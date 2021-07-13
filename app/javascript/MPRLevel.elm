@@ -3,7 +3,7 @@ module MPRLevel exposing (RunnerType(..), distanceList, equivalentRaceTimes, loo
 import Array exposing (Array)
 import Dict exposing (Dict)
 import Duration
-import Json.Decode exposing (array, decodeString, dict, list, string)
+import Json.Decode exposing (array, decodeString, dict, string)
 import MPRData
 import Result
 
@@ -89,16 +89,6 @@ equivalentRaceTimes ( runnerType, level ) =
 -- Utility functions
 
 
-runnerTypeFromString : String -> RunnerType
-runnerTypeFromString str =
-    case str of
-        "Aerobic" ->
-            Aerobic
 
-        "Speed" ->
-            Speed
-
-        _ ->
-            Neutral
 
 

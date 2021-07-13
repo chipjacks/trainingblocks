@@ -7,10 +7,8 @@ import EmojiData.Fetch
 import Msg exposing (Msg(..), StoreData)
 import Ports
 import Random
-import Result exposing (Result)
 import Store.History exposing (History)
-import Task exposing (Task)
-import Time
+import Task
 
 
 type Effect

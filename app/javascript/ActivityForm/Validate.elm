@@ -2,7 +2,6 @@ module ActivityForm.Validate exposing (init, validate)
 
 import Activity.Types exposing (DistanceUnits(..))
 import ActivityForm.Types exposing (ActivityForm, ValidatedFields)
-import Date exposing (Date)
 import Distance
 import Pace
 import Validate exposing (FieldError(..), parseDuration, parsePace)

@@ -16,12 +16,12 @@ isEmpty (History list _) =
 
 
 version : History event state -> Int
-version (History list v) =
+version (History _ v) =
     v
 
 
 length : History event state -> Int
-length (History list v) =
+length (History list _) =
     List.length list
 
 

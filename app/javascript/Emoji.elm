@@ -5,8 +5,7 @@ import EmojiData exposing (EmojiData)
 import EmojiData.Category
 import EmojiData.List
 import EmojiData.View
-import Html exposing (Html, div)
-import Html.Attributes exposing (class, style)
+import Html exposing (Html)
 
 
 type alias EmojiDict =
@@ -37,7 +36,7 @@ filter emojis name =
 
 
 toDict : List EmojiData -> EmojiDict
-toDict emojis =
+toDict _ =
     List.map (\e -> ( e.name, e )) EmojiData.List.emojis
         |> Dict.fromList
 

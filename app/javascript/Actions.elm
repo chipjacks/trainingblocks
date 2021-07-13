@@ -2,13 +2,11 @@ module Actions exposing (viewActivityActions, viewAddAction, viewFormActions, vi
 
 import Html exposing (Html)
 import Html.Attributes exposing (class, style)
-import Json.Decode as Decode
 import MonoIcons
 import Msg exposing (..)
-import Svg exposing (Svg)
 import UI.Button as Button
 import UI.Layout exposing (column, row)
-import UI.Util exposing (attributeIf, borderStyle, stopPropagationOnClick)
+import UI.Util exposing (borderStyle)
 
 
 viewAddAction : Msg -> String -> Html Msg
@@ -98,5 +96,6 @@ viewPopoverActions =
         ]
 
 
+buttonGroupStyles : List (Html.Attribute msg)
 buttonGroupStyles =
     [ class "button-group", style "border-radius" "5px", borderStyle "border", style "position" "relative" ]

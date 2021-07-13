@@ -1,7 +1,7 @@
 module UI exposing (dropdown, iconButton, logo, spinner)
 
-import Html exposing (Html, div, i, img, text)
-import Html.Attributes exposing (class, src, style)
+import Html exposing (Html, div)
+import Html.Attributes exposing (class, style)
 import UI.Layout exposing (..)
 import UI.Util exposing (styleIf)
 

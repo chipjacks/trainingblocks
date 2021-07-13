@@ -1,14 +1,13 @@
 module Activity exposing (activityType, decoder, distanceUnits, effort, encoder, initActivityData, mprLevel, newId, raceDistance)
 
 import Activity.Laps
-import Activity.Types exposing (Activity, ActivityData, ActivityType(..), Completion(..), DistanceUnits(..), Effort(..), Id, LapData(..), RaceDistance(..), Seconds)
+import Activity.Types exposing (Activity, ActivityData, ActivityType(..), Completion(..), DistanceUnits(..), Effort(..), LapData(..), RaceDistance(..))
 import Date exposing (Date)
 import Enum exposing (Enum)
 import Json.Decode as Decode
-import Json.Decode.Pipeline exposing (custom, optional, optionalAt, required)
+import Json.Decode.Pipeline exposing (optional, optionalAt, required)
 import Json.Encode as Encode
 import MPRLevel
-import Pace
 import Random
 
 
@@ -132,12 +131,11 @@ activityDataDecoder =
             Decode.bool
                 |> Decode.andThen
                     (\c ->
-                        case c of
-                            True ->
-                                Decode.succeed Completed
+                        if c then
+                            Decode.succeed Completed
 
-                            False ->
-                                Decode.succeed Planned
+                        else
+                            Decode.succeed Planned
                     )
     in
     Decode.succeed ActivityData

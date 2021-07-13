@@ -4,7 +4,6 @@ import Activity
 import Activity.Laps
 import Activity.Types exposing (Activity, Completion(..), LapData(..))
 import ActivityForm
-import ActivityForm.Types exposing (ActivityForm)
 import ActivityShape
 import Api
 import Browser
@@ -15,14 +14,14 @@ import Date exposing (Date)
 import Effect exposing (Effect)
 import Emoji exposing (EmojiDict)
 import Html exposing (Html, a, div, text)
-import Html.Attributes exposing (attribute, class, href, id, style)
-import Html.Events exposing (on)
+import Html.Attributes exposing (href, id, style)
+import Html.Events
 import Html.Lazy
 import Json.Decode as Decode
 import MPRLevel
 import MonoIcons
 import Msg exposing (ActivityConfigs, ActivityState(..), Msg(..))
-import Pace exposing (StandardPace)
+import Pace
 import Pace.List exposing (PaceList)
 import Ports
 import Random
@@ -30,17 +29,18 @@ import Store
 import Task
 import Time
 import UI exposing (spinner)
-import UI.Layout exposing (column, compactColumn, expandingRow, row)
+import UI.Layout exposing (compactColumn, expandingRow, row)
 import UI.Navbar as Navbar
 import UI.Skeleton as Skeleton
 import UI.Toast
-import UI.Util exposing (attributeIf, borderStyle, onPointerMove, styleIf, viewIf, viewMaybe)
+import UI.Util exposing (onPointerMove, viewMaybe)
 
 
 
 -- INIT
 
 
+main : Program () Model Msg
 main =
     Browser.document
         { init = \x -> init x |> Tuple.mapSecond Effect.perform
@@ -239,13 +239,13 @@ update msg model =
                         |> updateStore msg
                         |> loaded
 
-                Group activities session ->
+                Group _ session ->
                     updateActivityState (Selected [ session ]) state
                         |> Tuple.first
                         |> updateStore msg
                         |> loaded
 
-                Ungroup activities session ->
+                Ungroup activities _ ->
                     updateActivityState (Selected activities) state
                         |> Tuple.first
                         |> updateStore msg
@@ -283,7 +283,7 @@ update msg model =
                 FlushNow ->
                     updateStore msg state |> loaded
 
-                LoadToday date ->
+                LoadToday _ ->
                     updateCalendar msg state
                         |> loaded
 
@@ -291,7 +291,7 @@ update msg model =
                     updateCalendar msg state
                         |> loaded
 
-                ChangeZoom zoom dateM ->
+                ChangeZoom _ dateM ->
                     let
                         ( calendarState, calendarCmd ) =
                             updateCalendar msg state
@@ -449,7 +449,7 @@ update msg model =
 
                 ClickedSubmit ->
                     case activityM of
-                        Editing form ->
+                        Editing _ ->
                             updateActivityForm msg state
                                 |> loaded
 
@@ -459,7 +459,7 @@ update msg model =
 
                 ClickedEdit ->
                     case activityM of
-                        Editing form ->
+                        Editing _ ->
                             updateActivityForm msg state
                                 |> loaded
 
@@ -476,7 +476,7 @@ update msg model =
 
                 ClickedCopy ->
                     case activityM of
-                        Editing form ->
+                        Editing _ ->
                             updateActivityForm msg state
                                 |> loaded
 
@@ -493,7 +493,7 @@ update msg model =
 
                 ClickedRepeat ->
                     case activityM of
-                        Editing form ->
+                        Editing _ ->
                             updateActivityForm msg state
                                 |> loaded
 
@@ -502,7 +502,7 @@ update msg model =
 
                 ClickedDelete ->
                     case activityM of
-                        Editing form ->
+                        Editing _ ->
                             updateActivityForm msg state
                                 |> loaded
 
@@ -519,7 +519,7 @@ update msg model =
 
                 ClickedShift up ->
                     case activityM of
-                        Editing form ->
+                        Editing _ ->
                             updateActivityForm msg state
                                 |> loaded
 
@@ -614,7 +614,7 @@ updateStore msg (State calendar store activityM configs) =
 
 
 updateActivityState : ActivityState -> State -> ( State, Effect )
-updateActivityState newActivityM (State calendar store activityM configs) =
+updateActivityState newActivityM (State calendar store _ configs) =
     ( State calendar store newActivityM configs, Effect.None )
 
 
@@ -775,7 +775,7 @@ viewBody (State calendar store activityM configs) =
                 Selected list ->
                     ( List.map .id list |> String.join " ", False )
 
-                Editing { activity } ->
+                Editing _ ->
                     ( "", False )
 
                 Moving { id } _ _ ->
@@ -816,7 +816,7 @@ viewNavbar model =
             Maybe.map Store.needsFlush storeM |> Maybe.withDefault False
     in
     case model of
-        Loaded (State calendar store activityState configs) ->
+        Loaded (State calendar store _ _) ->
             Navbar.default
                 |> Navbar.withLoading (loading (Just store))
                 |> Navbar.withBackButton (Calendar.viewBackButton calendar)
@@ -874,6 +874,7 @@ viewUndoToastM eventM =
 -- SUBSCRIPTIONS
 
 
+keyPressDecoder : Decode.Decoder Msg
 keyPressDecoder =
     Decode.field "key" Decode.string
         |> Decode.map KeyPressed
@@ -887,13 +888,13 @@ subscriptions model =
                 [ Ports.selectDateFromScroll ReceiveSelectDate
                 , Events.onVisibilityChange VisibilityChange
                 , case activityM of
-                    Editing form ->
+                    Editing _ ->
                         Events.onKeyDown keyPressDecoder
 
                     Selected _ ->
                         Events.onKeyDown keyPressDecoder
 
-                    Moving activity x y ->
+                    Moving _ _ y ->
                         Time.every 100 (\_ -> AutoScrollCalendar y)
 
                     _ ->

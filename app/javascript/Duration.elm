@@ -114,7 +114,7 @@ leadingField =
     Parser.succeed ()
         |. Parser.chompWhile Char.isDigit
         |> Parser.mapChompedString
-            (\s a -> String.toInt s)
+            (\s _ -> String.toInt s)
         |> Parser.andThen
             (\maybeInt ->
                 case maybeInt of

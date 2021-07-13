@@ -1,6 +1,6 @@
 module Pace exposing (StandardPace(..), calculate, paceFromString, paceToString, secondsToStandardPace, standardPace, standardPaceToSeconds, standardPaces)
 
-import Activity.Types exposing (ActivityData, DistanceUnits(..))
+import Activity.Types exposing (DistanceUnits(..))
 import Array exposing (Array)
 import Distance
 import Duration
@@ -78,7 +78,7 @@ standardPaces ( runnerType, level ) =
             (\arr ->
                 Array.toList arr
                     |> List.map2 Tuple.pair (List.map Tuple.second (List.drop 1 standardPace.list))
-                    |> List.map (\( pace, ( min, max ) ) -> ( pace, paceFromString max |> Maybe.withDefault 0 ))
+                    |> List.map (\( pace, ( _, max ) ) -> ( pace, paceFromString max |> Maybe.withDefault 0 ))
             )
         |> Maybe.withDefault []
 

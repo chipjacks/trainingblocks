@@ -14,7 +14,7 @@ lookupSeconds value paces =
 
 lookupValue : Int -> PaceList a -> Maybe a
 lookupValue seconds paces =
-    List.filter (\( name, maxPaceSeconds ) -> seconds <= maxPaceSeconds) paces
+    List.filter (\( _, maxPaceSeconds ) -> seconds <= maxPaceSeconds) paces
         |> List.reverse
         |> List.head
         |> Maybe.map Tuple.first

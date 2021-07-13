@@ -3,7 +3,7 @@ module Settings exposing (Settings, decoder, encoder)
 import Activity exposing (raceDistance)
 import Activity.Types exposing (RaceDistance)
 import Json.Decode as Decode
-import Json.Decode.Pipeline exposing (custom, optional, optionalAt, required)
+import Json.Decode.Pipeline exposing (required)
 import Json.Encode as Encode
 import Pace.List exposing (PaceList)
 

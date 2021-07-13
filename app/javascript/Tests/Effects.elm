@@ -22,7 +22,7 @@ simulateEffects effect =
         Effect.Batch effects ->
             SimulatedEffect.Cmd.batch (List.map simulateEffects effects)
 
-        Effect.PostActivities msgs { revision, orderUpdates, activityUpdates } ->
+        Effect.PostActivities _ {  } ->
             SimulatedEffect.Cmd.none
 
         Effect.GetActivities ->
@@ -43,7 +43,7 @@ simulateEffects effect =
                     (Date.fromCalendarDate 2020 Time.Jan 1)
                 )
 
-        Effect.GenerateActivity msg generator ->
+        Effect.GenerateActivity msg _ ->
             SimulatedEffect.Task.perform msg
                 (SimulatedEffect.Task.succeed
                     (Activity "1234567890"

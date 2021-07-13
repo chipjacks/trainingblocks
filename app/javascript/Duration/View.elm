@@ -1,10 +1,10 @@
 module Duration.View exposing (input)
 
-import Html exposing (Html, text)
+import Html exposing (Html)
 import Html.Attributes exposing (style)
 import UI.Input
 import UI.Label
-import UI.Layout exposing (column, compactColumn, row)
+import UI.Layout exposing (compactColumn, row)
 
 
 input : (( String, String, String ) -> msg) -> ( String, String, String ) -> Html msg

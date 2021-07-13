@@ -2,7 +2,6 @@ module UI.Button exposing (Color(..), Size(..), Tooltip(..), action, view, withA
 
 import Html exposing (Html)
 import Html.Attributes exposing (class, style)
-import Html.Events
 import Json.Decode as Decode
 import MonoIcons
 import Svg exposing (Svg)

@@ -11,6 +11,7 @@ import Pace exposing (StandardPace)
 import Pace.List exposing (PaceList)
 import Settings exposing (Settings)
 import Store.History exposing (History)
+import Uuid
 
 
 type Zoom
@@ -50,6 +51,7 @@ type Msg
     | AutoScrollCalendar Float
     | MouseReleased
     | MoveTo Date
+    | ReportedError (Result Http.Error Uuid.Uuid)
     | NoOp
       -- STORE
     | Create Activity

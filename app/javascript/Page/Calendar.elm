@@ -11,6 +11,7 @@ import Browser.Dom as Dom
 import Browser.Events as Events
 import Calendar
 import Date exposing (Date)
+import Dict
 import Effect exposing (Effect)
 import Emoji exposing (EmojiDict)
 import Html exposing (Html, a, div, text)
@@ -18,6 +19,7 @@ import Html.Attributes exposing (href, id, style)
 import Html.Events
 import Html.Lazy
 import Json.Decode as Decode
+import Json.Encode as Encode
 import MPRLevel
 import MonoIcons
 import Msg exposing (ActivityConfigs, ActivityState(..), Msg(..))
@@ -25,6 +27,7 @@ import Pace
 import Pace.List exposing (PaceList)
 import Ports
 import Random
+import Report
 import Store
 import Task
 import Time
@@ -105,7 +108,14 @@ update msg model =
                             ( MissingSettings, Effect.None )
 
                         Err err ->
-                            ( Error (Api.errorString err), Effect.None )
+                            ( Error (Api.errorString err)
+                            , Report.error (Api.errorString err)
+                                (Report.data
+                                    |> Report.withField "model" (encodeModel model)
+                                    |> Report.withField "msg" (Encode.string "GotSettings")
+                                )
+                                |> Effect.ReportError
+                            )
 
                 FetchedEmojis result ->
                     case result of
@@ -229,6 +239,9 @@ update msg model =
 
                         _ ->
                             ( model, Effect.None )
+
+                ReportedError result ->
+                    ( model, Effect.None )
 
                 NoOp ->
                     ( model, Effect.None )
@@ -903,3 +916,23 @@ subscriptions model =
 
         _ ->
             Sub.none
+
+
+
+-- ERROR REPORTING
+
+
+encodeModel : Model -> Encode.Value
+encodeModel model =
+    case model of
+        Loading _ ->
+            Encode.string "Loading"
+
+        Loaded _ ->
+            Encode.string "Loaded"
+
+        MissingSettings ->
+            Encode.string "MissingSettings"
+
+        Error s ->
+            Encode.string ("Error " ++ s)

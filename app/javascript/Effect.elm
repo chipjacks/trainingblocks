@@ -8,7 +8,9 @@ import Msg exposing (Msg(..), StoreData)
 import Ports
 import Random
 import Store.History exposing (History)
-import Task
+import Task exposing (Task)
+import Uuid
+import Http
 
 
 type Effect
@@ -23,6 +25,7 @@ type Effect
     | GetActivities
     | GetSettings
     | FetchEmojis
+    | ReportError (Task Http.Error Uuid.Uuid)
     | DateToday (Date.Date -> Msg)
     | ScrollToSelectedDate
     | GenerateActivity (Activity -> Msg) (Random.Generator Activity)
@@ -51,6 +54,9 @@ perform effect =
 
         FetchEmojis ->
             Task.attempt FetchedEmojis EmojiData.Fetch.task
+
+        ReportError task ->
+            Task.attempt ReportedError task
 
         DateToday msg ->
             Task.perform msg Date.today

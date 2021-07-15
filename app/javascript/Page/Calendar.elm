@@ -6,6 +6,7 @@ import Activity.Types exposing (Activity, Completion(..), LapData(..))
 import ActivityForm
 import ActivityShape
 import Api
+import App
 import Browser
 import Browser.Dom as Dom
 import Browser.Events as Events
@@ -37,25 +38,26 @@ import UI.Navbar as Navbar
 import UI.Skeleton as Skeleton
 import UI.Toast
 import UI.Util exposing (onPointerMove, viewMaybe)
-import Json.Decode as Decode
 
 
 
 -- INIT
 
 
-main : Program String Model Msg
+main : Program String ( App.Env, Model ) Msg
 main =
-    Browser.document
-        { init = \x -> init x |> Tuple.mapSecond Effect.perform
-        , view = \model -> { title = "Calendar | Rhino Log", body = [ view model ] }
-        , update = \model msg -> update model msg |> Tuple.mapSecond Effect.perform
+    App.document
+        { title = "Calendar"
+        , init = init
+        , update = update
+        , perform = Effect.perform
+        , view = view
         , subscriptions = subscriptions
         }
 
 
 type Model
-    = Loading { report: Report.Reporter, todayM : Maybe Date, storeM : Maybe Store.Model, emojisM : Maybe EmojiDict, levelM : Maybe Int, pacesM : Maybe (PaceList String) }
+    = Loading { todayM : Maybe Date, storeM : Maybe Store.Model, emojisM : Maybe EmojiDict, levelM : Maybe Int, pacesM : Maybe (PaceList String) }
     | Loaded State
     | MissingSettings
     | Error String
@@ -65,9 +67,9 @@ type State
     = State Calendar.Model Store.Model ActivityState ActivityConfigs
 
 
-init : String -> ( Model, Effect )
-init flags =
-    ( Loading { report = Report.init "Calendar" flags, todayM = Nothing, storeM = Nothing, emojisM = Nothing, levelM = Nothing, pacesM = Nothing }
+init : ( Model, Effect )
+init =
+    ( Loading { todayM = Nothing, storeM = Nothing, emojisM = Nothing, levelM = Nothing, pacesM = Nothing }
     , Effect.Batch
         [ Effect.DateToday Jump
         , Effect.GetActivities
@@ -81,8 +83,8 @@ init flags =
 -- UPDATING MODEL
 
 
-update : Msg -> Model -> ( Model, Effect )
-update msg model =
+update : App.Env -> Msg -> Model -> ( Model, Effect )
+update env msg model =
     case model of
         Loading state ->
             case msg of
@@ -110,7 +112,7 @@ update msg model =
 
                         Err err ->
                             ( Error (Api.errorString err)
-                            , state.report.error (Api.errorString err)
+                            , env.report.error (Api.errorString err)
                                 (Report.data
                                     |> Report.withField "model" (encodeModel model)
                                     |> Report.withField "msg" (Encode.string "GotSettings")

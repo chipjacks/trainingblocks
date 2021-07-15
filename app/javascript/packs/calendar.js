@@ -3,7 +3,7 @@ import { Elm } from "../Page/Calendar";
 document.addEventListener("DOMContentLoaded", () => {
   const target = document.getElementById("elm-main");
   const flagsElement = document.getElementById("elm-flags");
-  const flags = flagsElement ? flagsElement.dataset.flags : {};
+  const flags = flagsElement ? JSON.parse(flagsElement.dataset.flags) : {};
 
   const app = Elm.Page.Calendar.init({ node: target, flags });
 

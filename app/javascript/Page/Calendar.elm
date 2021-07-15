@@ -44,7 +44,7 @@ import UI.Util exposing (onPointerMove, viewMaybe)
 -- INIT
 
 
-main : Program String ( App.Env, Model ) Msg
+main : Program App.Flags ( App.Env, Model ) Msg
 main =
     App.document
         { title = "Calendar"

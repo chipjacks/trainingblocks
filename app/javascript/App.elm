@@ -1,8 +1,7 @@
-module App exposing (Env, document)
+module App exposing (Env, Flags, document)
 
 import Browser
 import Html exposing (Html)
-import Json.Decode as Decode
 
 
 type alias Env =
@@ -10,6 +9,13 @@ type alias Env =
     , rollbarAccessToken : String
     , environment : String
     , userId : Int
+    }
+
+
+type alias Flags =
+    { rollbar_access_token : String
+    , environment : String
+    , user_id : Int
     }
 
 
@@ -23,21 +29,15 @@ type alias Document model msg effect =
     }
 
 
-decoder : String -> Decode.Decoder Env
-decoder title =
-    Decode.map4 Env
-        (Decode.succeed title)
-        (Decode.field "rollbar_access_token" Decode.string)
-        (Decode.field "environment" Decode.string)
-        (Decode.field "user_id" Decode.int)
-
-
-document : Document model msg effect -> Program String ( Env, model ) msg
+document : Document model msg effect -> Program Flags ( Env, model ) msg
 document { title, init, update, perform, view, subscriptions } =
     let
         initEnv flags =
-            Decode.decodeString (decoder title) flags
-                |> Result.withDefault (Env title "" "" 0)
+            { title = title
+            , rollbarAccessToken = flags.rollbar_access_token
+            , environment = flags.environment
+            , userId = flags.user_id
+            }
     in
     Browser.document
         { init =

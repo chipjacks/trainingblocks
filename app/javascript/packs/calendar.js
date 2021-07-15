@@ -2,9 +2,8 @@ import { Elm } from "../Page/Calendar";
 
 document.addEventListener("DOMContentLoaded", () => {
   const target = document.getElementById("elm-main");
-  const existing = document.getElementById("elm-overlay");
-
-  const flags = {};
+  const flagsElement = document.getElementById("elm-flags");
+  const flags = flagsElement ? flagsElement.dataset.flags : {};
 
   const app = Elm.Page.Calendar.init({ node: target, flags });
 

@@ -37,13 +37,14 @@ import UI.Navbar as Navbar
 import UI.Skeleton as Skeleton
 import UI.Toast
 import UI.Util exposing (onPointerMove, viewMaybe)
+import Json.Decode as Decode
 
 
 
 -- INIT
 
 
-main : Program () Model Msg
+main : Program String Model Msg
 main =
     Browser.document
         { init = \x -> init x |> Tuple.mapSecond Effect.perform
@@ -54,7 +55,7 @@ main =
 
 
 type Model
-    = Loading { todayM : Maybe Date, storeM : Maybe Store.Model, emojisM : Maybe EmojiDict, levelM : Maybe Int, pacesM : Maybe (PaceList String) }
+    = Loading { report: Report.Reporter, todayM : Maybe Date, storeM : Maybe Store.Model, emojisM : Maybe EmojiDict, levelM : Maybe Int, pacesM : Maybe (PaceList String) }
     | Loaded State
     | MissingSettings
     | Error String
@@ -64,9 +65,9 @@ type State
     = State Calendar.Model Store.Model ActivityState ActivityConfigs
 
 
-init : () -> ( Model, Effect )
-init _ =
-    ( Loading { todayM = Nothing, storeM = Nothing, emojisM = Nothing, levelM = Nothing, pacesM = Nothing }
+init : String -> ( Model, Effect )
+init flags =
+    ( Loading { report = Report.init "Calendar" flags, todayM = Nothing, storeM = Nothing, emojisM = Nothing, levelM = Nothing, pacesM = Nothing }
     , Effect.Batch
         [ Effect.DateToday Jump
         , Effect.GetActivities
@@ -109,7 +110,7 @@ update msg model =
 
                         Err err ->
                             ( Error (Api.errorString err)
-                            , Report.error (Api.errorString err)
+                            , state.report.error (Api.errorString err)
                                 (Report.data
                                     |> Report.withField "model" (encodeModel model)
                                     |> Report.withField "msg" (Encode.string "GotSettings")

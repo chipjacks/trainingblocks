@@ -99,7 +99,9 @@ update env msg model =
                                 |> updateLoading
 
                         Err err ->
-                            ( Error (Api.errorString err), Effect.None )
+                            ( Error (Api.userError err)
+                            , reportError env "Loading" "GotActivities" (Api.developerError err)
+                            )
 
                 GotSettings settingsR ->
                     case settingsR of
@@ -111,12 +113,8 @@ update env msg model =
                             ( MissingSettings, Effect.None )
 
                         Err err ->
-                            ( Error (Api.errorString err)
-                            , Report.error env
-                                |> Report.withField "model" (encodeModel model)
-                                |> Report.withField "msg" (Encode.string "GotSettings")
-                                |> Report.send (Api.errorString err)
-                                |> Effect.ReportError
+                            ( Error (Api.userError err)
+                            , reportError env "Loading" "GotSettings" (Api.developerError err)
                             )
 
                 FetchedEmojis result ->
@@ -125,8 +123,10 @@ update env msg model =
                             Loading { state | emojisM = Just (Emoji.toDict emojis) }
                                 |> updateLoading
 
-                        _ ->
-                            ( model, Effect.None )
+                        Err err ->
+                            ( model
+                            , reportError env "Loading" "FetchedEmojis" (Api.developerError err)
+                            )
 
                 _ ->
                     ( model, Effect.None )
@@ -924,17 +924,10 @@ subscriptions model =
 -- ERROR REPORTING
 
 
-encodeModel : Model -> Encode.Value
-encodeModel model =
-    case model of
-        Loading _ ->
-            Encode.string "Loading"
-
-        Loaded _ ->
-            Encode.string "Loaded"
-
-        MissingSettings ->
-            Encode.string "MissingSettings"
-
-        Error s ->
-            Encode.string ("Error " ++ s)
+reportError : App.Env -> String -> String -> String -> Effect
+reportError env model msg errorMsg =
+    Report.error env
+        |> Report.withField "model" (Encode.string model)
+        |> Report.withField "msg" (Encode.string msg)
+        |> Report.send errorMsg
+        |> Effect.ReportError

@@ -1,4 +1,4 @@
-module Api exposing (errorString, getActivities, getSettings, postActivities, putSettings)
+module Api exposing (developerError, getActivities, getSettings, postActivities, putSettings, userError)
 
 import Activity
 import Activity.Types exposing (Activity)
@@ -124,9 +124,22 @@ putSettings settings =
         }
 
 
-errorString : Http.Error -> String
-errorString result =
-    case result of
+userError : Http.Error -> String
+userError error =
+    case error of
+        Http.BadBody decoderError ->
+            "Internal error"
+
+        Http.BadUrl url ->
+            "Internal error"
+
+        _ ->
+            developerError error
+
+
+developerError : Http.Error -> String
+developerError error =
+    case error of
         Http.BadUrl url ->
             "Bad URL: " ++ url
 

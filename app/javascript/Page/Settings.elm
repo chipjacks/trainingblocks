@@ -149,7 +149,7 @@ update msg model =
         PostedSettings settings result ->
             case result of
                 Err error ->
-                    ( { model | status = Error (Api.errorString error) }, Cmd.none )
+                    ( { model | status = Error (Api.userError error) }, Cmd.none )
 
                 _ ->
                     ( { model | status = Success, trainingPaces = initPaces settings.paces }

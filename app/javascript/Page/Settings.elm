@@ -14,10 +14,12 @@ import Html.Events
 import Html.Keyed
 import Http
 import Json.Decode as Decode
+import Json.Encode as Encode
 import MPRLevel
 import MonoIcons
 import Pace
 import Ports
+import Report
 import Selection exposing (Selection)
 import Settings exposing (Settings)
 import Task
@@ -130,29 +132,35 @@ update env msg model =
             )
 
         GotSettings result ->
-            ( case result of
-                Err _ ->
-                    { model | status = Error strings.loadError }
+            case result of
+                Err err ->
+                    ( { model | status = Error strings.loadError }
+                    , reportError env "GotSettings" (Api.developerError err)
+                    )
 
                 Ok (Just settings) ->
-                    { model
+                    ( { model
                         | status = Success
                         , trainingPaces = initPaces settings.paces
                         , raceDistance = Just settings.raceDistance
                         , raceDuration = initRaceDuration (Just settings.raceDuration)
-                    }
+                      }
                         |> updateLevel
                         |> updateResult
+                    , Cmd.none
+                    )
 
                 Ok Nothing ->
-                    { model | status = Success }
-            , Cmd.none
-            )
+                    ( { model | status = Success }
+                    , Cmd.none
+                    )
 
         PostedSettings settings result ->
             case result of
                 Err error ->
-                    ( { model | status = Error (Api.userError error) }, Cmd.none )
+                    ( { model | status = Error (Api.userError error) }
+                    , reportError env "PostedSettings" (Api.developerError error)
+                    )
 
                 _ ->
                     ( { model | status = Success, trainingPaces = initPaces settings.paces }
@@ -612,3 +620,15 @@ viewRecentRaceInput raceDuration raceDistance =
             ]
         , row [ style "margin-top" "10px" ] [ Duration.View.input EditedDuration ( hrs, mins, secs ) ]
         ]
+
+
+
+-- ERROR REPORTING
+
+
+reportError : App.Env -> String -> String -> Cmd Msg
+reportError env msg errorMsg =
+    Report.error env
+        |> Report.withField "msg" (Encode.string msg)
+        |> Report.send errorMsg
+        |> Task.attempt (\_ -> NoOp)

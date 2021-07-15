@@ -1,54 +1,39 @@
-module Report exposing (init, data, withField, Reporter)
+module Report exposing (Reporter, error, send, withField)
 
-import Rollbar exposing (Rollbar)
+import App exposing (Env)
 import Dict exposing (Dict)
-import Json.Encode as Encode
+import Http
 import Json.Decode as Decode exposing (Decoder)
+import Json.Encode as Encode
+import Rollbar exposing (Rollbar)
+import Task exposing (Task)
+import Uuid exposing (Uuid)
 
-type alias Configs =
-    { token : String
-    , environment : String
+
+type alias Reporter =
+    { send : String -> Dict String Encode.Value -> Task Http.Error Uuid
+    , data : Dict String Encode.Value
     }
 
 
-type alias Reporter
-    = Rollbar
+error : Env -> Reporter
+error env =
+    { send =
+        (Rollbar.scoped
+            (Rollbar.token env.rollbarAccessToken)
+            (Rollbar.codeVersion "")
+            (Rollbar.environment env.environment)
+            env.title
+        ).error
+    , data = Dict.fromList [ ( "user_id", Encode.int env.userId ) ]
+    }
 
 
-decoder : Decoder Configs
-decoder =
-    Decode.map2 Configs
-        (Decode.field "rollbar_access_token" Decode.string)
-        (Decode.field "environment" Decode.string)
+withField : String -> Encode.Value -> Reporter -> Reporter
+withField str val reporter =
+    { reporter | data = Dict.insert str val reporter.data }
 
 
-init : String -> String -> Reporter
-init scope json =
-    let
-        configs = 
-            case Decode.decodeString decoder json of
-                Err err ->
-                    let
-                        debug = Debug.log "error" (Decode.errorToString err)
-                    in
-                    Err err
-                        |> Result.withDefault (Configs "" "")
-
-                Ok res ->
-                    res
-    in
-    Rollbar.scoped
-        (Rollbar.token configs.token)
-        (Rollbar.codeVersion "")
-        (Rollbar.environment configs.environment)
-        scope
-
-
-data : Dict String Encode.Value
-data =
-    Dict.empty
-
-
-withField : String -> Encode.Value -> Dict String Encode.Value -> Dict String Encode.Value
-withField str val dict = 
-    Dict.insert str val dict
+send : String -> Reporter -> Task Http.Error Uuid
+send message reporter =
+    reporter.send message reporter.data

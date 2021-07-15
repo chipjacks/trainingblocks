@@ -112,11 +112,10 @@ update env msg model =
 
                         Err err ->
                             ( Error (Api.errorString err)
-                            , env.report.error (Api.errorString err)
-                                (Report.data
-                                    |> Report.withField "model" (encodeModel model)
-                                    |> Report.withField "msg" (Encode.string "GotSettings")
-                                )
+                            , Report.error env
+                                |> Report.withField "model" (encodeModel model)
+                                |> Report.withField "msg" (Encode.string "GotSettings")
+                                |> Report.send (Api.errorString err)
                                 |> Effect.ReportError
                             )
 

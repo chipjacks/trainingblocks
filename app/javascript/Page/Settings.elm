@@ -3,6 +3,7 @@ module Page.Settings exposing (main)
 import Activity
 import Activity.Types exposing (RaceDistance)
 import Api
+import App
 import Browser
 import Browser.Navigation
 import Duration
@@ -33,18 +34,20 @@ import UI.Util exposing (attributeMaybe, borderStyle, onPointerMove, styleIf, vi
 import Validate exposing (Field)
 
 
-main : Program () Model Msg
+main : Program App.Flags ( App.Env, Model ) Msg
 main =
-    Browser.document
-        { init = \x -> init x
-        , view = \model -> { title = "Settings | Rhino Log", body = [ view model ] }
-        , update = \model msg -> update model msg
+    App.document
+        { title = "Settings"
+        , init = init
+        , update = update
+        , perform = identity
+        , view = view
         , subscriptions = \_ -> Ports.setDropTarget SetDropTarget
         }
 
 
-init : () -> ( Model, Cmd Msg )
-init _ =
+init : ( Model, Cmd Msg )
+init =
     ( Model (initPaces []) Nothing Nothing (initRaceDuration Nothing) (Err "") Loading (Err "")
     , Task.attempt GotSettings Api.getSettings
     )
@@ -118,8 +121,8 @@ type Msg
     | NoOp
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+update : App.Env -> Msg -> Model -> ( Model, Cmd Msg )
+update env msg model =
     case msg of
         ClickedSave settings ->
             ( { model | status = Posted }

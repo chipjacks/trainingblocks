@@ -48,7 +48,7 @@ init _ =
 
 
 type alias Model =
-    { races : List Activity
+    { activities : List Activity
     }
 
 
@@ -62,7 +62,7 @@ update msg model =
         GotActivities result ->
             case result of
                 Ok ( _, activities ) ->
-                    ( { model | races = activities }, Cmd.none )
+                    ( { model | activities = activities }, Cmd.none )
 
                 Err err ->
                     ( model, Cmd.none )
@@ -77,7 +77,7 @@ view model =
                 ]
 
         navHeader =
-            Html.div [ style "font-size" "1.3rem", style "margin-top" "0.2rem" ] [ Html.text "Performance" ]
+            Html.div [ style "font-size" "1.3rem", style "margin-top" "0.2rem" ] [ Html.text "Trends" ]
     in
     Skeleton.default
         |> Skeleton.withNavbar
@@ -92,17 +92,20 @@ view model =
 
 viewBody : Model -> Html msg
 viewBody model =
-    viewChart model.races
+    column []
+        [ viewLevelChart model.activities
+        , viewTimeChart model.activities
+        ]
 
 
-viewChart : List Activity -> Svg msg
-viewChart races =
+viewLevelChart : List Activity -> Svg msg
+viewLevelChart activities =
     let
         chartConfig : LineChart.Config { a | level : Int, date : Date } msg
         chartConfig =
             { y = Axis.default 400 "Level" (.level >> toFloat)
             , x = Axis.time Time.utc 900 "Date" (.date >> dateToPosixTime >> toFloat)
-            , container = Container.default "line-chart-1"
+            , container = Container.responsive "line-chart-1"
             , interpolation = Interpolation.monotone
             , intersection = Intersection.default
             , legends = Legends.none
@@ -111,15 +114,47 @@ viewChart races =
             , grid = Grid.default
             , area = Area.default
             , line = Line.default
-            , dots = Dots.default
+            , dots = Dots.custom (Dots.full 4)
             }
 
         points =
             List.filterMap
                 (\a -> Activity.mprLevel a |> Maybe.map (\l -> { date = a.date, level = l }))
-                races
+                activities
     in
-    LineChart.viewCustom chartConfig [ LineChart.line Colors.blueLight Dots.square "Level" points ]
+    LineChart.viewCustom chartConfig [ LineChart.line Colors.blueLight Dots.circle "Level" points ]
+
+
+viewTimeChart : List Activity -> Svg msg
+viewTimeChart activities =
+    let
+        chartConfig : LineChart.Config ( Date, Int ) msg
+        chartConfig =
+            { y = Axis.default 400 "Hours" (Tuple.second >> toFloat >> (\s -> s / (60 * 60)))
+            , x = Axis.time Time.utc 900 "Date" (Tuple.first >> dateToPosixTime >> toFloat)
+            , container = Container.responsive "line-chart-2"
+            , interpolation = Interpolation.monotone
+            , intersection = Intersection.default
+            , legends = Legends.none
+            , events = Events.default
+            , junk = Junk.default
+            , grid = Grid.default
+            , area = Area.default
+            , line = Line.default
+            , dots = Dots.custom (Dots.full 4)
+            }
+
+        points =
+            Date.range Date.Week 1 (Date.fromCalendarDate 2020 Time.Jan 1) (Date.fromCalendarDate 2021 Time.Jan 1)
+                |> List.map
+                    (\date ->
+                        List.filter (\a -> Date.isBetween date (Date.add Date.Days 6 date) a.date) activities
+                            |> List.map (\a -> a.laps |> Activity.Laps.duration)
+                            |> List.sum
+                            |> Tuple.pair date
+                    )
+    in
+    LineChart.viewCustom chartConfig [ LineChart.line Colors.blueLight Dots.circle "Level" points ]
 
 
 epochStartOffset : Int

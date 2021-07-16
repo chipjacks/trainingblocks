@@ -1,4 +1,4 @@
-module Activity.Laps exposing (listData, sum, updateField, visible)
+module Activity.Laps exposing (duration, listData, sum, updateField, visible)
 
 import Activity.Types exposing (Activity, ActivityData, ActivityType(..), Completion(..), LapData(..))
 

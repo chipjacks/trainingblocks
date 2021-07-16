@@ -1,6 +1,5 @@
 class UpdateStravaImportJob < ApplicationJob
   queue_as :default
-  retry_on StravaClient::ApiError, wait: 2.minutes
 
   def perform(user, strava_activity_id)
     StravaClient.configure { |config| config.access_token = get_access_token(user) }

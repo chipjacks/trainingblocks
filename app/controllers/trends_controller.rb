@@ -1,4 +1,4 @@
-class PerformanceController < ApplicationController
+class TrendsController < ApplicationController
   before_action :authenticate_user!
 
   def index

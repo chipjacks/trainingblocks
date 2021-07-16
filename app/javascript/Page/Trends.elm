@@ -1,4 +1,4 @@
-module Page.Performance exposing (main)
+module Page.Trends exposing (main)
 
 import Activity
 import Activity.Laps
@@ -34,7 +34,7 @@ import UI.Skeleton as Skeleton
 main =
     Browser.document
         { init = \x -> init x
-        , view = \model -> { title = "Performance | Rhino Log", body = [ view model ] }
+        , view = \model -> { title = "Trends | Rhino Log", body = [ view model ] }
         , update = update
         , subscriptions = \_ -> Sub.none
         }
@@ -101,11 +101,11 @@ viewChart races =
         chartConfig : LineChart.Config { a | level : Int, date : Date } msg
         chartConfig =
             { y = Axis.default 400 "Level" (.level >> toFloat)
-            , x = Axis.time Time.utc 700 "Date" (.date >> dateToPosixTime >> toFloat)
+            , x = Axis.time Time.utc 900 "Date" (.date >> dateToPosixTime >> toFloat)
             , container = Container.default "line-chart-1"
-            , interpolation = Interpolation.default
+            , interpolation = Interpolation.monotone
             , intersection = Intersection.default
-            , legends = Legends.default
+            , legends = Legends.none
             , events = Events.default
             , junk = Junk.default
             , grid = Grid.default

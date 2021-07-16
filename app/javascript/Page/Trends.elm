@@ -135,26 +135,34 @@ viewTimeChart activities =
             , container = Container.responsive "line-chart-2"
             , interpolation = Interpolation.monotone
             , intersection = Intersection.default
-            , legends = Legends.none
+            , legends = Legends.default
             , events = Events.default
             , junk = Junk.default
             , grid = Grid.default
-            , area = Area.default
+            , area = Area.stacked 0.5
             , line = Line.default
             , dots = Dots.custom (Dots.full 4)
             }
 
-        points =
+        weekDurations =
             Date.range Date.Week 1 (Date.fromCalendarDate 2020 Time.Jan 1) (Date.fromCalendarDate 2021 Time.Jan 1)
                 |> List.map
                     (\date ->
                         List.filter (\a -> Date.isBetween date (Date.add Date.Days 6 date) a.date) activities
-                            |> List.map (\a -> a.laps |> Activity.Laps.duration)
-                            |> List.sum
+                            |> Activity.sumDuration
                             |> Tuple.pair date
                     )
+
+        runDurations =
+            List.map (\( date, { run } ) -> ( date, run )) weekDurations
+
+        otherDurations =
+            List.map (\( date, { other } ) -> ( date, other )) weekDurations
     in
-    LineChart.viewCustom chartConfig [ LineChart.line Colors.blueLight Dots.circle "Level" points ]
+    LineChart.viewCustom chartConfig
+        [ LineChart.line Colors.goldLight Dots.circle "Other" otherDurations
+        , LineChart.line Colors.blueLight Dots.square "Run" runDurations
+        ]
 
 
 epochStartOffset : Int

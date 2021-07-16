@@ -1,6 +1,7 @@
 module Calendar exposing (Model, get, handleScroll, init, update, view, viewBackButton, viewHeader, viewMenu)
 
 import Actions exposing (viewActivityActions, viewMultiSelectActions, viewPopoverActions)
+import Activity
 import Activity.Laps
 import Activity.Types exposing (Activity)
 import Activity.View
@@ -433,21 +434,8 @@ viewWeekDay ( date, activities ) isToday isSelected isMoving activeId configs =
 titleWeek : List Activity -> Html msg
 titleWeek activities =
     let
-        sumDuration datas =
-            datas
-                |> List.map
-                    (\data ->
-                        case data.activityType of
-                            Activity.Types.Run ->
-                                ( data.duration |> Maybe.withDefault 0, 0 )
-
-                            _ ->
-                                ( 0, data.duration |> Maybe.withDefault 0 )
-                    )
-                |> List.foldl (\( r, o ) ( sr, so ) -> ( sr + r, so + o )) ( 0, 0 )
-
-        ( runDuration, otherDuration ) =
-            sumDuration (List.map Activity.Laps.listData activities |> List.concat)
+        { run, other } =
+            Activity.sumDuration activities
 
         hours duration =
             (duration // 60) // 60
@@ -488,8 +476,8 @@ titleWeek activities =
     in
     column
         [ style "min-width" "4rem" ]
-        [ viewIf (runDuration /= 0) (durationPillBox runDuration "Run")
-        , viewIf (otherDuration /= 0) (durationPillBox otherDuration "Other")
+        [ viewIf (run /= 0) (durationPillBox run "Run")
+        , viewIf (other /= 0) (durationPillBox other "Other")
         ]
 
 

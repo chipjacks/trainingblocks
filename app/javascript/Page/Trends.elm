@@ -42,13 +42,14 @@ main =
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( Model []
+    ( Model [] 2021
     , Task.attempt GotActivities Api.getActivities
     )
 
 
 type alias Model =
     { activities : List Activity
+    , year : Int
     }
 
 
@@ -94,7 +95,7 @@ viewBody : Model -> Html msg
 viewBody model =
     column []
         [ viewLevelChart model.activities
-        , viewTimeChart model.activities
+        , viewTimeChart model
         ]
 
 
@@ -125,8 +126,8 @@ viewLevelChart activities =
     LineChart.viewCustom chartConfig [ LineChart.line Colors.blueLight Dots.circle "Level" points ]
 
 
-viewTimeChart : List Activity -> Svg msg
-viewTimeChart activities =
+viewTimeChart : Model -> Svg msg
+viewTimeChart { activities, year } =
     let
         chartConfig : LineChart.Config ( Date, Int ) msg
         chartConfig =
@@ -145,7 +146,10 @@ viewTimeChart activities =
             }
 
         weekDurations =
-            Date.range Date.Week 1 (Date.fromCalendarDate 2020 Time.Jan 1) (Date.fromCalendarDate 2021 Time.Jan 1)
+            Date.range Date.Week
+                1
+                (Date.fromCalendarDate year Time.Jan 1)
+                (Date.fromCalendarDate (year + 1) Time.Jan 1)
                 |> List.map
                     (\date ->
                         List.filter (\a -> Date.isBetween date (Date.add Date.Days 6 date) a.date) activities

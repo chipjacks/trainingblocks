@@ -5,23 +5,13 @@ import Activity.Laps
 import Activity.Types exposing (Activity, ActivityData, RaceDistance)
 import Api
 import Browser
+import Chart as C
+import Chart.Attributes as CA
+import Chart.Item as CI
 import Date exposing (Date)
 import Html exposing (Html)
 import Html.Attributes exposing (class, style)
 import Http
-import LineChart
-import LineChart.Area as Area
-import LineChart.Axis as Axis
-import LineChart.Axis.Intersection as Intersection
-import LineChart.Colors as Colors
-import LineChart.Container as Container
-import LineChart.Dots as Dots
-import LineChart.Events as Events
-import LineChart.Grid as Grid
-import LineChart.Interpolation as Interpolation
-import LineChart.Junk as Junk
-import LineChart.Legends as Legends
-import LineChart.Line as Line
 import MonoIcons
 import Svg exposing (Svg)
 import Task
@@ -93,59 +83,61 @@ view model =
 
 viewBody : Model -> Html msg
 viewBody model =
-    column []
-        [ viewLevelChart model.activities
+    column [ style "margin-left" "10px", style "margin-right" "10px" ]
+        [ Html.h3 [] [ Html.text "Level" ]
+        , viewLevelChart model
+        , Html.h3 [] [ Html.text "Hours per week" ]
         , viewTimeChart model
         ]
 
 
-viewLevelChart : List Activity -> Svg msg
-viewLevelChart activities =
+
+-- TODO: Distinguish planned vs completed activities, or just add lots of filtering abilities
+
+
+viewLevelChart : Model -> Svg msg
+viewLevelChart { activities, year } =
     let
-        chartConfig : LineChart.Config { a | level : Int, date : Date } msg
-        chartConfig =
-            { y = Axis.default 400 "Level" (.level >> toFloat)
-            , x = Axis.time Time.utc 900 "Date" (.date >> dateToPosixTime >> toFloat)
-            , container = Container.responsive "line-chart-1"
-            , interpolation = Interpolation.monotone
-            , intersection = Intersection.default
-            , legends = Legends.none
-            , events = Events.default
-            , junk = Junk.default
-            , grid = Grid.default
-            , area = Area.default
-            , line = Line.default
-            , dots = Dots.custom (Dots.full 4)
-            }
+        start =
+            Date.fromCalendarDate year Time.Jan 1 |> dateToPosixTime |> toFloat
+
+        end =
+            Date.fromCalendarDate (year + 1) Time.Jan 1 |> dateToPosixTime |> toFloat
 
         points =
             List.filterMap
-                (\a -> Activity.mprLevel a |> Maybe.map (\l -> { date = a.date, level = l }))
+                (\a -> Activity.mprLevel a |> Maybe.map (\l -> { time = a.date |> dateToPosixTime, level = l }))
                 activities
     in
-    LineChart.viewCustom chartConfig [ LineChart.line Colors.blueLight Dots.circle "Level" points ]
+    C.chart
+        [ CA.height 200
+        , CA.width 600
+        , CA.margin { top = 10, bottom = 40, left = 40, right = 40 }
+        , CA.range
+            [ CA.lowest start CA.exactly
+            , CA.highest end CA.exactly
+            ]
+        , CA.domain
+            [ CA.lowest 0 CA.orHigher
+            ]
+        ]
+        [ C.xTicks [ CA.times Time.utc ]
+        , C.yTicks [ CA.ints ]
+        , C.xLabels [ CA.times Time.utc ]
+        , C.yLabels [ CA.ints ]
+        , C.xAxis []
+        , C.yAxis []
+        , C.series (.time >> toFloat)
+            [ C.scatter (.level >> toFloat) [ CA.color "var(--blue-500)" ]
+            ]
+            points
+        ]
 
 
 viewTimeChart : Model -> Svg msg
 viewTimeChart { activities, year } =
     let
-        chartConfig : LineChart.Config ( Date, Int ) msg
-        chartConfig =
-            { y = Axis.default 400 "Hours" (Tuple.second >> toFloat >> (\s -> s / (60 * 60)))
-            , x = Axis.time Time.utc 900 "Date" (Tuple.first >> dateToPosixTime >> toFloat)
-            , container = Container.responsive "line-chart-2"
-            , interpolation = Interpolation.monotone
-            , intersection = Intersection.default
-            , legends = Legends.default
-            , events = Events.default
-            , junk = Junk.default
-            , grid = Grid.default
-            , area = Area.stacked 0.5
-            , line = Line.default
-            , dots = Dots.custom (Dots.full 4)
-            }
-
-        weekDurations =
+        data =
             Date.range Date.Week
                 1
                 (Date.fromCalendarDate year Time.Jan 1)
@@ -154,18 +146,30 @@ viewTimeChart { activities, year } =
                     (\date ->
                         List.filter (\a -> Date.isBetween date (Date.add Date.Days 6 date) a.date) activities
                             |> Activity.sumDuration
-                            |> Tuple.pair date
+                            |> (\{ run, other } -> { run = run, other = other, time = dateToPosixTime date })
                     )
 
-        runDurations =
-            List.map (\( date, { run } ) -> ( date, run )) weekDurations
-
-        otherDurations =
-            List.map (\( date, { other } ) -> ( date, other )) weekDurations
+        toHours secs =
+            (secs |> toFloat) / (60 * 60)
     in
-    LineChart.viewCustom chartConfig
-        [ LineChart.line Colors.goldLight Dots.circle "Other" otherDurations
-        , LineChart.line Colors.blueLight Dots.square "Run" runDurations
+    C.chart
+        [ CA.height 200
+        , CA.width 600
+        , CA.margin { top = 10, bottom = 40, left = 40, right = 40 }
+        ]
+        [ C.xTicks [ CA.times Time.utc ]
+        , C.yTicks [ CA.ints ]
+        , C.xLabels [ CA.times Time.utc ]
+        , C.yLabels [ CA.ints ]
+        , C.xAxis []
+        , C.yAxis []
+        , C.series (.time >> toFloat)
+            [ C.stacked
+                [ C.interpolated (.other >> toHours) [ CA.color "var(--blue-300)" ] []
+                , C.interpolated (.run >> toHours) [ CA.color "var(--blue-500)" ] []
+                ]
+            ]
+            data
         ]
 
 

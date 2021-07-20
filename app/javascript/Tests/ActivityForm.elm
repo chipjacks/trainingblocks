@@ -1,23 +1,31 @@
 module Tests.ActivityForm exposing (all)
 
 import Effect exposing (Effect)
+import Html.Attributes
+import Json.Encode as Encode
 import Msg exposing (Msg)
 import Page.Calendar exposing (Model, init, view)
 import ProgramTest exposing (..)
 import Test exposing (..)
 import Test.Html.Event as Event
 import Test.Html.Query as Query
-import Test.Html.Selector exposing (class, id, text, attribute)
-import Html.Attributes
+import Test.Html.Selector exposing (attribute, class, id, text)
 import Tests.Effects
-import Json.Encode as Encode
+
+
+testEnv =
+    { title = "Test"
+    , rollbarAccessToken = ""
+    , environment = "Test"
+    , userId = 0
+    }
 
 
 start : ProgramTest Model Msg Effect
 start =
     ProgramTest.createDocument
-        { init = \_ -> init ()
-        , update = Page.Calendar.update
+        { init = \_ -> init
+        , update = \msg model -> Page.Calendar.update testEnv msg model
         , view = \m -> { title = "Test", body = [ view m ] }
         }
         |> ProgramTest.withSimulatedEffects Tests.Effects.simulateEffects

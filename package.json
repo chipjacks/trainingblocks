@@ -2,7 +2,7 @@
   "name": "training_blocks",
   "private": true,
   "scripts": {
-    "dev": "./bin/webpack --watch --silent",
+    "dev": "./bin/webpack-dev-server",
     "test": "elm-test app/javascript/Tests"
   },
   "dependencies": {

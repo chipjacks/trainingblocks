@@ -1,6 +1,7 @@
 module Tests.Aggregate exposing (suite)
 
 import Activity.Aggregate as Aggregate
+import Activity.Data as Data
 import Expect exposing (Expectation)
 import Fuzz
 import Test exposing (..)
@@ -32,21 +33,21 @@ suite =
             in
             [ test "sums the duration of completed runs" <|
                 \_ ->
-                    Expect.equal (Aggregate.duration [ Aggregate.completed, Aggregate.run ] Fixture.activities) runCompleted
+                    Expect.equal (Aggregate.duration [ Data.completed, Data.run ] Fixture.activities) runCompleted
             , test "sums the duration of completed others" <|
                 \_ ->
-                    Expect.equal (Aggregate.duration [ Aggregate.completed, Aggregate.other ] Fixture.activities) otherCompleted
+                    Expect.equal (Aggregate.duration [ Data.completed, Data.other ] Fixture.activities) otherCompleted
             , test "sums the duration of completed activities" <|
                 \_ ->
-                    Expect.equal (Aggregate.duration [ Aggregate.completed ] Fixture.activities) totalCompleted
+                    Expect.equal (Aggregate.duration [ Data.completed ] Fixture.activities) totalCompleted
             , test "sums the duration of planned runs" <|
                 \_ ->
-                    Expect.equal (Aggregate.duration [ Aggregate.planned, Aggregate.run ] Fixture.activities) runPlanned
+                    Expect.equal (Aggregate.duration [ Data.planned, Data.run ] Fixture.activities) runPlanned
             , test "sums the duration of planned others" <|
                 \_ ->
-                    Expect.equal (Aggregate.duration [ Aggregate.planned, Aggregate.other ] Fixture.activities) otherPlanned
+                    Expect.equal (Aggregate.duration [ Data.planned, Data.other ] Fixture.activities) otherPlanned
             , test "sums the duration of planned activities" <|
                 \_ ->
-                    Expect.equal (Aggregate.duration [ Aggregate.planned ] Fixture.activities) totalPlanned
+                    Expect.equal (Aggregate.duration [ Data.planned ] Fixture.activities) totalPlanned
             ]
         ]

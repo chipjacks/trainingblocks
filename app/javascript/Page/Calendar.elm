@@ -1,7 +1,7 @@
 module Page.Calendar exposing (Model, init, main, update, view)
 
 import Activity
-import Activity.Laps
+import Activity.Data
 import Activity.Types exposing (Activity, Completion(..), LapData(..))
 import ActivityForm
 import ActivityShape
@@ -857,8 +857,8 @@ viewActivityM configs activityState =
                 , style "margin-top" "10px"
                 ]
                 [ compactColumn [ style "flex-basis" "5rem" ]
-                    (Activity.Laps.listData activity
-                        |> List.map (\lap -> ActivityShape.view configs lap)
+                    (Activity.Data.list [ Activity.Data.visible activity ] activity
+                        |> List.map (ActivityShape.view configs)
                     )
                 ]
 

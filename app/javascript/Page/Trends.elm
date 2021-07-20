@@ -1,6 +1,7 @@
 module Page.Trends exposing (main)
 
 import Activity
+import Activity.Aggregate as Aggregate
 import Activity.Laps
 import Activity.Types exposing (Activity, ActivityData, RaceDistance)
 import Api
@@ -145,8 +146,12 @@ viewTimeChart { activities, year } =
                 |> List.map
                     (\date ->
                         List.filter (\a -> Date.isBetween date (Date.add Date.Days 6 date) a.date) activities
-                            |> Activity.sumDuration
-                            |> (\{ run, other } -> { run = run, other = other, time = dateToPosixTime date })
+                            |> (\acts ->
+                                    { run = Aggregate.duration [ Aggregate.run, Aggregate.completed ] acts
+                                    , other = Aggregate.duration [ Aggregate.other, Aggregate.completed ] acts
+                                    , time = dateToPosixTime date
+                                    }
+                               )
                     )
 
         toHours secs =

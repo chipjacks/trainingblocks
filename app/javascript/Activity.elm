@@ -1,5 +1,6 @@
-module Activity exposing (activityType, decoder, distanceUnits, effort, encoder, initActivityData, mprLevel, newId, raceDistance, sumDuration)
+module Activity exposing (activityType, decoder, distanceUnits, effort, encoder, initActivityData, mprLevel, newId, raceDistance)
 
+import Activity.Data
 import Activity.Laps
 import Activity.Types exposing (Activity, ActivityData, ActivityType(..), Completion(..), DistanceUnits(..), Effort(..), LapData(..), RaceDistance(..))
 import Date exposing (Date)
@@ -85,8 +86,7 @@ mprLevel : Activity -> Maybe Int
 mprLevel activity =
     let
         data =
-            Activity.Laps.listData activity
-                |> List.filter (\d -> d.race /= Nothing)
+            Activity.Data.list [ Activity.Data.race ] activity
                 |> List.head
                 |> Maybe.withDefault initActivityData
     in
@@ -100,29 +100,6 @@ mprLevel activity =
 
         _ ->
             Nothing
-
-
-
--- COLLECTIONS
-
-
-sumDuration : List Activity -> { run : Int, other : Int, total : Int }
-sumDuration activities =
-    let
-        sum datas =
-            datas
-                |> List.map
-                    (\data ->
-                        case data.activityType of
-                            Activity.Types.Run ->
-                                ( data.duration |> Maybe.withDefault 0, 0 )
-
-                            _ ->
-                                ( 0, data.duration |> Maybe.withDefault 0 )
-                    )
-                |> List.foldl (\( r, o ) { run, other, total } -> { run = run + r, other = other + o, total = total + r + o }) { run = 0, other = 0, total = 0 }
-    in
-    sum (List.map Activity.Laps.listData activities |> List.concat)
 
 
 

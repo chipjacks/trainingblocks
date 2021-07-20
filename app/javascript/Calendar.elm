@@ -2,6 +2,8 @@ module Calendar exposing (Model, get, handleScroll, init, update, view, viewBack
 
 import Actions exposing (viewActivityActions, viewMultiSelectActions, viewPopoverActions)
 import Activity
+import Activity.Aggregate
+import Activity.Data
 import Activity.Laps
 import Activity.Types exposing (Activity)
 import Activity.View
@@ -285,7 +287,7 @@ viewActivityShape activity isActive isMonthView configs =
                 ]
                 [ viewPopoverActions ]
             )
-            :: (Activity.Laps.listData activity
+            :: (Activity.Data.list [ Activity.Data.visible activity ] activity
                     |> List.map (\a -> ActivityShape.view configs a)
                )
 
@@ -434,8 +436,11 @@ viewWeekDay ( date, activities ) isToday isSelected isMoving activeId configs =
 titleWeek : List Activity -> Html msg
 titleWeek activities =
     let
-        { run, other } =
-            Activity.sumDuration activities
+        run =
+            Activity.Aggregate.duration [ Activity.Data.run ] activities
+
+        other =
+            Activity.Aggregate.duration [ Activity.Data.other ] activities
 
         hours duration =
             (duration // 60) // 60
@@ -528,7 +533,7 @@ viewActivity activeIds isActiveDate configs activity =
     in
     Activity.View.listItem
         { titleM = Just activity.description
-        , subtitle = Activity.View.activityDescription Nothing (Activity.Laps.visible activity |> Activity.Laps.sum)
+        , subtitle = Activity.View.activityDescription Nothing (Activity.Data.list [ Activity.Data.visible activity ] activity |> Activity.Laps.sum)
         , isActive = isActive
         , handlePointerDown = selectActivityDecoder activity
         , handleDoubleClick = EditActivity activity

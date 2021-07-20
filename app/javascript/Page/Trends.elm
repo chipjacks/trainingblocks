@@ -2,10 +2,11 @@ module Page.Trends exposing (main)
 
 import Activity
 import Activity.Aggregate as Aggregate
+import Activity.Data as Data
 import Activity.Laps
 import Activity.Types exposing (Activity, ActivityData, RaceDistance)
 import Api
-import Browser
+import App
 import Chart as C
 import Chart.Attributes as CA
 import Chart.Item as CI
@@ -23,16 +24,18 @@ import UI.Skeleton as Skeleton
 
 
 main =
-    Browser.document
-        { init = \x -> init x
-        , view = \model -> { title = "Trends | Rhino Log", body = [ view model ] }
+    App.document
+        { init = init
+        , title = "Trends"
         , update = update
+        , perform = identity
+        , view = \model -> view model
         , subscriptions = \_ -> Sub.none
         }
 
 
-init : () -> ( Model, Cmd Msg )
-init _ =
+init : ( Model, Cmd Msg )
+init =
     ( Model [] 2021
     , Task.attempt GotActivities Api.getActivities
     )
@@ -48,8 +51,8 @@ type Msg
     = GotActivities (Result Http.Error ( String, List Activity ))
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+update : App.Env -> Msg -> Model -> ( Model, Cmd Msg )
+update _ msg model =
     case msg of
         GotActivities result ->
             case result of
@@ -147,8 +150,8 @@ viewTimeChart { activities, year } =
                     (\date ->
                         List.filter (\a -> Date.isBetween date (Date.add Date.Days 6 date) a.date) activities
                             |> (\acts ->
-                                    { run = Aggregate.duration [ Aggregate.run, Aggregate.completed ] acts
-                                    , other = Aggregate.duration [ Aggregate.other, Aggregate.completed ] acts
+                                    { run = Aggregate.duration [ Data.run, Data.completed ] acts
+                                    , other = Aggregate.duration [ Data.other, Data.completed ] acts
                                     , time = dateToPosixTime date
                                     }
                                )

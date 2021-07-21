@@ -152,7 +152,8 @@ viewTimeChart { activities, year } =
                             |> (\acts ->
                                     { run = Aggregate.duration [ Data.run, Data.completed ] acts
                                     , other = Aggregate.duration [ Data.other, Data.completed ] acts
-                                    , time = dateToPosixTime date
+                                    , start = date
+                                    , end = Date.add Date.Days 6 date
                                     }
                                )
                     )
@@ -172,8 +173,8 @@ viewTimeChart { activities, year } =
         , C.xAxis []
         , C.yAxis []
         , C.bars
-            [ CA.x1 (.time >> toFloat)
-            , CA.x2 (\d -> d.time + 6 * (1000 * 60 * 60 * 24) |> toFloat)
+            [ CA.x1 (.start >> dateToPosixTime >> toFloat)
+            , CA.x2 (.end >> dateToPosixTime >> toFloat)
             ]
             [ C.stacked
                 [ C.bar (.other >> toHours) [ CA.color "var(--blue-300)", CA.roundTop 5, CA.roundBottom 5 ]

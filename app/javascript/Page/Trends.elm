@@ -36,7 +36,7 @@ main =
 
 init : ( Model, Cmd Msg )
 init =
-    ( Model [] 2021
+    ( Model [] 2020
     , Task.attempt GotActivities Api.getActivities
     )
 
@@ -165,16 +165,21 @@ viewTimeChart { activities, year } =
         , CA.width 600
         , CA.margin { top = 10, bottom = 40, left = 40, right = 40 }
         ]
-        [ C.xTicks [ CA.times Time.utc ]
+        [ C.xTicks [ CA.times Time.utc, CA.amount 12 ]
         , C.yTicks [ CA.ints ]
-        , C.xLabels [ CA.times Time.utc ]
+        , C.xLabels [ CA.times Time.utc, CA.amount 12 ]
         , C.yLabels [ CA.ints ]
         , C.xAxis []
         , C.yAxis []
-        , C.series (.time >> toFloat)
+        , C.bars
+            [ CA.x1 (.time >> toFloat)
+            , CA.x2 (\d -> d.time + 6 * (1000 * 60 * 60 * 24) |> toFloat)
+            ]
             [ C.stacked
-                [ C.interpolated (.other >> toHours) [ CA.color "var(--blue-300)" ] []
-                , C.interpolated (.run >> toHours) [ CA.color "var(--blue-500)" ] []
+                [ C.bar (.other >> toHours) [ CA.color "var(--blue-300)", CA.roundTop 5, CA.roundBottom 5 ]
+                    |> C.named "Other"
+                , C.bar (.run >> toHours) [ CA.color "var(--blue-500)", CA.roundTop 0.3 ]
+                    |> C.named "Run"
                 ]
             ]
             data

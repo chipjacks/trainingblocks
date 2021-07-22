@@ -56,27 +56,16 @@ view { loading, items, backButton, secondRow } =
                 [ column [ class "container" ]
                     body
                 ]
-
-        dropdown =
-            compactColumn [ style "min-width" "1.5rem", style "justify-content" "center" ]
-                [ UI.dropdown True
-                    (if loading then
-                        spinner "1.5rem"
-
-                     else
-                        div [ style "font-size" "1.4rem", style "padding-top" "2px" ] [ MonoIcons.icon (MonoIcons.optionsVertical "var(--grey-900)") ]
-                    )
-                    [ a [ Html.Attributes.href "/settings" ] [ text "Settings" ]
-                    , a [ Html.Attributes.href "/users/sign_out", Html.Attributes.attribute "data-method" "delete" ] [ text "Logout" ]
-                    ]
-                ]
-    in
     container
         [ row
             [ style "padding" "0.5rem", style "height" "2.2rem" ]
             [ compactColumn [ style "justify-content" "center" ] [ backButton |> Maybe.withDefault UI.logo ]
             , column [] [ row [ style "justify-content" "center" ] items ]
-            , dropdown
+            , if loading then
+                spinner "1.5rem"
+
+              else
+                text ""
             ]
         , secondRow |> Maybe.withDefault (Html.text "")
         ]

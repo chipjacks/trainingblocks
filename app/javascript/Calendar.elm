@@ -22,7 +22,8 @@ import Msg exposing (ActivityConfigs, ActivityState(..), Msg(..), Zoom(..))
 import Process
 import Task
 import Time exposing (Month(..))
-import UI exposing (dropdown, spinner)
+import UI exposing (spinner)
+import UI.Dropdown
 import UI.Layout exposing (column, compactColumn, row)
 import UI.Util exposing (attributeIf, stopPropagationOnClick, styleIf, viewIf)
 
@@ -146,20 +147,22 @@ viewDatePicker model =
     in
     case zoom of
         Year ->
-            dropdown False
+            UI.Dropdown.default
                 (button [ class "button" ] [ text (Date.format "yyyy" selected) ])
                 (listYears today Jump)
+                |> UI.Dropdown.view
 
         Month ->
-            dropdown False
+            UI.Dropdown.default
                 (button [ class "button" ] [ text (Date.format "MMMM" selected) ])
                 (listMonths selected Jump)
+                |> UI.Dropdown.view
 
         Day ->
             text ""
 
 
-listMonths : Date -> (Date -> Msg) -> List (Html Msg)
+listMonths : Date -> (Date -> Msg) -> List ( String, Msg )
 listMonths date changeDate =
     let
         start =
@@ -172,7 +175,7 @@ listMonths date changeDate =
         |> List.map (viewDropdownItem changeDate "MMMM")
 
 
-listYears : Date -> (Date -> Msg) -> List (Html Msg)
+listYears : Date -> (Date -> Msg) -> List ( String, Msg )
 listYears today changeDate =
     let
         start =
@@ -185,9 +188,9 @@ listYears today changeDate =
         |> List.map (viewDropdownItem changeDate "yyyy")
 
 
-viewDropdownItem : (Date -> Msg) -> String -> Date -> Html Msg
+viewDropdownItem : (Date -> Msg) -> String -> Date -> ( String, Msg )
 viewDropdownItem changeDate formatDate date =
-    a [ onClick (changeDate date) ] [ text <| Date.format formatDate date ]
+    ( Date.format formatDate date, changeDate date )
 
 
 

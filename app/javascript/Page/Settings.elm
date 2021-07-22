@@ -465,12 +465,12 @@ viewSaveButton status result =
 
             ( _, Ok settings ) ->
                 Button.action "Save" MonoIcons.check (ClickedSave settings)
-                    |> Button.withAppearance Button.Large Button.Primary Button.Bottom
+                    |> Button.withAppearance Button.Wide Button.Primary Button.Bottom
                     |> Button.view
 
             ( _, Err _ ) ->
                 Button.action "Save" MonoIcons.check NoOp
-                    |> Button.withAppearance Button.Large Button.Subtle Button.Bottom
+                    |> Button.withAppearance Button.Wide Button.Subtle Button.Bottom
                     |> Button.view
         ]
 

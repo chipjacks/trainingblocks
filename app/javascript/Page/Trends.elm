@@ -90,6 +90,7 @@ view model =
             UI.Dropdown.default
                 (UI.Button.default (String.fromInt model.year) NoOp |> UI.Button.view)
                 (List.range (Date.year model.today - 5) (Date.year model.today)
+                    |> List.reverse
                     |> List.map (\y -> ( String.fromInt y, SelectedYear y ))
                 )
                 |> UI.Dropdown.withAttributes [ style "margin-left" "10px" ]

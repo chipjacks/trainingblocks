@@ -114,8 +114,8 @@ viewLevelChart { activities, year } =
                 activities
     in
     C.chart
-        [ CA.height 200
-        , CA.width 600
+        [ CA.height 300
+        , CA.width 900
         , CA.margin { top = 10, bottom = 40, left = 40, right = 40 }
         , CA.range
             [ CA.lowest start CA.exactly
@@ -162,8 +162,8 @@ viewTimeChart { activities, year } =
             (secs |> toFloat) / (60 * 60)
     in
     C.chart
-        [ CA.height 200
-        , CA.width 600
+        [ CA.height 300
+        , CA.width 900
         , CA.margin { top = 10, bottom = 40, left = 40, right = 40 }
         ]
         [ C.xTicks [ CA.times Time.utc, CA.amount 12 ]
@@ -172,6 +172,14 @@ viewTimeChart { activities, year } =
         , C.yLabels [ CA.ints ]
         , C.xAxis []
         , C.yAxis []
+        , C.legendsAt .max
+            .max
+            [ CA.row
+            , CA.moveUp 20
+            , CA.alignRight
+            , CA.spacing 15
+            ]
+            []
         , C.bars
             [ CA.x1 (.start >> dateToPosixTime >> toFloat)
             , CA.x2 (.end >> dateToPosixTime >> toFloat)

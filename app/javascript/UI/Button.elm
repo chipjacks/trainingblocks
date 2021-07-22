@@ -1,4 +1,4 @@
-module UI.Button exposing (Color(..), Size(..), Tooltip(..), action, view, withAppearance, withAttributes, withTooltipPosition)
+module UI.Button exposing (Color(..), Size(..), Tooltip(..), action, default, view, withAppearance, withAttributes, withTooltipPosition)
 
 import Html exposing (Html)
 import Html.Attributes exposing (class, style)
@@ -12,7 +12,8 @@ type Size
     = Tiny
     | Small
     | Medium
-    | Large
+    | Tall
+    | Wide
 
 
 type Color
@@ -37,6 +38,18 @@ type alias Config msg =
     , onClick : msg
     , iconM : Maybe (String -> Svg msg)
     , attrs : List (Html.Attribute msg)
+    }
+
+
+default : String -> msg -> Config msg
+default label onClick =
+    { size = Tall
+    , color = Regular
+    , tooltip = None
+    , label = label
+    , onClick = onClick
+    , iconM = Nothing
+    , attrs = []
     }
 
 
@@ -92,8 +105,11 @@ view { size, color, tooltip, label, onClick, iconM, attrs } =
                 Medium ->
                     "button--medium"
 
-                Large ->
-                    "button--large"
+                Tall ->
+                    "button--tall"
+
+                Wide ->
+                    "button--wide"
     in
     Html.button
         ([ class "button"
@@ -105,7 +121,12 @@ view { size, color, tooltip, label, onClick, iconM, attrs } =
          ]
             ++ attrs
         )
-        [ viewMaybe iconM (\icon -> MonoIcons.icon (icon iconFill))
+        [ case iconM of
+            Just icon ->
+                MonoIcons.icon (icon iconFill)
+
+            Nothing ->
+                Html.text label
         , viewIf (tooltip /= None)
             (Html.div
                 [ class "button__tooltip"

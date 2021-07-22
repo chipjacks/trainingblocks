@@ -18,6 +18,9 @@ import MonoIcons
 import Svg exposing (Svg)
 import Task
 import Time
+import UI
+import UI.Button
+import UI.Dropdown
 import UI.Layout exposing (column, compactColumn, expandingRow, row)
 import UI.Navbar as Navbar
 import UI.Skeleton as Skeleton
@@ -36,7 +39,7 @@ main =
 
 init : ( Model, Cmd Msg )
 init =
-    ( Model [] 2020
+    ( Model [] 2020 (Date.fromCalendarDate 2021 Time.Jul 22)
     , Task.attempt GotActivities Api.getActivities
     )
 
@@ -44,11 +47,14 @@ init =
 type alias Model =
     { activities : List Activity
     , year : Int
+    , today : Date
     }
 
 
 type Msg
     = GotActivities (Result Http.Error ( String, List Activity ))
+    | SelectedYear Int
+    | NoOp
 
 
 update : App.Env -> Msg -> Model -> ( Model, Cmd Msg )
@@ -62,6 +68,12 @@ update _ msg model =
                 Err err ->
                     ( model, Cmd.none )
 
+        SelectedYear year ->
+            ( { model | year = year }, Cmd.none )
+
+        NoOp ->
+            ( model, Cmd.none )
+
 
 view model =
     let
@@ -73,12 +85,21 @@ view model =
 
         navHeader =
             Html.div [ style "font-size" "1.3rem", style "margin-top" "0.2rem" ] [ Html.text "Trends" ]
+
+        yearDropdown =
+            UI.Dropdown.default
+                (UI.Button.default (String.fromInt model.year) NoOp |> UI.Button.view)
+                (List.range (Date.year model.today - 5) (Date.year model.today)
+                    |> List.map (\y -> ( String.fromInt y, SelectedYear y ))
+                )
+                |> UI.Dropdown.withAttributes [ style "margin-left" "10px" ]
+                |> UI.Dropdown.view
     in
     Skeleton.default
         |> Skeleton.withNavbar
             (Navbar.default
                 |> Navbar.withBackButton backButton
-                |> Navbar.withItems [ navHeader ]
+                |> Navbar.withItems [ navHeader, yearDropdown ]
                 |> Navbar.view
             )
         |> Skeleton.withBody (viewBody model)
@@ -93,10 +114,6 @@ viewBody model =
         , Html.h3 [] [ Html.text "Hours per week" ]
         , viewTimeChart model
         ]
-
-
-
--- TODO: Distinguish planned vs completed activities, or just add lots of filtering abilities
 
 
 viewLevelChart : Model -> Svg msg

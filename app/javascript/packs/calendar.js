@@ -7,6 +7,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const app = Elm.Page.Calendar.init({ node: target, flags });
 
+  document.addEventListener("scroll", function (e) {
+    app.ports.handleScroll.send(e);
+  });
+
   window.localStorage.setItem("loadDate", Date.now());
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") {
@@ -27,7 +31,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   function handleCalendarScroll(event) {
-    const calendar = document.getElementById("main");
+    const calendar = document.scrollingElement;
     if (
       calendar.scrollTop < 100 ||
       calendar.scrollHeight - calendar.scrollTop === calendar.clientHeight
@@ -49,9 +53,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function scrollToSelectedDate() {
     setTimeout(() => {
       try {
-        document
-          .getElementById("main")
-          .removeEventListener("scroll", handleCalendarScroll);
+        document.removeEventListener("scroll", handleCalendarScroll);
       } catch (e) {
         scrollFail = true;
         return;
@@ -61,9 +63,7 @@ document.addEventListener("DOMContentLoaded", () => {
         element.scrollIntoView();
       }
       setTimeout(() => {
-        document
-          .getElementById("main")
-          .addEventListener("scroll", handleCalendarScroll);
+        document.addEventListener("scroll", handleCalendarScroll);
       }, 500);
     }, 100);
   }

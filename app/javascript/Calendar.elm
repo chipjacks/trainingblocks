@@ -17,6 +17,7 @@ import Html.Events exposing (onClick)
 import Html.Keyed
 import Html.Lazy
 import Json.Decode as Decode
+import Json.Encode as Encode
 import MonoIcons
 import Msg exposing (ActivityConfigs, ActivityState(..), Msg(..), Zoom(..))
 import Process
@@ -254,7 +255,7 @@ view model activities activeId activeRataDie isMoving configs =
     in
     Html.Keyed.node "div"
         [ id "calendar"
-        , class "column expand container no-select"
+        , class "column expand no-select"
         , style "height" "fit-content"
         , styleIf (zoom == Year) "animation" "slidein-left 0.5s"
         , styleIf (zoom == Month) "animation" "slidein-right 0.5s 0.01ms"
@@ -299,7 +300,7 @@ viewActivityShape activity isActive isMonthView configs =
 -- SCROLLING
 
 
-handleScroll : Model -> Html.Attribute Msg
+handleScroll : Model -> (Decode.Value -> Result Decode.Error Msg)
 handleScroll (Model _ start end _ _ scrollCompleted) =
     let
         loadMargin =
@@ -309,35 +310,33 @@ handleScroll (Model _ start end _ _ scrollCompleted) =
             ( Date.add Date.Months -2 start, Date.add Date.Months 2 end )
                 |> Tuple.mapBoth (Scroll True) (Scroll False)
     in
-    attributeIf scrollCompleted <|
-        Html.Events.on "scroll"
-            (Decode.map3 (\a b c -> ( a, b, c ))
-                (Decode.at [ "target", "scrollTop" ] Decode.int)
-                (Decode.at [ "target", "scrollHeight" ] Decode.int)
-                (Decode.at [ "target", "clientHeight" ] Decode.int)
-                |> Decode.andThen
-                    (\( scrollTop, scrollHeight, clientHeight ) ->
-                        if scrollTop < loadMargin then
-                            Decode.succeed (loadPrevious scrollHeight)
+    Decode.map3 (\a b c -> ( a, b, c ))
+        (Decode.at [ "target", "scrollingElement", "scrollTop" ] Decode.int)
+        (Decode.at [ "target", "scrollingElement", "scrollHeight" ] Decode.int)
+        (Decode.at [ "target", "scrollingElement", "clientHeight" ] Decode.int)
+        |> Decode.andThen
+            (\( scrollTop, scrollHeight, clientHeight ) ->
+                if scrollTop < loadMargin then
+                    Decode.succeed (loadPrevious scrollHeight)
 
-                        else if scrollTop > scrollHeight - clientHeight - loadMargin then
-                            Decode.succeed (loadNext scrollHeight)
+                else if scrollTop > scrollHeight - clientHeight - loadMargin then
+                    Decode.succeed (loadNext scrollHeight)
 
-                        else
-                            Decode.fail ""
-                    )
+                else
+                    Decode.fail ""
             )
+        |> Decode.decodeValue
 
 
 returnScroll : Int -> Effect
 returnScroll previousHeight =
-    Dom.getViewportOf "main"
+    Dom.getViewport
         |> Task.andThen
             (\info ->
                 Task.sequence
-                    [ Dom.setViewportOf "main" 0 (info.scene.height - toFloat previousHeight)
+                    [ Dom.setViewport 0 (info.scene.height - toFloat previousHeight)
                     , Process.sleep 100
-                    , Dom.setViewportOf "main" 0 (info.scene.height - toFloat previousHeight)
+                    , Dom.setViewport 0 (info.scene.height - toFloat previousHeight)
                     ]
             )
         |> Task.attempt (\_ -> ScrollCompleted)

@@ -57,7 +57,7 @@ view body { position, stackHeight, attrs } =
         positionStyles =
             case position of
                 Top ->
-                    [ style "top" "0"
+                    [ style "top" "55px"
                     , style "animation" "slidein-top 0.5s"
                     ]
 
@@ -67,7 +67,7 @@ view body { position, stackHeight, attrs } =
                     ]
     in
     row
-        ([ style "position" "absolute"
+        ([ style "position" "fixed"
          , style "left" "0"
          , style "height" "fit-content"
          , style "width" "100%"
@@ -76,7 +76,7 @@ view body { position, stackHeight, attrs } =
             ++ positionStyles
             ++ attrs
         )
-        [ column [ class "container" ]
+        [ Html.div [ class "container" ]
             [ row
                 [ case position of
                     Top ->

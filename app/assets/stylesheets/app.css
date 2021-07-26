@@ -44,17 +44,38 @@
   --red-500: #FF4343;
   --red-700: #E32E2E;
   --red-900: #BE1A1A;
+
+
+  --container-small: 540px;
+  --container-medium: 720px;
+  --container-large: 960px;
 }
 
 /*
  * LAYOUT
 */
 
-/* CONTAINERS */
+body { width: 100%; height: 100%; }
 @media screen and (max-width: 340px) { html { font-size: 14px; } }
 @media screen and (max-width: 390px) { html { font-size: 15px; } }
-.container { max-width: 1000px; min-width: 300px; margin-left: auto; margin-right: auto;}
 
+.container { width: var(--container-large); margin-left: auto; margin-right: auto; }
+
+@media screen and (max-width: 960px) {
+.container { width: var(--container-medium); }
+}
+
+@media screen and (max-width: 720px) {
+.container { width: var(--container-small); }
+}
+
+@media screen and (max-width: 540px) {
+.container { width: 100%; }
+}
+
+/*
+ * ANIMATIONS
+*/
 @keyframes slidein-left { from { transform: translate(-100%); } to { transform: translate(0%); } }
 @keyframes slidein-right { from { transform: translate(100%); } to { transform: translate(0%); opacity: 1; } }
 @keyframes slidein-bottom { from { transform: translate(0, 100%); } to { transform: translate(0, 0%); opacity: 1; } }
@@ -194,7 +215,7 @@ select {
 @media screen and (min-height: 700px) { .modal { top: 20%; height: 80%; max-height: 600px; } }
 
 .dimmer {
-  position: absolute;
+  position: fixed;
   top: 0;
   right: 0;
   left: 0;

@@ -52,10 +52,15 @@ view { loading, items, backButton, secondRow } =
             Html.header
                 [ class "row compact no-select"
                 , borderStyle "border-bottom"
+                , style "position" "sticky"
+                , style "top" "0"
+                , style "z-index" "4"
+                , style "background-color" "white"
                 ]
-                [ column [ class "container" ]
+                [ Html.div [ class "container" ]
                     body
                 ]
+    in
     container
         [ row
             [ style "padding" "0.5rem", style "height" "2.2rem" ]

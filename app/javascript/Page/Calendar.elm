@@ -196,17 +196,17 @@ update env msg model =
                             50
 
                         autoScrollCalendar =
-                            Dom.getViewportOf "main"
+                            Dom.getViewport
                                 |> Task.andThen
                                     (\info ->
                                         if y < 0 then
                                             Task.succeed ()
 
                                         else if y > (info.viewport.height * 0.9 + navbarHeight) then
-                                            Dom.setViewportOf "main" 0 (info.viewport.y + distance)
+                                            Dom.setViewport 0 (info.viewport.y + distance)
 
                                         else if y < (info.viewport.height * 0.1 + navbarHeight) then
-                                            Dom.setViewportOf "main" 0 (info.viewport.y - distance)
+                                            Dom.setViewport 0 (info.viewport.y - distance)
 
                                         else
                                             Task.succeed ()
@@ -730,7 +730,7 @@ view model =
                     Skeleton.withBody viewMissingSettingsNotice skeleton
 
                 Loaded state ->
-                    Skeleton.withContainer identity skeleton
+                    Skeleton.withAttributes (bodyAttributes state) skeleton
                         |> Skeleton.withBody
                             (viewBody state)
     in
@@ -772,19 +772,6 @@ viewBody (State calendar store activityM configs) =
         activities =
             Store.get store .activities
 
-        events =
-            case activityM of
-                Moving _ _ _ ->
-                    [ onPointerMove MouseMoved
-                    , Html.Events.on "pointerup" (Decode.succeed MouseReleased)
-                    , style "touch-action" "none"
-                    , style "pointer-action" "none"
-                    , style "cursor" "grabbing"
-                    ]
-
-                _ ->
-                    []
-
         ( activeId, isMoving ) =
             case activityM of
                 Selected list ->
@@ -810,18 +797,27 @@ viewBody (State calendar store activityM configs) =
                 _ ->
                     0
     in
-    expandingRow
-        ([ id "main"
-         , style "overflow-y" "scroll"
-         , Calendar.handleScroll calendar
-         ]
-            ++ events
-        )
+    expandingRow []
         [ Html.Lazy.lazy6 Calendar.view calendar activities activeId activeRataDie isMoving configs
         , Html.Lazy.lazy2 viewActivityM configs activityM
         , Html.Lazy.lazy2 ActivityForm.view configs activityM
         , Html.Lazy.lazy viewUndoToastM (Store.undoMsg store)
         ]
+
+
+bodyAttributes : State -> List (Html.Attribute Msg)
+bodyAttributes (State calendar _ activityM _) =
+    case activityM of
+        Moving _ _ _ ->
+            [ onPointerMove MouseMoved
+            , Html.Events.on "pointerup" (Decode.succeed MouseReleased)
+            , style "touch-action" "none"
+            , style "pointer-action" "none"
+            , style "cursor" "grabbing"
+            ]
+
+        _ ->
+            []
 
 
 viewNavbar : Model -> Html Msg
@@ -898,9 +894,11 @@ keyPressDecoder =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     case model of
-        Loaded (State _ _ activityM _) ->
+        Loaded (State calendar _ activityM _) ->
             Sub.batch
                 [ Ports.selectDateFromScroll ReceiveSelectDate
+                , Ports.handleScroll
+                    (\e -> Calendar.handleScroll calendar e |> Result.withDefault NoOp)
                 , Events.onVisibilityChange VisibilityChange
                 , case activityM of
                     Editing _ ->

@@ -7,7 +7,7 @@ class ApplicationJob < ActiveJob::Base
                   :job => job.class.name,
                   :job_id => job.job_id,
                   :use_exception_level_filters => true,
-                  :arguments => job.arguments)
+                  :arguments => job.arguments.as_json)
     raise e
   end
 end

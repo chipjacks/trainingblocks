@@ -57,14 +57,15 @@ view { loading, items, backButton, secondRow } =
                 , style "z-index" "4"
                 , style "background-color" "white"
                 ]
-                [ Html.div [ class "container" ]
+                [ Html.div [ class "sidebar" ] [ UI.logo ]
+                , Html.div [ class "container" ]
                     body
                 ]
     in
     container
         [ row
             [ style "padding" "0.5rem", style "height" "2.2rem" ]
-            [ compactColumn [ style "justify-content" "center" ] [ backButton |> Maybe.withDefault UI.logo ]
+            [ compactColumn [ style "justify-content" "center" ] [ backButton |> Maybe.withDefault (text "") ]
             , column [] [ row [ style "justify-content" "center" ] items ]
             , if loading then
                 spinner "1.5rem"

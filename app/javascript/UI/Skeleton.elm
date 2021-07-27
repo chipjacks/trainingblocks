@@ -41,9 +41,9 @@ withBody body config =
 
 view : Config msg -> Html msg
 view { navbar, attrs, body } =
-    column attrs
+    column (style "min-height" "100%" :: attrs)
         [ navbar
-        , row []
+        , expandingRow []
             [ viewSidebar
             , div [ class "container" ] [ body ]
             ]

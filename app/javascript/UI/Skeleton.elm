@@ -71,6 +71,5 @@ viewSidebarLink icon name dest attrs =
             ++ attrs
         )
         [ MonoIcons.icon (icon "#3d3d3d")
-        , compactColumn [ style "width" "10px" ] []
-        , compactColumn [ class "sidebar__text" ] [ text name ]
+        , compactColumn [ class "sidebar__text", style "margin-left" "10px" ] [ text name ]
         ]

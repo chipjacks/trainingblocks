@@ -388,8 +388,7 @@ viewWeekDay ( date, activities ) isToday isSelected isMoving activeId configs =
             activeId == a.id
     in
     column
-        [ attributeIf isSelected (id "selected-date")
-        , style "min-height" "4rem"
+        [ style "min-height" "4rem"
         , style "padding-bottom" "1rem"
         , attributeIf isMoving (Html.Events.on "pointerenter" (Decode.succeed (MoveTo date)))
         ]
@@ -410,6 +409,7 @@ viewWeekDay ( date, activities ) isToday isSelected isMoving activeId configs =
                     text (Date.format "MMMM" date)
                 ]
             )
+            :: viewSelectedDateScrollTarget isSelected
             :: row []
                 [ a
                     [ stopPropagationOnClick (Decode.succeed (ChangeZoom Month (Just date)))
@@ -510,7 +510,6 @@ viewDay isToday isSelected isMoving rataDie =
     in
     row
         [ attributeIf (Date.day date == 1) (class "month-header")
-        , attributeIf isSelected (id "selected-date")
         , attribute "data-date" (Date.toIsoString date)
         , style "padding" "1rem 0.5rem"
         , styleIf isToday "font-weight" "bold"
@@ -518,7 +517,16 @@ viewDay isToday isSelected isMoving rataDie =
         -- , onClick (ChangeZoom Day (Just date))
         , attributeIf isMoving (Html.Events.on "pointerenter" (Decode.succeed (MoveTo date)))
         ]
-        [ text (Date.format "E MMM d" date) ]
+        [ viewSelectedDateScrollTarget isSelected
+        , text (Date.format "E MMM d" date)
+        ]
+
+
+viewSelectedDateScrollTarget : Bool -> Html msg
+viewSelectedDateScrollTarget isSelected =
+    -- Shifted up so sticky navbar is cleared when element is scrolled into view.
+    viewIf isSelected
+        (row [ id "selected-date", style "position" "relative", style "bottom" "70px" ] [])
 
 
 viewActivity : String -> Bool -> ActivityConfigs -> Activity -> Html Msg

@@ -76,7 +76,8 @@ view body { position, stackHeight, attrs } =
             ++ positionStyles
             ++ attrs
         )
-        [ Html.div [ class "container" ]
+        [ Html.div [ class "sidebar" ] []
+        , Html.div [ class "container" ]
             [ row
                 [ case position of
                     Top ->

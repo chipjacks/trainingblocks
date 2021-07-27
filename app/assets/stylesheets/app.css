@@ -61,10 +61,10 @@ body { width: 100%; height: 100%; }
 
 .container { width: var(--container-large); margin-right: auto; }
 .sidebar { width: 200px; margin-left: auto; }
+.sidebar__content { position: sticky; top: 60px; }
 
 @media screen and (max-width: 960px) {
   .container { width: var(--container-medium); }
-  .sidebar { width: 200px; }
 }
 
 @media screen and (max-width: 720px) {

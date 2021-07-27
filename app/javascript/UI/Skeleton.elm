@@ -3,6 +3,7 @@ module UI.Skeleton exposing (default, view, withAttributes, withBody, withNavbar
 import Html exposing (Html, a, div, text)
 import Html.Attributes exposing (class, href, style)
 import MonoIcons
+import UI
 import UI.Layout exposing (column, compactColumn, expandingRow, row)
 import UI.Navbar as Navbar
 import UI.Util exposing (borderStyle)
@@ -52,10 +53,12 @@ view { navbar, attrs, body } =
 viewSidebar : Html msg
 viewSidebar =
     compactColumn [ class "sidebar", borderStyle "border-right" ]
-        [ viewSidebarLink MonoIcons.calendar "Calendar" "/calendar" []
-        , viewSidebarLink MonoIcons.barChartAlt "Trends" "/trends" []
-        , viewSidebarLink MonoIcons.settings "Settings" "/settings" []
-        , viewSidebarLink MonoIcons.logOut "Log out" "/users/sign_out" [ Html.Attributes.attribute "data-method" "delete" ]
+        [ div [ class "sidebar__content" ]
+            [ viewSidebarLink MonoIcons.calendar "Calendar" "/calendar" []
+            , viewSidebarLink MonoIcons.barChartAlt "Trends" "/trends" []
+            , viewSidebarLink MonoIcons.settings "Settings" "/settings" []
+            , viewSidebarLink MonoIcons.logOut "Log out" "/users/sign_out" [ Html.Attributes.attribute "data-method" "delete" ]
+            ]
         ]
 
 

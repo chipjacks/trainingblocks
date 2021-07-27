@@ -797,7 +797,7 @@ viewBody (State calendar store activityM configs) =
                 _ ->
                     0
     in
-    expandingRow []
+    expandingRow [ style "overflow-x" "hidden" ]
         [ Html.Lazy.lazy6 Calendar.view calendar activities activeId activeRataDie isMoving configs
         , Html.Lazy.lazy2 viewActivityM configs activityM
         , Html.Lazy.lazy2 ActivityForm.view configs activityM

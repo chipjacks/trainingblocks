@@ -59,7 +59,7 @@ html, body { height: 100% }
 @media screen and (max-width: 340px) { html { font-size: 14px; } }
 @media screen and (max-width: 390px) { html { font-size: 15px; } }
 
-.container { width: var(--container-large); margin-right: auto; overflow-x: hidden; }
+.container { width: var(--container-large); margin-right: auto; }
 .sidebar { width: 200px; margin-left: auto; }
 .sidebar__content { position: sticky; top: 60px; }
 

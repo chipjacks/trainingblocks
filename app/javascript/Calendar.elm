@@ -125,7 +125,7 @@ viewBackButton model =
     in
     case zoom of
         Year ->
-            UI.logo
+            text ""
 
         Month ->
             a [ class "button row", style "margin-right" "0.2rem", style "align-items" "bottom", onClick (ChangeZoom Year Nothing) ]

@@ -65,7 +65,7 @@ view { leftItem, items, rightItem, secondRow } =
                 , style "z-index" "4"
                 , style "background-color" "white"
                 ]
-                [ Html.div [ class "sidebar" ] [ UI.logo ]
+                [ compactColumn [ class "sidebar", style "justify-content" "center", style "padding-left" "10px" ] [ UI.logo ]
                 , Html.div [ class "container" ]
                     body
                 , Html.node "style" [] [ text (":root { --navbar-height: " ++ height ++ " }") ]

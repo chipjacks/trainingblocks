@@ -40,7 +40,10 @@ main =
 init : ( Model, Cmd Msg )
 init =
     ( Model [] 2020 (Date.fromCalendarDate 2021 Time.Jul 22)
-    , Task.attempt GotActivities Api.getActivities
+    , Cmd.batch
+        [ Task.attempt GotActivities Api.getActivities
+        , Task.perform GotToday Date.today
+        ]
     )
 
 
@@ -52,7 +55,8 @@ type alias Model =
 
 
 type Msg
-    = GotActivities (Result Http.Error ( String, List Activity ))
+    = GotToday Date
+    | GotActivities (Result Http.Error ( String, List Activity ))
     | SelectedYear Int
     | NoOp
 
@@ -60,6 +64,9 @@ type Msg
 update : App.Env -> Msg -> Model -> ( Model, Cmd Msg )
 update _ msg model =
     case msg of
+        GotToday today ->
+            ( { model | year = Date.year today, today = today }, Cmd.none )
+
         GotActivities result ->
             case result of
                 Ok ( _, activities ) ->

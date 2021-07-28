@@ -42,7 +42,7 @@ get (Model zoom start end selected today scrollCompleted) =
 
 init : Zoom -> Date -> Date -> ( Model, Effect )
 init zoom selected today =
-    ( Model zoom (Date.add Date.Months -3 selected) (Date.add Date.Months 3 selected) selected today True
+    ( Model zoom (Date.add Date.Months -3 selected) (Date.add Date.Months 3 selected) selected today False
     , Effect.ScrollToSelectedDate
     )
 
@@ -87,7 +87,7 @@ update msg model =
                 newSelected =
                     Date.fromIsoString selectDate |> Result.withDefault selected
             in
-            if newSelected == selected then
+            if not scrollCompleted || newSelected == selected then
                 ( model, Effect.None )
 
             else

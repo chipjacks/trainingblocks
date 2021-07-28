@@ -7,10 +7,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const app = Elm.Page.Calendar.init({ node: target, flags });
 
-  document.addEventListener("scroll", function (e) {
-    app.ports.handleScroll.send(e);
-  });
-
   window.localStorage.setItem("loadDate", Date.now());
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") {
@@ -23,11 +19,12 @@ document.addEventListener("DOMContentLoaded", () => {
         window.localStorage.setItem("loadDate", Date.now());
         window.location.reload();
       }
-
-      if (scrollFail) {
-        scrollToSelectedDate();
-      }
     }
+  });
+
+  document.addEventListener("scroll", function (e) {
+    handleCalendarScroll(e);
+    app.ports.handleScroll.send(e);
   });
 
   function handleCalendarScroll(event) {
@@ -49,22 +46,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  let scrollFail = false;
   function scrollToSelectedDate() {
     setTimeout(() => {
-      try {
-        document.removeEventListener("scroll", handleCalendarScroll);
-      } catch (e) {
-        scrollFail = true;
-        return;
-      }
       const element = document.getElementById("selected-date");
       if (element) {
         element.scrollIntoView();
       }
-      setTimeout(() => {
-        document.addEventListener("scroll", handleCalendarScroll);
-      }, 500);
+      app.ports.scrollCompleted.send(true);
     }, 100);
   }
 

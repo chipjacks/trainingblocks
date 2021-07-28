@@ -909,6 +909,7 @@ subscriptions model =
         Loaded (State calendar _ activityM _) ->
             Sub.batch
                 [ Ports.selectDateFromScroll ReceiveSelectDate
+                , Ports.scrollCompleted (\_ -> ScrollCompleted)
                 , Ports.handleScroll
                     (\e -> Calendar.handleScroll calendar e |> Result.withDefault NoOp)
                 , Events.onVisibilityChange VisibilityChange

@@ -57,48 +57,45 @@ view body { position, stackHeight, attrs } =
         positionStyles =
             case position of
                 Top ->
-                    [ style "top" "55px"
+                    [ style "top" "var(--navbar-height)"
                     , style "animation" "slidein-top 0.5s"
                     ]
 
                 Bottom ->
-                    [ style "bottom" "0"
+                    [ style "bottom" "var(--sidebar-bottom-height)"
+                    , style "right" "0"
                     , style "animation" "slidein-bottom 0.5s"
                     ]
     in
     row
         ([ style "position" "fixed"
-         , style "left" "0"
          , style "height" "fit-content"
-         , style "width" "100%"
          , style "z-index" "35"
          ]
             ++ positionStyles
             ++ attrs
         )
-        [ Html.div [ class "sidebar" ] []
-        , Html.div [ class "container" ]
-            [ row
-                [ case position of
-                    Top ->
-                        style "justify-content" "flex-start"
+        [ row
+            [ case position of
+                Top ->
+                    style "justify-content" "flex-start"
 
-                    Bottom ->
-                        style "justify-content" "flex-end"
-                , style "margin" "10px"
+                Bottom ->
+                    style "justify-content" "flex-end"
+            , style "margin" "10px"
+            ]
+            [ row
+                [ style "padding" "10px"
+                , style "background-color" "white"
+                , style "border-radius" "5px"
+                , style "align-items" "middle"
+                , borderStyle "border"
+                , style "position" "relative"
+                , attributeMaybe stackHeight (\height -> style "box-shadow" (boxShadow |> List.take (height - 1) |> String.join ","))
                 ]
-                [ row
-                    [ style "padding" "10px"
-                    , style "background-color" "white"
-                    , style "border-radius" "5px"
-                    , style "align-items" "middle"
-                    , borderStyle "border"
-                    , attributeMaybe stackHeight (\height -> style "box-shadow" (boxShadow |> List.take (height - 1) |> String.join ","))
-                    ]
-                    [ MonoIcons.icon (MonoIcons.circleInformation "var(--blue-500)")
-                    , compactColumn [ style "width" "5px" ] []
-                    , body
-                    ]
+                [ MonoIcons.icon (MonoIcons.circleInformation "var(--blue-500)")
+                , compactColumn [ style "width" "5px" ] []
+                , body
                 ]
             ]
         ]

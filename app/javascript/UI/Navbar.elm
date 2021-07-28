@@ -51,10 +51,10 @@ view { leftItem, items, rightItem, secondRow } =
         height =
             case secondRow of
                 Nothing ->
-                    "52px"
+                    "3.2rem"
 
                 Just _ ->
-                    "70px"
+                    "4.4rem"
 
         container body =
             Html.header
@@ -64,6 +64,7 @@ view { leftItem, items, rightItem, secondRow } =
                 , style "top" "0"
                 , style "z-index" "4"
                 , style "background-color" "white"
+                , style "height" height
                 ]
                 [ compactColumn [ class "sidebar", style "justify-content" "center", style "padding-left" "10px" ] [ UI.logo ]
                 , Html.div [ class "container" ]
@@ -73,7 +74,7 @@ view { leftItem, items, rightItem, secondRow } =
     in
     container
         [ row
-            [ style "padding" "0.5rem", style "height" "2.2rem" ]
+            [ style "padding" "0.5rem" ]
             [ compactColumn [ style "justify-content" "center", style "min-width" "50px", style "align-items" "flex-start" ] [ viewMaybe leftItem identity ]
             , column [] [ row [ style "justify-content" "center" ] items ]
             , compactColumn [ style "justify-content" "center", style "min-width" "50px", style "align-items" "flex-end" ] [ viewMaybe rightItem identity ]

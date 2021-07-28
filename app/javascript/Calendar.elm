@@ -530,7 +530,7 @@ viewSelectedDateScrollTarget : Bool -> Html msg
 viewSelectedDateScrollTarget isSelected =
     -- Shifted up so sticky navbar is cleared when element is scrolled into view.
     viewIf isSelected
-        (row [ id "selected-date", style "position" "relative", style "bottom" "var(--navbar-height)" ] [])
+        (row [ id "selected-date", style "position" "relative", style "bottom" "calc(var(--navbar-height) + 1rem)" ] [])
 
 
 viewActivity : String -> Bool -> ActivityConfigs -> Activity -> Html Msg

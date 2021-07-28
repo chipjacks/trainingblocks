@@ -46,8 +46,8 @@
   --red-900: #BE1A1A;
 
 
-  --container-small: 540px;
-  --container-medium: 720px;
+  --container-small: 450px;
+  --container-medium: 650px;
   --container-large: 960px;
 }
 
@@ -67,13 +67,13 @@ html, body { height: 100% }
   .container { width: var(--container-medium); }
 }
 
-@media screen and (max-width: 720px) {
+@media screen and (max-width: 650px) {
   .container { width: var(--container-small); }
   .sidebar { width: 60px; }
   .sidebar__text { display: none; }
 }
 
-@media screen and (max-width: 540px) {
+@media screen and (max-width: 450px) {
   .container { width: 100%; }
   .sidebar { width: 0px; overflow: hidden; }
   .sidebar__content {

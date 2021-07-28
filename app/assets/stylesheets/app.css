@@ -61,7 +61,7 @@ html, body { height: 100% }
 
 .container { width: var(--container-large); margin-right: auto; }
 .sidebar { width: 200px; margin-left: auto; }
-.sidebar__content { position: sticky; top: 60px; }
+.sidebar__content { position: sticky; top: var(--navbar-height); }
 
 @media screen and (max-width: 960px) {
   .container { width: var(--container-medium); }

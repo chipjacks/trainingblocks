@@ -347,19 +347,23 @@ returnScroll previousHeight =
 -- YEAR VIEW
 
 
-viewHeader : Model -> Html Msg
+viewHeader : Model -> Maybe (Html Msg)
 viewHeader model =
-    viewIf ((model |> get |> .zoom) == Year) <|
-        row []
-            (column [ style "min-width" "4rem" ] []
-                :: ([ "M", "T", "W", "T", "F", "S", "S" ]
-                        |> List.map
-                            (\d ->
-                                column [ style "background" "white", style "color" "var(--grey-900)" ]
-                                    [ text d ]
-                            )
-                   )
-            )
+    if (model |> get |> .zoom) == Year then
+        Just <|
+            row []
+                (column [ style "min-width" "4rem" ] []
+                    :: ([ "M", "T", "W", "T", "F", "S", "S" ]
+                            |> List.map
+                                (\d ->
+                                    column [ style "background" "white", style "color" "var(--grey-900)" ]
+                                        [ text d ]
+                                )
+                       )
+                )
+
+    else
+        Nothing
 
 
 viewWeek : List Activity -> Date -> Date -> Date -> Bool -> String -> ActivityConfigs -> Html Msg
@@ -526,7 +530,7 @@ viewSelectedDateScrollTarget : Bool -> Html msg
 viewSelectedDateScrollTarget isSelected =
     -- Shifted up so sticky navbar is cleared when element is scrolled into view.
     viewIf isSelected
-        (row [ id "selected-date", style "position" "relative", style "bottom" "70px" ] [])
+        (row [ id "selected-date", style "position" "relative", style "bottom" "var(--navbar-height)" ] [])
 
 
 viewActivity : String -> Bool -> ActivityConfigs -> Activity -> Html Msg

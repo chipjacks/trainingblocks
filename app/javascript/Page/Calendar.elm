@@ -832,7 +832,13 @@ viewNavbar model =
                 |> Navbar.withLoading (loading (Just store))
                 |> Navbar.withBackButton (Calendar.viewBackButton calendar)
                 |> Navbar.withItems (Calendar.viewMenu calendar)
-                |> Navbar.withSecondRow (Html.Lazy.lazy Calendar.viewHeader calendar)
+                |> (case Calendar.viewHeader calendar of
+                        Just header ->
+                            Navbar.withSecondRow header
+
+                        Nothing ->
+                            identity
+                   )
                 |> Navbar.view
 
         _ ->

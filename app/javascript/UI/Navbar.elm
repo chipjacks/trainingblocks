@@ -5,7 +5,7 @@ import Html.Attributes exposing (class, style)
 import MonoIcons
 import UI exposing (spinner)
 import UI.Layout exposing (..)
-import UI.Util exposing (borderStyle)
+import UI.Util exposing (borderStyle, viewMaybe)
 
 
 default : Config msg
@@ -48,6 +48,14 @@ type alias Config msg =
 view : Config msg -> Html msg
 view { loading, items, backButton, secondRow } =
     let
+        height =
+            case secondRow of
+                Nothing ->
+                    "52px"
+
+                Just _ ->
+                    "70px"
+
         container body =
             Html.header
                 [ class "row compact no-select"
@@ -60,6 +68,7 @@ view { loading, items, backButton, secondRow } =
                 [ Html.div [ class "sidebar" ] [ UI.logo ]
                 , Html.div [ class "container" ]
                     body
+                , Html.node "style" [] [ text (":root { --navbar-height: " ++ height ++ " }") ]
                 ]
     in
     container

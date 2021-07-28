@@ -77,12 +77,6 @@ update _ msg model =
 
 view model =
     let
-        backButton =
-            Html.a [ class "button row", style "align-items" "bottom", Html.Attributes.href "/calendar" ]
-                [ MonoIcons.icon (MonoIcons.chevronLeft "#3d3d3d")
-                , Html.text "Back"
-                ]
-
         navHeader =
             Html.div [ style "font-size" "1.3rem", style "margin-top" "0.2rem" ] [ Html.text "Trends" ]
 
@@ -99,7 +93,6 @@ view model =
     Skeleton.default
         |> Skeleton.withNavbar
             (Navbar.default
-                |> Navbar.withBackButton backButton
                 |> Navbar.withItems [ navHeader, yearDropdown ]
                 |> Navbar.view
             )

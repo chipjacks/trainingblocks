@@ -829,9 +829,15 @@ viewNavbar model =
     case model of
         Loaded (State calendar store _ _) ->
             Navbar.default
-                |> Navbar.withLoading (loading (Just store))
-                |> Navbar.withBackButton (Calendar.viewBackButton calendar)
+                |> Navbar.withLeftItem (Calendar.viewBackButton calendar)
                 |> Navbar.withItems (Calendar.viewMenu calendar)
+                |> Navbar.withRightItem
+                    (if loading (Just store) then
+                        spinner "2rem"
+
+                     else
+                        text ""
+                    )
                 |> (case Calendar.viewHeader calendar of
                         Just header ->
                             Navbar.withSecondRow header

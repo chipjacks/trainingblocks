@@ -334,20 +334,14 @@ newTrainingPace =
 view : Model -> Html Msg
 view model =
     let
-        backButton =
-            Html.a [ class "button row", style "align-items" "bottom", Html.Attributes.href "/calendar" ]
-                [ MonoIcons.icon (MonoIcons.chevronLeft "#3d3d3d")
-                , Html.text "Back"
-                ]
-
         navHeader =
             Html.div [ style "font-size" "1.3rem", style "margin-top" "0.2rem" ] [ Html.text "Settings" ]
     in
     Skeleton.default
         |> Skeleton.withNavbar
             (Navbar.default
-                |> Navbar.withBackButton backButton
                 |> Navbar.withItems [ navHeader ]
+                |> Navbar.withRightItem (viewSaveButton model.status model.result)
                 |> Navbar.view
             )
         |> Skeleton.withBody (viewBody model)
@@ -365,11 +359,8 @@ viewBody { trainingPaces, dragging, status, raceDistance, raceDuration, level, r
         headerMargin =
             style "margin" "20px 0 5px 0"
     in
-    column [ style "margin" "5px" ]
+    column [ style "margin" "5px", style "margin-top" "40px", style "margin-bottom" "40px" ]
         [ viewStatusMessage status result
-        , row [ style "justify-content" "flex-end" ]
-            [ viewSaveButton status result
-            ]
         , row [ style "justify-content" "space-around", style "flex-wrap" "wrap" ]
             [ compactColumn [ maxWidthForMobile ]
                 [ Html.h3 [ headerMargin ] [ Html.text "Recent Race" ]
@@ -455,7 +446,7 @@ viewDelayedMessage key content =
 
 viewSaveButton : FormStatus -> Result String Settings -> Html Msg
 viewSaveButton status result =
-    compactColumn [ style "align-items" "flex-end", style "margin-top" "10px", style "min-width" "6rem" ]
+    compactColumn [ style "min-width" "6rem", style "align-items" "flex-end" ]
         [ case ( status, result ) of
             ( Posted, _ ) ->
                 UI.spinner "2rem"

@@ -1,4 +1,4 @@
-module UI.Navbar exposing (default, view, withBackButton, withItems, withLoading, withSecondRow)
+module UI.Navbar exposing (default, view, withItems, withLeftItem, withRightItem, withSecondRow)
 
 import Html exposing (Html, a, div, text)
 import Html.Attributes exposing (class, style)
@@ -10,16 +10,16 @@ import UI.Util exposing (borderStyle, viewMaybe)
 
 default : Config msg
 default =
-    { loading = False
+    { leftItem = Nothing
     , items = []
-    , backButton = Nothing
+    , rightItem = Nothing
     , secondRow = Nothing
     }
 
 
-withLoading : Bool -> Config msg -> Config msg
-withLoading loading config =
-    { config | loading = loading }
+withLeftItem : Html msg -> Config msg -> Config msg
+withLeftItem item config =
+    { config | leftItem = Just item }
 
 
 withItems : List (Html msg) -> Config msg -> Config msg
@@ -27,9 +27,9 @@ withItems items config =
     { config | items = items }
 
 
-withBackButton : Html msg -> Config msg -> Config msg
-withBackButton override config =
-    { config | backButton = Just override }
+withRightItem : Html msg -> Config msg -> Config msg
+withRightItem item config =
+    { config | rightItem = Just item }
 
 
 withSecondRow : Html msg -> Config msg -> Config msg
@@ -38,15 +38,15 @@ withSecondRow row config =
 
 
 type alias Config msg =
-    { loading : Bool
+    { leftItem : Maybe (Html msg)
     , items : List (Html msg)
-    , backButton : Maybe (Html msg)
+    , rightItem : Maybe (Html msg)
     , secondRow : Maybe (Html msg)
     }
 
 
 view : Config msg -> Html msg
-view { loading, items, backButton, secondRow } =
+view { leftItem, items, rightItem, secondRow } =
     let
         height =
             case secondRow of
@@ -74,13 +74,9 @@ view { loading, items, backButton, secondRow } =
     container
         [ row
             [ style "padding" "0.5rem", style "height" "2.2rem" ]
-            [ compactColumn [ style "justify-content" "center" ] [ backButton |> Maybe.withDefault (text "") ]
+            [ compactColumn [ style "justify-content" "center", style "min-width" "50px", style "align-items" "flex-start" ] [ viewMaybe leftItem identity ]
             , column [] [ row [ style "justify-content" "center" ] items ]
-            , if loading then
-                spinner "1.5rem"
-
-              else
-                text ""
+            , compactColumn [ style "justify-content" "center", style "min-width" "50px", style "align-items" "flex-end" ] [ viewMaybe rightItem identity ]
             ]
         , secondRow |> Maybe.withDefault (Html.text "")
         ]

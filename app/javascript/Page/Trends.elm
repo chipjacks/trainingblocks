@@ -4,7 +4,7 @@ import Activity
 import Activity.Aggregate as Aggregate
 import Activity.Data as Data
 import Activity.Laps
-import Activity.Types exposing (Activity, ActivityData, RaceDistance)
+import Activity.Types exposing (Activity, ActivityData, Effort(..), RaceDistance)
 import Api
 import App
 import Chart as C
@@ -110,10 +110,12 @@ view model =
 viewBody : Model -> Html msg
 viewBody model =
     column [ style "margin-left" "10px", style "margin-right" "10px" ]
-        [ Html.h3 [] [ Html.text "Level" ]
-        , viewLevelChart model
-        , Html.h3 [] [ Html.text "Hours per week" ]
+        [ Html.h3 [] [ Html.text "Hours" ]
         , viewTimeChart model
+        , Html.h3 [] [ Html.text "Effort" ]
+        , viewEffortChart model
+        , Html.h3 [] [ Html.text "Race level" ]
+        , viewLevelChart model
         ]
 
 
@@ -156,14 +158,71 @@ viewLevelChart { activities, year } =
         ]
 
 
+viewEffortChart : Model -> Svg msg
+viewEffortChart { activities, year } =
+    let
+        data =
+            listWeeks year
+                |> List.map
+                    (\date ->
+                        List.filter (\a -> Date.isBetween date (Date.add Date.Days 6 date) a.date) activities
+                            |> (\acts ->
+                                    { none = Aggregate.duration [ Data.effort Nothing, Data.completed ] acts
+                                    , easy = Aggregate.duration [ Data.effort (Just Easy), Data.completed ] acts
+                                    , moderate = Aggregate.duration [ Data.effort (Just Moderate), Data.completed ] acts
+                                    , hard = Aggregate.duration [ Data.effort (Just Hard), Data.completed ] acts
+                                    , start = date
+                                    , end = Date.add Date.Days 6 date
+                                    }
+                               )
+                    )
+
+        toHours secs =
+            (secs |> toFloat) / (60 * 60)
+    in
+    C.chart
+        [ CA.height 300
+        , CA.width 900
+        , CA.margin { top = 10, bottom = 40, left = 40, right = 40 }
+        ]
+        [ C.xTicks [ CA.times Time.utc, CA.amount 12 ]
+        , C.yTicks [ CA.ints ]
+        , C.xLabels [ CA.times Time.utc, CA.amount 12 ]
+        , C.yLabels [ CA.ints ]
+        , C.xAxis []
+        , C.yAxis []
+        , C.legendsAt .max
+            .max
+            [ CA.row
+            , CA.moveUp 20
+            , CA.alignRight
+            , CA.spacing 15
+            ]
+            []
+        , C.bars
+            [ CA.x1 (.start >> dateToPosixTime >> toFloat)
+            , CA.x2 (.end >> dateToPosixTime >> toFloat)
+            ]
+            [ C.stacked
+                [ C.bar (.hard >> toHours) [ CA.color "var(--red-300)", CA.roundTop 0.3 ]
+                    |> C.named "Hard"
+                , C.bar (.moderate >> toHours) [ CA.color "var(--orange-300)" ]
+                    |> C.named "Moderate"
+                , C.bar (.easy >> toHours) [ CA.color "var(--yellow-300)" ]
+                    |> C.named "Easy"
+                , C.bar (.none >> toHours) [ CA.color "var(--grey-900)" ]
+                    |> C.named "None"
+                ]
+            ]
+            data
+        ]
+
+
 viewTimeChart : Model -> Svg msg
 viewTimeChart { activities, year } =
     let
         data =
-            Date.range Date.Week
-                1
-                (Date.fromCalendarDate year Time.Jan 1)
-                (Date.fromCalendarDate (year + 1) Time.Jan 1)
+            listWeeks year
                 |> List.map
                     (\date ->
                         List.filter (\a -> Date.isBetween date (Date.add Date.Days 6 date) a.date) activities
@@ -213,11 +272,21 @@ viewTimeChart { activities, year } =
         ]
 
 
-epochStartOffset : Int
-epochStartOffset =
-    719162
-
-
 dateToPosixTime : Date.Date -> Int
 dateToPosixTime date =
-    (Date.toRataDie date - epochStartOffset) * (1000 * 60 * 60 * 24) - (1000 * 60 * 60 * 24)
+    let
+        epochStartOffset =
+            719162
+
+        millisecondsInADay =
+            1000 * 60 * 60 * 24
+    in
+    (Date.toRataDie date - epochStartOffset) * millisecondsInADay - millisecondsInADay
+
+
+listWeeks : Int -> List Date
+listWeeks year =
+    Date.range Date.Week
+        1
+        (Date.fromCalendarDate year Time.Jan 1)
+        (Date.fromCalendarDate (year + 1) Time.Jan 1)

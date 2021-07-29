@@ -1,6 +1,6 @@
-module Activity.Data exposing (Filter, completed, list, other, planned, race, run, visible)
+module Activity.Data exposing (Filter, completed, effort, list, other, planned, race, run, visible)
 
-import Activity.Types exposing (Activity, ActivityData, ActivityType(..), Completion(..), LapData(..))
+import Activity.Types exposing (Activity, ActivityData, ActivityType(..), Completion(..), Effort(..), LapData(..))
 
 
 type alias Filter =
@@ -57,6 +57,11 @@ run =
 other : Filter
 other =
     \data -> data.activityType == Other
+
+
+effort : Maybe Effort -> Filter
+effort e =
+    \data -> data.effort == e
 
 
 race : Filter

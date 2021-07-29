@@ -4,13 +4,14 @@ import Activity
 import Activity.Aggregate as Aggregate
 import Activity.Data as Data
 import Activity.Laps
-import Activity.Types exposing (Activity, ActivityData, Effort(..), RaceDistance)
+import Activity.Types exposing (Activity, ActivityData, DistanceUnits(..), Effort(..), RaceDistance)
 import Api
 import App
 import Chart as C
 import Chart.Attributes as CA
 import Chart.Item as CI
 import Date exposing (Date)
+import Distance
 import Html exposing (Html)
 import Html.Attributes exposing (class, style)
 import Http
@@ -109,9 +110,11 @@ view model =
 
 viewBody : Model -> Html msg
 viewBody model =
-    column [ style "margin-left" "10px", style "margin-right" "10px" ]
+    column [ style "margin-left" "10px", style "margin-right" "10px", style "margin-bottom" "60px" ]
         [ Html.h3 [] [ Html.text "Hours" ]
         , viewTimeChart model
+        , Html.h3 [] [ Html.text "Miles" ]
+        , viewDistanceChart model
         , Html.h3 [] [ Html.text "Effort" ]
         , viewEffortChart model
         , Html.h3 [] [ Html.text "Race level" ]
@@ -145,9 +148,9 @@ viewLevelChart { activities, year } =
             [ CA.lowest 0 CA.orHigher
             ]
         ]
-        [ C.xTicks [ CA.times Time.utc ]
+        [ C.xTicks [ CA.times Time.utc, CA.amount 13 ]
         , C.yTicks [ CA.ints ]
-        , C.xLabels [ CA.times Time.utc ]
+        , C.xLabels [ CA.times Time.utc, CA.amount 13 ]
         , C.yLabels [ CA.ints ]
         , C.xAxis []
         , C.yAxis []
@@ -265,6 +268,57 @@ viewTimeChart { activities, year } =
                 [ C.bar (.other >> toHours) [ CA.color "var(--blue-300)", CA.roundTop 5, CA.roundBottom 5 ]
                     |> C.named "Other"
                 , C.bar (.run >> toHours) [ CA.color "var(--blue-500)", CA.roundTop 0.3 ]
+                    |> C.named "Run"
+                ]
+            ]
+            data
+        ]
+
+
+viewDistanceChart : Model -> Svg msg
+viewDistanceChart { activities, year } =
+    let
+        data =
+            listWeeks year
+                |> List.map
+                    (\date ->
+                        List.filter (\a -> Date.isBetween date (Date.add Date.Days 6 date) a.date) activities
+                            |> (\acts ->
+                                    { run = Aggregate.distance [ Data.run, Data.completed ] acts
+                                    , start = date
+                                    , end = Date.add Date.Days 6 date
+                                    }
+                               )
+                    )
+
+        toMiles meters =
+            Distance.fromMeters Miles meters
+    in
+    C.chart
+        [ CA.height 300
+        , CA.width 900
+        , CA.margin { top = 10, bottom = 40, left = 40, right = 40 }
+        ]
+        [ C.xTicks [ CA.times Time.utc, CA.amount 12 ]
+        , C.yTicks [ CA.ints ]
+        , C.xLabels [ CA.times Time.utc, CA.amount 12 ]
+        , C.yLabels [ CA.ints ]
+        , C.xAxis []
+        , C.yAxis []
+        , C.legendsAt .max
+            .max
+            [ CA.row
+            , CA.moveUp 20
+            , CA.alignRight
+            , CA.spacing 15
+            ]
+            []
+        , C.bars
+            [ CA.x1 (.start >> dateToPosixTime >> toFloat)
+            , CA.x2 (.end >> dateToPosixTime >> toFloat)
+            ]
+            [ C.stacked
+                [ C.bar (.run >> toMiles) [ CA.color "var(--blue-500)", CA.roundTop 0.3 ]
                     |> C.named "Run"
                 ]
             ]

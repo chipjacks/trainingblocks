@@ -562,7 +562,7 @@ viewDraggedPace ( x, y ) trainingPaces =
                 )
     in
     Html.div
-        [ style "position" "absolute"
+        [ style "position" "fixed"
         , style "left" (String.fromFloat (x - 20) ++ "px")
         , style "top" (String.fromFloat (y - 20) ++ "px")
         , style "opacity" "0.5"

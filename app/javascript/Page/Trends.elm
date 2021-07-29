@@ -157,20 +157,15 @@ viewEffortChart : Model -> Svg msg
 viewEffortChart { activities, year } =
     let
         data =
-            listWeeks year
-                |> List.map
-                    (\date ->
-                        List.filter (\a -> Date.isBetween date (Date.add Date.Days 6 date) a.date) activities
-                            |> (\acts ->
-                                    { none = Aggregate.duration [ Data.effort Nothing, Data.completed ] acts
-                                    , easy = Aggregate.duration [ Data.effort (Just Easy), Data.completed ] acts
-                                    , moderate = Aggregate.duration [ Data.effort (Just Moderate), Data.completed ] acts
-                                    , hard = Aggregate.duration [ Data.effort (Just Hard), Data.completed ] acts
-                                    , start = date
-                                    , end = Date.add Date.Days 6 date
-                                    }
-                               )
-                    )
+            weeklyActivities year
+                activities
+                (\acts ->
+                    { none = Aggregate.duration [ Data.effort Nothing, Data.completed ] acts
+                    , easy = Aggregate.duration [ Data.effort (Just Easy), Data.completed ] acts
+                    , moderate = Aggregate.duration [ Data.effort (Just Moderate), Data.completed ] acts
+                    , hard = Aggregate.duration [ Data.effort (Just Hard), Data.completed ] acts
+                    }
+                )
 
         toHours secs =
             (secs |> toFloat) / (60 * 60)
@@ -181,13 +176,13 @@ viewEffortChart { activities, year } =
             , CA.x2 (.end >> dateToPosixTime >> toFloat)
             ]
             [ C.stacked
-                [ C.bar (.hard >> toHours) [ CA.color "var(--red-300)", CA.roundTop 0.3 ]
+                [ C.bar (.data >> .hard >> toHours) [ CA.color "var(--red-300)", CA.roundTop 0.3 ]
                     |> C.named "Hard"
-                , C.bar (.moderate >> toHours) [ CA.color "var(--orange-300)" ]
+                , C.bar (.data >> .moderate >> toHours) [ CA.color "var(--orange-300)" ]
                     |> C.named "Moderate"
-                , C.bar (.easy >> toHours) [ CA.color "var(--yellow-300)" ]
+                , C.bar (.data >> .easy >> toHours) [ CA.color "var(--yellow-300)" ]
                     |> C.named "Easy"
-                , C.bar (.none >> toHours) [ CA.color "var(--grey-900)" ]
+                , C.bar (.data >> .none >> toHours) [ CA.color "var(--grey-900)" ]
                     |> C.named "None"
                 ]
             ]
@@ -199,18 +194,13 @@ viewTimeChart : Model -> Svg msg
 viewTimeChart { activities, year } =
     let
         data =
-            listWeeks year
-                |> List.map
-                    (\date ->
-                        List.filter (\a -> Date.isBetween date (Date.add Date.Days 6 date) a.date) activities
-                            |> (\acts ->
-                                    { run = Aggregate.duration [ Data.run, Data.completed ] acts
-                                    , other = Aggregate.duration [ Data.other, Data.completed ] acts
-                                    , start = date
-                                    , end = Date.add Date.Days 6 date
-                                    }
-                               )
-                    )
+            weeklyActivities year
+                activities
+                (\acts ->
+                    { run = Aggregate.duration [ Data.run, Data.completed ] acts
+                    , other = Aggregate.duration [ Data.other, Data.completed ] acts
+                    }
+                )
 
         toHours secs =
             (secs |> toFloat) / (60 * 60)
@@ -221,9 +211,9 @@ viewTimeChart { activities, year } =
             , CA.x2 (.end >> dateToPosixTime >> toFloat)
             ]
             [ C.stacked
-                [ C.bar (.other >> toHours) [ CA.color "var(--blue-300)", CA.roundTop 5, CA.roundBottom 5 ]
+                [ C.bar (.data >> .other >> toHours) [ CA.color "var(--blue-300)", CA.roundTop 5, CA.roundBottom 5 ]
                     |> C.named "Other"
-                , C.bar (.run >> toHours) [ CA.color "var(--blue-500)", CA.roundTop 0.3 ]
+                , C.bar (.data >> .run >> toHours) [ CA.color "var(--blue-500)", CA.roundTop 0.3 ]
                     |> C.named "Run"
                 ]
             ]
@@ -235,17 +225,9 @@ viewDistanceChart : Model -> Svg msg
 viewDistanceChart { activities, year } =
     let
         data =
-            listWeeks year
-                |> List.map
-                    (\date ->
-                        List.filter (\a -> Date.isBetween date (Date.add Date.Days 6 date) a.date) activities
-                            |> (\acts ->
-                                    { run = Aggregate.distance [ Data.run, Data.completed ] acts
-                                    , start = date
-                                    , end = Date.add Date.Days 6 date
-                                    }
-                               )
-                    )
+            weeklyActivities year
+                activities
+                (Aggregate.distance [ Data.run, Data.completed ])
 
         toMiles meters =
             Distance.fromMeters Miles meters
@@ -256,7 +238,7 @@ viewDistanceChart { activities, year } =
             , CA.x2 (.end >> dateToPosixTime >> toFloat)
             ]
             [ C.stacked
-                [ C.bar (.run >> toMiles) [ CA.color "var(--blue-500)", CA.roundTop 0.3 ]
+                [ C.bar (.data >> toMiles) [ CA.color "var(--blue-500)", CA.roundTop 0.3 ]
                     |> C.named "Run"
                 ]
             ]
@@ -293,6 +275,35 @@ yearChart attrs info =
          ]
             ++ info
         )
+
+
+type alias TimeIntervalData a =
+    { start : Date
+    , end : Date
+    , data : a
+    }
+
+
+weeklyActivities : Int -> List Activity -> (List Activity -> a) -> List (TimeIntervalData a)
+weeklyActivities year activities toData =
+    listWeeks year
+        |> List.map
+            (\date ->
+                let
+                    start =
+                        date
+
+                    end =
+                        Date.add Date.Days 6 date
+
+                    filter a =
+                        Date.isBetween start end a.date
+                in
+                { start = start
+                , end = end
+                , data = List.filter filter activities |> toData
+                }
+            )
 
 
 dateToPosixTime : Date.Date -> Int

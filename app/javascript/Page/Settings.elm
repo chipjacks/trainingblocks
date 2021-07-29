@@ -359,29 +359,31 @@ viewBody { trainingPaces, dragging, status, raceDistance, raceDuration, level, r
         headerMargin =
             style "margin" "20px 0 5px 0"
     in
-    column [ style "margin" "5px", style "margin-top" "40px", style "margin-bottom" "40px" ]
+    column [ style "margin" "15px", style "margin-top" "40px", style "margin-bottom" "40px" ]
         [ viewStatusMessage status result
-        , row [ style "justify-content" "space-around", style "flex-wrap" "wrap" ]
-            [ compactColumn [ maxWidthForMobile ]
+        , row [ style "flex-wrap" "wrap" ]
+            [ compactColumn [ maxWidthForMobile, style "margin-bottom" "40px" ]
                 [ Html.h3 [ headerMargin ] [ Html.text "Recent Race" ]
                 , Html.text "Enter a recent race time to calculate your fitness level."
                 , row [] [ viewRecentRaceInput raceDuration raceDistance ]
                 , viewLevelResult level
                 ]
-            , compactColumn [ maxWidthForMobile ]
+            , compactColumn [ style "width" "40px" ] []
+            , compactColumn [ maxWidthForMobile, style "margin-bottom" "40px" ]
                 [ row [ style "align-items" "flex-end" ]
                     [ Html.h3 [ headerMargin ] [ Html.text "Standard Paces" ]
                     ]
                 , Html.text "These paces will be used to adjust your log to your current fitness level."
                 , viewStandardPaces level
                 ]
+            , compactColumn [ style "width" "40px" ] []
             , compactColumn [ maxWidthForMobile ]
                 [ row [ style "align-items" "flex-end" ]
                     [ Html.h3 [ headerMargin ] [ Html.text "Custom Paces" ]
                     ]
                 , Html.text "Add additional paces used in your workouts and training plan."
                 , row [ style "margin-top" "10px", style "margin-bottom" "30px" ]
-                    [ column [ styleIf (status == Posted) "opacity" "0.5" ]
+                    [ column [ styleIf (status == Posted) "opacity" "0.5", style "margin-left" "-10px" ]
                         [ viewTrainingPaces dragging (Selection.selectedIndex trainingPaces) (Selection.toList trainingPaces)
                         , viewIf (status /= Loading) viewAddButton
                         , viewMaybe dragging (\d -> viewDraggedPace d trainingPaces)
@@ -396,7 +398,7 @@ config : { maxPace : number, trainingPaceListId : String, mobileWidth : String }
 config =
     { maxPace = 8 * 60
     , trainingPaceListId = "training-pace-list"
-    , mobileWidth = "310px"
+    , mobileWidth = "285px"
     }
 
 

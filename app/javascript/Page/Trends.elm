@@ -136,11 +136,8 @@ viewLevelChart { activities, year } =
                 (\a -> Activity.mprLevel a |> Maybe.map (\l -> { time = a.date |> dateToPosixTime, level = l }))
                 activities
     in
-    C.chart
-        [ CA.height 300
-        , CA.width 900
-        , CA.margin { top = 10, bottom = 40, left = 40, right = 40 }
-        , CA.range
+    yearChart
+        [ CA.range
             [ CA.lowest start CA.exactly
             , CA.highest end CA.exactly
             ]
@@ -148,14 +145,9 @@ viewLevelChart { activities, year } =
             [ CA.lowest 0 CA.orHigher
             ]
         ]
-        [ C.xTicks [ CA.times Time.utc, CA.amount 13 ]
-        , C.yTicks [ CA.ints ]
-        , C.xLabels [ CA.times Time.utc, CA.amount 13 ]
-        , C.yLabels [ CA.ints ]
-        , C.xAxis []
-        , C.yAxis []
-        , C.series (.time >> toFloat)
+        [ C.series (.time >> toFloat)
             [ C.scatter (.level >> toFloat) [ CA.color "var(--blue-500)" ]
+                |> C.named "Race"
             ]
             points
         ]
@@ -183,26 +175,8 @@ viewEffortChart { activities, year } =
         toHours secs =
             (secs |> toFloat) / (60 * 60)
     in
-    C.chart
-        [ CA.height 300
-        , CA.width 900
-        , CA.margin { top = 10, bottom = 40, left = 40, right = 40 }
-        ]
-        [ C.xTicks [ CA.times Time.utc, CA.amount 12 ]
-        , C.yTicks [ CA.ints ]
-        , C.xLabels [ CA.times Time.utc, CA.amount 12 ]
-        , C.yLabels [ CA.ints ]
-        , C.xAxis []
-        , C.yAxis []
-        , C.legendsAt .max
-            .max
-            [ CA.row
-            , CA.moveUp 20
-            , CA.alignRight
-            , CA.spacing 15
-            ]
-            []
-        , C.bars
+    yearChart []
+        [ C.bars
             [ CA.x1 (.start >> dateToPosixTime >> toFloat)
             , CA.x2 (.end >> dateToPosixTime >> toFloat)
             ]
@@ -241,26 +215,8 @@ viewTimeChart { activities, year } =
         toHours secs =
             (secs |> toFloat) / (60 * 60)
     in
-    C.chart
-        [ CA.height 300
-        , CA.width 900
-        , CA.margin { top = 10, bottom = 40, left = 40, right = 40 }
-        ]
-        [ C.xTicks [ CA.times Time.utc, CA.amount 12 ]
-        , C.yTicks [ CA.ints ]
-        , C.xLabels [ CA.times Time.utc, CA.amount 12 ]
-        , C.yLabels [ CA.ints ]
-        , C.xAxis []
-        , C.yAxis []
-        , C.legendsAt .max
-            .max
-            [ CA.row
-            , CA.moveUp 20
-            , CA.alignRight
-            , CA.spacing 15
-            ]
-            []
-        , C.bars
+    yearChart []
+        [ C.bars
             [ CA.x1 (.start >> dateToPosixTime >> toFloat)
             , CA.x2 (.end >> dateToPosixTime >> toFloat)
             ]
@@ -294,26 +250,8 @@ viewDistanceChart { activities, year } =
         toMiles meters =
             Distance.fromMeters Miles meters
     in
-    C.chart
-        [ CA.height 300
-        , CA.width 900
-        , CA.margin { top = 10, bottom = 40, left = 40, right = 40 }
-        ]
-        [ C.xTicks [ CA.times Time.utc, CA.amount 12 ]
-        , C.yTicks [ CA.ints ]
-        , C.xLabels [ CA.times Time.utc, CA.amount 12 ]
-        , C.yLabels [ CA.ints ]
-        , C.xAxis []
-        , C.yAxis []
-        , C.legendsAt .max
-            .max
-            [ CA.row
-            , CA.moveUp 20
-            , CA.alignRight
-            , CA.spacing 15
-            ]
-            []
-        , C.bars
+    yearChart []
+        [ C.bars
             [ CA.x1 (.start >> dateToPosixTime >> toFloat)
             , CA.x2 (.end >> dateToPosixTime >> toFloat)
             ]
@@ -324,6 +262,37 @@ viewDistanceChart { activities, year } =
             ]
             data
         ]
+
+
+
+-- HELPERS
+
+
+yearChart attrs info =
+    C.chart
+        ([ CA.height 300
+         , CA.width 900
+         , CA.margin { top = 10, bottom = 40, left = 40, right = 40 }
+         ]
+            ++ attrs
+        )
+        ([ C.xTicks [ CA.times Time.utc, CA.amount 13 ]
+         , C.yTicks [ CA.ints ]
+         , C.xLabels [ CA.times Time.utc, CA.amount 13 ]
+         , C.yLabels [ CA.ints ]
+         , C.xAxis []
+         , C.yAxis []
+         , C.legendsAt .max
+            .max
+            [ CA.row
+            , CA.moveUp 20
+            , CA.alignRight
+            , CA.spacing 15
+            ]
+            []
+         ]
+            ++ info
+        )
 
 
 dateToPosixTime : Date.Date -> Int

@@ -110,15 +110,31 @@ view model =
 
 viewBody : Model -> Html msg
 viewBody model =
+    let
+        headerMargin =
+            style "margin" "20px 0 5px 0"
+    in
     column [ style "margin-left" "10px", style "margin-right" "10px", style "margin-bottom" "60px" ]
-        [ Html.h3 [] [ Html.text "Hours" ]
+        [ viewChartHeader "Time" "Hours per week."
         , viewTimeChart model
-        , Html.h3 [] [ Html.text "Miles" ]
+        , viewChartHeader "Distance" "Miles per week."
         , viewDistanceChart model
-        , Html.h3 [] [ Html.text "Effort" ]
+        , viewChartHeader "Effort" "Hours per week."
         , viewEffortChart model
-        , Html.h3 [] [ Html.text "Race level" ]
+        , viewChartHeader "Performance" "Calculated level (1 - 60) for standard race distances from 5k to Marathon."
         , viewLevelChart model
+        ]
+
+
+viewChartHeader : String -> String -> Html msg
+viewChartHeader title subtitle =
+    let
+        headerMargin =
+            style "margin" "20px 0 5px 0"
+    in
+    compactColumn [ style "margin-bottom" "20px" ]
+        [ Html.h3 [ headerMargin ] [ Html.text title ]
+        , Html.text subtitle
         ]
 
 
@@ -146,7 +162,7 @@ viewLevelChart { activities, year } =
             ]
         ]
         [ C.series (.time >> toFloat)
-            [ C.scatter (.level >> toFloat) [ CA.color "var(--blue-500)" ]
+            [ C.scatter (.level >> toFloat) [ CA.color "var(--red-300)", CA.size 24 ]
                 |> C.named "Race"
             ]
             points

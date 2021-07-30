@@ -735,6 +735,7 @@ view model =
                             (viewBody state)
     in
     Skeleton.default
+        |> Skeleton.withTitle "Calendar"
         |> Skeleton.withNavbar (viewNavbar model)
         |> withBody
         |> Skeleton.view

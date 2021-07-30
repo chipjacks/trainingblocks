@@ -99,6 +99,7 @@ view model =
                 |> UI.Dropdown.view
     in
     Skeleton.default
+        |> Skeleton.withTitle "Trends"
         |> Skeleton.withNavbar
             (Navbar.default
                 |> Navbar.withItems [ navHeader, yearDropdown ]

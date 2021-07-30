@@ -338,6 +338,7 @@ view model =
             Html.div [ style "font-size" "1.3rem", style "margin-top" "0.2rem" ] [ Html.text "Settings" ]
     in
     Skeleton.default
+        |> Skeleton.withTitle "Settings"
         |> Skeleton.withNavbar
             (Navbar.default
                 |> Navbar.withItems [ navHeader ]

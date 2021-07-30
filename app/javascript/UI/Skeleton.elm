@@ -1,4 +1,4 @@
-module UI.Skeleton exposing (default, view, withAttributes, withBody, withNavbar)
+module UI.Skeleton exposing (default, view, withAttributes, withBody, withNavbar, withTitle)
 
 import Html exposing (Html, a, div, text)
 import Html.Attributes exposing (class, href, style)
@@ -13,6 +13,7 @@ type alias Config msg =
     { navbar : Html msg
     , body : Html msg
     , attrs : List (Html.Attribute msg)
+    , title : String
     }
 
 
@@ -21,12 +22,18 @@ default =
     { navbar = Navbar.default |> Navbar.view
     , attrs = []
     , body = Html.text "Content"
+    , title = ""
     }
 
 
 withNavbar : Html msg -> Config msg -> Config msg
 withNavbar navbar config =
     { config | navbar = navbar }
+
+
+withTitle : String -> Config msg -> Config msg
+withTitle str config =
+    { config | title = str }
 
 
 withAttributes : List (Html.Attribute msg) -> Config msg -> Config msg
@@ -40,31 +47,38 @@ withBody body config =
 
 
 view : Config msg -> Html msg
-view { navbar, attrs, body } =
+view { navbar, attrs, body, title } =
     column (style "min-height" "100%" :: attrs)
         [ navbar
         , expandingRow []
-            [ viewSidebar
+            [ viewSidebar title
             , div [ class "container" ] [ body ]
             ]
         ]
 
 
-viewSidebar : Html msg
-viewSidebar =
+viewSidebar : String -> Html msg
+viewSidebar title =
+    let
+        viewItem =
+            viewSidebarItem title
+    in
     compactColumn [ class "sidebar", borderStyle "border-right" ]
         [ div [ class "sidebar__content" ]
-            [ viewSidebarLink MonoIcons.calendar "Calendar" "/calendar" False []
-            , viewSidebarLink MonoIcons.barChartAlt "Trends" "/trends" True []
-            , viewSidebarLink MonoIcons.settings "Settings" "/settings" False []
-            , viewSidebarLink MonoIcons.logOut "Log out" "/users/sign_out" False [ Html.Attributes.attribute "data-method" "delete" ]
+            [ viewItem MonoIcons.calendar "Calendar" "/calendar" []
+            , viewItem MonoIcons.barChartAlt "Trends" "/trends" []
+            , viewItem MonoIcons.settings "Settings" "/settings" []
+            , viewItem MonoIcons.logOut "Log out" "/users/sign_out" [ Html.Attributes.attribute "data-method" "delete" ]
             ]
         ]
 
 
-viewSidebarLink : (String -> Html msg) -> String -> String -> Bool -> List (Html.Attribute msg) -> Html msg
-viewSidebarLink icon name dest selected attrs =
+viewSidebarItem : String -> (String -> Html msg) -> String -> String -> List (Html.Attribute msg) -> Html msg
+viewSidebarItem title icon name dest attrs =
     let
+        selected =
+            title == name
+
         color =
             if selected then
                 "var(--orange-700)"

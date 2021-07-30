@@ -143,31 +143,40 @@ viewLevelChart : Model -> Svg msg
 viewLevelChart { activities, year } =
     let
         start =
-            Date.fromCalendarDate year Time.Jan 1 |> dateToPosixTime |> toFloat
+            Date.fromCalendarDate year Time.Jan 1
 
         end =
-            Date.fromCalendarDate (year + 1) Time.Jan 1 |> dateToPosixTime |> toFloat
+            Date.fromCalendarDate (year + 1) Time.Jan 1
 
         points =
-            List.filterMap
-                (\a -> Activity.mprLevel a |> Maybe.map (\l -> { time = a.date |> dateToPosixTime, level = l }))
-                activities
+            List.filter (\a -> Date.isBetween start end a.date) activities
+                |> List.filterMap
+                    (\a -> Activity.mprLevel a |> Maybe.map (\l -> { time = a.date |> dateToPosixTime, level = l, title = a.description }))
     in
     yearChart
         [ CA.range
-            [ CA.lowest start CA.exactly
-            , CA.highest end CA.exactly
+            [ CA.lowest (start |> dateToPosixTime |> toFloat) CA.exactly
+            , CA.highest (end |> dateToPosixTime |> toFloat) CA.exactly
             ]
         , CA.domain
             [ CA.lowest 0 CA.orHigher
             ]
         ]
-        [ C.series (.time >> toFloat)
+        ([ C.series (.time >> toFloat)
             [ C.scatter (.level >> toFloat) [ CA.color "var(--red-300)", CA.size 24 ]
                 |> C.named "Race"
             ]
             points
-        ]
+         ]
+            ++ List.map
+                (\p ->
+                    C.label
+                        [ CA.moveUp 10, CA.fontSize 14 ]
+                        [ Svg.text p.title ]
+                        { x = p.time |> toFloat, y = p.level |> toFloat }
+                )
+                points
+        )
 
 
 viewEffortChart : Model -> Svg msg

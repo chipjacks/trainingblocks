@@ -15,7 +15,9 @@ import Distance
 import Html exposing (Html)
 import Html.Attributes exposing (class, style)
 import Http
+import Json.Encode as Encode
 import MonoIcons
+import Report
 import Svg exposing (Svg)
 import Task
 import Time
@@ -25,6 +27,8 @@ import UI.Dropdown
 import UI.Layout exposing (column, compactColumn, expandingRow, row)
 import UI.Navbar as Navbar
 import UI.Skeleton as Skeleton
+import UI.Toast
+import UI.Util exposing (viewMaybe)
 
 
 main =
@@ -40,7 +44,7 @@ main =
 
 init : ( Model, Cmd Msg )
 init =
-    ( Model [] 2020 (Date.fromCalendarDate 2021 Time.Jul 22)
+    ( Model Loading [] 2020 (Date.fromCalendarDate 2021 Time.Jul 22)
     , Cmd.batch
         [ Task.attempt GotActivities Api.getActivities
         , Task.perform GotToday Date.today
@@ -49,10 +53,17 @@ init =
 
 
 type alias Model =
-    { activities : List Activity
+    { status : Status
+    , activities : List Activity
     , year : Int
     , today : Date
     }
+
+
+type Status
+    = Loading
+    | Error String
+    | Okay
 
 
 type Msg
@@ -63,7 +74,7 @@ type Msg
 
 
 update : App.Env -> Msg -> Model -> ( Model, Cmd Msg )
-update _ msg model =
+update env msg model =
     case msg of
         GotToday today ->
             ( { model | year = Date.year today, today = today }, Cmd.none )
@@ -71,10 +82,12 @@ update _ msg model =
         GotActivities result ->
             case result of
                 Ok ( _, activities ) ->
-                    ( { model | activities = activities }, Cmd.none )
+                    ( { model | status = Okay, activities = activities }, Cmd.none )
 
                 Err err ->
-                    ( model, Cmd.none )
+                    ( { model | status = Error (Api.userError err) }
+                    , reportError env "GotActivities" (Api.developerError err)
+                    )
 
         SelectedYear year ->
             ( { model | year = year }, Cmd.none )
@@ -103,6 +116,12 @@ view model =
         |> Skeleton.withNavbar
             (Navbar.default
                 |> Navbar.withItems [ navHeader, yearDropdown ]
+                |> (if model.status == Loading then
+                        Navbar.withRightItem (UI.spinner "2rem")
+
+                    else
+                        identity
+                   )
                 |> Navbar.view
             )
         |> Skeleton.withBody (viewBody model)
@@ -114,9 +133,18 @@ viewBody model =
     let
         headerMargin =
             style "margin" "20px 0 5px 0"
+
+        errorM =
+            case model.status of
+                Error s ->
+                    Just s
+
+                _ ->
+                    Nothing
     in
     column [ style "margin-left" "10px", style "margin-right" "10px", style "margin-bottom" "60px" ]
-        [ viewChartHeader "Time" "Hours per week."
+        [ viewMaybe errorM (\e -> UI.Toast.top |> UI.Toast.view (Html.text e))
+        , viewChartHeader "Time" "Hours per week."
         , viewTimeChart model
         , viewChartHeader "Distance" "Miles per week."
         , viewDistanceChart model
@@ -350,3 +378,15 @@ listWeeks year =
         1
         (Date.fromCalendarDate year Time.Jan 1)
         (Date.fromCalendarDate (year + 1) Time.Jan 1)
+
+
+
+-- ERROR REPORTING
+
+
+reportError : App.Env -> String -> String -> Cmd Msg
+reportError env msg errorMsg =
+    Report.error env
+        |> Report.withField "msg" (Encode.string msg)
+        |> Report.send errorMsg
+        |> Task.attempt (\_ -> NoOp)

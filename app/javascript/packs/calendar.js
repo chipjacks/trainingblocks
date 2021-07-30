@@ -19,15 +19,16 @@ document.addEventListener("DOMContentLoaded", () => {
         window.localStorage.setItem("loadDate", Date.now());
         window.location.reload();
       }
-
-      if (scrollFail) {
-        scrollToSelectedDate();
-      }
     }
   });
 
+  document.addEventListener("scroll", function (e) {
+    handleCalendarScroll(e);
+    app.ports.handleScroll.send(e);
+  });
+
   function handleCalendarScroll(event) {
-    const calendar = document.getElementById("main");
+    const calendar = document.scrollingElement;
     if (
       calendar.scrollTop < 100 ||
       calendar.scrollHeight - calendar.scrollTop === calendar.clientHeight
@@ -45,26 +46,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  let scrollFail = false;
   function scrollToSelectedDate() {
     setTimeout(() => {
-      try {
-        document
-          .getElementById("main")
-          .removeEventListener("scroll", handleCalendarScroll);
-      } catch (e) {
-        scrollFail = true;
-        return;
-      }
       const element = document.getElementById("selected-date");
       if (element) {
         element.scrollIntoView();
       }
-      setTimeout(() => {
-        document
-          .getElementById("main")
-          .addEventListener("scroll", handleCalendarScroll);
-      }, 500);
+      app.ports.scrollCompleted.send(true);
     }, 100);
   }
 

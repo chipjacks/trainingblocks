@@ -6,6 +6,7 @@ Rails.application.routes.draw do
   root to: "home#index"
 
   get 'calendar', to: 'calendar#index'
+  get 'trends', to: 'trends#index'
 
   resource :settings, only: [:show, :update]
 

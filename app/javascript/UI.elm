@@ -1,4 +1,4 @@
-module UI exposing (dropdown, iconButton, logo, spinner)
+module UI exposing (iconButton, logo, spinner)
 
 import Html exposing (Html, div)
 import Html.Attributes exposing (class, style)
@@ -26,12 +26,3 @@ iconButton attributes children =
                ]
         )
         children
-
-
-dropdown : Bool -> Html msg -> List (Html msg) -> Html msg
-dropdown rightAlign header content =
-    div [ class "dropdown" ]
-        [ header
-        , div [ class "dropdown-content", styleIf rightAlign "right" "0" ]
-            content
-        ]

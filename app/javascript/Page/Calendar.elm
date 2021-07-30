@@ -1,7 +1,7 @@
 module Page.Calendar exposing (Model, init, main, update, view)
 
 import Activity
-import Activity.Laps
+import Activity.Data
 import Activity.Types exposing (Activity, Completion(..), LapData(..))
 import ActivityForm
 import ActivityShape
@@ -196,17 +196,17 @@ update env msg model =
                             50
 
                         autoScrollCalendar =
-                            Dom.getViewportOf "main"
+                            Dom.getViewport
                                 |> Task.andThen
                                     (\info ->
                                         if y < 0 then
                                             Task.succeed ()
 
                                         else if y > (info.viewport.height * 0.9 + navbarHeight) then
-                                            Dom.setViewportOf "main" 0 (info.viewport.y + distance)
+                                            Dom.setViewport 0 (info.viewport.y + distance)
 
                                         else if y < (info.viewport.height * 0.1 + navbarHeight) then
-                                            Dom.setViewportOf "main" 0 (info.viewport.y - distance)
+                                            Dom.setViewport 0 (info.viewport.y - distance)
 
                                         else
                                             Task.succeed ()
@@ -730,11 +730,12 @@ view model =
                     Skeleton.withBody viewMissingSettingsNotice skeleton
 
                 Loaded state ->
-                    Skeleton.withContainer identity skeleton
+                    Skeleton.withAttributes (bodyAttributes state) skeleton
                         |> Skeleton.withBody
                             (viewBody state)
     in
     Skeleton.default
+        |> Skeleton.withTitle "Calendar"
         |> Skeleton.withNavbar (viewNavbar model)
         |> withBody
         |> Skeleton.view
@@ -772,19 +773,6 @@ viewBody (State calendar store activityM configs) =
         activities =
             Store.get store .activities
 
-        events =
-            case activityM of
-                Moving _ _ _ ->
-                    [ onPointerMove MouseMoved
-                    , Html.Events.on "pointerup" (Decode.succeed MouseReleased)
-                    , style "touch-action" "none"
-                    , style "pointer-action" "none"
-                    , style "cursor" "grabbing"
-                    ]
-
-                _ ->
-                    []
-
         ( activeId, isMoving ) =
             case activityM of
                 Selected list ->
@@ -810,18 +798,27 @@ viewBody (State calendar store activityM configs) =
                 _ ->
                     0
     in
-    expandingRow
-        ([ id "main"
-         , style "overflow-y" "scroll"
-         , Calendar.handleScroll calendar
-         ]
-            ++ events
-        )
+    expandingRow [ style "overflow-x" "hidden" ]
         [ Html.Lazy.lazy6 Calendar.view calendar activities activeId activeRataDie isMoving configs
         , Html.Lazy.lazy2 viewActivityM configs activityM
         , Html.Lazy.lazy2 ActivityForm.view configs activityM
         , Html.Lazy.lazy viewUndoToastM (Store.undoMsg store)
         ]
+
+
+bodyAttributes : State -> List (Html.Attribute Msg)
+bodyAttributes (State calendar _ activityM _) =
+    case activityM of
+        Moving _ _ _ ->
+            [ onPointerMove MouseMoved
+            , Html.Events.on "pointerup" (Decode.succeed MouseReleased)
+            , style "touch-action" "none"
+            , style "pointer-action" "none"
+            , style "cursor" "grabbing"
+            ]
+
+        _ ->
+            []
 
 
 viewNavbar : Model -> Html Msg
@@ -833,10 +830,22 @@ viewNavbar model =
     case model of
         Loaded (State calendar store _ _) ->
             Navbar.default
-                |> Navbar.withLoading (loading (Just store))
-                |> Navbar.withBackButton (Calendar.viewBackButton calendar)
+                |> Navbar.withLeftItem (Calendar.viewBackButton calendar)
                 |> Navbar.withItems (Calendar.viewMenu calendar)
-                |> Navbar.withSecondRow (Html.Lazy.lazy Calendar.viewHeader calendar)
+                |> Navbar.withRightItem
+                    (if loading (Just store) then
+                        spinner "2rem"
+
+                     else
+                        text ""
+                    )
+                |> (case Calendar.viewHeader calendar of
+                        Just header ->
+                            Navbar.withSecondRow header
+
+                        Nothing ->
+                            identity
+                   )
                 |> Navbar.view
 
         _ ->
@@ -857,8 +866,8 @@ viewActivityM configs activityState =
                 , style "margin-top" "10px"
                 ]
                 [ compactColumn [ style "flex-basis" "5rem" ]
-                    (Activity.Laps.listData activity
-                        |> List.map (\lap -> ActivityShape.view configs lap)
+                    (Activity.Data.list [ Activity.Data.visible activity ] activity
+                        |> List.map (ActivityShape.view configs)
                     )
                 ]
 
@@ -898,9 +907,12 @@ keyPressDecoder =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     case model of
-        Loaded (State _ _ activityM _) ->
+        Loaded (State calendar _ activityM _) ->
             Sub.batch
                 [ Ports.selectDateFromScroll ReceiveSelectDate
+                , Ports.scrollCompleted (\_ -> ScrollCompleted)
+                , Ports.handleScroll
+                    (\e -> Calendar.handleScroll calendar e |> Result.withDefault NoOp)
                 , Events.onVisibilityChange VisibilityChange
                 , case activityM of
                     Editing _ ->

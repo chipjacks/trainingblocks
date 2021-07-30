@@ -1,6 +1,9 @@
 module Calendar exposing (Model, get, handleScroll, init, update, view, viewBackButton, viewHeader, viewMenu)
 
 import Actions exposing (viewActivityActions, viewMultiSelectActions, viewPopoverActions)
+import Activity
+import Activity.Aggregate
+import Activity.Data
 import Activity.Laps
 import Activity.Types exposing (Activity)
 import Activity.View
@@ -14,12 +17,14 @@ import Html.Events exposing (onClick)
 import Html.Keyed
 import Html.Lazy
 import Json.Decode as Decode
+import Json.Encode as Encode
 import MonoIcons
 import Msg exposing (ActivityConfigs, ActivityState(..), Msg(..), Zoom(..))
 import Process
 import Task
 import Time exposing (Month(..))
-import UI exposing (dropdown, spinner)
+import UI exposing (spinner)
+import UI.Dropdown
 import UI.Layout exposing (column, compactColumn, row)
 import UI.Util exposing (attributeIf, stopPropagationOnClick, styleIf, viewIf)
 
@@ -37,7 +42,7 @@ get (Model zoom start end selected today scrollCompleted) =
 
 init : Zoom -> Date -> Date -> ( Model, Effect )
 init zoom selected today =
-    ( Model zoom (Date.add Date.Months -3 selected) (Date.add Date.Months 3 selected) selected today True
+    ( Model zoom (Date.add Date.Months -3 selected) (Date.add Date.Months 3 selected) selected today False
     , Effect.ScrollToSelectedDate
     )
 
@@ -82,7 +87,7 @@ update msg model =
                 newSelected =
                     Date.fromIsoString selectDate |> Result.withDefault selected
             in
-            if newSelected == selected then
+            if not scrollCompleted || newSelected == selected then
                 ( model, Effect.None )
 
             else
@@ -120,7 +125,7 @@ viewBackButton model =
     in
     case zoom of
         Year ->
-            UI.logo
+            text ""
 
         Month ->
             a [ class "button row", style "margin-right" "0.2rem", style "align-items" "bottom", onClick (ChangeZoom Year Nothing) ]
@@ -143,20 +148,22 @@ viewDatePicker model =
     in
     case zoom of
         Year ->
-            dropdown False
+            UI.Dropdown.default
                 (button [ class "button" ] [ text (Date.format "yyyy" selected) ])
                 (listYears today Jump)
+                |> UI.Dropdown.view
 
         Month ->
-            dropdown False
+            UI.Dropdown.default
                 (button [ class "button" ] [ text (Date.format "MMMM" selected) ])
                 (listMonths selected Jump)
+                |> UI.Dropdown.view
 
         Day ->
             text ""
 
 
-listMonths : Date -> (Date -> Msg) -> List (Html Msg)
+listMonths : Date -> (Date -> Msg) -> List ( String, Msg )
 listMonths date changeDate =
     let
         start =
@@ -169,7 +176,7 @@ listMonths date changeDate =
         |> List.map (viewDropdownItem changeDate "MMMM")
 
 
-listYears : Date -> (Date -> Msg) -> List (Html Msg)
+listYears : Date -> (Date -> Msg) -> List ( String, Msg )
 listYears today changeDate =
     let
         start =
@@ -182,9 +189,9 @@ listYears today changeDate =
         |> List.map (viewDropdownItem changeDate "yyyy")
 
 
-viewDropdownItem : (Date -> Msg) -> String -> Date -> Html Msg
+viewDropdownItem : (Date -> Msg) -> String -> Date -> ( String, Msg )
 viewDropdownItem changeDate formatDate date =
-    a [ onClick (changeDate date) ] [ text <| Date.format formatDate date ]
+    ( Date.format formatDate date, changeDate date )
 
 
 
@@ -248,7 +255,7 @@ view model activities activeId activeRataDie isMoving configs =
     in
     Html.Keyed.node "div"
         [ id "calendar"
-        , class "column expand container no-select"
+        , class "column expand no-select"
         , style "height" "fit-content"
         , styleIf (zoom == Year) "animation" "slidein-left 0.5s"
         , styleIf (zoom == Month) "animation" "slidein-right 0.5s 0.01ms"
@@ -284,7 +291,7 @@ viewActivityShape activity isActive isMonthView configs =
                 ]
                 [ viewPopoverActions ]
             )
-            :: (Activity.Laps.listData activity
+            :: (Activity.Data.list [ Activity.Data.visible activity ] activity
                     |> List.map (\a -> ActivityShape.view configs a)
                )
 
@@ -293,7 +300,7 @@ viewActivityShape activity isActive isMonthView configs =
 -- SCROLLING
 
 
-handleScroll : Model -> Html.Attribute Msg
+handleScroll : Model -> (Decode.Value -> Result Decode.Error Msg)
 handleScroll (Model _ start end _ _ scrollCompleted) =
     let
         loadMargin =
@@ -303,35 +310,33 @@ handleScroll (Model _ start end _ _ scrollCompleted) =
             ( Date.add Date.Months -2 start, Date.add Date.Months 2 end )
                 |> Tuple.mapBoth (Scroll True) (Scroll False)
     in
-    attributeIf scrollCompleted <|
-        Html.Events.on "scroll"
-            (Decode.map3 (\a b c -> ( a, b, c ))
-                (Decode.at [ "target", "scrollTop" ] Decode.int)
-                (Decode.at [ "target", "scrollHeight" ] Decode.int)
-                (Decode.at [ "target", "clientHeight" ] Decode.int)
-                |> Decode.andThen
-                    (\( scrollTop, scrollHeight, clientHeight ) ->
-                        if scrollTop < loadMargin then
-                            Decode.succeed (loadPrevious scrollHeight)
+    Decode.map3 (\a b c -> ( a, b, c ))
+        (Decode.at [ "target", "scrollingElement", "scrollTop" ] Decode.int)
+        (Decode.at [ "target", "scrollingElement", "scrollHeight" ] Decode.int)
+        (Decode.at [ "target", "scrollingElement", "clientHeight" ] Decode.int)
+        |> Decode.andThen
+            (\( scrollTop, scrollHeight, clientHeight ) ->
+                if scrollTop < loadMargin then
+                    Decode.succeed (loadPrevious scrollHeight)
 
-                        else if scrollTop > scrollHeight - clientHeight - loadMargin then
-                            Decode.succeed (loadNext scrollHeight)
+                else if scrollTop > scrollHeight - clientHeight - loadMargin then
+                    Decode.succeed (loadNext scrollHeight)
 
-                        else
-                            Decode.fail ""
-                    )
+                else
+                    Decode.fail ""
             )
+        |> Decode.decodeValue
 
 
 returnScroll : Int -> Effect
 returnScroll previousHeight =
-    Dom.getViewportOf "main"
+    Dom.getViewport
         |> Task.andThen
             (\info ->
                 Task.sequence
-                    [ Dom.setViewportOf "main" 0 (info.scene.height - toFloat previousHeight)
+                    [ Dom.setViewport 0 (info.scene.height - toFloat previousHeight)
                     , Process.sleep 100
-                    , Dom.setViewportOf "main" 0 (info.scene.height - toFloat previousHeight)
+                    , Dom.setViewport 0 (info.scene.height - toFloat previousHeight)
                     ]
             )
         |> Task.attempt (\_ -> ScrollCompleted)
@@ -342,19 +347,23 @@ returnScroll previousHeight =
 -- YEAR VIEW
 
 
-viewHeader : Model -> Html Msg
+viewHeader : Model -> Maybe (Html Msg)
 viewHeader model =
-    viewIf ((model |> get |> .zoom) == Year) <|
-        row []
-            (column [ style "min-width" "4rem" ] []
-                :: ([ "M", "T", "W", "T", "F", "S", "S" ]
-                        |> List.map
-                            (\d ->
-                                column [ style "background" "white", style "color" "var(--grey-900)" ]
-                                    [ text d ]
-                            )
-                   )
-            )
+    if (model |> get |> .zoom) == Year then
+        Just <|
+            row []
+                (column [ style "min-width" "4rem" ] []
+                    :: ([ "M", "T", "W", "T", "F", "S", "S" ]
+                            |> List.map
+                                (\d ->
+                                    column [ style "background" "white", style "color" "var(--grey-900)" ]
+                                        [ text d ]
+                                )
+                       )
+                )
+
+    else
+        Nothing
 
 
 viewWeek : List Activity -> Date -> Date -> Date -> Bool -> String -> ActivityConfigs -> Html Msg
@@ -383,8 +392,7 @@ viewWeekDay ( date, activities ) isToday isSelected isMoving activeId configs =
             activeId == a.id
     in
     column
-        [ attributeIf isSelected (id "selected-date")
-        , style "min-height" "4rem"
+        [ style "min-height" "4rem"
         , style "padding-bottom" "1rem"
         , attributeIf isMoving (Html.Events.on "pointerenter" (Decode.succeed (MoveTo date)))
         ]
@@ -405,6 +413,7 @@ viewWeekDay ( date, activities ) isToday isSelected isMoving activeId configs =
                     text (Date.format "MMMM" date)
                 ]
             )
+            :: viewSelectedDateScrollTarget isSelected
             :: row []
                 [ a
                     [ stopPropagationOnClick (Decode.succeed (ChangeZoom Month (Just date)))
@@ -433,21 +442,11 @@ viewWeekDay ( date, activities ) isToday isSelected isMoving activeId configs =
 titleWeek : List Activity -> Html msg
 titleWeek activities =
     let
-        sumDuration datas =
-            datas
-                |> List.map
-                    (\data ->
-                        case data.activityType of
-                            Activity.Types.Run ->
-                                ( data.duration |> Maybe.withDefault 0, 0 )
+        run =
+            Activity.Aggregate.duration [ Activity.Data.run ] activities
 
-                            _ ->
-                                ( 0, data.duration |> Maybe.withDefault 0 )
-                    )
-                |> List.foldl (\( r, o ) ( sr, so ) -> ( sr + r, so + o )) ( 0, 0 )
-
-        ( runDuration, otherDuration ) =
-            sumDuration (List.map Activity.Laps.listData activities |> List.concat)
+        other =
+            Activity.Aggregate.duration [ Activity.Data.other ] activities
 
         hours duration =
             (duration // 60) // 60
@@ -488,8 +487,8 @@ titleWeek activities =
     in
     column
         [ style "min-width" "4rem" ]
-        [ viewIf (runDuration /= 0) (durationPillBox runDuration "Run")
-        , viewIf (otherDuration /= 0) (durationPillBox otherDuration "Other")
+        [ viewIf (run /= 0) (durationPillBox run "Run")
+        , viewIf (other /= 0) (durationPillBox other "Other")
         ]
 
 
@@ -515,7 +514,6 @@ viewDay isToday isSelected isMoving rataDie =
     in
     row
         [ attributeIf (Date.day date == 1) (class "month-header")
-        , attributeIf isSelected (id "selected-date")
         , attribute "data-date" (Date.toIsoString date)
         , style "padding" "1rem 0.5rem"
         , styleIf isToday "font-weight" "bold"
@@ -523,7 +521,16 @@ viewDay isToday isSelected isMoving rataDie =
         -- , onClick (ChangeZoom Day (Just date))
         , attributeIf isMoving (Html.Events.on "pointerenter" (Decode.succeed (MoveTo date)))
         ]
-        [ text (Date.format "E MMM d" date) ]
+        [ viewSelectedDateScrollTarget isSelected
+        , text (Date.format "E MMM d" date)
+        ]
+
+
+viewSelectedDateScrollTarget : Bool -> Html msg
+viewSelectedDateScrollTarget isSelected =
+    -- Shifted up so sticky navbar is cleared when element is scrolled into view.
+    viewIf isSelected
+        (row [ id "selected-date", style "position" "relative", style "bottom" "calc(var(--navbar-height) + 1rem)" ] [])
 
 
 viewActivity : String -> Bool -> ActivityConfigs -> Activity -> Html Msg
@@ -540,7 +547,7 @@ viewActivity activeIds isActiveDate configs activity =
     in
     Activity.View.listItem
         { titleM = Just activity.description
-        , subtitle = Activity.View.activityDescription Nothing (Activity.Laps.visible activity |> Activity.Laps.sum)
+        , subtitle = Activity.View.activityDescription Nothing (Activity.Data.list [ Activity.Data.visible activity ] activity |> Activity.Laps.sum)
         , isActive = isActive
         , handlePointerDown = selectActivityDecoder activity
         , handleDoubleClick = EditActivity activity

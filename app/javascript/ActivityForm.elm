@@ -39,14 +39,14 @@ init activity =
     let
         ( editing, completion, laps ) =
             case ( activity.laps, activity.planned ) of
-                ( [ lap ], [] ) ->
-                    ( False, Completed, Selection.init [ lap ] )
+                ( [ lap ], _ ) ->
+                    ( True, Completed, Selection.init [ lap ] )
 
                 ( lap :: more, _ ) ->
                     ( False, Completed, Selection.init (lap :: more) )
 
-                ( [], [ lap ] ) ->
-                    ( False, Planned, Selection.init [ lap ] )
+                ( _, [ lap ] ) ->
+                    ( True, Planned, Selection.init [ lap ] )
 
                 ( _, lap :: more ) ->
                     ( False, Planned, Selection.init (lap :: more) )

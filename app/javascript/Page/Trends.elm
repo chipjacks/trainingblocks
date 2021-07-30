@@ -4,15 +4,17 @@ import Activity
 import Activity.Aggregate as Aggregate
 import Activity.Data as Data
 import Activity.Laps
-import Activity.Types exposing (Activity, ActivityData, DistanceUnits(..), Effort(..), RaceDistance)
+import Activity.Types exposing (Activity, ActivityData, Completion(..), DistanceUnits(..), Effort(..), RaceDistance)
 import Api
 import App
 import Chart as C
 import Chart.Attributes as CA
+import Chart.Events as CE
 import Chart.Item as CI
 import Date exposing (Date)
 import Distance
-import Html exposing (Html)
+import Duration
+import Html exposing (Html, text)
 import Html.Attributes exposing (class, style)
 import Http
 import Json.Encode as Encode
@@ -44,7 +46,7 @@ main =
 
 init : ( Model, Cmd Msg )
 init =
-    ( Model Loading [] 2020 (Date.fromCalendarDate 2021 Time.Jul 22)
+    ( Model Loading [] 2020 (Date.fromCalendarDate 2021 Time.Jul 22) []
     , Cmd.batch
         [ Task.attempt GotActivities Api.getActivities
         , Task.perform GotToday Date.today
@@ -57,6 +59,7 @@ type alias Model =
     , activities : List Activity
     , year : Int
     , today : Date
+    , raceHovering : List RaceItem
     }
 
 
@@ -66,10 +69,15 @@ type Status
     | Okay
 
 
+type alias RaceItem =
+    CI.One { level : Int, time : Int, race : Maybe RaceDistance, duration : Maybe Int, title : String, completed : Completion } CI.Dot
+
+
 type Msg
     = GotToday Date
     | GotActivities (Result Http.Error ( String, List Activity ))
     | SelectedYear Int
+    | OnRaceHover (List RaceItem)
     | NoOp
 
 
@@ -91,6 +99,9 @@ update env msg model =
 
         SelectedYear year ->
             ( { model | year = year }, Cmd.none )
+
+        OnRaceHover raceHovering ->
+            ( { model | raceHovering = raceHovering }, Cmd.none )
 
         NoOp ->
             ( model, Cmd.none )
@@ -128,7 +139,7 @@ view model =
         |> Skeleton.view
 
 
-viewBody : Model -> Html msg
+viewBody : Model -> Html Msg
 viewBody model =
     let
         headerMargin =
@@ -150,7 +161,7 @@ viewBody model =
         , viewDistanceChart model
         , viewChartHeader "Effort" "Hours per week."
         , viewEffortChart model
-        , viewChartHeader "Performance" "Calculated level (1 - 60) for standard race distances from 5k to Marathon."
+        , viewChartHeader "Races" "Performance level (0 － 60) is calculated for standard race distances from 5k to Marathon."
         , viewLevelChart model
         ]
 
@@ -161,14 +172,14 @@ viewChartHeader title subtitle =
         headerMargin =
             style "margin" "20px 0 5px 0"
     in
-    compactColumn [ style "margin-bottom" "20px" ]
+    compactColumn [ style "margin-bottom" "20px", style "margin-left" "15px" ]
         [ Html.h3 [ headerMargin ] [ Html.text title ]
         , Html.text subtitle
         ]
 
 
-viewLevelChart : Model -> Svg msg
-viewLevelChart { activities, year } =
+viewLevelChart : Model -> Html Msg
+viewLevelChart { activities, year, raceHovering } =
     let
         start =
             Date.fromCalendarDate year Time.Jan 1
@@ -179,7 +190,19 @@ viewLevelChart { activities, year } =
         points =
             List.filter (\a -> Date.isBetween start end a.date) activities
                 |> List.filterMap
-                    (\a -> Activity.mprLevel a |> Maybe.map (\l -> { time = a.date |> dateToPosixTime, level = l, title = a.description }))
+                    (\a ->
+                        Activity.mprLevel a
+                            |> Maybe.map
+                                (\( l, race ) ->
+                                    { time = a.date |> dateToPosixTime
+                                    , level = l
+                                    , title = a.description
+                                    , race = race.race
+                                    , duration = race.duration
+                                    , completed = race.completed
+                                    }
+                                )
+                    )
     in
     yearChart
         [ CA.range
@@ -187,24 +210,56 @@ viewLevelChart { activities, year } =
             , CA.highest (end |> dateToPosixTime |> toFloat) CA.exactly
             ]
         , CA.domain
-            [ CA.lowest 0 CA.orHigher
+            [ CA.lowest 0 CA.exactly
+            , CA.highest 60 CA.exactly
             ]
+        , CE.onMouseMove OnRaceHover (CE.getNearest CI.dots)
+        , CE.onMouseLeave (OnRaceHover [])
         ]
-        ([ C.series (.time >> toFloat)
+        [ C.series (.time >> toFloat)
             [ C.scatter (.level >> toFloat) [ CA.color "var(--red-300)", CA.size 24 ]
-                |> C.named "Race"
+                |> C.named "Completed"
+                |> C.amongst raceHovering (\d -> [ CA.highlight 0.15 ])
             ]
-            points
-         ]
-            ++ List.map
-                (\p ->
-                    C.label
-                        [ CA.moveUp 10, CA.fontSize 14 ]
-                        [ Svg.text p.title ]
-                        { x = p.time |> toFloat, y = p.level |> toFloat }
-                )
-                points
-        )
+            (points |> List.filter (\d -> d.completed == Completed))
+        , C.series (.time >> toFloat)
+            [ C.scatter (.level >> toFloat) [ CA.color "white", CA.size 24, CA.borderWidth 3, CA.border "var(--red-300)" ]
+                |> C.named "Planned"
+                |> C.amongst raceHovering (\d -> [ CA.highlight 0.15 ])
+            ]
+            (points |> List.filter (\d -> d.completed == Planned))
+        , C.each raceHovering <|
+            \p item ->
+                let
+                    data =
+                        CI.getData item
+                in
+                [ C.tooltip item
+                    []
+                    []
+                    [ compactColumn [ style "font-size" "0.8rem" ]
+                        [ row []
+                            [ Html.div
+                                [ style "max-width" "10rem"
+                                , style "text-overflow" "ellipsis"
+                                , style "white-space" "nowrap"
+                                , style "overflow-x" "hidden"
+                                ]
+                                [ text data.title ]
+                            ]
+                        , row []
+                            [ viewMaybe data.race (\r -> text (Activity.raceDistance.toString r))
+                            , text " － "
+                            , viewMaybe data.duration (\d -> text (Duration.toStringWithUnits d))
+                            ]
+                        , row []
+                            [ text "Level "
+                            , text (String.fromInt data.level)
+                            ]
+                        ]
+                    ]
+                ]
+        ]
 
 
 viewEffortChart : Model -> Svg msg

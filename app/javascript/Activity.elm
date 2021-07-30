@@ -82,7 +82,7 @@ newId =
         |> Random.map digitsToString
 
 
-mprLevel : Activity -> Maybe Int
+mprLevel : Activity -> Maybe ( Int, ActivityData )
 mprLevel activity =
     let
         data =
@@ -97,6 +97,7 @@ mprLevel activity =
                 duration
                 |> Result.map (\( _, level ) -> level)
                 |> Result.toMaybe
+                |> Maybe.map (\l -> ( l, data ))
 
         _ ->
             Nothing

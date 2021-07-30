@@ -6,7 +6,7 @@ import MonoIcons
 import UI
 import UI.Layout exposing (column, compactColumn, expandingRow, row)
 import UI.Navbar as Navbar
-import UI.Util exposing (borderStyle)
+import UI.Util exposing (attributeIf, borderStyle, styleIf, viewIf)
 
 
 type alias Config msg =
@@ -54,25 +54,36 @@ viewSidebar : Html msg
 viewSidebar =
     compactColumn [ class "sidebar", borderStyle "border-right" ]
         [ div [ class "sidebar__content" ]
-            [ viewSidebarLink MonoIcons.calendar "Calendar" "/calendar" []
-            , viewSidebarLink MonoIcons.barChartAlt "Trends" "/trends" []
-            , viewSidebarLink MonoIcons.settings "Settings" "/settings" []
-            , viewSidebarLink MonoIcons.logOut "Log out" "/users/sign_out" [ Html.Attributes.attribute "data-method" "delete" ]
+            [ viewSidebarLink MonoIcons.calendar "Calendar" "/calendar" False []
+            , viewSidebarLink MonoIcons.barChartAlt "Trends" "/trends" True []
+            , viewSidebarLink MonoIcons.settings "Settings" "/settings" False []
+            , viewSidebarLink MonoIcons.logOut "Log out" "/users/sign_out" False [ Html.Attributes.attribute "data-method" "delete" ]
             ]
         ]
 
 
-viewSidebarLink : (String -> Html msg) -> String -> String -> List (Html.Attribute msg) -> Html msg
-viewSidebarLink icon name dest attrs =
+viewSidebarLink : (String -> Html msg) -> String -> String -> Bool -> List (Html.Attribute msg) -> Html msg
+viewSidebarLink icon name dest selected attrs =
+    let
+        color =
+            if selected then
+                "var(--orange-700)"
+
+            else
+                "#3d3d3d"
+    in
     a
         ([ class "button button--basic row"
          , style "padding-top" "1rem"
          , style "padding-bottom" "1rem"
          , style "align-items" "center"
+         , class "sidebar__item"
+         , attributeIf selected (class "sidebar__item--selected")
+         , style "color" color
          , href dest
          ]
             ++ attrs
         )
-        [ MonoIcons.icon (icon "#3d3d3d")
+        [ MonoIcons.icon (icon color)
         , compactColumn [ class "sidebar__text", style "margin-left" "10px" ] [ text name ]
         ]

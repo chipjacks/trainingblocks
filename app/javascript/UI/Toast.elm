@@ -63,7 +63,7 @@ view body { position, stackHeight, attrs } =
 
                 Bottom ->
                     [ style "bottom" "var(--sidebar-bottom-height)"
-                    , style "right" "0"
+                    , style "right" "var(--container-margin)"
                     , style "animation" "slidein-bottom 0.5s"
                     ]
     in

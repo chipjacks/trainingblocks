@@ -491,7 +491,7 @@ viewStandardPaces levelR =
                         , column [ style "align-items" "flex-end" ] [ text pace ]
                         ]
                 )
-                (Pace.standardPace.list |> List.drop 1 |> List.map Tuple.first)
+                (Pace.standardPace.list |> List.map Tuple.first)
                 paces
             )
         ]

@@ -22,43 +22,56 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  document.addEventListener("scroll", function (e) {
-    handleCalendarScroll(e);
-    app.ports.handleScroll.send(e);
-  });
-
-  function handleCalendarScroll(event) {
-    const calendar = document.scrollingElement;
-    if (
-      calendar.scrollTop < 100 ||
-      calendar.scrollHeight - calendar.scrollTop === calendar.clientHeight
-    ) {
-      return;
-    }
-    let monthHeader = Array.from(
-      document.getElementsByClassName("month-header")
-    )
-      .map((e) => ({ element: e, rect: e.getBoundingClientRect() }))
-      .filter((r) => r.rect.top < 100)
-      .pop();
-    if (monthHeader) {
-      app.ports.selectDateFromScroll.send(monthHeader.element.dataset.date);
-    }
-  }
-
-  function scrollToSelectedDate() {
-    setTimeout(() => {
-      const element = document.getElementById("selected-date");
-      if (element) {
-        element.scrollIntoView();
-      }
-      app.ports.scrollCompleted.send(true);
-    }, 100);
-  }
-
-  app.ports.scrollToSelectedDate.subscribe(scrollToSelectedDate);
-
   document.addEventListener("gotpointercapture", (e) => {
     e.target.releasePointerCapture(e.pointerId);
   });
+
+  customElements.define(
+    "infinite-calendar",
+    class extends HTMLElement {
+      _handleCalendarScroll(event) {
+        const calendar = document.scrollingElement;
+        if (
+          calendar.scrollTop < 100 ||
+          calendar.scrollHeight - calendar.scrollTop === calendar.clientHeight
+        ) {
+          return;
+        }
+        let monthHeader = Array.from(
+          document.getElementsByClassName("month-header")
+        )
+          .map((e) => ({ element: e, rect: e.getBoundingClientRect() }))
+          .filter((r) => r.rect.top < 100)
+          .pop();
+        if (monthHeader) {
+          app.ports.selectDateFromScroll.send(monthHeader.element.dataset.date);
+        }
+      }
+
+      _scrollToSelectedDate() {
+        setTimeout(() => {
+          const element = document.getElementById("selected-date");
+          if (element) {
+            element.scrollIntoView();
+          }
+          app.ports.scrollCompleted.send(true);
+        }, 100);
+      }
+
+      connectedCallback() {
+        this._scrollToSelectedDate();
+        app.ports.scrollToSelectedDate.subscribe(this._scrollToSelectedDate);
+
+        const handleScroll = this._handleCalendarScroll;
+        document.addEventListener("scroll", function (e) {
+          handleScroll(e);
+          app.ports.handleScroll.send(e);
+        });
+      }
+
+      disconnectedCallback() {
+        document.removeEventListener("scroll", this._handleCalendarScroll);
+      }
+    }
+  );
 });

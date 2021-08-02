@@ -253,7 +253,7 @@ view model activities activeId activeRataDie isMoving configs =
         loadingSpinner =
             viewIf (zoom /= Day) (row [ style "justify-content" "center", style "padding" "1rem" ] [ spinner "2rem" ])
     in
-    Html.Keyed.node "div"
+    Html.Keyed.node "infinite-calendar"
         [ id "calendar"
         , class "column expand no-select"
         , style "height" "fit-content"

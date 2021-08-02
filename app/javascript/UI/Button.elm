@@ -118,6 +118,7 @@ view { size, color, tooltip, label, onClick, iconM, attrs } =
          , Html.Attributes.attribute "aria-label" label
          , style "text-align" "center"
          , stopPropagationOnClick (Decode.succeed onClick)
+         , style "color" iconFill
          ]
             ++ attrs
         )

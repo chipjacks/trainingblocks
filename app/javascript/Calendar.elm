@@ -24,6 +24,7 @@ import Process
 import Task
 import Time exposing (Month(..))
 import UI exposing (spinner)
+import UI.Button as Button
 import UI.Dropdown
 import UI.Layout exposing (column, compactColumn, row)
 import UI.Util exposing (attributeIf, stopPropagationOnClick, styleIf, viewIf)
@@ -416,12 +417,19 @@ viewWeekDay ( date, activities ) isToday isTarget isMoving activeId configs =
             )
             :: viewIf isTarget viewScrollTarget
             :: row []
-                [ a
-                    [ stopPropagationOnClick (Decode.succeed (ChangeZoom Month (Just date)))
-                    , attribute "data-date" (Date.toIsoString date)
-                    , styleIf isToday "text-decoration" "underline"
-                    ]
-                    [ text (Date.format "d" date) ]
+                [ Button.default (Date.format "d" date) (ChangeZoom Month (Just date))
+                    |> Button.withAppearance Button.Tall Button.Regular Button.None
+                    |> Button.withAttributes
+                        [ class "button--basic"
+                        , style "margin-left" "-0.8rem"
+                        , if isToday then
+                            style "color" "var(--black-900)"
+
+                          else
+                            style "color" "var(--black-100)"
+                        , styleIf isToday "font-weight" "bold"
+                        ]
+                    |> Button.view
                 ]
             :: List.map
                 (\a ->
@@ -462,6 +470,7 @@ titleWeek activities =
                 , style "margin-right" "0.2rem"
                 , style "margin-left" "-3px"
                 , style "flex-wrap" "wrap"
+                , style "z-index" "1"
                 ]
                 [ compactColumn
                     [ style "background-color" "var(--grey-500)"

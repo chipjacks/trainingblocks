@@ -29,6 +29,25 @@ document.addEventListener("DOMContentLoaded", () => {
   customElements.define(
     "infinite-calendar",
     class extends HTMLElement {
+      constructor() {
+        super();
+      }
+
+      connectedCallback() {
+        this._scrollToSelectedDate();
+        app.ports.scrollToSelectedDate.subscribe(this._scrollToSelectedDate);
+
+        const handleScroll = this._handleCalendarScroll;
+        document.addEventListener("scroll", function (e) {
+          handleScroll(e);
+          app.ports.handleScroll.send(e);
+        });
+      }
+
+      disconnectedCallback() {
+        document.removeEventListener("scroll", this._handleCalendarScroll);
+      }
+
       _handleCalendarScroll(event) {
         const calendar = document.scrollingElement;
         if (
@@ -56,21 +75,6 @@ document.addEventListener("DOMContentLoaded", () => {
           }
           app.ports.scrollCompleted.send(true);
         }, 100);
-      }
-
-      connectedCallback() {
-        this._scrollToSelectedDate();
-        app.ports.scrollToSelectedDate.subscribe(this._scrollToSelectedDate);
-
-        const handleScroll = this._handleCalendarScroll;
-        document.addEventListener("scroll", function (e) {
-          handleScroll(e);
-          app.ports.handleScroll.send(e);
-        });
-      }
-
-      disconnectedCallback() {
-        document.removeEventListener("scroll", this._handleCalendarScroll);
       }
     }
   );

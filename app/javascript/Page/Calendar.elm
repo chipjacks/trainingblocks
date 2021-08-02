@@ -330,7 +330,7 @@ update env msg model =
                         |> loaded
 
                 ClickedNewActivity date ->
-                    ( model, initActivity (calendar |> Calendar.get |> .today) (Just date) )
+                    ( model, initActivity (Calendar.getToday calendar) (Just date) )
 
                 NewActivity activity ->
                     let

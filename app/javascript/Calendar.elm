@@ -1,4 +1,4 @@
-module Calendar exposing (Model, get, handleScroll, init, update, view, viewBackButton, viewHeader, viewMenu)
+module Calendar exposing (Model, getToday, handleScroll, init, update, view, viewBackButton, viewHeader, viewMenu)
 
 import Actions exposing (viewActivityActions, viewMultiSelectActions, viewPopoverActions)
 import Activity
@@ -31,67 +31,68 @@ import UI.Util exposing (attributeIf, stopPropagationOnClick, styleIf, viewIf)
 
 type
     Model
-    -- zoom start end selected today scrollCompleted
-    = Model Zoom Date Date Date Date Bool
-
-
-get : Model -> { zoom : Zoom, start : Date, end : Date, selected : Date, today : Date, scrollCompleted : Bool }
-get (Model zoom start end selected today scrollCompleted) =
-    { zoom = zoom, start = start, end = end, selected = selected, today = today, scrollCompleted = scrollCompleted }
+    -- Using a record here would be easier, but leads to performance issues with Html.Lazy.
+    -- zoom start end target position today scrollCompleted
+    = Model Zoom Date Date Date Date Date Bool
 
 
 init : Zoom -> Date -> Date -> ( Model, Effect )
 init zoom selected today =
-    ( Model zoom (Date.add Date.Months -3 selected) (Date.add Date.Months 3 selected) selected today False
-    , Effect.ScrollToSelectedDate
+    ( Model zoom (Date.add Date.Months -3 selected) (Date.add Date.Months 3 selected) selected selected today True
+    , Effect.None
     )
+
+
+getToday : Model -> Date
+getToday (Model _ _ _ _ _ today _) =
+    today
 
 
 update : Msg -> Model -> ( Model, Effect )
 update msg model =
     let
-        (Model zoom start end selected today scrollCompleted) =
+        (Model zoom start end target position today scrollCompleted) =
             model
     in
     case msg of
         LoadToday date ->
-            ( Model zoom start end selected date scrollCompleted, Effect.None )
+            ( Model zoom start end target position date scrollCompleted, Effect.None )
 
         Jump date ->
             init zoom date today
 
         ChangeZoom newZoom dateM ->
-            init newZoom (Maybe.withDefault selected dateM) today
+            init newZoom (Maybe.withDefault position dateM) today
 
         Scroll up date currentHeight ->
             if not scrollCompleted then
                 ( model, Effect.None )
 
             else if up then
-                ( Model zoom date end selected today False
+                ( Model zoom date end target position today False
                 , returnScroll currentHeight
                 )
 
             else
-                ( Model zoom start date selected today scrollCompleted
+                ( Model zoom start date target position today scrollCompleted
                 , Effect.None
                 )
 
         ScrollCompleted ->
-            ( Model zoom start end selected today True
+            ( Model zoom start end target position today True
             , Effect.None
             )
 
         ReceiveSelectDate selectDate ->
             let
-                newSelected =
-                    Date.fromIsoString selectDate |> Result.withDefault selected
+                newPosition =
+                    Date.fromIsoString selectDate |> Result.withDefault position
             in
-            if not scrollCompleted || newSelected == selected then
+            if not scrollCompleted || newPosition == position then
                 ( model, Effect.None )
 
             else
-                ( Model zoom start end newSelected today scrollCompleted, Effect.None )
+                ( Model zoom start end target newPosition today scrollCompleted, Effect.None )
 
         _ ->
             ( model, Effect.None )
@@ -104,7 +105,7 @@ update msg model =
 viewMenu : Model -> List (Html Msg)
 viewMenu model =
     let
-        (Model _ _ _ _ today _) =
+        (Model _ _ _ _ _ today _) =
             model
     in
     [ viewDatePicker model
@@ -120,7 +121,7 @@ viewMenu model =
 viewBackButton : Model -> Html Msg
 viewBackButton model =
     let
-        (Model zoom _ _ selected _ _) =
+        (Model zoom _ _ _ position _ _) =
             model
     in
     case zoom of
@@ -130,33 +131,33 @@ viewBackButton model =
         Month ->
             a [ class "button row", style "margin-right" "0.2rem", style "align-items" "bottom", onClick (ChangeZoom Year Nothing) ]
                 [ MonoIcons.icon (MonoIcons.chevronLeft "#3d3d3d")
-                , text (Date.format "yyyy" selected)
+                , text (Date.format "yyyy" position)
                 ]
 
         Day ->
             a [ class "button", style "margin-right" "0.2rem", style "align-items" "bottom", onClick (ChangeZoom Month Nothing) ]
                 [ MonoIcons.icon (MonoIcons.chevronLeft "#3d3d3d")
-                , text (Date.format "MMMM yyyy" selected)
+                , text (Date.format "MMMM yyyy" position)
                 ]
 
 
 viewDatePicker : Model -> Html Msg
 viewDatePicker model =
     let
-        (Model zoom _ _ selected today _) =
+        (Model zoom _ _ _ position today _) =
             model
     in
     case zoom of
         Year ->
             UI.Dropdown.default
-                (button [ class "button" ] [ text (Date.format "yyyy" selected) ])
+                (button [ class "button" ] [ text (Date.format "yyyy" position) ])
                 (listYears today Jump)
                 |> UI.Dropdown.view
 
         Month ->
             UI.Dropdown.default
-                (button [ class "button" ] [ text (Date.format "MMMM" selected) ])
-                (listMonths selected Jump)
+                (button [ class "button" ] [ text (Date.format "MMMM" position) ])
+                (listMonths position Jump)
                 |> UI.Dropdown.view
 
         Day ->
@@ -206,11 +207,11 @@ filterActivities start end activities =
 view : Model -> List Activity -> String -> Int -> Bool -> ActivityConfigs -> Html Msg
 view model activities activeId activeRataDie isMoving configs =
     let
-        (Model zoom start end selected today _) =
+        (Model zoom start end target position today _) =
             model
 
         dayRows date =
-            ( Date.toIsoString date, Html.Lazy.lazy4 viewDay (date == today) (date == selected) isMoving (Date.toRataDie date) )
+            ( Date.toIsoString date, Html.Lazy.lazy4 viewDay (date == today) (date == target) isMoving (Date.toRataDie date) )
                 :: (filterActivities date date activities
                         |> List.map
                             (\activity ->
@@ -235,7 +236,7 @@ view model activities activeId activeRataDie isMoving configs =
                                 , Html.Lazy.lazy7 viewWeek
                                     (filterActivities d (Date.add Date.Weeks 1 d) activities)
                                     today
-                                    selected
+                                    target
                                     d
                                     isMoving
                                     activeId
@@ -248,7 +249,7 @@ view model activities activeId activeRataDie isMoving configs =
                         |> List.concatMap dayRows
 
                 Day ->
-                    dayRows selected
+                    dayRows target
 
         loadingSpinner =
             viewIf (zoom /= Day) (row [ style "justify-content" "center", style "padding" "1rem" ] [ spinner "2rem" ])
@@ -301,7 +302,7 @@ viewActivityShape activity isActive isMonthView configs =
 
 
 handleScroll : Model -> (Decode.Value -> Result Decode.Error Msg)
-handleScroll (Model _ start end _ _ scrollCompleted) =
+handleScroll (Model _ start end _ _ _ scrollCompleted) =
     let
         loadMargin =
             10
@@ -348,8 +349,8 @@ returnScroll previousHeight =
 
 
 viewHeader : Model -> Maybe (Html Msg)
-viewHeader model =
-    if (model |> get |> .zoom) == Year then
+viewHeader (Model zoom _ _ _ _ _ _) =
+    if zoom == Year then
         Just <|
             row []
                 (column [ style "min-width" "4rem" ] []
@@ -367,7 +368,7 @@ viewHeader model =
 
 
 viewWeek : List Activity -> Date -> Date -> Date -> Bool -> String -> ActivityConfigs -> Html Msg
-viewWeek activities today selected start isMoving activeId configs =
+viewWeek activities today target start isMoving activeId configs =
     let
         days =
             daysOfWeek start
@@ -378,7 +379,7 @@ viewWeek activities today selected start isMoving activeId configs =
 
         dayViews =
             days
-                |> List.map (\d -> viewWeekDay ( d, filterActivities d d activities ) (d == today) (d == selected) isMoving activeId configs)
+                |> List.map (\d -> viewWeekDay ( d, filterActivities d d activities ) (d == today) (d == target) isMoving activeId configs)
     in
     row [ style "padding" "0 0.5rem", styleIf isNewMonth "margin-top" "1rem" ] <|
         titleWeek activities
@@ -386,7 +387,7 @@ viewWeek activities today selected start isMoving activeId configs =
 
 
 viewWeekDay : ( Date, List Activity ) -> Bool -> Bool -> Bool -> String -> ActivityConfigs -> Html Msg
-viewWeekDay ( date, activities ) isToday isSelected isMoving activeId configs =
+viewWeekDay ( date, activities ) isToday isTarget isMoving activeId configs =
     let
         isActive a =
             activeId == a.id
@@ -413,7 +414,7 @@ viewWeekDay ( date, activities ) isToday isSelected isMoving activeId configs =
                     text (Date.format "MMMM" date)
                 ]
             )
-            :: viewSelectedDateScrollTarget isSelected
+            :: viewIf isTarget viewScrollTarget
             :: row []
                 [ a
                     [ stopPropagationOnClick (Decode.succeed (ChangeZoom Month (Just date)))
@@ -507,7 +508,7 @@ daysOfWeek start =
 
 
 viewDay : Bool -> Bool -> Bool -> Int -> Html Msg
-viewDay isToday isSelected isMoving rataDie =
+viewDay isToday isTarget isMoving rataDie =
     let
         date =
             Date.fromRataDie rataDie
@@ -521,16 +522,15 @@ viewDay isToday isSelected isMoving rataDie =
         -- , onClick (ChangeZoom Day (Just date))
         , attributeIf isMoving (Html.Events.on "pointerenter" (Decode.succeed (MoveTo date)))
         ]
-        [ viewSelectedDateScrollTarget isSelected
+        [ viewIf isTarget viewScrollTarget
         , text (Date.format "E MMM d" date)
         ]
 
 
-viewSelectedDateScrollTarget : Bool -> Html msg
-viewSelectedDateScrollTarget isSelected =
+viewScrollTarget : Html msg
+viewScrollTarget =
     -- Shifted up so sticky navbar is cleared when element is scrolled into view.
-    viewIf isSelected
-        (row [ id "selected-date", style "position" "relative", style "bottom" "calc(var(--navbar-height) + 1rem)" ] [])
+    Html.node "scroll-target" [ style "position" "relative", style "bottom" "calc(var(--navbar-height) + 1rem)" ] []
 
 
 viewActivity : String -> Bool -> ActivityConfigs -> Activity -> Html Msg

@@ -4,13 +4,13 @@ import Activity.Types exposing (Activity)
 import Api
 import Date
 import EmojiData.Fetch
+import Http
 import Msg exposing (Msg(..), StoreData)
 import Ports
 import Random
 import Store.History exposing (History)
 import Task exposing (Task)
 import Uuid
-import Http
 
 
 type Effect
@@ -27,7 +27,6 @@ type Effect
     | FetchEmojis
     | ReportError (Task Http.Error Uuid.Uuid)
     | DateToday (Date.Date -> Msg)
-    | ScrollToSelectedDate
     | GenerateActivity (Activity -> Msg) (Random.Generator Activity)
     | StoreCmd Msg
     | Cmd (Cmd Msg)
@@ -60,9 +59,6 @@ perform effect =
 
         DateToday msg ->
             Task.perform msg Date.today
-
-        ScrollToSelectedDate ->
-            Ports.scrollToSelectedDate ()
 
         GenerateActivity msg generator ->
             Random.generate msg generator

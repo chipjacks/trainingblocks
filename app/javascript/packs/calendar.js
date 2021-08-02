@@ -34,9 +34,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       connectedCallback() {
-        this._scrollToSelectedDate();
-        app.ports.scrollToSelectedDate.subscribe(this._scrollToSelectedDate);
-
         const handleScroll = this._handleCalendarScroll;
         document.addEventListener("scroll", function (e) {
           handleScroll(e);
@@ -50,12 +47,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
       _handleCalendarScroll(event) {
         const calendar = document.scrollingElement;
-        if (
-          calendar.scrollTop < 100 ||
-          calendar.scrollHeight - calendar.scrollTop === calendar.clientHeight
-        ) {
-          return;
-        }
         let monthHeader = Array.from(
           document.getElementsByClassName("month-header")
         )
@@ -66,15 +57,18 @@ document.addEventListener("DOMContentLoaded", () => {
           app.ports.selectDateFromScroll.send(monthHeader.element.dataset.date);
         }
       }
+    }
+  );
 
-      _scrollToSelectedDate() {
-        setTimeout(() => {
-          const element = document.getElementById("selected-date");
-          if (element) {
-            element.scrollIntoView();
-          }
-          app.ports.scrollCompleted.send(true);
-        }, 100);
+  customElements.define(
+    "scroll-target",
+    class extends HTMLElement {
+      constructor() {
+        super();
+      }
+
+      connectedCallback() {
+        this.scrollIntoView();
       }
     }
   );

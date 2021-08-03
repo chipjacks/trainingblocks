@@ -70,12 +70,12 @@ update msg model =
                 ( model, Effect.None )
 
             else if up then
-                ( Model zoom date end target position today False
-                , returnScroll currentHeight
+                ( Model zoom date end start position today False
+                , Effect.Cmd (Process.sleep 1000 |> Task.perform (\_ -> ScrollCompleted))
                 )
 
             else
-                ( Model zoom start date target position today scrollCompleted
+                ( Model zoom start date end position today True
                 , Effect.None
                 )
 
@@ -328,21 +328,6 @@ handleScroll (Model _ start end _ _ _ scrollCompleted) =
                     Decode.fail ""
             )
         |> Decode.decodeValue
-
-
-returnScroll : Int -> Effect
-returnScroll previousHeight =
-    Dom.getViewport
-        |> Task.andThen
-            (\info ->
-                Task.sequence
-                    [ Dom.setViewport 0 (info.scene.height - toFloat previousHeight)
-                    , Process.sleep 100
-                    , Dom.setViewport 0 (info.scene.height - toFloat previousHeight)
-                    ]
-            )
-        |> Task.attempt (\_ -> ScrollCompleted)
-        |> Effect.Cmd
 
 
 

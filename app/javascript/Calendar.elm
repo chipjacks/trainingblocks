@@ -251,9 +251,6 @@ view model activities activeId activeRataDie isMoving configs =
 
                 Day ->
                     dayRows target
-
-        loadingSpinner =
-            viewIf (zoom /= Day) (row [ style "justify-content" "center", style "padding" "1rem" ] [ spinner "2rem" ])
     in
     Html.Keyed.node "infinite-calendar"
         [ id "calendar"
@@ -266,10 +263,7 @@ view model activities activeId activeRataDie isMoving configs =
         , attributeIf (activeId /= "") (stopPropagationOnClick (Decode.succeed ClickedClose))
         ]
     <|
-        (( "loadingup", loadingSpinner )
-            :: body
-            ++ [ ( "loadingdown", loadingSpinner ) ]
-        )
+        body
 
 
 viewActivityShape : Activity -> Bool -> Bool -> ActivityConfigs -> Html Msg

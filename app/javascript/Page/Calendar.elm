@@ -317,7 +317,7 @@ update env msg model =
                     ( activityFormState, Effect.Batch [ calendarCmd, activityFormCmd ] )
                         |> loaded
 
-                Scroll _ _ _ ->
+                Scroll _ ->
                     updateCalendar msg state
                         |> loaded
 
@@ -911,8 +911,7 @@ subscriptions model =
             Sub.batch
                 [ Ports.selectDateFromScroll ReceiveSelectDate
                 , Ports.scrollCompleted (\_ -> ScrollCompleted)
-                , Ports.handleScroll
-                    (\e -> Calendar.handleScroll calendar e |> Result.withDefault NoOp)
+                , Ports.handleScroll Scroll
                 , Events.onVisibilityChange VisibilityChange
                 , case activityM of
                     Editing _ ->

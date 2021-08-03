@@ -68,7 +68,7 @@ type Msg
       -- CALENDAR
     | Jump Date
     | ChangeZoom Zoom (Maybe Date)
-    | Scroll Bool Date Int
+    | Scroll Bool
     | ScrollCompleted
     | ReceiveSelectDate String
     | MoveActivity Activity

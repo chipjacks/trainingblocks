@@ -37,7 +37,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const handleScroll = this._handleCalendarScroll;
         document.addEventListener("scroll", function (e) {
           handleScroll(e);
-          app.ports.handleScroll.send(e);
         });
       }
 
@@ -55,6 +54,14 @@ document.addEventListener("DOMContentLoaded", () => {
           .pop();
         if (monthHeader) {
           app.ports.selectDateFromScroll.send(monthHeader.element.dataset.date);
+        }
+
+        const loadMargin = 10;
+
+        if (calendar.scrollTop < loadMargin) {
+          app.ports.handleScroll.send(true);
+        } else if (calendar.scrollTop > calendar.scrollHeight - calendar.clientHeight - loadMargin) {
+          app.ports.handleScroll.send(false);
         }
       }
     }

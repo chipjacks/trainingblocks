@@ -12,7 +12,7 @@ port setPointerCapture : { targetId : String, pointerId : Int } -> Cmd msg
 port setDropTarget : (Int -> msg) -> Sub msg
 
 
-port handleScroll : (Json.Encode.Value -> msg) -> Sub msg
+port handleScroll : (Bool -> msg) -> Sub msg
 
 
 port scrollCompleted : (Bool -> msg) -> Sub msg

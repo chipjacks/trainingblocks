@@ -1,4 +1,4 @@
-module Calendar exposing (Model, getToday, handleScroll, init, update, view, viewBackButton, viewHeader, viewMenu)
+module Calendar exposing (Model, getToday, init, update, view, viewBackButton, viewHeader, viewMenu)
 
 import Actions exposing (viewActivityActions, viewMultiSelectActions, viewPopoverActions)
 import Activity
@@ -65,17 +65,17 @@ update msg model =
         ChangeZoom newZoom dateM ->
             init newZoom (Maybe.withDefault position dateM) today
 
-        Scroll up date currentHeight ->
+        Scroll up ->
             if not scrollCompleted then
                 ( model, Effect.None )
 
             else if up then
-                ( Model zoom date end start position today False
-                , Effect.Cmd (Process.sleep 1000 |> Task.perform (\_ -> ScrollCompleted))
+                ( Model zoom (Date.add Date.Months -2 start) end start position today False
+                , Effect.Cmd (Process.sleep 300 |> Task.perform (\_ -> ScrollCompleted))
                 )
 
             else
-                ( Model zoom start date end position today True
+                ( Model zoom start (Date.add Date.Months 2 end) end position today True
                 , Effect.None
                 )
 
@@ -290,38 +290,6 @@ viewActivityShape activity isActive isMonthView configs =
             :: (Activity.Data.list [ Activity.Data.visible activity ] activity
                     |> List.map (\a -> ActivityShape.view configs a)
                )
-
-
-
--- SCROLLING
-
-
-handleScroll : Model -> (Decode.Value -> Result Decode.Error Msg)
-handleScroll (Model _ start end _ _ _ scrollCompleted) =
-    let
-        loadMargin =
-            10
-
-        ( loadPrevious, loadNext ) =
-            ( Date.add Date.Months -2 start, Date.add Date.Months 2 end )
-                |> Tuple.mapBoth (Scroll True) (Scroll False)
-    in
-    Decode.map3 (\a b c -> ( a, b, c ))
-        (Decode.at [ "target", "scrollingElement", "scrollTop" ] Decode.int)
-        (Decode.at [ "target", "scrollingElement", "scrollHeight" ] Decode.int)
-        (Decode.at [ "target", "scrollingElement", "clientHeight" ] Decode.int)
-        |> Decode.andThen
-            (\( scrollTop, scrollHeight, clientHeight ) ->
-                if scrollTop < loadMargin then
-                    Decode.succeed (loadPrevious scrollHeight)
-
-                else if scrollTop > scrollHeight - clientHeight - loadMargin then
-                    Decode.succeed (loadNext scrollHeight)
-
-                else
-                    Decode.fail ""
-            )
-        |> Decode.decodeValue
 
 
 

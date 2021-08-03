@@ -162,8 +162,8 @@ select {
   text-decoration: none;
   color: black;
 }
-.button:hover { background-color: var(--grey-300); }
-.button:focus { border-color: var(--blue-500); outline: none; }
+.button:hover { background-color: var(--grey-300); z-index: 1; }
+.button:focus { border-color: var(--blue-500); outline: none; z-index: 1; }
 
 .button--tiny { padding: 0.1rem 0.4rem }
 .button--small { padding: 0.3rem 0.6rem; }

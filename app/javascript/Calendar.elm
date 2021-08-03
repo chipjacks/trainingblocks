@@ -402,10 +402,11 @@ viewWeekDay ( date, activities ) isToday isTarget isMoving activeId configs =
             )
             :: viewIf isTarget viewScrollTarget
             :: row []
-                [ Button.default (Date.format "d" date) (ChangeZoom Month (Just date))
+                [ Button.default (Date.format "d" date) NoOp
                     |> Button.withAppearance Button.Tall Button.Regular Button.None
                     |> Button.withAttributes
                         [ class "button--basic"
+                        , onClick (ChangeZoom Month (Just date))
                         , style "margin-left" "-0.8rem"
                         , if isToday then
                             style "color" "var(--black-900)"

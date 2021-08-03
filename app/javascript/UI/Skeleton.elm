@@ -52,7 +52,7 @@ view { navbar, attrs, body, title } =
         [ navbar
         , expandingRow []
             [ viewSidebar title
-            , div [ class "container" ] [ body ]
+            , div [ class "container", style "margin-top" "var(--navbar-height)" ] [ body ]
             ]
         ]
 

@@ -60,8 +60,10 @@ view { leftItem, items, rightItem, secondRow } =
             Html.header
                 [ class "row compact no-select"
                 , borderStyle "border-bottom"
-                , style "position" "sticky"
+                , style "position" "fixed"
                 , style "top" "0"
+                , style "left" "0"
+                , style "right" "0"
                 , style "z-index" "4"
                 , style "background-color" "white"
                 , style "height" height

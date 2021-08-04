@@ -306,6 +306,10 @@ update env msg model =
                     updateCalendar msg state
                         |> loaded
 
+                ClearTarget ->
+                    updateCalendar msg state
+                        |> loaded
+
                 ChangeZoom _ dateM ->
                     let
                         ( calendarState, calendarCmd ) =

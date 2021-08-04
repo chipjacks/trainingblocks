@@ -33,14 +33,14 @@ import UI.Util exposing (attributeIf, stopPropagationOnClick, styleIf, viewIf)
 type
     Model
     -- Using a record here would be easier, but leads to performance issues with Html.Lazy.
-    -- zoom start end target position today scrollCompleted
-    = Model Zoom Date Date Date Date Date Bool
+    --      zoom start end  target position today scrollCompleted
+    = Model Zoom Date Date (Maybe Date) Date Date Bool
 
 
 init : Zoom -> Date -> Date -> ( Model, Effect )
 init zoom selected today =
-    ( Model zoom (Date.add Date.Months -3 selected) (Date.add Date.Months 3 selected) selected selected today True
-    , Effect.None
+    ( Model zoom (Date.add Date.Months -3 selected) (Date.add Date.Months 3 selected) (Just selected) selected today True
+    , Effect.Cmd (Process.sleep 300 |> Task.perform (\_ -> ClearTarget))
     )
 
 
@@ -62,6 +62,9 @@ update msg model =
         Jump date ->
             init zoom date today
 
+        ClearTarget ->
+            ( Model zoom start end Nothing position today scrollCompleted, Effect.None )
+
         ChangeZoom newZoom dateM ->
             init newZoom (Maybe.withDefault position dateM) today
 
@@ -70,12 +73,12 @@ update msg model =
                 ( model, Effect.None )
 
             else if up then
-                ( Model zoom (Date.add Date.Months -2 start) end start position today False
+                ( Model zoom (Date.add Date.Months -2 start) end (Just start) position today False
                 , Effect.Cmd (Process.sleep 300 |> Task.perform (\_ -> ScrollCompleted))
                 )
 
             else
-                ( Model zoom start (Date.add Date.Months 2 end) end position today False
+                ( Model zoom start (Date.add Date.Months 2 end) (Just end) position today False
                 , Effect.Cmd (Process.sleep 300 |> Task.perform (\_ -> ScrollCompleted))
                 )
 
@@ -212,7 +215,7 @@ view model activities activeId activeRataDie isMoving configs =
             model
 
         dayRows date =
-            ( Date.toIsoString date, Html.Lazy.lazy4 viewDay (date == today) (date == target) isMoving (Date.toRataDie date) )
+            ( Date.toIsoString date, Html.Lazy.lazy4 viewDay (date == today) (Just date == target) isMoving (Date.toRataDie date) )
                 :: (filterActivities date date activities
                         |> List.map
                             (\activity ->
@@ -250,7 +253,7 @@ view model activities activeId activeRataDie isMoving configs =
                         |> List.concatMap dayRows
 
                 Day ->
-                    dayRows target
+                    dayRows start
 
         viewLoadingSpinner up =
             row
@@ -335,7 +338,7 @@ viewHeader (Model zoom _ _ _ _ _ _) =
         Nothing
 
 
-viewWeek : List Activity -> Date -> Date -> Date -> Bool -> String -> ActivityConfigs -> Html Msg
+viewWeek : List Activity -> Date -> Maybe Date -> Date -> Bool -> String -> ActivityConfigs -> Html Msg
 viewWeek activities today target start isMoving activeId configs =
     let
         days =
@@ -347,7 +350,7 @@ viewWeek activities today target start isMoving activeId configs =
 
         dayViews =
             days
-                |> List.map (\d -> viewWeekDay ( d, filterActivities d d activities ) (d == today) (d == target) isMoving activeId configs)
+                |> List.map (\d -> viewWeekDay ( d, filterActivities d d activities ) (d == today) (Just d == target) isMoving activeId configs)
     in
     row [ style "padding" "0 0.5rem", styleIf isNewMonth "margin-top" "1rem" ] <|
         titleWeek activities

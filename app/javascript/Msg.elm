@@ -67,6 +67,7 @@ type Msg
     | FlushNow
       -- CALENDAR
     | Jump Date
+    | ClearTarget
     | ChangeZoom Zoom (Maybe Date)
     | Scroll Bool
     | ScrollCompleted

@@ -243,6 +243,24 @@ view model activities activeId activeRataDie isMoving configs =
 
                 Day ->
                     dayRows target
+
+        viewLoadingSpinner up =
+            row
+                [ style "z-index" "3"
+                , style "height" "0"
+                ]
+                [ column
+                    [ styleIf (not up) "background-image" "linear-gradient(rgba(255,255,255,0), rgba(255,255,255,1))"
+                    , styleIf up "background-image" "linear-gradient(rgba(255,255,255,1), rgba(255,255,255,0))"
+                    , style "justify-content" "center"
+                    , style "align-items" "center"
+                    , style "height" "2rem"
+                    , style "padding" "1rem"
+                    , styleIf (not up) "position" "relative"
+                    , styleIf (not up) "bottom" "4.5rem"
+                    ]
+                    [ spinner "2rem" ]
+                ]
     in
     Html.Keyed.node "infinite-calendar"
         [ id "calendar"
@@ -255,7 +273,9 @@ view model activities activeId activeRataDie isMoving configs =
         , attributeIf (activeId /= "") (stopPropagationOnClick (Decode.succeed ClickedClose))
         ]
     <|
-        body
+        ( "loadingup", viewLoadingSpinner True )
+            :: body
+            ++ [ ( "loadingdown", viewLoadingSpinner False ) ]
 
 
 viewActivityShape : Activity -> Bool -> Bool -> ActivityConfigs -> Html Msg

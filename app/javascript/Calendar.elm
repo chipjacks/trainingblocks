@@ -75,8 +75,8 @@ update msg model =
                 )
 
             else
-                ( Model zoom start (Date.add Date.Months 2 end) end position today True
-                , Effect.None
+                ( Model zoom start (Date.add Date.Months 2 end) end position today False
+                , Effect.Cmd (Process.sleep 300 |> Task.perform (\_ -> ScrollCompleted))
                 )
 
         ScrollCompleted ->

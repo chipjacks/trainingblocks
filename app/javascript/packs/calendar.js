@@ -57,11 +57,16 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         const loadMargin = 10;
-
+        const debounceHandleScroll = debounceLeading(
+          app.ports.handleScroll.send
+        );
         if (calendar.scrollTop < loadMargin) {
-          app.ports.handleScroll.send(true);
-        } else if (calendar.scrollTop > calendar.scrollHeight - calendar.clientHeight - loadMargin) {
-          app.ports.handleScroll.send(false);
+          debounceHandleScroll(true);
+        } else if (
+          calendar.scrollTop >
+          calendar.scrollHeight - calendar.clientHeight - loadMargin
+        ) {
+          debounceHandleScroll(false);
         }
       }
     }
@@ -80,3 +85,17 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   );
 });
+
+function debounceLeading(func, timeout = 300) {
+  let timer;
+  return (...args) => {
+    console.log("call");
+    if (!timer) {
+      func.apply(this, args);
+    }
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      timer = undefined;
+    }, timeout);
+  };
+}

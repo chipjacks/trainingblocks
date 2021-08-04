@@ -69,6 +69,7 @@ type Msg
     | Jump Date
     | ChangeZoom Zoom (Maybe Date)
     | Scroll Bool
+    | ScrollCompleted
     | ReceiveSelectDate String
     | MoveActivity Activity
       -- ACTIVITY FORM

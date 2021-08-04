@@ -1,4 +1,4 @@
-port module Ports exposing (handleScroll, scrollCompleted, selectDateFromScroll, setDropTarget, setPointerCapture)
+port module Ports exposing (handleScroll, selectDateFromScroll, setDropTarget, setPointerCapture)
 
 import Json.Encode
 
@@ -13,6 +13,3 @@ port setDropTarget : (Int -> msg) -> Sub msg
 
 
 port handleScroll : (Bool -> msg) -> Sub msg
-
-
-port scrollCompleted : (Bool -> msg) -> Sub msg

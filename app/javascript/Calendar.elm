@@ -33,31 +33,31 @@ import UI.Util exposing (attributeIf, stopPropagationOnClick, styleIf, viewIf)
 type
     Model
     -- Using a record here would be easier, but leads to performance issues with Html.Lazy.
-    -- zoom start end target position today scrollCompleted
-    = Model Zoom Date Date Date Date Date Bool
+    -- zoom start end target position today
+    = Model Zoom Date Date Date Date Date
 
 
 init : Zoom -> Date -> Date -> ( Model, Effect )
 init zoom selected today =
-    ( Model zoom (Date.add Date.Months -3 selected) (Date.add Date.Months 3 selected) selected selected today True
+    ( Model zoom (Date.add Date.Months -3 selected) (Date.add Date.Months 3 selected) selected selected today
     , Effect.None
     )
 
 
 getToday : Model -> Date
-getToday (Model _ _ _ _ _ today _) =
+getToday (Model _ _ _ _ _ today) =
     today
 
 
 update : Msg -> Model -> ( Model, Effect )
 update msg model =
     let
-        (Model zoom start end target position today scrollCompleted) =
+        (Model zoom start end target position today) =
             model
     in
     case msg of
         LoadToday date ->
-            ( Model zoom start end target position date scrollCompleted, Effect.None )
+            ( Model zoom start end target position date, Effect.None )
 
         Jump date ->
             init zoom date today
@@ -66,34 +66,26 @@ update msg model =
             init newZoom (Maybe.withDefault position dateM) today
 
         Scroll up ->
-            if not scrollCompleted then
-                ( model, Effect.None )
-
-            else if up then
-                ( Model zoom (Date.add Date.Months -2 start) end start position today False
-                , Effect.Cmd (Process.sleep 300 |> Task.perform (\_ -> ScrollCompleted))
+            if up then
+                ( Model zoom (Date.add Date.Months -2 start) end start position today
+                , Effect.None
                 )
 
             else
-                ( Model zoom start (Date.add Date.Months 2 end) end position today False
-                , Effect.Cmd (Process.sleep 300 |> Task.perform (\_ -> ScrollCompleted))
+                ( Model zoom start (Date.add Date.Months 2 end) end position today
+                , Effect.None
                 )
-
-        ScrollCompleted ->
-            ( Model zoom start end target position today True
-            , Effect.None
-            )
 
         ReceiveSelectDate selectDate ->
             let
                 newPosition =
                     Date.fromIsoString selectDate |> Result.withDefault position
             in
-            if not scrollCompleted || newPosition == position then
+            if newPosition == position then
                 ( model, Effect.None )
 
             else
-                ( Model zoom start end target newPosition today scrollCompleted, Effect.None )
+                ( Model zoom start end target newPosition today, Effect.None )
 
         _ ->
             ( model, Effect.None )
@@ -106,7 +98,7 @@ update msg model =
 viewMenu : Model -> List (Html Msg)
 viewMenu model =
     let
-        (Model _ _ _ _ _ today _) =
+        (Model _ _ _ _ _ today) =
             model
     in
     [ viewDatePicker model
@@ -122,7 +114,7 @@ viewMenu model =
 viewBackButton : Model -> Html Msg
 viewBackButton model =
     let
-        (Model zoom _ _ _ position _ _) =
+        (Model zoom _ _ _ position _) =
             model
     in
     case zoom of
@@ -145,7 +137,7 @@ viewBackButton model =
 viewDatePicker : Model -> Html Msg
 viewDatePicker model =
     let
-        (Model zoom _ _ _ position today _) =
+        (Model zoom _ _ _ position today) =
             model
     in
     case zoom of
@@ -208,7 +200,7 @@ filterActivities start end activities =
 view : Model -> List Activity -> String -> Int -> Bool -> ActivityConfigs -> Html Msg
 view model activities activeId activeRataDie isMoving configs =
     let
-        (Model zoom start end target position today _) =
+        (Model zoom start end target position today) =
             model
 
         dayRows date =
@@ -297,7 +289,7 @@ viewActivityShape activity isActive isMonthView configs =
 
 
 viewHeader : Model -> Maybe (Html Msg)
-viewHeader (Model zoom _ _ _ _ _ _) =
+viewHeader (Model zoom _ _ _ _ _) =
     if zoom == Year then
         Just <|
             row []

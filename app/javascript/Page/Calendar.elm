@@ -321,10 +321,6 @@ update env msg model =
                     updateCalendar msg state
                         |> loaded
 
-                ScrollCompleted ->
-                    updateCalendar msg state
-                        |> loaded
-
                 ReceiveSelectDate _ ->
                     updateCalendar msg state
                         |> loaded
@@ -910,7 +906,6 @@ subscriptions model =
         Loaded (State calendar _ activityM _) ->
             Sub.batch
                 [ Ports.selectDateFromScroll ReceiveSelectDate
-                , Ports.scrollCompleted (\_ -> ScrollCompleted)
                 , Ports.handleScroll Scroll
                 , Events.onVisibilityChange VisibilityChange
                 , case activityM of

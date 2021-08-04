@@ -125,6 +125,13 @@ html, body { height: 100% }
 */
 body { font-family: Lato,'Helvetica Neue',Arial,Helvetica,sans-serif; }
 a { text-decoration: none; color: var(--blue-500); cursor: pointer; }
+hr { width: 100%; border: none; background-color: var(--grey-300); height: 1px; }
+
+
+/*
+ * INPUT
+*/
+
 input { border: 1px solid var(--grey-300); border-radius: 0.25rem; padding: 0.45rem; font-size: 1rem; }
 .input.small { padding: 0.4rem; font-size: 0.8rem; }
 input:focus { border-color: var(--blue-300); outline: 0; }
@@ -139,6 +146,10 @@ input:focus { border-color: var(--blue-300); outline: 0; }
 .label--input { color: var(--grey-900); font-size: 0.6rem; margin-bottom: 2px; }
 
 
+/*
+ * SELECT
+*/
+
 
 select { border: 1px solid var(--grey-300); border-radius: 0.25rem; padding: 0.45rem; font-size: 1rem; }
 select.input-small { padding: 0.3rem; }
@@ -149,6 +160,10 @@ select {
 	padding-right: 20px;
 }
 
+
+/*
+ * BUTTON
+*/
 
 .button {
   position: relative;

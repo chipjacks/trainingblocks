@@ -363,27 +363,40 @@ viewBody { trainingPaces, dragging, status, raceDistance, raceDuration, level, r
     column [ style "margin" "15px", style "margin-top" "40px", style "margin-bottom" "40px" ]
         [ viewStatusMessage status result
         , row [ style "flex-wrap" "wrap" ]
-            [ compactColumn [ maxWidthForMobile, style "margin-bottom" "40px" ]
+            [ compactColumn [ maxWidthForMobile ]
                 [ Html.h3 [ headerMargin ] [ Html.text "Recent Race" ]
                 , Html.text "Enter a recent race time to calculate your fitness level."
-                , row [] [ viewRecentRaceInput raceDuration raceDistance ]
+                ]
+            , column [ style "max-width" "100px" ] []
+            , compactColumn [ maxWidthForMobile ]
+                [ row [] [ viewRecentRaceInput raceDuration raceDistance ]
                 , viewLevelResult level
                 ]
-            , compactColumn [ style "width" "40px" ] []
-            , compactColumn [ maxWidthForMobile, style "margin-bottom" "40px" ]
+            ]
+        , Html.hr [ style "margin-bottom" "20px", style "margin-top" "30px" ] []
+        , row [ style "flex-wrap" "wrap" ]
+            [ compactColumn [ maxWidthForMobile ]
                 [ row [ style "align-items" "flex-end" ]
                     [ Html.h3 [ headerMargin ] [ Html.text "Standard Paces" ]
                     ]
                 , Html.text "These paces will be used to adjust your log to your current fitness level."
-                , viewStandardPaces level
                 ]
-            , compactColumn [ style "width" "40px" ] []
+            , column [ style "max-width" "100px" ] []
             , compactColumn [ maxWidthForMobile ]
+                [ viewStandardPaces level
+                ]
+            ]
+        , Html.hr [ style "margin-bottom" "20px", style "margin-top" "20px" ] []
+        , row [ style "flex-wrap" "wrap" ]
+            [ compactColumn [ maxWidthForMobile ]
                 [ row [ style "align-items" "flex-end" ]
                     [ Html.h3 [ headerMargin ] [ Html.text "Custom Paces" ]
                     ]
                 , Html.text "Add additional paces used in your workouts and training plan."
-                , row [ style "margin-top" "10px", style "margin-bottom" "30px" ]
+                ]
+            , column [ style "max-width" "100px" ] []
+            , compactColumn [ maxWidthForMobile ]
+                [ row [ style "margin-top" "10px", style "margin-bottom" "30px" ]
                     [ column [ styleIf (status == Posted) "opacity" "0.5", style "margin-left" "-10px" ]
                         [ viewTrainingPaces dragging (Selection.selectedIndex trainingPaces) (Selection.toList trainingPaces)
                         , viewIf (status /= Loading) viewAddButton

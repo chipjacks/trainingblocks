@@ -64,7 +64,7 @@ document.addEventListener("DOMContentLoaded", () => {
           debounceHandleScroll(true);
         } else if (
           calendar.scrollTop >
-          calendar.scrollHeight - calendar.clientHeight - loadMargin
+          calendar.scrollHeight - calendar.clientHeight - 100 - loadMargin
         ) {
           debounceHandleScroll(false);
         }

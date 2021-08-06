@@ -50,6 +50,13 @@
 .button--primary:hover {
   background-color: var(--blue-700);
 }
+.button--orange {
+  background-color: var(--orange-500);
+  color: #fff;
+}
+.button--orange:hover {
+  background-color: var(--orange-300);
+}
 
 /* GROUP */
 

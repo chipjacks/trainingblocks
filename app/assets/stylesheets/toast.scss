@@ -1,0 +1,25 @@
+.toast {
+  position: fixed;
+  height: fit-content;
+  z-index: 35;
+}
+
+.toast--top {
+  top: var(--navbar-height);
+  animation: slidein-top 0.5s;
+}
+
+.toast--bottom {
+  bottom: var(--sidebar-bottom-height);
+  right: var(--container-margin);
+  animation: slidein-bottom 0.5s;
+}
+
+.toast__content {
+  padding: 10px;
+  background-color: white;
+  border-radius: 5px;
+  align-items: middle;
+  border: solid 1px var(--grey-500);
+  position: relative;
+}

@@ -12,8 +12,10 @@
     "elm-webpack-loader": "^7.0.1"
   },
   "devDependencies": {
+    "@prettier/plugin-ruby": "^1.6.1",
     "elm-hot-webpack-loader": "^1.1.7",
     "elm-test": "^0.19.1-revision6",
+    "prettier": "^2.3.2",
     "webpack-dev-server": "^3.11.0"
   }
 }

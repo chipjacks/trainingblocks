@@ -2,16 +2,17 @@ class ImportsController < ApplicationController
   skip_before_action :verify_authenticity_token, only: [:strava_push]
 
   def validate_strava_push
-    render json: { "hub.challenge" => params["hub.challenge"] }
+    render json: { 'hub.challenge' => params['hub.challenge'] }
   end
 
   def strava_push
     user = User.find_by!(provider: Import::STRAVA, uid: params[:owner_id])
-    if (params[:object_type] == "activity")
-      if (params[:aspect_type] == "delete")
+    if (params[:object_type] == 'activity')
+      if (params[:aspect_type] == 'delete')
         import = Import.find(params[:object_id])
         import.destroy!
-      else # "create" or "update"
+      else
+        # "create" or "update"
         UpdateStravaImportJob.perform_later(user, params[:object_id])
       end
     else
@@ -19,5 +20,4 @@ class ImportsController < ApplicationController
     end
     render json: { success: true }
   end
-
 end

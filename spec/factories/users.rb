@@ -1,12 +1,12 @@
 FactoryBot.define do
   factory :user do
-    email { "example@example.com" }
-    password { "password" }
+    email { 'example@example.com' }
+    password { 'password' }
   end
 
   trait :strava do
     provider { Import::STRAVA }
-    uid { 12345678 }
+    uid { 12_345_678 }
   end
 
   trait :activities do
@@ -22,7 +22,6 @@ FactoryBot.define do
           user: user
         )
       end
-
     end
   end
 end

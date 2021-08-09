@@ -4,7 +4,8 @@ class InitialStravaImportJob < ApplicationJob
   def perform(user, access_token)
     StravaClient.configure { |config| config.access_token = access_token }
     strava_client = StravaClient::ActivitiesApi.new
-    activities = strava_client.get_logged_in_athlete_activities({ per_page: 200 })
+    activities =
+      strava_client.get_logged_in_athlete_activities({ per_page: 200 })
 
     Import.add_new(activities, Import::STRAVA, user)
   end

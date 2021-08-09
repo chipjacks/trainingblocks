@@ -1,7 +1,7 @@
 class AddImports < ActiveRecord::Migration[6.1]
   def change
     create_table :imports, id: false do |t|
-      t.string :id, primary_key:  true
+      t.string :id, primary_key: true
       t.string :source
       t.json :data
 

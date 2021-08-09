@@ -12,21 +12,22 @@ class AddPlannedLapsToActivities < ActiveRecord::Migration[6.1]
 end
 
 def migrate_data(data)
-  laps = data['laps'] || [ data ]
+  laps = data['laps'] || [data]
 
-  has_planned_laps = laps.find{ |l| !l['completed'] }
+  has_planned_laps = laps.find { |l| !l['completed'] }
 
-  completed_laps = laps.select {|l| l['completed'] || l.dig('laps', 0, 'completed') }
+  completed_laps =
+    laps.select { |l| l['completed'] || l.dig('laps', 0, 'completed') }
 
   new_data = {}
   new_data['laps'] = completed_laps
 
-  if has_planned_laps then
+  if has_planned_laps
     new_data['planned'] =
       laps.map do |l|
         lap = Marshal.load(Marshal.dump(l))
-        if lap['laps'] then
-          lap['laps'].map{|l| l['completed'] = false }
+        if lap['laps']
+          lap['laps'].map { |l| l['completed'] = false }
         else
           lap['completed'] = false
         end

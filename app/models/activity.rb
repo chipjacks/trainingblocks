@@ -3,11 +3,14 @@ class Activity < ApplicationRecord
   belongs_to :import, optional: true
   default_scope { order(date: :asc, order: :asc) }
 
-  RUN = "Run"
-  OTHER = "Other"
+  RUN = 'Run'
+  OTHER = 'Other'
 
   def match_or_create
-    match = Activity.where(date: self.date, user: self.user).find { |a| self.match?(a) }
+    match =
+      Activity
+        .where(date: self.date, user: self.user)
+        .find { |a| self.match?(a) }
     if match && match.id == self.id
       nil
     elsif !match || (match && match.import)
@@ -28,19 +31,20 @@ class Activity < ApplicationRecord
     description = activity[:name]
     data = {}
 
-    if activity[:laps] then
+    if activity[:laps]
       data[:laps] = parse_strava_laps(activity[:laps])
     else
-      data[:laps] = parse_strava_laps([ activity ])
+      data[:laps] = parse_strava_laps([activity])
     end
 
-    activity_hash =
-      { id: "#{activity[:id].to_s}",
-        date: date,
-        description: description,
-        data: data,
-        import: import,
-        user: import.user }
+    activity_hash = {
+      id: "#{activity[:id].to_s}",
+      date: date,
+      description: description,
+      data: data,
+      import: import,
+      user: import.user
+    }
 
     Activity.new(activity_hash)
   end
@@ -48,17 +52,17 @@ class Activity < ApplicationRecord
   def run?
     all_laps = ((self.data['laps'] || []) + (self.data['planned'] || []))
 
-    includes_a_run = all_laps.find{ |l| l['type'] == Activity::RUN }
+    includes_a_run = all_laps.find { |l| l['type'] == Activity::RUN }
 
     !!includes_a_run
   end
 
   def planned_duration
-    (self.data['planned'] || []).map {|l| l['duration'] || 0}.sum
+    (self.data['planned'] || []).map { |l| l['duration'] || 0 }.sum
   end
 
   def completed_duration
-    (self.data['laps'] || []).map {|l| l['duration'] || 0}.sum
+    (self.data['laps'] || []).map { |l| l['duration'] || 0 }.sum
   end
 
   def match?(planned_activity)
@@ -68,12 +72,15 @@ class Activity < ApplicationRecord
 
     same_date = self.date == planned_activity.date
 
-    same_type = self.run? && planned_activity.run? || (!self.run? && !planned_activity.run?)
+    same_type =
+      self.run? && planned_activity.run? ||
+        (!self.run? && !planned_activity.run?)
 
     ten_minutes = 10 * 60
     same_duration =
       if self.completed_duration && planned_activity.planned_duration
-        (self.completed_duration - planned_activity.planned_duration).abs < ten_minutes
+        (self.completed_duration - planned_activity.planned_duration).abs <
+          ten_minutes
       else
         false
       end
@@ -98,7 +105,8 @@ class Activity < ApplicationRecord
           OTHER
         end
 
-      { type: type,
+      {
+        type: type,
         pace: to_seconds_per_mile(lap[:average_speed]),
         distance: lap[:distance],
         duration: lap[:moving_time],
@@ -106,5 +114,4 @@ class Activity < ApplicationRecord
       }
     end
   end
-
 end

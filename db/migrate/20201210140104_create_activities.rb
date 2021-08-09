@@ -1,7 +1,7 @@
 class CreateActivities < ActiveRecord::Migration[6.1]
   def change
     create_table :activities, id: false do |t|
-      t.string :id, primary_key:  true
+      t.string :id, primary_key: true
       t.date :date
       t.integer :order
 

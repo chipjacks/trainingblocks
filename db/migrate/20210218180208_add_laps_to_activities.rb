@@ -13,9 +13,7 @@ end
 
 def migrate_data(data)
   if data['type'] == 'session'
-    data['laps'] = data['activities'].map do |a|
-      migrate_data(a)
-    end
+    data['laps'] = data['activities'].map { |a| migrate_data(a) }
     data.delete('activities')
   end
 

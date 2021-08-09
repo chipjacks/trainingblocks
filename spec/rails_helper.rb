@@ -3,7 +3,9 @@ require 'spec_helper'
 ENV['RAILS_ENV'] ||= 'test'
 require File.expand_path('../../config/environment', __FILE__)
 # Prevent database truncation if the environment is production
-abort("The Rails environment is running in production mode!") if Rails.env.production?
+if Rails.env.production?
+  abort('The Rails environment is running in production mode!')
+end
 
 require 'webmock/rspec'
 
@@ -55,6 +57,7 @@ RSpec.configure do |config|
 
   # Filter lines from Rails gems in backtraces.
   config.filter_rails_from_backtrace!
+
   # arbitrary gems may also be filtered via:
   # config.filter_gems_from_backtrace("gem name")
   config.include Devise::Test::IntegrationHelpers, type: :feature
@@ -65,12 +68,17 @@ RSpec.configure do |config|
   config.include FactoryBot::Syntax::Methods
 
   OmniAuth.config.test_mode = true
-  OmniAuth.config.mock_auth[:strava] = OmniAuth::AuthHash.new({
-    :provider => 'strava',
-    :uid => '123545',
-    info: {
-      email: "example@example.com"
-    },
-    credentials: { token: 'asdfghjkl' }
-  })
+  OmniAuth.config.mock_auth[:strava] =
+    OmniAuth::AuthHash.new(
+      {
+        provider: 'strava',
+        uid: '123545',
+        info: {
+          email: 'example@example.com'
+        },
+        credentials: {
+          token: 'asdfghjkl'
+        }
+      }
+    )
 end

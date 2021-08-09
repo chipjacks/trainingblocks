@@ -7,26 +7,25 @@
 #   Character.create(name: 'Luke', movie: movies.first)
 
 def create_activity(obj, me)
-  created = Activity.create(
-    id: obj['id'],
-    date: Date.parse(obj['date']),
-    order: obj['order'],
-    description: obj['description'],
-    data: obj['data'],
-    user: me
-  )
-
+  created =
+    Activity.create(
+      id: obj['id'],
+      date: Date.parse(obj['date']),
+      order: obj['order'],
+      description: obj['description'],
+      data: obj['data'],
+      user: me
+    )
 end
 
 me = User.find_by(uid: '2456610')
 
-unless me then raise 'Strava uid not found.' end
+raise 'Strava uid not found.' unless me
 
-me.activities.each{ |a| a.destroy! }
+me.activities.each { |a| a.destroy! }
 
-activities = JSON.parse(IO.read(File.join(Rails.root, 'db/activities.json')).chomp)
-activities.each do |obj|
-  create_activity(obj, me)
-end
+activities =
+  JSON.parse(IO.read(File.join(Rails.root, 'db/activities.json')).chomp)
+activities.each { |obj| create_activity(obj, me) }
 
 puts 'Success!'

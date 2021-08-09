@@ -15,12 +15,26 @@
  */
 
 /* FLEXBOX PARENTS */
-.row { display: flex; flex-direction: row; }
-.column { display: flex; flex-direction: column; }
-.center { justify-content: center; }
+.row {
+  display: flex;
+  flex-direction: row;
+}
+.column {
+  display: flex;
+  flex-direction: column;
+}
+.center {
+  justify-content: center;
+}
 
 /* FLEXBOX CHILDREN */
-.compact { flex-grow: 0; flex-shrink: 0; flex-basis: auto; }
-.expand { flex-grow: 1; flex-shrink: 1; flex-basis: 0; }
-
-
+.compact {
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: auto;
+}
+.expand {
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: 0;
+}

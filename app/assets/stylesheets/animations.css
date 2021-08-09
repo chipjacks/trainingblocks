@@ -1,0 +1,42 @@
+@keyframes slidein-left {
+  from {
+    transform: translate(-100%);
+  }
+  to {
+    transform: translate(0%);
+  }
+}
+@keyframes slidein-right {
+  from {
+    transform: translate(100%);
+  }
+  to {
+    transform: translate(0%);
+    opacity: 1;
+  }
+}
+@keyframes slidein-bottom {
+  from {
+    transform: translate(0, 100%);
+  }
+  to {
+    transform: translate(0, 0%);
+    opacity: 1;
+  }
+}
+@keyframes dim {
+  from {
+    background-color: rgba(0, 0, 0, 0);
+  }
+  to {
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+}
+@keyframes appear {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

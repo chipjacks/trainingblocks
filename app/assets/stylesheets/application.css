@@ -11,30 +11,34 @@
  * It is generally better to create a new file per style scope.
  *
  *= require_self
+ *= require animations
+ *= require button
+ *= require colors
+ *= require dropdown
+ *= require input
+ *= require layout
+ *= require modal
+ *= require spinner
  *= require normalize
  */
-
-/* FLEXBOX PARENTS */
-.row {
-  display: flex;
-  flex-direction: row;
-}
-.column {
-  display: flex;
-  flex-direction: column;
-}
-.center {
-  justify-content: center;
+body {
+  font-family: Lato, "Helvetica Neue", Arial, Helvetica, sans-serif;
 }
 
-/* FLEXBOX CHILDREN */
-.compact {
-  flex-grow: 0;
-  flex-shrink: 0;
-  flex-basis: auto;
+a {
+  text-decoration: none;
+  color: var(--blue-500);
+  cursor: pointer;
 }
-.expand {
-  flex-grow: 1;
-  flex-shrink: 1;
-  flex-basis: 0;
+
+hr {
+  width: 100%;
+  border: none;
+  background-color: var(--grey-300);
+  height: 1px;
+}
+
+.no-select {
+  user-select: none;
+  -webkit-user-select: none;
 }

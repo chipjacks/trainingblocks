@@ -47,6 +47,8 @@ gem 'rack-host-redirect', '~> 1.3.0'
 
 gem 'rollbar', '~> 3.2.0'
 
+gem 'mailgun-ruby', '~>1.2.5'
+
 group :development, :test do
   gem 'pry-rails'
   gem 'rspec-rails', '~> 4.0.1'

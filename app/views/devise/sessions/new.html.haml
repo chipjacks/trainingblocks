@@ -1,22 +1,16 @@
-= render "devise/shared/navbar"
-
-.row.expand
-  .sidebar
-  .container
-    .column.compact{ style: "margin-left: 10px; margin-right: 10px; max-width: 20rem" }
-      %h2 Log in
-      = form_for(resource, as: resource_name, url: session_path(resource_name), html: { class: "ui form"}) do |f|
-        .field.column{style: "margin-bottom: 16px"}
-          = f.label :email
-          = f.email_field :email, autofocus: true, autocomplete: "email"
-        .field.column{style: "margin-bottom: 16px"}
-          = f.label :password
-          = f.password_field :password, autocomplete: "off"
-        - if devise_mapping.rememberable?
-          .field.row{style: "margin-bottom: 16px"}
-            = f.check_box :remember_me, style: "margin-right: 0.5rem;"
-            = f.label :remember_me
-        .actions
-          = f.submit "Log in", class: "ui button"
-      %br/
-      = render "devise/shared/links"
+%h2 Log in
+= form_for(resource, as: resource_name, url: session_path(resource_name), html: { class: "ui form"}) do |f|
+  .field.column{style: "margin-bottom: 16px"}
+    = f.label :email
+    = f.email_field :email, autofocus: true, autocomplete: "email"
+  .field.column{style: "margin-bottom: 16px"}
+    = f.label :password
+    = f.password_field :password, autocomplete: "off"
+  - if devise_mapping.rememberable?
+    .field.row{style: "margin-bottom: 16px"}
+      = f.check_box :remember_me, style: "margin-right: 0.5rem;"
+      = f.label :remember_me
+  .actions
+    = f.submit "Log in", class: "ui button"
+%br/
+= render "devise/shared/links"

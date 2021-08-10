@@ -3,6 +3,7 @@
   --container-medium: 650px;
   --container-large: 960px;
 
+  --navbar-height: 3.2rem;
   --sidebar-bottom-height: 0px;
 
   --container-width: var(--container-large);
@@ -53,12 +54,46 @@ body {
   flex-basis: 0;
 }
 
-/* SIDEBAR */
+/* NAVBAR */
+
+.navbar {
+  position: fixed;
+  border-bottom: 1px solid var(--grey-500);
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 4;
+  background-color: white;
+  height: var(--navbar-height);
+}
+
+.navbar__logo {
+  width: var(--sidebar-width);
+  margin-left: auto;
+  justify-content: center;
+  padding-left: 10px;
+}
+
+.navbar__logo > img {
+  height: 2rem;
+}
+
+/* CONTAINER */
+
+.navbar__container {
+  width: var(--container-width);
+  margin-right: auto;
+}
 
 .container {
   width: var(--container-width);
   margin-right: auto;
+  margin-top: var(--navbar-height);
+  overflow-x: hidden;
 }
+
+/* SIDEBAR */
+
 .sidebar {
   width: var(--sidebar-width);
   margin-left: auto;

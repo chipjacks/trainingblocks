@@ -8,7 +8,7 @@ import UI.Util exposing (styleIf)
 
 logo : Html msg
 logo =
-    Html.img [ style "height" "2rem", Html.Attributes.src "icon.svg" ] []
+    Html.img [ class "navbar__logo", Html.Attributes.src "icon.svg" ] []
 
 
 spinner : String -> Html msg

@@ -11,6 +11,8 @@
  * It is generally better to create a new file per style scope.
  *
  *= require_self
+ *
+ * APP
  *= require animations
  *= require button
  *= require colors
@@ -19,8 +21,10 @@
  *= require layout
  *= require modal
  *= require spinner
- *= require normalize
  *= require toast
+ *
+ * VENDOR
+ *= require normalize
  */
 body {
   font-family: Lato, "Helvetica Neue", Arial, Helvetica, sans-serif;

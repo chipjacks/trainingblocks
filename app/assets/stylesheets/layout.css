@@ -68,13 +68,6 @@ body {
 }
 
 .navbar__logo {
-  width: var(--sidebar-width);
-  margin-left: auto;
-  justify-content: center;
-  padding-left: 10px;
-}
-
-.navbar__logo > img {
   height: 2rem;
 }
 

@@ -1,7 +1,9 @@
 .row.compact.navbar.no-select
-  .compact.column.navbar__logo
-    %img.logo{ src: "/icon.svg"}
-  .navbar__container
+  .compact.column.sidebar
+  .compact.column.navbar__container
+    .row.expand
+      .compact.column.center{ style: "margin-left: 10px" }
+        %img.navbar__logo{ src: "/icon.svg"}
 
 .row.expand
   .sidebar
@@ -10,16 +12,16 @@
       %h2 Sign up
       = form_for(resource, as: resource_name, url: registration_path(resource_name), html: {class: "ui form"}) do |f|
         = render "devise/shared/error_messages", resource: resource
-        .field.column{style: "margin-bottom: 10px"}
+        .field.column{style: "margin-bottom: 16px"}
           = f.label :email
           = f.email_field :email, autofocus: true, autocomplete: "email"
-        .field.column{style: "margin-bottom: 10px"}
+        .field.column{style: "margin-bottom: 16px"}
           = f.label :password, style: "margin-right: 1rem"
           = f.password_field :password, autocomplete: "off"
           - if @minimum_password_length
             %em{style: "color: var(--black-300); font-size: 0.8rem"}
               #{@minimum_password_length} characters minimum
-        .field.column{style: "margin-bottom: 10px"}
+        .field.column{style: "margin-bottom: 16px"}
           = f.label :password_confirmation
           = f.password_field :password_confirmation, autocomplete: "off"
         .actions

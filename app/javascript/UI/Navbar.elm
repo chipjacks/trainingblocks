@@ -60,7 +60,7 @@ view { leftItem, items, rightItem, secondRow } =
             Html.header
                 [ class "row compact navbar no-select"
                 ]
-                [ compactColumn [ class "navbar__logo" ] [ UI.logo ]
+                [ compactColumn [ class "sidebar center" ] [ UI.logo ]
                 , Html.div [ class "navbar__container" ]
                     body
                 , Html.node "style" [] [ text (":root { --navbar-height: " ++ height ++ " }") ]

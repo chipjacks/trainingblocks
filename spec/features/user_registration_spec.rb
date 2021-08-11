@@ -29,6 +29,18 @@ describe 'User registration', type: :feature do
     expect(page).to have_content("Email can't be blank")
   end
 
+  scenario 'New user signs in from a Strava account' do
+    visit new_user_registration_path
+    click_link 'Sign in with Strava'
+
+    expect(page).to have_content('Please enter an email')
+
+    # TODO: Ask user for email and then password.
+    expect(InitialStravaImportJob).to receive(:perform_now)
+    expect(user.auth_token).to be_truthy
+    expect(page).to have_selector('#elm-main')
+  end
+
   context 'Is already signed in' do
     let(:user) { FactoryBot.create(:user) }
 

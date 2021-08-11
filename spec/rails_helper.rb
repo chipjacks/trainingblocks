@@ -72,13 +72,12 @@ RSpec.configure do |config|
     OmniAuth::AuthHash.new(
       {
         provider: 'strava',
-        uid: '123545',
-        info: {
-          email: 'example@example.com'
-        },
+        uid: 12_345_678,
+        info: {},
         credentials: {
-          token: 'asdfghjkl'
-        }
-      }
+          token: 'asdfghjkl',
+          refresh_token: 'zxcvbnm',
+        },
+      },
     )
 end

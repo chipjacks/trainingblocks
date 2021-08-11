@@ -7,6 +7,7 @@ FactoryBot.define do
   trait :strava do
     provider { Import::STRAVA }
     uid { 12_345_678 }
+    auth_token { 'asdfghjkl' }
   end
 
   trait :activities do
@@ -19,7 +20,7 @@ FactoryBot.define do
           order: obj['order'],
           description: obj['description'],
           data: obj['data'],
-          user: user
+          user: user,
         )
       end
     end

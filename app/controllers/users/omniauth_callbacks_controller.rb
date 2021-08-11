@@ -19,12 +19,15 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
         set_flash_message(:notice, :success, kind: 'Strava')
       end
       sign_in_and_redirect @user, event: :authentication
+    elsif !@user.email
+      flash[:notice] = 'Please enter an email for your account.'
+      redirect_to new_user_registration_path
     else
       set_flash_message(
         :alert,
         :failure,
         kind: 'Strava',
-        reason: "#{@user.errors.full_messages.join(', ')}"
+        reason: "#{@user.errors.full_messages.join(', ')}",
       )
       redirect_to root_path
     end

@@ -48,7 +48,7 @@
   }
   to {
     opacity: 0;
-    display: none;
     transform: translate(9999px);
+    display: none;
   }
 }

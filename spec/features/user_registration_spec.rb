@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-xdescribe 'User registration', type: :feature do
+describe 'User registration', type: :feature do
   scenario 'Is on homepage and wants to sign up' do
     visit root_path
     click_link 'Sign up'
@@ -35,6 +35,7 @@ xdescribe 'User registration', type: :feature do
     before :each do
       sign_in user
     end
+
     scenario 'User updates email address' do
       visit edit_user_registration_path
 
@@ -43,7 +44,7 @@ xdescribe 'User registration', type: :feature do
       click_button 'Update'
 
       expect(page).to have_content(
-        'Your account has been updated successfully.'
+        'Your account has been updated successfully.',
       )
     end
   end

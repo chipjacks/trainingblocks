@@ -27,3 +27,9 @@
   align-items: center;
   border: solid 1px var(--grey-500);
 }
+
+
+.toast--fade {
+  animation: fade 0.5s linear 5s;
+  animation-fill-mode: forwards;
+}

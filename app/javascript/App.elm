@@ -2,6 +2,9 @@ module App exposing (Env, Flags, document)
 
 import Browser
 import Html exposing (Html)
+import Html.Attributes exposing (class)
+import UI.Toast
+import UI.Util exposing (viewMaybe)
 
 
 type alias Env =
@@ -9,6 +12,7 @@ type alias Env =
     , rollbarAccessToken : String
     , environment : String
     , userId : Int
+    , flash : Maybe String
     }
 
 
@@ -16,6 +20,7 @@ type alias Flags =
     { rollbar_access_token : String
     , environment : String
     , user_id : Int
+    , flash : Maybe String
     }
 
 
@@ -37,7 +42,16 @@ document { title, init, update, perform, view, subscriptions } =
             , rollbarAccessToken = flags.rollbar_access_token
             , environment = flags.environment
             , userId = flags.user_id
+            , flash = flags.flash
             }
+
+        viewFlash strM =
+            viewMaybe strM
+                (\str ->
+                    UI.Toast.top
+                        |> UI.Toast.withAttributes [ class "toast--fade" ]
+                        |> UI.Toast.view (Html.text str)
+                )
     in
     Browser.document
         { init =
@@ -52,7 +66,7 @@ document { title, init, update, perform, view, subscriptions } =
                     |> Tuple.mapSecond perform
         , view =
             \( env, model ) ->
-                { title = title ++ " | Rhino Log", body = [ view model ] }
+                { title = title ++ " | Rhino Log", body = [ viewFlash env.flash, view model ] }
         , subscriptions =
             \( env, model ) ->
                 subscriptions model

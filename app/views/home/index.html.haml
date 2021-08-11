@@ -1,29 +1,13 @@
 - content_for :head do
   = javascript_include_tag 'welcome', 'data-turbolinks-track' => 'reload'
   = stylesheet_link_tag 'welcome', media: 'all'
-  %link{href:"https://unpkg.com/mono-icons@1.3.1/iconfont/icons.css", rel:"stylesheet"}
 
-.column.expand.container{style: "margin-left: auto;"}
-  .row.collapse{style: "justify-content: center"}
-    - if notice
-      .row.toast.toast--top
-        .toast__content.row
-          %i.mi-circle-information{style: "color: var(--blue-500)"}
-          .compact.column{style: "width: 5px"}
-          = notice
-    - if alert
-      .row.toast.toast--top
-        .toast__content.row
-          %i.mi-circle-information{style: "color: var(--blue-500)"}
-          .compact.column{style: "width: 5px"}
-          = alert
-
-  .row{style: "height: 100vh"}
-    .column.expand{style: "justify-content: center; align-items: center; padding: 1rem;"}
-      = image_tag('icon.svg', style: 'width: 50%; max-width: 170px;')
-      = image_tag('logo.svg', style: 'width: 100%; max-width: 500px;')
-      %h1.header{style: "font-weight: normal; color: var(--black-100); font-size: 1.8rem; margin-top: -10px"}
-        Build your running fitness.
-      .row{style: "margin-top: 2rem"}
-        = link_to 'Sign up', new_user_registration_path, class: 'button button--large button--orange', style: 'margin-right: 1rem; font-size: 1.2rem;'
-        = link_to 'Log in', new_user_session_path, class: 'button', style: 'font-size: 1.2rem;'
+.row{style: "height: 100vh"}
+  .column.expand{style: "justify-content: center; align-items: center; padding: 1rem;"}
+    = image_tag('icon.svg', style: 'width: 50%; max-width: 170px;')
+    = image_tag('logo.svg', style: 'width: 100%; max-width: 500px;')
+    %h1.header{style: "font-weight: normal; color: var(--black-100); font-size: 1.8rem; margin-top: -10px"}
+      Build your running fitness.
+    .row{style: "margin-top: 2rem"}
+      = link_to 'Sign up', new_user_registration_path, class: 'button button--large button--orange', style: 'margin-right: 1rem; font-size: 1.2rem;'
+      = link_to 'Log in', new_user_session_path, class: 'button', style: 'font-size: 1.2rem;'

@@ -6,20 +6,24 @@
 
 .toast--top {
   top: var(--navbar-height);
+  right: var(--container-margin);
   animation: slidein-top 0.5s;
+  margin-right: 10px;
+  margin-top: 10px;
 }
 
 .toast--bottom {
   bottom: var(--sidebar-bottom-height);
   right: var(--container-margin);
   animation: slidein-bottom 0.5s;
+  margin-right: 10px;
+  margin-bottom: 10px;
 }
 
 .toast__content {
   padding: 10px;
   background-color: white;
   border-radius: 5px;
-  align-items: middle;
+  align-items: center;
   border: solid 1px var(--grey-500);
-  position: relative;
 }

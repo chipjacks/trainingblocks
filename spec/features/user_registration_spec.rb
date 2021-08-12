@@ -35,10 +35,13 @@ describe 'User registration', type: :feature do
 
     expect(page).to have_content('Please enter an email')
 
-    # TODO: Ask user for email and then password.
-    expect(InitialStravaImportJob).to receive(:perform_now)
-    expect(user.auth_token).to be_truthy
-    expect(page).to have_selector('#elm-main')
+    fill_in 'user[email]', with: 'test@example.com'
+    fill_in 'user[password]', with: 'password'
+    fill_in 'user[password_confirmation]', with: 'password'
+
+    click_button 'Sign up'
+    expect(page).to have_content('A message with a confirmation link')
+    expect(User.first.auth_token).to be_truthy
   end
 
   context 'Is already signed in' do

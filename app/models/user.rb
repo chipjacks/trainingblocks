@@ -30,10 +30,10 @@ class User < ApplicationRecord
 
   def self.new_with_session(params, session)
     super.tap do |user|
-      if data =
-           session['devise.strava_data'] &&
-             session['devise.strava_data']['email']
-        user.email = data['email'] if user.email.blank?
+      if oauth_user = session[:oauth_user]
+        user.provider = oauth_user['provider']
+        user.uid = oauth_user['uid']
+        user.auth_token = oauth_user['auth_token']
       end
     end
   end

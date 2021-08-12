@@ -20,6 +20,7 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
       end
       sign_in_and_redirect @user, event: :authentication
     elsif !@user.email
+      session[:oauth_user] = @user
       flash[:notice] = 'Please enter an email for your account.'
       redirect_to new_user_registration_path
     else

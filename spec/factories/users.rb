@@ -9,7 +9,7 @@ FactoryBot.define do
     after(:build) do |user|
       user.class.skip_callback(
         :save,
-        :before,
+        :after,
         :initial_strava_import,
         raise: false,
       )

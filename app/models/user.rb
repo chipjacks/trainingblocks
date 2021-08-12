@@ -3,7 +3,7 @@ class User < ApplicationRecord
   has_many :imports, dependent: :destroy
   has_one :setting, dependent: :destroy
 
-  before_save :initial_strava_import, if: :will_save_change_to_uid?
+  after_save :initial_strava_import, if: :saved_change_to_uid?
 
   # Include default devise modules. Others available are:
   # :lockable, :timeoutable
@@ -40,6 +40,33 @@ class User < ApplicationRecord
     end
   end
 
+  def get_strava_access_token
+    uri = URI('https://www.strava.com/oauth/token')
+    strava_config =
+      Rails.configuration.devise.omniauth_configs[:strava].strategy
+    data = {
+      'client_id' => strava_config['client_id'],
+      'client_secret' => strava_config['client_secret'],
+      'grant_type' => 'refresh_token',
+      'refresh_token' => auth_token,
+    }
+
+    res =
+      Net::HTTP.post(uri, data.to_json, 'Content-Type' => 'application/json')
+
+    case res
+    when Net::HTTPSuccess
+      json = JSON.parse(res.body)
+      auth_token = json['refresh_token']
+      save!
+      Rails.logger.debug "Strava token refreshed: #{res.body}"
+      return json['access_token']
+    else
+      Rails.logger.error "Error refreshing Strava token: #{res.body}"
+      raise StravaClient::ApiError
+    end
+  end
+
   protected
 
   def email_required?
@@ -52,7 +79,7 @@ class User < ApplicationRecord
 
   def initial_strava_import
     if provider == Import::STRAVA && auth_token
-      InitialStravaImportJob.perform_now(self, auth_token)
+      InitialStravaImportJob.perform_now(self)
     end
   end
 end

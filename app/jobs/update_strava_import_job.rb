@@ -3,7 +3,7 @@ class UpdateStravaImportJob < ApplicationJob
 
   def perform(user, strava_activity_id)
     StravaClient.configure do |config|
-      config.access_token = get_access_token(user)
+      config.access_token = user.get_strava_access_token
     end
     strava_client = StravaClient::ActivitiesApi.new
 
@@ -24,30 +24,4 @@ class UpdateStravaImportJob < ApplicationJob
     raise e
   end
 
-  def get_access_token(user)
-    uri = URI('https://www.strava.com/oauth/token')
-    strava_config =
-      Rails.configuration.devise.omniauth_configs[:strava].strategy
-    data = {
-      'client_id' => strava_config['client_id'],
-      'client_secret' => strava_config['client_secret'],
-      'grant_type' => 'refresh_token',
-      'refresh_token' => user.auth_token
-    }
-
-    res =
-      Net::HTTP.post(uri, data.to_json, 'Content-Type' => 'application/json')
-
-    case res
-    when Net::HTTPSuccess
-      json = JSON.parse(res.body)
-      user.auth_token = json['refresh_token']
-      user.save!
-      Rails.logger.debug "Strava token refreshed: #{res.body}"
-      return json['access_token']
-    else
-      Rails.logger.error "Error refreshing Strava token: #{res.body}"
-      raise StravaClient::ApiError
-    end
-  end
 end

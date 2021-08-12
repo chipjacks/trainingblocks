@@ -9,9 +9,16 @@ class Users::SessionsController < Devise::SessionsController
   # end
 
   # POST /resource/sign_in
-  # def create
-  #   super
-  # end
+  def create
+    super.tap do
+      if current_user && !current_user.uid && oauth_user = session[:oauth_user]
+        current_user.provider = oauth_user['provider']
+        current_user.uid = oauth_user['uid']
+        current_user.auth_token = oauth_user['auth_token']
+        current_user.save!
+      end
+    end
+  end
 
   # DELETE /resource/sign_out
   # def destroy

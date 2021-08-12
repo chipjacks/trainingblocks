@@ -15,7 +15,7 @@ describe 'User registration', type: :feature do
     fill_in 'user[password_confirmation]', with: 'password'
     click_button 'Sign up'
 
-    expect(page).to have_content('You have signed up successfully.')
+    expect(page).to have_content('A message with a confirmation link')
   end
 
   scenario "User doesn't enter an email" do
@@ -58,9 +58,7 @@ describe 'User registration', type: :feature do
       fill_in 'user[current_password]', with: user.password
       click_button 'Update'
 
-      expect(page).to have_content(
-        'Your account has been updated successfully.',
-      )
+      expect(page).to have_content('You updated your account successfully')
     end
   end
 end

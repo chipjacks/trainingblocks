@@ -8,6 +8,7 @@ Rails
                controllers: {
                  omniauth_callbacks: 'users/omniauth_callbacks',
                  confirmations: 'users/confirmations',
+                 sessions: 'users/sessions',
                }
 
     root to: 'home#index'

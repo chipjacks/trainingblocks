@@ -6,7 +6,8 @@ class User < ApplicationRecord
   # Include default devise modules. Others available are:
   # :lockable, :timeoutable
   devise :database_authenticatable,
-         :registerable, # :confirmable,
+         :registerable,
+         :confirmable,
          :recoverable,
          :rememberable,
          :trackable,
@@ -40,6 +41,10 @@ class User < ApplicationRecord
   protected
 
   def email_required?
+    true
+  end
+
+  def confirmation_required?
     true
   end
 end

@@ -6,7 +6,8 @@ Rails
 
     devise_for :users,
                controllers: {
-                 omniauth_callbacks: 'users/omniauth_callbacks'
+                 omniauth_callbacks: 'users/omniauth_callbacks',
+                 confirmations: 'users/confirmations',
                }
 
     root to: 'home#index'

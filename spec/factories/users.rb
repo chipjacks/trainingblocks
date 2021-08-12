@@ -6,6 +6,15 @@ FactoryBot.define do
   end
 
   trait :strava do
+    after(:build) do |user|
+      user.class.skip_callback(
+        :save,
+        :before,
+        :initial_strava_import,
+        raise: false,
+      )
+    end
+
     provider { Import::STRAVA }
     uid { 12_345_678 }
     auth_token { 'asdfghjkl' }

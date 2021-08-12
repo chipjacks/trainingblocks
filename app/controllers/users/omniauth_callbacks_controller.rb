@@ -6,12 +6,7 @@ class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
     credentials = request.env.dig('omniauth.auth', 'credentials')
 
     if @user.persisted? && credentials
-      if @user.previously_new_record? || !@user.auth_token
-        InitialStravaImportJob.perform_now(@user, credentials['token'])
-        store_location_for(@user, settings_path)
-      else
-        store_location_for(@user, calendar_path)
-      end
+      store_location_for(@user, calendar_path)
       @user.auth_token = credentials['refresh_token']
       remember_me(@user)
       @user.save!

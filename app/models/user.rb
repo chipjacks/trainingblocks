@@ -3,6 +3,8 @@ class User < ApplicationRecord
   has_many :imports, dependent: :destroy
   has_one :setting, dependent: :destroy
 
+  before_save :initial_strava_import, if: :will_save_change_to_uid?
+
   # Include default devise modules. Others available are:
   # :lockable, :timeoutable
   devise :database_authenticatable,
@@ -46,5 +48,11 @@ class User < ApplicationRecord
 
   def confirmation_required?
     true
+  end
+
+  def initial_strava_import
+    if provider == Import::STRAVA && auth_token
+      InitialStravaImportJob.perform_now(self, auth_token)
+    end
   end
 end

@@ -17,6 +17,7 @@
  *= require button
  *= require colors
  *= require dropdown
+ *= require form
  *= require input
  *= require layout
  *= require modal
@@ -46,4 +47,13 @@ hr {
 .no-select {
   user-select: none;
   -webkit-user-select: none;
+}
+
+ol,
+ul {
+  padding-left: 1.5rem;
+}
+
+input {
+  box-sizing: border-box;
 }

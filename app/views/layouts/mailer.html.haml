@@ -3,6 +3,22 @@
   %head
     %meta{:content => "text/html; charset=utf-8", "http-equiv" => "Content-Type"}/
     :css
-      /* Email styles need to be inline */
+      body {
+        font-family: Lato, "Helvetica Neue", Arial, Helvetica, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background-color: #f8f9fa;
+      }
+
+      .text-content {
+        max-width: 40rem;
+        background-color: white;
+        padding: 1rem;
+        border-radius: 1rem;
+      }
+
+      %p
   %body
-    = yield
+    .text-content
+      = yield

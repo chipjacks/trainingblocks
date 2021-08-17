@@ -8,17 +8,24 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        background-color: #f8f9fa;
+        background-color: #f8f9fa; /* grey-100 */
       }
 
-      .text-content {
+      a {
+        text-decoration: none;
+        color: #4183c4; /* blue-500 */
+        cursor: pointer;
+      }
+
+      .content {
         max-width: 40rem;
         background-color: white;
         padding: 1rem;
         border-radius: 1rem;
       }
-
-      %p
   %body
-    .text-content
+    %div{style: "display: flex; flex-direction: column; margin: 1rem"}
+      = image_tag('https://rhinolog.app/icon.svg', style: 'height: 3rem;')
+      = image_tag('https://rhinolog.app/assets/logo-da9b54886cff32668789772d00323ccd0fc454d8dfafb29b17c157ff54acb31b.svg', style: 'height: 3rem;')
+    .content
       = yield

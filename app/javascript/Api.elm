@@ -1,4 +1,4 @@
-module Api exposing (developerError, getActivities, getSettings, postActivities, putSettings, userError)
+module Api exposing (developerError, getActivities, getSettings, postActivities, putSettings, userError, getUser)
 
 import Activity
 import Activity.Types exposing (Activity)
@@ -8,6 +8,7 @@ import Json.Encode as Encode
 import Settings exposing (Settings)
 import Task exposing (Task)
 import Time exposing (Month(..))
+import User exposing (User)
 
 
 
@@ -122,6 +123,36 @@ putSettings settings =
                     Decode.field "ok" Decode.bool
         , timeout = Nothing
         }
+
+
+
+-- USERS
+
+
+usersRoute : String
+usersRoute =
+    "/users/edit"
+
+
+getUser : Task Http.Error User
+getUser =
+    Http.task
+        { method = "GET"
+        , headers = [ Http.header "Content-Type" "application/json" ]
+        , url = usersRoute ++ ".json"
+        , body = Http.emptyBody
+        , resolver = Http.stringResolver <| getUserResolver
+        , timeout = Nothing
+        }
+
+
+getUserResolver : Http.Response String -> Result Http.Error User
+getUserResolver =
+    handleJsonResponse User.decoder
+
+
+
+-- ERRORS
 
 
 userError : Http.Error -> String

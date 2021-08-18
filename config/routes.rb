@@ -15,6 +15,7 @@ Rails
 
     get 'calendar', to: 'calendar#index'
     get 'trends', to: 'trends#index'
+    get 'account', to: 'account#index'
 
     resource :settings, only: %i[show update]
 

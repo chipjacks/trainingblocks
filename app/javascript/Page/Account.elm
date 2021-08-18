@@ -2,11 +2,11 @@ module Page.Account exposing (main)
 
 import Api
 import App
-import Html exposing (Html)
-import Html.Attributes exposing (style)
+import Html exposing (Html, a)
+import Html.Attributes exposing (class, style)
 import Http
 import Task
-import UI.Layout exposing (column, row)
+import UI.Layout exposing (column, compactColumn, row)
 import UI.Navbar as Navbar
 import UI.Skeleton as Skeleton
 import User exposing (User)
@@ -74,14 +74,43 @@ view model =
 
 viewBody : Model -> Html Msg
 viewBody { email, stravaImport } =
-    column []
-        [ Html.text email
-        , row []
-            [ Html.text "Strava Import"
-            , if stravaImport then
-                Html.text "Connected"
-
-              else
-                Html.text "Disconnected"
+    column [ style "margin" "15px", style "margin-top" "40px", style "margin-bottom" "40px" ]
+        [ row [ style "flex-wrap" "wrap" ]
+            [ compactColumn [ class "column--mobile" ]
+                [ Html.h3 [] [ Html.text "Email" ]
+                , Html.text "Used for important communications about your account."
+                ]
+            , column [ class "column--spacer" ] []
+            , compactColumn [ class "column--mobile" ]
+                [ Html.text "chipjacks@gmail.com"
+                , a [] [ Html.text "Log out" ]
+                , a [] [ Html.text "Update email or password" ]
+                ]
+            ]
+        , Html.hr [ class "hr--spacer" ] []
+        , row [ style "flex-wrap" "wrap" ]
+            [ compactColumn [ class "column--mobile" ]
+                [ row [ style "align-items" "flex-end" ]
+                    [ Html.h3 [] [ Html.text "Strava Import" ]
+                    ]
+                , Html.text "Link your Strava account to automatically import activities."
+                ]
+            , column [ class "column--spacer" ] []
+            , compactColumn [ class "column--mobile" ]
+                [ Html.text "Connected"
+                ]
+            ]
+        , Html.hr [ class "hr--spacer" ] []
+        , row [ style "flex-wrap" "wrap" ]
+            [ compactColumn [ class "column--mobile" ]
+                [ row [ style "align-items" "flex-end" ]
+                    [ Html.h3 [] [ Html.text "Cancel my account" ]
+                    ]
+                , Html.text "This will delete your data and cannot be undone."
+                ]
+            , column [ class "column--spacer" ] []
+            , compactColumn [ class "column--mobile" ]
+                [ a [] [ Html.text "Cancel my account" ]
+                ]
             ]
         ]

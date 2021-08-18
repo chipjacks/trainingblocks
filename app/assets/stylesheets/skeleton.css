@@ -1,0 +1,135 @@
+:root {
+  --container-small: 450px;
+  --container-medium: 650px;
+  --container-large: 960px;
+
+  --navbar-height: 3.2rem;
+  --sidebar-bottom-height: 0px;
+
+  --container-width: var(--container-large);
+  --sidebar-width: 200px;
+  --container-margin: max(
+    0px,
+    calc((100vw - var(--container-width) - var(--sidebar-width)) / 2)
+  );
+}
+
+html,
+body {
+  height: 100%;
+}
+@media screen and (max-width: 340px) {
+  html {
+    font-size: 14px;
+  }
+}
+@media screen and (max-width: 390px) {
+  html {
+    font-size: 15px;
+  }
+}
+
+/* NAVBAR */
+
+.navbar {
+  position: fixed;
+  border-bottom: 1px solid var(--grey-500);
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 4;
+  background-color: white;
+  height: var(--navbar-height);
+}
+
+.navbar__logo {
+  height: 2.4rem;
+}
+
+/* CONTAINER */
+
+.navbar__container {
+  width: var(--container-width);
+  margin-right: auto;
+}
+
+.container {
+  width: var(--container-width);
+  margin-right: auto;
+  margin-top: var(--navbar-height);
+  overflow-x: hidden;
+}
+
+/* SIDEBAR */
+
+.sidebar {
+  width: var(--sidebar-width);
+  margin-left: auto;
+}
+.sidebar__content {
+  position: fixed;
+  width: var(--sidebar-width);
+  top: var(--navbar-height);
+  display: flex;
+  flex-direction: column;
+}
+.sidebar__item {
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+.sidebar__item--selected {
+  border-right: 2px solid var(--orange-700) !important;
+  margin-right: -1px;
+}
+
+@media screen and (max-width: 960px) {
+  :root {
+    --container-width: var(--container-medium);
+  }
+}
+
+@media screen and (max-width: 650px) {
+  .sidebar__text {
+    display: none;
+  }
+
+  :root {
+    --container-width: var(--container-small);
+    --sidebar-width: 60px;
+  }
+}
+
+@media screen and (max-width: 450px) {
+  .sidebar {
+    overflow: hidden;
+  }
+  .sidebar__content {
+    z-index: 4;
+    background-color: white;
+    border-top: 1px solid var(--grey-500);
+    flex-direction: row;
+    position: fixed;
+    width: unset;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    top: unset;
+  }
+  .sidebar__item {
+    flex-direction: column;
+    flex-grow: 1;
+  }
+  .sidebar__item--selected {
+    border-top: 2px solid var(--orange-700) !important;
+    border-right: none !important;
+    margin-top: -1px;
+    border-top-left-radius: 0 !important;
+  }
+
+  :root {
+    --container-width: 100%;
+    --container-margin: 0;
+    --sidebar-width: 0;
+    --sidebar-bottom-height: 52px;
+  }
+}

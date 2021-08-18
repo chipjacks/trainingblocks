@@ -21,6 +21,7 @@
  *= require input
  *= require layout
  *= require modal
+ *= require skeleton
  *= require spinner
  *= require toast
  *
@@ -41,7 +42,7 @@ hr {
   width: 100%;
   border: none;
   background-color: var(--grey-300);
-  height: 1px;
+  height: 1px !important;
 }
 
 .no-select {

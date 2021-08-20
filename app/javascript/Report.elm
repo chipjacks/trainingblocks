@@ -25,7 +25,7 @@ error env =
             (Rollbar.environment env.environment)
             env.title
         ).error
-    , data = Dict.fromList [ ( "user_id", Encode.int env.userId ) ]
+    , data = Dict.fromList [ ( "user_id", Encode.int env.user.id ) ]
     }
 
 

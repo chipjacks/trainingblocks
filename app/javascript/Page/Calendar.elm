@@ -67,8 +67,8 @@ type State
     = State Calendar.Model Store.Model ActivityState ActivityConfigs
 
 
-init : ( Model, Effect )
-init =
+init : App.Env -> ( Model, Effect )
+init _ =
     ( Loading { todayM = Nothing, storeM = Nothing, emojisM = Nothing, levelM = Nothing, pacesM = Nothing }
     , Effect.Batch
         [ Effect.DateToday Jump

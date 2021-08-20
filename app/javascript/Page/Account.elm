@@ -25,10 +25,10 @@ main =
         }
 
 
-init : ( Model, Cmd Msg )
-init =
-    ( Model "" False
-    , Task.attempt GotUser Api.getUser
+init : App.Env -> ( Model, Cmd Msg )
+init env =
+    ( Model env.user.email (env.user.provider == Just "strava")
+    , Cmd.none
     )
 
 
@@ -39,21 +39,12 @@ type alias Model =
 
 
 type Msg
-    = GotUser (Result Http.Error User)
+    = NoOp
 
 
 update : App.Env -> Msg -> Model -> ( Model, Cmd Msg )
 update env msg model =
-    case msg of
-        GotUser result ->
-            case result of
-                Ok user ->
-                    ( { model | email = user.email, stravaImport = user.provider == Just "strava" }
-                    , Cmd.none
-                    )
-
-                Err err ->
-                    Debug.todo "error" err
+    ( model, Cmd.none )
 
 
 view : Model -> Html Msg

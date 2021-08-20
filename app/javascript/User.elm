@@ -6,7 +6,8 @@ import Json.Encode as Encode
 
 
 type alias User =
-    { email : String
+    { id : Int
+    , email : String
     , provider : Maybe String
     }
 
@@ -14,5 +15,6 @@ type alias User =
 decoder : Decode.Decoder User
 decoder =
     Decode.succeed User
+        |> required "id" Decode.int
         |> required "email" Decode.string
         |> optional "provider" (Decode.map Just Decode.string) Nothing

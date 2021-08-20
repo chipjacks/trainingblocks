@@ -48,8 +48,8 @@ main =
         }
 
 
-init : ( Model, Cmd Msg )
-init =
+init : App.Env -> ( Model, Cmd Msg )
+init env =
     ( Model (initPaces []) Nothing Nothing (initRaceDuration Nothing) (Err "") Loading (Err "")
     , Task.attempt GotSettings Api.getSettings
     )

@@ -1,4 +1,4 @@
-module Api exposing (developerError, getActivities, getSettings, postActivities, putSettings, userError, getUser)
+module Api exposing (developerError, getActivities, getSettings, getUser, postActivities, putSettings, userError)
 
 import Activity
 import Activity.Types exposing (Activity)
@@ -131,7 +131,7 @@ putSettings settings =
 
 usersRoute : String
 usersRoute =
-    "/users/edit"
+    "/account"
 
 
 getUser : Task Http.Error User

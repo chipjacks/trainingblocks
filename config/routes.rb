@@ -2,8 +2,6 @@ Rails
   .application
   .routes
   .draw do
-    # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
-
     devise_for :users,
                controllers: {
                  omniauth_callbacks: 'users/omniauth_callbacks',
@@ -15,9 +13,10 @@ Rails
 
     get 'calendar', to: 'calendar#index'
     get 'trends', to: 'trends#index'
-    get 'account', to: 'account#index'
 
     resource :settings, only: %i[show update]
+
+    get 'account', to: 'account#index'
 
     get 'activities', to: 'activities#index'
     post 'activities', to: 'activities#batch_update'

@@ -3,8 +3,9 @@ module Page.Account exposing (main)
 import Api
 import App
 import Html exposing (Html, a)
-import Html.Attributes exposing (class, style)
+import Html.Attributes exposing (class, href, style)
 import Http
+import MonoIcons
 import Task
 import UI.Layout exposing (column, compactColumn, row)
 import UI.Navbar as Navbar
@@ -52,7 +53,7 @@ update env msg model =
                     )
 
                 Err err ->
-                    Debug.todo "error"
+                    Debug.todo "error" err
 
 
 view : Model -> Html Msg
@@ -77,40 +78,52 @@ viewBody { email, stravaImport } =
     column [ style "margin" "15px", style "margin-top" "40px", style "margin-bottom" "40px" ]
         [ row [ style "flex-wrap" "wrap" ]
             [ compactColumn [ class "column--mobile" ]
-                [ Html.h3 [] [ Html.text "Email" ]
-                , Html.text "Used for important communications about your account."
+                [ Html.h3 [] [ Html.text email ]
                 ]
             , column [ class "column--spacer" ] []
-            , compactColumn [ class "column--mobile" ]
-                [ Html.text "chipjacks@gmail.com"
-                , a [] [ Html.text "Log out" ]
-                , a [] [ Html.text "Update email or password" ]
+            , compactColumn [ class "column--mobile", style "margin-top" "15px" ]
+                [ a
+                    [ class "button button--primary row"
+                    , href "/users/sign_out"
+                    , Html.Attributes.attribute "data-method" "delete"
+                    , style "align-items" "center"
+                    , style "width" "fit-content"
+                    , style "margin-bottom" "10px"
+                    ]
+                    [ MonoIcons.icon (MonoIcons.logOut "white")
+                    , compactColumn [ style "width" "10px" ] []
+                    , Html.text "Log out"
+                    ]
                 ]
             ]
         , Html.hr [ class "hr--spacer" ] []
         , row [ style "flex-wrap" "wrap" ]
             [ compactColumn [ class "column--mobile" ]
-                [ row [ style "align-items" "flex-end" ]
-                    [ Html.h3 [] [ Html.text "Strava Import" ]
-                    ]
+                [ Html.h3 [] [ Html.text "Account Details" ]
+                , Html.text "Update email or password, or cancel your account."
+                ]
+            , column [ class "column--spacer" ] []
+            , compactColumn [ class "column--mobile", style "margin-top" "15px" ]
+                [ a [ href "/users/edit" ] [ Html.text "Edit account" ]
+                ]
+            ]
+        , Html.hr [ class "hr--spacer" ] []
+        , row [ style "flex-wrap" "wrap" ]
+            [ compactColumn [ class "column--mobile" ]
+                [ Html.h3 [] [ Html.text "Strava Import" ]
                 , Html.text "Link your Strava account to automatically import activities."
                 ]
             , column [ class "column--spacer" ] []
-            , compactColumn [ class "column--mobile" ]
-                [ Html.text "Connected"
-                ]
-            ]
-        , Html.hr [ class "hr--spacer" ] []
-        , row [ style "flex-wrap" "wrap" ]
-            [ compactColumn [ class "column--mobile" ]
-                [ row [ style "align-items" "flex-end" ]
-                    [ Html.h3 [] [ Html.text "Cancel my account" ]
+            , compactColumn [ class "column--mobile", style "margin-top" "15px" ]
+                (if stravaImport then
+                    [ Html.text "Connected"
+                    , a [] [ Html.text "Disconnect" ]
                     ]
-                , Html.text "This will delete your data and cannot be undone."
-                ]
-            , column [ class "column--spacer" ] []
-            , compactColumn [ class "column--mobile" ]
-                [ a [] [ Html.text "Cancel my account" ]
-                ]
+
+                 else
+                    [ Html.text "Not connected"
+                    , a [] [ Html.text "Connect" ]
+                    ]
+                )
             ]
         ]

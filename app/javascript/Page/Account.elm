@@ -108,7 +108,8 @@ viewBody { email, stravaImport } =
             , compactColumn [ class "column--mobile", style "margin-top" "15px" ]
                 (if stravaImport then
                     [ Html.text "Connected"
-                    , a [] [ Html.text "Disconnect" ]
+                    , a [ href "/account/strava", Html.Attributes.attribute "data-method" "delete" ]
+                        [ Html.text "Disconnect" ]
                     ]
 
                  else

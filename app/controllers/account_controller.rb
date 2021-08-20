@@ -8,6 +8,22 @@ class AccountController < ApplicationController
     end
   end
 
+  def disconnect_strava
+    current_user.provider = nil
+    current_user.auth_token = nil
+    current_user.uid = nil
+    current_user.imports.each { |i| i.destroy }
+
+    if current_user.save
+      flash[:notice] = 'Strava account removed.'
+      redirect_to account_path
+    else
+      flash[:error] =
+        'An error occurred disconnecting your Strava account, please try again.'
+      redirect_to account_path
+    end
+  end
+
   private
 
   def required_fields

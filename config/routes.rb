@@ -17,6 +17,7 @@ Rails
     resource :settings, only: %i[show update]
 
     get 'account', to: 'account#index'
+    delete 'account/strava', to: 'account#disconnect_strava'
 
     get 'activities', to: 'activities#index'
     post 'activities', to: 'activities#batch_update'

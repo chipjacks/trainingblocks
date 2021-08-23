@@ -24,10 +24,13 @@ class User < ApplicationRecord
   end
 
   def self.from_omniauth(auth)
-    where(provider: auth.provider, uid: auth.uid).first_or_create do |user|
-      user.password = Devise.friendly_token[0, 20]
-      user.auth_token = auth.credentials.refresh_token
-    end
+    find_or_initialize_by(provider: auth.provider, uid: auth.uid) do |new_user|
+        new_user.password = Devise.friendly_token[0, 20]
+      end
+      .tap do |user|
+        user.auth_token = auth.credentials.refresh_token
+        user.save
+      end
   end
 
   def merge_oauth(oauth_user)

@@ -17,14 +17,15 @@ testEnv =
     { title = "Test"
     , rollbarAccessToken = ""
     , environment = "Test"
-    , userId = 0
+    , user = { id = 0, email = "example@example.com", provider = Just "strava" }
+    , flash = Nothing
     }
 
 
 start : ProgramTest Model Msg Effect
 start =
     ProgramTest.createDocument
-        { init = \_ -> init
+        { init = \_ -> init testEnv
         , update = \msg model -> Page.Calendar.update testEnv msg model
         , view = \m -> { title = "Test", body = [ view m ] }
         }

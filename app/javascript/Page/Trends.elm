@@ -44,8 +44,8 @@ main =
         }
 
 
-init : ( Model, Cmd Msg )
-init =
+init : App.Env -> ( Model, Cmd Msg )
+init _ =
     ( Model Loading [] 2020 (Date.fromCalendarDate 2021 Time.Jul 22) []
     , Cmd.batch
         [ Task.attempt GotActivities Api.getActivities

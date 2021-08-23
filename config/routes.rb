@@ -2,11 +2,11 @@ Rails
   .application
   .routes
   .draw do
-    # For details on the DSL available within this file, see http://guides.rubyonrails.org/routing.html
-
     devise_for :users,
                controllers: {
-                 omniauth_callbacks: 'users/omniauth_callbacks'
+                 omniauth_callbacks: 'users/omniauth_callbacks',
+                 confirmations: 'users/confirmations',
+                 sessions: 'users/sessions',
                }
 
     root to: 'home#index'
@@ -15,6 +15,9 @@ Rails
     get 'trends', to: 'trends#index'
 
     resource :settings, only: %i[show update]
+
+    get 'account', to: 'account#index'
+    delete 'account/strava', to: 'account#disconnect_strava'
 
     get 'activities', to: 'activities#index'
     post 'activities', to: 'activities#batch_update'

@@ -48,8 +48,8 @@ main =
         }
 
 
-init : ( Model, Cmd Msg )
-init =
+init : App.Env -> ( Model, Cmd Msg )
+init env =
     ( Model (initPaces []) Nothing Nothing (initRaceDuration Nothing) (Err "") Loading (Err "")
     , Task.attempt GotSettings Api.getSettings
     )
@@ -349,53 +349,44 @@ view model =
         |> Skeleton.view
 
 
-maxWidthForMobile : Html.Attribute msg
-maxWidthForMobile =
-    style "width" config.mobileWidth
-
-
 viewBody : Model -> Html Msg
 viewBody { trainingPaces, dragging, status, raceDistance, raceDuration, level, result } =
-    let
-        headerMargin =
-            style "margin" "20px 0 5px 0"
-    in
     column [ style "margin" "15px", style "margin-top" "40px", style "margin-bottom" "40px" ]
         [ viewStatusMessage status result
         , row [ style "flex-wrap" "wrap" ]
-            [ compactColumn [ maxWidthForMobile ]
-                [ Html.h3 [ headerMargin ] [ Html.text "Recent Race" ]
+            [ compactColumn [ class "column--mobile" ]
+                [ Html.h3 [] [ Html.text "Recent Race" ]
                 , Html.text "Enter a recent race time to calculate your fitness level."
                 ]
-            , column [ style "max-width" "100px" ] []
-            , compactColumn [ maxWidthForMobile ]
+            , column [ class "column--spacer" ] []
+            , compactColumn [ class "column--mobile" ]
                 [ row [] [ viewRecentRaceInput raceDuration raceDistance ]
                 , viewLevelResult level
                 ]
             ]
-        , Html.hr [ style "margin-bottom" "20px", style "margin-top" "30px" ] []
+        , Html.hr [ class "hr--spacer" ] []
         , row [ style "flex-wrap" "wrap" ]
-            [ compactColumn [ maxWidthForMobile ]
+            [ compactColumn [ class "column--mobile" ]
                 [ row [ style "align-items" "flex-end" ]
-                    [ Html.h3 [ headerMargin ] [ Html.text "Standard Paces" ]
+                    [ Html.h3 [] [ Html.text "Standard Paces" ]
                     ]
                 , Html.text "These paces will be used to adjust your log to your current fitness level."
                 ]
-            , column [ style "max-width" "100px" ] []
-            , compactColumn [ maxWidthForMobile ]
+            , column [ class "column--spacer" ] []
+            , compactColumn [ class "column--mobile" ]
                 [ viewStandardPaces level
                 ]
             ]
-        , Html.hr [ style "margin-bottom" "20px", style "margin-top" "20px" ] []
+        , Html.hr [ class "hr--spacer" ] []
         , row [ style "flex-wrap" "wrap" ]
-            [ compactColumn [ maxWidthForMobile ]
+            [ compactColumn [ class "column--mobile" ]
                 [ row [ style "align-items" "flex-end" ]
-                    [ Html.h3 [ headerMargin ] [ Html.text "Custom Paces" ]
+                    [ Html.h3 [] [ Html.text "Custom Paces" ]
                     ]
                 , Html.text "Add additional paces used in your workouts and training plan."
                 ]
-            , column [ style "max-width" "100px" ] []
-            , compactColumn [ maxWidthForMobile ]
+            , column [ class "column--spacer" ] []
+            , compactColumn [ class "column--mobile" ]
                 [ row [ style "margin-top" "10px", style "margin-bottom" "30px" ]
                     [ column [ styleIf (status == Posted) "opacity" "0.5", style "margin-left" "-10px" ]
                         [ viewTrainingPaces dragging (Selection.selectedIndex trainingPaces) (Selection.toList trainingPaces)
@@ -408,11 +399,10 @@ viewBody { trainingPaces, dragging, status, raceDistance, raceDuration, level, r
         ]
 
 
-config : { maxPace : number, trainingPaceListId : String, mobileWidth : String }
+config : { maxPace : number, trainingPaceListId : String }
 config =
     { maxPace = 8 * 60
     , trainingPaceListId = "training-pace-list"
-    , mobileWidth = "285px"
     }
 
 

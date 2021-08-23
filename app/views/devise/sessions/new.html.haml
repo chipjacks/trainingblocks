@@ -1,22 +1,16 @@
-.ui.three.column.centered.grid
-  .column
-    .row
-      .ui.basic.segment
-        %h2 Log in
-        = form_for(resource, as: resource_name, url: session_path(resource_name), html: { class: "ui form"}) do |f|
-          .field
-            = f.label :email
-            %br/
-            = f.email_field :email, autofocus: true, autocomplete: "email"
-          .field
-            = f.label :password
-            %br/
-            = f.password_field :password, autocomplete: "off"
-          - if devise_mapping.rememberable?
-            .field.ui.checkbox
-              = f.check_box :remember_me
-              = f.label :remember_me
-          .actions
-            = f.submit "Log in", class: "ui button"
-        %br/
-        = render "devise/shared/links"
+%h2 Log in
+= form_for(resource, as: resource_name, url: session_path(resource_name), html: { class: "ui form"}) do |f|
+  .field.column
+    = f.label :email
+    = f.email_field :email, autofocus: true, autocomplete: "email"
+  .field.column
+    = f.label :password
+    = f.password_field :password, autocomplete: "off"
+  - if devise_mapping.rememberable?
+    .field.row
+      = f.check_box :remember_me, style: "margin-right: 0.5rem;"
+      = f.label :remember_me
+  .actions
+    = f.submit "Log in", class: "ui button"
+%br/
+= render "devise/shared/links"

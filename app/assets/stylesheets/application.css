@@ -11,14 +11,21 @@
  * It is generally better to create a new file per style scope.
  *
  *= require_self
+ *
+ * APP
  *= require animations
  *= require button
  *= require colors
  *= require dropdown
+ *= require form
  *= require input
  *= require layout
  *= require modal
+ *= require skeleton
  *= require spinner
+ *= require toast
+ *
+ * VENDOR
  *= require normalize
  */
 body {
@@ -35,10 +42,19 @@ hr {
   width: 100%;
   border: none;
   background-color: var(--grey-300);
-  height: 1px;
+  height: 1px !important;
 }
 
 .no-select {
   user-select: none;
   -webkit-user-select: none;
+}
+
+ol,
+ul {
+  padding-left: 1.5rem;
+}
+
+input {
+  box-sizing: border-box;
 }

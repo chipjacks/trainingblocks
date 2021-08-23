@@ -40,3 +40,15 @@
     opacity: 1;
   }
 }
+@keyframes fade {
+  from {
+    opacity: 1;
+    transform: translate(0);
+    display: block;
+  }
+  to {
+    opacity: 0;
+    transform: translate(9999px);
+    display: none;
+  }
+}

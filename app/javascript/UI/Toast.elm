@@ -57,21 +57,15 @@ view body { position, stackHeight, attrs } =
         positionStyles =
             case position of
                 Top ->
-                    [ style "top" "var(--navbar-height)"
-                    , style "animation" "slidein-top 0.5s"
+                    [ class "toast--top"
                     ]
 
                 Bottom ->
-                    [ style "bottom" "var(--sidebar-bottom-height)"
-                    , style "right" "var(--container-margin)"
-                    , style "animation" "slidein-bottom 0.5s"
+                    [ class "toast--bottom"
                     ]
     in
     row
-        ([ style "position" "fixed"
-         , style "height" "fit-content"
-         , style "z-index" "35"
-         ]
+        ([ class "toast" ]
             ++ positionStyles
             ++ attrs
         )
@@ -85,12 +79,7 @@ view body { position, stackHeight, attrs } =
             , style "margin" "10px"
             ]
             [ row
-                [ style "padding" "10px"
-                , style "background-color" "white"
-                , style "border-radius" "5px"
-                , style "align-items" "middle"
-                , borderStyle "border"
-                , style "position" "relative"
+                [ class "toast__content"
                 , attributeMaybe stackHeight (\height -> style "box-shadow" (boxShadow |> List.take (height - 1) |> String.join ","))
                 ]
                 [ MonoIcons.icon (MonoIcons.circleInformation "var(--blue-500)")

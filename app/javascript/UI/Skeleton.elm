@@ -52,7 +52,7 @@ view { navbar, attrs, body, title } =
         [ navbar
         , expandingRow []
             [ viewSidebar title
-            , div [ class "container", style "margin-top" "var(--navbar-height)", style "overflow-x" "hidden" ] [ body ]
+            , div [ class "container" ] [ body ]
             ]
         ]
 
@@ -68,7 +68,7 @@ viewSidebar title =
             [ viewItem MonoIcons.calendar "Calendar" "/calendar" []
             , viewItem MonoIcons.barChartAlt "Trends" "/trends" []
             , viewItem MonoIcons.settings "Settings" "/settings" []
-            , viewItem MonoIcons.logOut "Log out" "/users/sign_out" [ Html.Attributes.attribute "data-method" "delete" ]
+            , viewItem MonoIcons.user "Account" "/account" []
             ]
         ]
 

@@ -1,0 +1,24 @@
+.form .field {
+  max-width: 20rem;
+  margin-bottom: 16px;
+}
+
+.field > em {
+  color: var(--black-300);
+  font-size: 0.8rem;
+}
+
+.form .field_with_errors {
+  width: 100%;
+}
+
+.field_with_errors > label:after {
+  margin-left: 0.3rem;
+  content: "•";
+  color: var(--red-500);
+  font-weight: bold;
+}
+
+.field_with_errors > input {
+  width: 100%;
+}

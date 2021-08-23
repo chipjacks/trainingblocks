@@ -58,18 +58,10 @@ view { leftItem, items, rightItem, secondRow } =
 
         container body =
             Html.header
-                [ class "row compact no-select"
-                , borderStyle "border-bottom"
-                , style "position" "fixed"
-                , style "top" "0"
-                , style "left" "0"
-                , style "right" "0"
-                , style "z-index" "4"
-                , style "background-color" "white"
-                , style "height" height
+                [ class "row compact navbar no-select"
                 ]
-                [ compactColumn [ class "sidebar", style "justify-content" "center", style "padding-left" "10px" ] [ UI.logo ]
-                , Html.div [ class "container" ]
+                [ compactColumn [ class "sidebar center" ] [ UI.logo ]
+                , Html.div [ class "navbar__container" ]
                     body
                 , Html.node "style" [] [ text (":root { --navbar-height: " ++ height ++ " }") ]
                 ]

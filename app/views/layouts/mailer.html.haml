@@ -3,6 +3,28 @@
   %head
     %meta{:content => "text/html; charset=utf-8", "http-equiv" => "Content-Type"}/
     :css
-      /* Email styles need to be inline */
+      body {
+        font-family: Lato, "Helvetica Neue", Arial, Helvetica, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background-color: #f8f9fa; /* grey-100 */
+      }
+
+      a {
+        text-decoration: none;
+        color: #4183c4; /* blue-500 */
+        cursor: pointer;
+      }
+
+      .content {
+        max-width: 40rem;
+        background-color: white;
+        padding: 1rem;
+        border-radius: 1rem;
+      }
   %body
-    = yield
+    %div{style: "display: flex; flex-direction: column; margin: 1rem"}
+      = image_tag('https://rhinolog.app/icon_logo.png', style: 'height: 100px;')
+    .content
+      = yield

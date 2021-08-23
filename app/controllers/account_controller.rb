@@ -12,7 +12,6 @@ class AccountController < ApplicationController
     current_user.provider = nil
     current_user.auth_token = nil
     current_user.uid = nil
-    current_user.imports.each { |i| i.destroy }
 
     if current_user.save
       flash[:notice] = 'Strava account removed.'

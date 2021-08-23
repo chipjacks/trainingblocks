@@ -87,7 +87,7 @@ class User < ApplicationRecord
   end
 
   def initial_strava_import
-    if provider == Import::STRAVA && auth_token
+    if provider == Import::STRAVA && auth_token && imports.empty?
       InitialStravaImportJob.perform_now(self)
     end
   end

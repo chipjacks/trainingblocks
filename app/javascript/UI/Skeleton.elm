@@ -69,7 +69,6 @@ viewSidebar title =
             , viewItem MonoIcons.barChartAlt "Trends" "/trends" []
             , viewItem MonoIcons.settings "Settings" "/settings" []
             , viewItem MonoIcons.user "Account" "/account" []
-            , viewItem MonoIcons.logOut "Log out" "/users/sign_out" [ Html.Attributes.attribute "data-method" "delete" ]
             ]
         ]
 

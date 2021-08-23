@@ -30,6 +30,12 @@ class User < ApplicationRecord
     end
   end
 
+  def merge_oauth(oauth_user)
+    self.provider = oauth_user.provider
+    self.uid = oauth_user.uid
+    self.auth_token = oauth_user.auth_token
+  end
+
   def self.new_with_session(params, session)
     super.tap do |user|
       if oauth_user = session[:oauth_user]

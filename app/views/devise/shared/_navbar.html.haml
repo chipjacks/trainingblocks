@@ -3,5 +3,6 @@
   .compact.column.navbar__container
     .row.expand
       .compact.column.center{ style: "margin-left: 10px" }
-        = image_tag('icon.svg', class: 'navbar__logo')
+        = link_to root_path do
+          = image_tag('icon.svg', class: 'navbar__logo')
 

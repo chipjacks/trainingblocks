@@ -76,7 +76,7 @@ viewShape shape =
             div
                 [ style "width" <| String.fromFloat (width * 0.3) ++ "rem"
                 , style "height" <| String.fromFloat height ++ "rem"
-                , style "border" ("2px solid " ++ colorString color)
+                , style "border" ("1px solid " ++ colorString color)
                 , style "border-radius" "2px"
                 , class "block"
                 , case completed of
@@ -102,7 +102,7 @@ viewShape shape =
                 [ style "width" "1rem"
                 , style "height" "1rem"
                 , style "border-radius" "50%"
-                , style "border" ("2px solid " ++ colorString color)
+                , style "border" ("1px solid " ++ colorString color)
                 , style "text-align" "center"
                 , style "font-size" "0.8rem"
                 , style "background-color" backgroundColor

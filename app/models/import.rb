@@ -12,6 +12,9 @@ class Import < ApplicationRecord
       .map { |id| ids[id] }
       .each do |import_data|
         import = find_or_create(import_data.id, source, import_data, user)
+        if import.user != user
+          raise "Multiple users found for same import: #{import.id}"
+        end
         activity = Activity.from_strava_activity(import)
         activity.match_or_create
       end

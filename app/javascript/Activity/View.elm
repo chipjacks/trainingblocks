@@ -68,6 +68,7 @@ listItem params =
         , style "position" "relative"
         , Html.Events.stopPropagationOn "dblclick" (Decode.succeed ( params.handleDoubleClick, True ))
         , stopPropagationOnClick (Decode.succeed NoOp) -- prevents close event from firing
+        , style "max-width" "100%"
         ]
         [ viewMaybe params.viewToolbarM
             (\toolbar ->
@@ -86,16 +87,16 @@ listItem params =
             , attributeIf (not isActive) (stopPropagationOnClick params.handlePointerDown)
             ]
             [ params.viewShape ]
-        , a
-            [ class "column expand"
-            , style "justify-content" "center"
+        , column
+            [ style "justify-content" "center"
+            , style "overflow" "hidden"
             , attributeIf (not isActive) (stopPropagationOnClick params.handlePointerDown)
             ]
-            [ row [ style "word-break" "break-all" ] [ viewMaybe params.titleM text ]
-            , row [ style "font-size" "0.8rem" ] [ column [] [ text params.subtitle ] ]
+            [ div [ style "overflow-wrap" "break-word", style "color" "var(--black-500)" ] [ viewMaybe params.titleM text ]
+            , row [ style "font-size" "0.8rem", style "color" "var(--black-300)" ] [ column [] [ text params.subtitle ] ]
             ]
-        , viewMaybe params.handleMultiSelectM
-            (\handleMultiSelect ->
+        , case params.handleMultiSelectM of
+            Just handleMultiSelect ->
                 compactColumn
                     [ attributeIf (not isActive)
                         (stopPropagationOnClick handleMultiSelect)
@@ -111,5 +112,7 @@ listItem params =
                         ]
                         []
                     ]
-            )
+
+            Nothing ->
+                compactColumn [ style "width" "0.4rem" ] []
         ]

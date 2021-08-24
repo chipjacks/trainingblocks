@@ -277,6 +277,7 @@ view model activities activeId activeRataDie isMoving configs =
         [ id "calendar"
         , class "column expand no-select"
         , style "height" "fit-content"
+        , style "width" "100%"
         , styleIf (zoom == Year) "animation" "slidein-left 0.5s"
         , styleIf (zoom == Month) "animation" "slidein-right 0.5s 0.01ms"
         , styleIf (zoom == Month) "opacity" "0"
@@ -498,6 +499,7 @@ viewDay isToday isTarget isMoving rataDie =
         , attribute "data-date" (Date.toIsoString date)
         , style "padding" "1rem 0.5rem"
         , styleIf isToday "font-weight" "bold"
+        , style "color" "var(--black-500)"
 
         -- , onClick (ChangeZoom Day (Just date))
         , attributeIf isMoving (Html.Events.on "pointerenter" (Decode.succeed (MoveTo date)))

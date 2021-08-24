@@ -44,6 +44,27 @@ describe 'User registration', type: :feature do
     expect(User.first.auth_token).to be_truthy
   end
 
+  scenario 'Existing user without email signs in from a Strava account' do
+    user = FactoryBot.build(:user, :strava)
+    user.email = nil
+    user.password = nil
+    user.confirmed_at = nil
+    user.save(validate: false)
+
+    visit new_user_registration_path
+    click_link 'Sign in with Strava'
+
+    expect(page).to have_content('Please enter an email')
+
+    fill_in 'user[email]', with: 'test@example.com'
+    fill_in 'user[password]', with: 'password'
+    fill_in 'user[password_confirmation]', with: 'password'
+
+    click_button 'Sign up'
+    expect(page).to have_content('A message with a confirmation link')
+    expect(user.reload.unconfirmed_email).to eq('test@example.com')
+  end
+
   context 'Is already signed in' do
     let(:user) { FactoryBot.create(:user) }
 

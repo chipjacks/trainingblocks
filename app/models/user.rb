@@ -40,12 +40,17 @@ class User < ApplicationRecord
   end
 
   def self.new_with_session(params, session)
-    super.tap do |user|
-      if oauth_user = session[:oauth_user]
-        user.provider = oauth_user['provider']
-        user.uid = oauth_user['uid']
-        user.auth_token = oauth_user['auth_token']
-      end
+    if !params.empty? && oauth_data = session[:oauth_user]
+      oauth_user =
+        find_or_initialize_by(
+          provider: oauth_data['provider'],
+          uid: oauth_data['uid'],
+        )
+      oauth_user.auth_token = oauth_data['auth_token']
+      oauth_user.assign_attributes(params)
+      oauth_user
+    else
+      super
     end
   end
 

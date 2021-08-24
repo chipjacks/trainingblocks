@@ -311,7 +311,7 @@ viewActivityShape activity isActive isMonthView configs =
                 ]
                 [ viewPopoverActions ]
             )
-            :: (Activity.Data.list [ Activity.Data.visible activity ] activity
+            :: (Activity.Data.list [ Activity.Data.visible ] activity
                     |> List.map (\a -> ActivityShape.view configs a)
                )
 
@@ -424,10 +424,10 @@ titleWeek : List Activity -> Html msg
 titleWeek activities =
     let
         run =
-            Activity.Aggregate.duration [ Activity.Data.run ] activities
+            Activity.Aggregate.duration [ Activity.Data.run, Activity.Data.visible ] activities
 
         other =
-            Activity.Aggregate.duration [ Activity.Data.other ] activities
+            Activity.Aggregate.duration [ Activity.Data.other, Activity.Data.visible ] activities
 
         hours duration =
             (duration // 60) // 60
@@ -529,7 +529,7 @@ viewActivity activeIds isActiveDate configs activity =
     in
     Activity.View.listItem
         { titleM = Just activity.description
-        , subtitle = Activity.View.activityDescription Nothing (Activity.Data.list [ Activity.Data.visible activity ] activity |> Activity.Laps.sum)
+        , subtitle = Activity.View.activityDescription Nothing (Activity.Data.list [ Activity.Data.visible ] activity |> Activity.Laps.sum)
         , isActive = isActive
         , handlePointerDown = selectActivityDecoder activity
         , handleDoubleClick = EditActivity activity

@@ -870,7 +870,7 @@ viewActivityM configs activityState =
                 , style "margin-top" "10px"
                 ]
                 [ compactColumn [ style "flex-basis" "5rem" ]
-                    (Activity.Data.list [ Activity.Data.visible activity ] activity
+                    (Activity.Data.list [ Activity.Data.visible ] activity
                         |> List.map (ActivityShape.view configs)
                     )
                 ]

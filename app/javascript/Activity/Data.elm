@@ -4,7 +4,7 @@ import Activity.Types exposing (Activity, ActivityData, ActivityType(..), Comple
 
 
 type alias Filter =
-    ActivityData -> Bool
+    Activity -> ActivityData -> Bool
 
 
 list : List Filter -> Activity -> List ActivityData
@@ -19,51 +19,52 @@ list filters activity =
                     Repeats count datas ->
                         List.concat (List.repeat count datas)
             )
-        |> List.filter (\data -> List.all (\f -> f data) filters)
+        |> List.filter (\data -> List.all (\f -> f activity data) filters)
 
 
 
 -- FILTERS
 
 
-visible : Activity -> Filter
-visible activity =
-    case ( List.isEmpty activity.laps, List.isEmpty activity.planned ) of
-        ( False, _ ) ->
-            completed
+visible : Filter
+visible =
+    \activity data ->
+        case ( List.isEmpty activity.laps, List.isEmpty activity.planned ) of
+            ( False, _ ) ->
+                completed activity data
 
-        ( _, False ) ->
-            planned
+            ( _, False ) ->
+                planned activity data
 
-        ( True, True ) ->
-            completed
+            ( True, True ) ->
+                completed activity data
 
 
 planned : Filter
 planned =
-    \data -> data.completed == Planned
+    \_ data -> data.completed == Planned
 
 
 completed : Filter
 completed =
-    \data -> data.completed == Completed
+    \_ data -> data.completed == Completed
 
 
 run : Filter
 run =
-    \data -> data.activityType == Run
+    \_ data -> data.activityType == Run
 
 
 other : Filter
 other =
-    \data -> data.activityType == Other
+    \_ data -> data.activityType == Other
 
 
 effort : Maybe Effort -> Filter
 effort e =
-    \data -> data.effort == e
+    \_ data -> data.effort == e
 
 
 race : Filter
 race =
-    \data -> data.race /= Nothing
+    \_ data -> data.race /= Nothing

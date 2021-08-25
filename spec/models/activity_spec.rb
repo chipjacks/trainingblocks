@@ -31,6 +31,13 @@ RSpec.describe Activity, type: :model do
       result = Activity.from_strava_activity(@import)
       expect(result.data['laps'].length).to eq(10)
     end
+
+    it 'handles missing paces' do
+      @import = create(:import, :laps, user: @user)
+      @import.data['laps'][0][:average_speed] = 0
+      result = Activity.from_strava_activity(@import)
+      expect(result.data['laps'].length).to eq(10)
+    end
   end
 
   describe '#planned_duration' do
@@ -38,7 +45,7 @@ RSpec.describe Activity, type: :model do
       @import = create(:import, :laps)
       result = Activity.from_strava_activity(@import)
       expect(result.completed_duration).to be_within(10).of(
-        @import.data['moving_time']
+        @import.data['moving_time'],
       )
     end
   end
@@ -80,7 +87,7 @@ RSpec.describe Activity, type: :model do
       activity.save!
       activity2 =
         Activity.from_strava_activity(
-          create(:import, :laps, id: '12345', user: activity.user)
+          create(:import, :laps, id: '12345', user: activity.user),
         )
       activity2.id = '12345'
       expect { activity2.match_or_create }.to change { Activity.all.length }
@@ -96,7 +103,7 @@ RSpec.describe Activity, type: :model do
 
       activity2 =
         Activity.from_strava_activity(
-          create(:import, :laps, user: activity.user)
+          create(:import, :laps, user: activity.user),
         )
       expect { activity2.match_or_create }.not_to change { Activity.all.length }
       activity.reload

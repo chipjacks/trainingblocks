@@ -43,7 +43,7 @@ class Activity < ApplicationRecord
       description: description,
       data: data,
       import: import,
-      user: import.user
+      user: import.user,
     }
 
     Activity.new(activity_hash)
@@ -92,6 +92,8 @@ class Activity < ApplicationRecord
 
   def self.to_seconds_per_mile(meters_per_second)
     (1609.3 / meters_per_second).round
+  rescue FloatDomainError => e
+    nil
   end
 
   def self.parse_strava_laps(laps)
@@ -110,7 +112,7 @@ class Activity < ApplicationRecord
         pace: to_seconds_per_mile(lap[:average_speed]),
         distance: lap[:distance],
         duration: lap[:moving_time],
-        completed: true
+        completed: true,
       }
     end
   end

@@ -72,8 +72,11 @@ class User < ApplicationRecord
     when Net::HTTPSuccess
       json = JSON.parse(res.body)
       auth_token = json['refresh_token']
-      save!
-      Rails.logger.debug "Strava token refreshed: #{res.body}"
+      if save(validate: false)
+        Rails.logger.debug "Strava token refreshed: #{res.body}"
+      else
+        Rollbar.error('Error updating user auth_token', res.body)
+      end
       return json['access_token']
     else
       Rails.logger.error "Error refreshing Strava token: #{res.body}"

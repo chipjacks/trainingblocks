@@ -3,7 +3,7 @@ require 'rails_helper'
 describe 'User registration', type: :feature do
   scenario 'Is on homepage and wants to sign up' do
     visit root_path
-    click_link 'Sign up'
+    click_link 'Sign up', match: :first
     expect(find('h2')).to have_content('Sign up')
   end
 

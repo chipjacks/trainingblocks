@@ -1,6 +1,8 @@
 - content_for :head do
   = javascript_include_tag 'welcome', 'data-turbolinks-track' => 'reload'
   = stylesheet_link_tag 'welcome', media: 'all'
+  = stylesheet_link_tag 'https://unpkg.com/mono-icons@1.3.1/iconfont/icons.css'
+
 
 .row{style: "height: 100vh"}
   .column.expand{style: "justify-content: center; align-items: center; padding: 1rem;"}
@@ -11,3 +13,77 @@
     .row{style: "margin-top: 2rem"}
       = link_to 'Sign up', new_user_registration_path, class: 'button button--large button--orange', style: 'margin-right: 1rem; font-size: 1.2rem;'
       = link_to 'Log in', new_user_session_path, class: 'button', style: 'font-size: 1.2rem;'
+.row
+  .column.container{style: "padding: 0 15px; margin-top: 0; margin-left: auto; max-width: var(--container-medium); overflow: visible"}
+    .row.center
+      .column{style: "margin-top: -3rem; overflow: visible;"}
+        %i.mi-chevron-down{style: "color: var(--grey-900); font-size: 2.5rem;"}
+    %hr.hr--spacer
+    %h1.header.row.center{style: "font-size: 36px; margin-bottom: 15px;"}
+      How it works
+    .row.center{style: "margin-bottom: 30px;"}
+      .column.column--mobile{style: "text-align: center"}
+        Bring clarity and calm to your training by following these 4 easy steps.
+    .row.row--wrap
+      .column
+        %h2.header.row
+          1. Plan a workout
+        .row
+          Create structured workouts including warm-ups, intervals, repeats, and cool-downs.
+        .row.center.feature-image
+          = image_tag "plan_a_workout", style: "width: 600px;"
+    .row
+      .column
+        %h2.header.row
+          2. Fit it into your schedule
+        .row
+          Easily enter and view all your sessions, both running and cross-training, so you can see how they fit together at a glance.
+        .row.center.feature-image
+          = image_tag "week_schedule", style: "width: 600px;"
+    .row
+      .column
+        %h2.header.row
+          3. Capture how it went
+        .row
+          Enter your workout stats manually, or automatically import them from Strava.
+          Add your perceived effort and feel to help track how your body is responding.
+        .row.center.row--wrap.feature-image
+          = image_tag "happy_runner", style: "height: 200px; margin-bottom: 20px; margin-right: 20px"
+          .compact.column
+          = image_tag "activity_form", style: "height: 250px;"
+    .row
+      .column
+        %h2.header.row
+          4. Zoom out and see your journey
+        .row
+          Improvement often comes from staying consistent and gradually building your fitness one week at a time.
+          A high level overview helps you keep a long-term perspective admidst the day-to-day ups and downs.
+        .row.row--wrap.center.feature-image
+          = image_tag "month", style: "width: 600px;"
+    %hr.hr--spacer
+    .row.center
+      %h1.header.row{style: "font-size: 36px;"}
+        Everything you need to succeed!
+    .row.row--wrap.feature-list{style: "justify-content: space-around;"}
+      %ul.column.column--mobile
+        %li.row
+          %i.mi-compass
+          Recommended training paces
+        %li.row
+          %i.mi-settings
+          Custom training paces
+        %li.row
+          %i.mi-wind
+          Relative race performance
+      %ul.column.column--mobile
+        %li.row
+          %i.mi-bar-chart-alt
+          Chart long-term trends
+        %li.row
+          %i.mi-cloud-download
+          Strava import
+        %li.row
+          %i.mi-mobile
+          Works on all your devices
+    .row.center
+      = link_to 'Sign up', new_user_registration_path, class: 'button button--large button--orange', style: 'margin: 40px; font-size: 1.2rem;'

@@ -2,3 +2,31 @@
 // They will automatically be included in application.css.
 // You can use Sass (SCSS) here: http://sass-lang.com/
 
+.feature-list {
+  font-size: 1.2rem;
+}
+
+.feature-list li {
+  margin: 15px 0;
+}
+
+.feature-list i {
+  margin-right: 8px;
+}
+
+.header {
+  font-weight: bold;
+  color: var(--black-900);
+}
+
+ul {
+  margin: 0;
+}
+
+.feature-image {
+  margin: 40px 0;
+}
+
+.feature-image img {
+  max-width: 100%;
+}

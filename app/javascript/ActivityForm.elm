@@ -1116,6 +1116,7 @@ paceSelect { paces, customPaces } msg paceStr result =
                     |> UI.Input.withAttributes
                         [ style "border-top-right-radius" "0"
                         , style "border-bottom-right-radius" "0"
+                        , style "width" "4rem"
                         ]
                     |> UI.Input.view paceStr
                 , UI.Select.select onPaceSelect ("" :: (allPaces |> List.map Tuple.first))

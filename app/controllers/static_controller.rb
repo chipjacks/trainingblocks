@@ -3,6 +3,6 @@ class StaticController < ApplicationController
 
   def terms; end
   def privacy; end
-  def support; end
+  def contact; end
   def mobile_apps; end
 end

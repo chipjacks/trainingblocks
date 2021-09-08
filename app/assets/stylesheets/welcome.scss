@@ -34,3 +34,18 @@ ul {
 .description {
   color: var(--black-500);
 }
+
+.footer a {
+  color: var(--black-500);
+  font-size: 0.9rem;
+}
+
+@media screen and (max-width: 450px) {
+  .footer .row {
+    flex-direction: column;
+  }
+
+  .footer a {
+    margin-top: 5px;
+  }
+}

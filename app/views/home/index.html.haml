@@ -87,3 +87,11 @@
           Works on all your devices
     .row.center
       = link_to 'Sign up', new_user_registration_path, class: 'button button--large button--orange', style: 'margin: 40px; font-size: 1.2rem;'
+%hr{style: "margin: 0"}
+.row.footer
+  .column.container{style: "padding: 15px 20px; margin-top: 0; margin-left: auto; max-width: var(--container-medium); overflow: visible"}
+    .row{style: "justify-content: space-between;"}
+      = link_to 'Terms and Conditions', root_path
+      = link_to 'Privacy Policy', root_path
+      = link_to 'Support', root_path
+      = link_to 'Mobile Apps', root_path

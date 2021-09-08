@@ -28,5 +28,5 @@ Rails
     get 'terms', to: 'static#terms'
     get 'privacy', to: 'static#privacy'
     get 'support', to: 'static#support'
-    get 'mobile-apps', to: 'static#mobile'
+    get 'mobile-apps', to: 'static#mobile_apps'
   end

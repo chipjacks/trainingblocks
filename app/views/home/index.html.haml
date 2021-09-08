@@ -14,7 +14,7 @@
       = link_to 'Sign up', new_user_registration_path, class: 'button button--large button--orange', style: 'margin-right: 1rem; font-size: 1.2rem;'
       = link_to 'Log in', new_user_session_path, class: 'button', style: 'font-size: 1.2rem;'
 .row
-  .column.container{style: "padding: 0 15px; margin-top: 0; margin-left: auto; max-width: var(--container-medium); overflow: visible"}
+  .column.container.container--static{style: "overflow: visible"}
     .row.center
       .column{style: "margin-top: -3rem; overflow: visible;"}
         %i.mi-chevron-down{style: "color: var(--grey-900); font-size: 2.5rem;"}
@@ -89,9 +89,9 @@
       = link_to 'Sign up', new_user_registration_path, class: 'button button--large button--orange', style: 'margin: 40px; font-size: 1.2rem;'
 %hr{style: "margin: 0"}
 .row.footer
-  .column.container{style: "padding: 15px 20px; margin-top: 0; margin-left: auto; max-width: var(--container-medium); overflow: visible"}
+  .column.container.container--static{style: "padding: 15px 20px"}
     .row{style: "justify-content: space-between;"}
-      = link_to 'Terms and Conditions', root_path
-      = link_to 'Privacy Policy', root_path
-      = link_to 'Support', root_path
-      = link_to 'Mobile Apps', root_path
+      = link_to 'Terms of Service', terms_path
+      = link_to 'Privacy Policy', privacy_path
+      = link_to 'Support', support_path
+      = link_to 'Mobile Apps', mobile_apps_path

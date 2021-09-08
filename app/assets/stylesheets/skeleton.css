@@ -60,6 +60,13 @@ body {
   overflow-x: hidden;
 }
 
+.container--static {
+  padding: 0 15px;
+  margin-left: auto;
+  margin-top: 0;
+  max-width: var(--container-medium);
+}
+
 /* SIDEBAR */
 
 .sidebar {

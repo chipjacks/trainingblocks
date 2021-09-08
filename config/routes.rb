@@ -24,4 +24,9 @@ Rails
 
     get 'imports/strava_push', to: 'imports#validate_strava_push'
     post 'imports/strava_push', to: 'imports#strava_push'
+
+    get 'terms', to: 'static#terms'
+    get 'privacy', to: 'static#privacy'
+    get 'support', to: 'static#support'
+    get 'mobile-apps', to: 'static#mobile'
   end

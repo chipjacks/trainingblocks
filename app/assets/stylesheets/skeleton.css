@@ -18,14 +18,16 @@ html,
 body {
   height: 100%;
 }
-@media screen and (max-width: 340px) {
-  html {
-    font-size: 14px;
-  }
-}
+
 @media screen and (max-width: 390px) {
   html {
     font-size: 15px;
+  }
+}
+
+@media screen and (max-width: 340px) {
+  html {
+    font-size: 14px;
   }
 }
 

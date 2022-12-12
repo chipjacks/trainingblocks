@@ -31,3 +31,6 @@ elm-stuff/
 .DS_Store
 
 /config/master.key
+
+/app/assets/builds/*
+!/app/assets/builds/.keep

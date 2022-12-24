@@ -1,4 +1,4 @@
-import { Elm } from "../Page/Settings";
+import { Elm } from "../Page/Settings.elm";
 
 document.addEventListener("DOMContentLoaded", () => {
   const target = document.getElementById("elm-main");

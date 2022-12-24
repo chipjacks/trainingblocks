@@ -1,4 +1,4 @@
-import { Elm } from "../Page/Trends";
+import { Elm } from "../Page/Trends.elm";
 
 document.addEventListener("DOMContentLoaded", () => {
   const target = document.getElementById("elm-main");

@@ -1,4 +1,4 @@
-import { Elm } from "../Page/Calendar";
+import { Elm } from "../Page/Calendar.elm";
 
 document.addEventListener("DOMContentLoaded", () => {
   const target = document.getElementById("elm-main");

@@ -1,5 +1,5 @@
 - content_for :head do
-  = javascript_pack_tag 'calendar', 'data-turbolinks-track': 'reload'
+  = javascript_include_tag 'calendar', 'data-turbolinks-track': 'reload'
   = stylesheet_link_tag 'calendar', media: 'all'
   = elm_flags
 

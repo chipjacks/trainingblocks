@@ -255,7 +255,10 @@ Devise.setup do |config|
   config.omniauth :strava,
                   '22727',
                   ENV['STRAVA_SECRET'],
-                  scope: 'activity:read_all'
+                  scope: 'activity:read_all',
+                  token_params: {
+                    parse: :json,
+                  }
 
   # ==> Warden configuration
   # If you want to use other strategies, that are not supported by Devise, or

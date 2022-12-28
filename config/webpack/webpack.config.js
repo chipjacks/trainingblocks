@@ -8,6 +8,7 @@ const elmDefaultOptions = {
   cwd: elmSource,
   pathToElm: elmMake,
   optimize: true,
+  debug: false,
 };
 const developmentOptions = Object.assign({}, elmDefaultOptions, {
   optimize: false,

@@ -256,9 +256,7 @@ Devise.setup do |config|
                   '22727',
                   ENV['STRAVA_SECRET'],
                   scope: 'activity:read_all',
-                  token_params: {
-                    parse: :json,
-                  }
+                  token_options: %i[client_id client_secret]
 
   # ==> Warden configuration
   # If you want to use other strategies, that are not supported by Devise, or

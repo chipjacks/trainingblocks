@@ -22,7 +22,7 @@ const elmWebpackLoader = {
 };
 
 module.exports = {
-  mode: "production",
+  mode: isProduction ? "production" : "development",
   devtool: "source-map",
   entry: {
     account: "./app/javascript/packs/account.js",

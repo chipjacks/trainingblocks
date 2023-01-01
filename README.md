@@ -19,13 +19,8 @@ ROLLBAR_CLIENT_ACCESS_TOKEN=xxxx
 MAILGUN_API_KEY=xxx
 ```
 
-## Run
+## Develop
 
-```
-rails server
-```
-
-For live reload:
 ```
 yarn dev
 ```

@@ -615,7 +615,7 @@ viewRecentRaceInput raceDuration raceDistance =
                     |> UI.Select.view (raceDistance |> Maybe.map Activity.raceDistance.toString |> Maybe.withDefault "")
                 ]
             ]
-        , row [ style "margin-top" "10px" ] [ Duration.View.input EditedDuration ( hrs, mins, secs ) ]
+        , row [ style "margin-top" "10px" ] [ Duration.View.input EditedDuration ( hrs, mins, secs ) ( "", "", "" ) ]
         ]
 
 

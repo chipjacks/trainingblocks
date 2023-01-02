@@ -68,4 +68,16 @@ all =
                         [ text "Morning Run"
                         , text "30m"
                         ]
+        , test "calculates time from pace and distance" <|
+            \() ->
+                start
+                    |> openForm
+                    |> fillIn "description" "Description" "Morning Run"
+                    |> fillIn "distance" "distance" "15"
+                    |> fillIn "pace" "pace" "7:00"
+                    |> submitForm
+                    |> expectViewHas
+                        [ text "Morning Run"
+                        , text "1h 45m"
+                        ]
         ]

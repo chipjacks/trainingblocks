@@ -55,6 +55,7 @@ view config =
     row []
         [ Html.label
             [ class sizeClass
+            , Html.Attributes.attribute "for" (config.name |> String.toLower)
             ]
             [ text config.name ]
         , viewMaybe config.onClear

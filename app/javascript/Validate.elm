@@ -62,12 +62,15 @@ parseDuration ( hrs, mins, secs ) =
                 String.toInt str |> Result.fromMaybe ParseError
 
         handleZeroTime result =
-            case result of
-                Ok 0 ->
-                    Err ValueError
+            if hrs == "" && mins == "" && secs == "" then
+                Err MissingError
+            else
+                case result of
+                    Ok 0 ->
+                        Err ValueError
 
-                _ ->
-                    result
+                    _ ->
+                        result
     in
     Result.map3
         (\h m s -> h * 60 * 60 + m * 60 + s)

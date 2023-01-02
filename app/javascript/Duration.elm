@@ -1,6 +1,14 @@
-module Duration exposing (formatSeconds, fromString, parser, stripTimeStr, timeStrToHrsMinsSecs, timeStrToSeconds, timeToSeconds, toHrsMinsSecs, toString, toStringWithUnits)
+module Duration exposing (formatSeconds, fromString, parser, stripTimeStr, timeStrToHrsMinsSecs, timeStrToSeconds, timeToSeconds, toHrsMinsSecs, toString, toStringWithUnits, calculate, toHrsMinsSecsStr)
 
+import Activity.Types exposing (DistanceUnits(..))
+import Distance
 import Parser exposing ((|.), (|=), Parser)
+
+
+calculate : Float -> Int -> Int
+calculate distanceMeters pace =
+    (Distance.fromMeters Miles distanceMeters) * (toFloat pace)
+        |> round
 
 
 toString : Int -> String
@@ -66,6 +74,21 @@ toHrsMinsSecs seconds =
             remainderBy 60 seconds
     in
     ( hrs, mins, secs )
+
+
+toHrsMinsSecsStr : Maybe Int -> ( String, String, String )
+toHrsMinsSecsStr secondsM =
+    let
+        stringFromInt int =
+            if int == 0 then
+                ""
+
+            else
+                String.fromInt int
+    in
+    Maybe.map toHrsMinsSecs secondsM
+        |> Maybe.map (\( h, m, s ) -> ( stringFromInt h, stringFromInt m, stringFromInt s ))
+        |> Maybe.withDefault ( "", "", "" )
 
 
 fromString : String -> Maybe Int

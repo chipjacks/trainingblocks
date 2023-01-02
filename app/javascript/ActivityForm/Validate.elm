@@ -3,6 +3,7 @@ module ActivityForm.Validate exposing (init, validate)
 import Activity.Types exposing (DistanceUnits(..))
 import ActivityForm.Types exposing (ActivityForm, ValidatedFields)
 import Distance
+import Duration
 import Pace
 import Validate exposing (FieldError(..), parseDuration, parsePace)
 
@@ -27,6 +28,7 @@ validate model =
     }
         |> calculatePace model.distanceUnits
         |> calculateDistance model.distanceUnits
+        |> calculateDuration model.distanceUnits
 
 
 calculatePace : DistanceUnits -> ValidatedFields -> ValidatedFields
@@ -58,6 +60,23 @@ calculateDistance units validated =
     case ( validated.distance, distanceM ) of
         ( Err MissingError, Just distance ) ->
             { validated | distance = Ok distance }
+
+        _ ->
+            validated
+
+
+calculateDuration : DistanceUnits -> ValidatedFields -> ValidatedFields
+calculateDuration units validated =
+    let
+        durationM =
+            Maybe.map2
+                (Duration.calculate)
+                (Result.toMaybe validated.distance |> Maybe.map (Distance.toMeters units))
+                (Result.toMaybe validated.pace)
+    in
+    case ( validated.duration, durationM ) of
+        ( Err MissingError, Just duration ) ->
+            { validated | duration = Ok duration }
 
         _ ->
             validated

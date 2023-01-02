@@ -1,7 +1,7 @@
 module UI.Input exposing (Size(..), number, pace, text, view, withAppearance, withAttributes, withError, withLabel, withPlaceholder, withResultError)
 
 import Html exposing (Html, input)
-import Html.Attributes exposing (attribute, class, name, placeholder, style, type_, value)
+import Html.Attributes exposing (attribute, class, name, placeholder, style, type_, value, id)
 import Html.Events exposing (onInput)
 import UI.Util exposing (attributeMaybe)
 import Validate exposing (FieldError)
@@ -61,7 +61,7 @@ pace toMsg =
     , placeholder = Just "mm:ss"
     , attrs = [ style "width" "3rem" ]
     , size = Medium
-    , label = Nothing
+    , label = Just "pace"
     }
 
 
@@ -121,6 +121,7 @@ view currentValue config =
          , attributeMaybe config.error (\_ -> class "input--error")
          , attributeMaybe config.label (\label -> attribute "aria-label" label)
          , attributeMaybe config.label (\label -> name label)
+         , attributeMaybe config.label (\label -> id label)
          ]
             ++ config.attrs
         )

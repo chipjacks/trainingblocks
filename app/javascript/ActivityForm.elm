@@ -89,17 +89,8 @@ initFromSelection activity editingLap completion laps repeatM =
                     , Just count
                     )
 
-        stringFromInt int =
-            if int == 0 then
-                ""
-
-            else
-                String.fromInt int
-
         duration =
-            Maybe.map Duration.toHrsMinsSecs data.duration
-                |> Maybe.map (\( h, m, s ) -> ( stringFromInt h, stringFromInt m, stringFromInt s ))
-                |> Maybe.withDefault ( "", "", "" )
+            Duration.toHrsMinsSecsStr data.duration
 
         distanceUnits =
             data.distanceUnits |> Maybe.withDefault Activity.Types.Miles
@@ -761,7 +752,7 @@ viewLapFields ({ emojis } as configs) form =
             , column [ maxFieldWidth, style "flex-grow" "1" ] [ repeatsInput EditedRepeats form.repeats form.validated.repeats ]
             ]
         , expandingRow [ marginTop ]
-            [ column [ maxFieldWidth, style "flex-grow" "2" ] [ durationInput EditedDuration form.duration ]
+            [ column [ maxFieldWidth, style "flex-grow" "2" ] [ durationInput EditedDuration form.duration (Result.toMaybe form.validated.duration |> Duration.toHrsMinsSecsStr) ]
             , column [ maxFieldWidth, style "flex-grow" "1" ] [ effortSelect SelectedEffort form.effort ]
             ]
         , expandingRow [ marginTop ]
@@ -778,13 +769,7 @@ viewLapFields ({ emojis } as configs) form =
 toActivityData : ActivityForm -> ActivityData
 toActivityData model =
     { activityType = model.activityType
-    , duration =
-        case model.duration of
-            ( "", "", "" ) ->
-                Nothing
-
-            _ ->
-                model.validated.duration |> Result.toMaybe
+    , duration = model.validated.duration |> Result.toMaybe
     , completed = model.completed
     , pace =
         if model.activityType == Activity.Types.Run then
@@ -1005,11 +990,11 @@ emojiSelect msg emojis name search =
         ]
 
 
-durationInput : (( String, String, String ) -> msg) -> ( String, String, String ) -> Html msg
-durationInput msg ( hrs, mins, secs ) =
+durationInput : (( String, String, String ) -> msg) -> ( String, String, String ) -> ( String, String, String ) -> Html msg
+durationInput msg ( hrs, mins, secs ) placeholder =
     column []
         [ label "Time" (hrs /= "" || mins /= "" || secs /= "") (msg ( "", "", "" ))
-        , Duration.View.input msg ( hrs, mins, secs )
+        , Duration.View.input msg ( hrs, mins, secs ) placeholder
         ]
 
 

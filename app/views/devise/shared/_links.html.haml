@@ -15,5 +15,8 @@
   %br/
 - if devise_mapping.omniauthable?
   - resource_class.omniauth_providers.each do |provider|
-    = link_to "Sign in with #{OmniAuth::Utils.camelize(provider)}", omniauth_authorize_path(resource_name, provider), method: :post
+    - if provider == :strava
+      = link_to image_tag("btn_strava_connectwith_light.png"), omniauth_authorize_path(resource_name, provider), height: '48px', style: 'margin-left: -5px; margin-top: -5px', method: :post
+    - else
+      = link_to "Sign in with #{OmniAuth::Utils.camelize(provider)}", omniauth_authorize_path(resource_name, provider), method: :post
     %br/

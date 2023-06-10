@@ -114,7 +114,9 @@ viewBody { email, stravaImport } =
 
                  else
                     [ Html.text "Not connected"
-                    , a [ href "/users/auth/strava", Html.Attributes.attribute "data-method" "post" ] [ Html.text "Connect" ]
+                    , a [ href "/users/auth/strava", Html.Attributes.attribute "data-method" "post" ]
+                        [ Html.img [ Html.Attributes.src "btn_strava_connectwith_light.png", style "height" "48px", style "margin-top" "5px" ] []
+                        ]
                     ]
                 )
             ]

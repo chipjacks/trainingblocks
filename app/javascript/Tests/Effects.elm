@@ -51,6 +51,7 @@ simulateEffects effect =
                         ""
                         [ Activity.Types.Individual Activity.initActivityData ]
                         []
+                        Nothing
                     )
                 )
 

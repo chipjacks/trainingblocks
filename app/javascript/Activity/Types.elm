@@ -9,6 +9,7 @@ type alias Activity =
     , description : String
     , laps : List LapData
     , planned : List LapData
+    , importId : Maybe String
     }
 
 

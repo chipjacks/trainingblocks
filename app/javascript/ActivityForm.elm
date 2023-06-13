@@ -15,7 +15,7 @@ import Duration.View
 import Effect exposing (Effect)
 import Emoji exposing (EmojiDict)
 import Html exposing (Html, a, button, input, text)
-import Html.Attributes exposing (class, name, placeholder, style, value)
+import Html.Attributes exposing (class, name, placeholder, style, value, href, target)
 import Html.Events exposing (onClick, onFocus, onInput)
 import Json.Decode as Decode
 import MonoIcons
@@ -30,7 +30,7 @@ import UI.Label
 import UI.Layout exposing (column, compactColumn, expandingRow, row)
 import UI.Select
 import UI.Toast
-import UI.Util exposing (attributeIf, borderStyle, stopPropagationOnClick, styleIf, viewIf)
+import UI.Util exposing (attributeIf, borderStyle, stopPropagationOnClick, styleIf, viewIf, viewMaybe)
 import Validate exposing (FieldError(..))
 
 
@@ -630,6 +630,7 @@ viewLaps configs completed editingLap isAutofillable lapSelection repeatSelectio
             Activity.View.listItem
                 { titleM = Nothing
                 , subtitle = Activity.View.lapDescription Nothing lap
+                , importM = Nothing
                 , isActive = Selection.selectedIndex lapSelection == index
                 , handlePointerDown = Decode.succeed (SelectedLap index)
                 , handleDoubleClick = ClickedEdit
@@ -725,6 +726,15 @@ viewActivityFields _ form =
             [ column [ maxFieldWidth ] [ row [] [ dateSelect ClickedMove form.date ] ]
             , column [ style "align-items" "flex-end" ] [ Actions.viewFormActions ]
             ]
+        , viewMaybe form.activity.importId (\importId ->
+            row [ style "margin-bottom" "-1rem", style "z-index" "10" ]
+                [ column [ style "align-items" "flex-end" ]
+                    [ a [ href ("https://www.strava.com/activities/" ++ importId), target "blank", style "flex-wrap" "nowrap", style "display" "flex" ]
+                        [ text "View on Strava"
+                        , compactColumn [ style "margin-left" "5px" ] [ MonoIcons.icon (MonoIcons.externalLink "var(--blue-500)") ]
+                        ]
+                    ]
+                ])
         , row [ style "max-width" "40rem" ]
             [ descriptionInput EditedDescription form.description
             ]

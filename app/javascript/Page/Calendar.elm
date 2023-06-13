@@ -697,6 +697,7 @@ initActivity today dateM =
                     ""
                     laps
                     planned
+                    Nothing
             )
         |> Effect.GenerateActivity NewActivity
 
@@ -711,6 +712,7 @@ initSession head activities =
                     ""
                     (List.concatMap .laps activities)
                     (List.concatMap .planned activities)
+                    Nothing
             )
         |> Effect.GenerateActivity (Group activities)
 

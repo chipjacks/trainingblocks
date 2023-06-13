@@ -115,6 +115,7 @@ decoder =
         |> required "description" Decode.string
         |> optionalAt [ "data", "laps" ] (Decode.list lapDataDecoder) []
         |> optionalAt [ "data", "planned" ] (Decode.list lapDataDecoder) []
+        |> optional "import_id" (Decode.map Just Decode.string) Nothing
 
 
 lapDataDecoder : Decode.Decoder LapData

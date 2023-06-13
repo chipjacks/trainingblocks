@@ -6,11 +6,12 @@ import Html exposing (Html, a, div, text)
 import Html.Attributes exposing (class, style)
 import Html.Events
 import Json.Decode as Decode
+import MonoIcons
 import Msg exposing (Msg(..))
 import Pace exposing (StandardPace)
 import Pace.List exposing (PaceList)
 import UI.Layout exposing (column, compactColumn, row)
-import UI.Util exposing (attributeIf, borderStyle, stopPropagationOnClick, styleIf, viewMaybe)
+import UI.Util exposing (attributeIf, borderStyle, stopPropagationOnClick, styleIf, viewMaybe, viewIf)
 
 
 lapDescription : Maybe (PaceList StandardPace) -> LapData -> String
@@ -47,6 +48,7 @@ activityDescription _ data =
 listItem :
     { titleM : Maybe String
     , subtitle : String
+    , importM : Maybe String
     , isActive : Bool
     , handlePointerDown : Decode.Decoder Msg
     , handleDoubleClick : Msg
@@ -92,7 +94,10 @@ listItem params =
             , style "overflow" "hidden"
             , attributeIf (not isActive) (stopPropagationOnClick params.handlePointerDown)
             ]
-            [ div [ style "overflow-wrap" "break-word", style "color" "var(--black-500)" ] [ viewMaybe params.titleM text ]
+            [ row [ style "overflow-wrap" "break-word", style "color" "var(--black-500)" ]
+                [ compactColumn [] [ viewMaybe params.titleM text ]
+                , viewMaybe params.importM (\_ -> compactColumn [ style "margin-left" "5px" ] [ MonoIcons.icon (MonoIcons.linkAlt "var(--grey-900)") ])
+                ]
             , row [ style "font-size" "0.8rem", style "color" "var(--black-300)" ] [ column [] [ text params.subtitle ] ]
             ]
         , case params.handleMultiSelectM of

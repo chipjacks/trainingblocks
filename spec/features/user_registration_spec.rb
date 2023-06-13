@@ -31,7 +31,7 @@ describe 'User registration', type: :feature do
 
   scenario 'New user signs in from a Strava account' do
     visit new_user_registration_path
-    click_link 'Sign in with Strava'
+    click_link 'Connect with Strava'
 
     expect(page).to have_content('Please enter an email')
 
@@ -52,7 +52,7 @@ describe 'User registration', type: :feature do
     user.save(validate: false)
 
     visit new_user_registration_path
-    click_link 'Sign in with Strava'
+    click_link 'Connect with Strava'
 
     expect(page).to have_content('Please enter an email')
 

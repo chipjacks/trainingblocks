@@ -11,10 +11,17 @@ class Activity < ApplicationRecord
       Activity
         .where(date: self.date, user: self.user)
         .find { |a| self.match?(a) }
+
+    # already created an activity from this import
     if match && match.id == self.id
-      nil
+      match.description = self.description
+      match.save!
+
+      # no activity created yet, or the one that was created has a different import already
     elsif !match || (match && match.import)
       self.save!
+
+      # matching activity found without an import associated already
     elsif !match.import
       match.import = self.import
       match.data['laps'] = self.data['laps']

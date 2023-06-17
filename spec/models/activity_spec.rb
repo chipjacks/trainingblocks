@@ -67,13 +67,25 @@ RSpec.describe Activity, type: :model do
   end
 
   describe '#match_or_create' do
-    it 'does nothing when an activity has already been created from that import' do
+    it 'doesnt add new activity when an activity has already been created from that import' do
       import = create(:import, :laps)
       activity = Activity.from_strava_activity(import)
       activity.save!
 
       activity2 = Activity.from_strava_activity(import)
       expect { activity2.match_or_create }.not_to change { Activity.all.length }
+    end
+
+    it 'updates description when an activity has already been created from that import' do
+      import = create(:import, :laps)
+      activity = Activity.from_strava_activity(import)
+      activity.save!
+
+      import.data['name'] = 'New Name'
+      activity2 = Activity.from_strava_activity(import)
+      expect { activity2.match_or_create }.to change {
+        activity.reload.description
+      }
     end
 
     it 'creates a new activity when no matches found' do

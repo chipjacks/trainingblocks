@@ -51,10 +51,10 @@ activityDescription _ data =
             meters * 3.28084
 
         isMostlyHills distance gain =
-            (gain / distance) > threshold150FeetPerMile
+            (gain / distance) > thresholdVertFeetPerMile
 
-        threshold150FeetPerMile =
-            150 / 5280
+        thresholdVertFeetPerMile =
+            125 / 5280
     in
     String.join " "
         [ Maybe.map Duration.toStringWithUnits data.duration |> Maybe.withDefault ""

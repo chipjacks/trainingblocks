@@ -801,6 +801,7 @@ toActivityData model =
 
         else
             Nothing
+    , elevationGain = Nothing
     , race =
         if model.activityType == Activity.Types.Run then
             model.race

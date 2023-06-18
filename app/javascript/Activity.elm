@@ -20,6 +20,7 @@ initActivityData =
     , pace = Nothing
     , distance = Nothing
     , distanceUnits = Nothing
+    , elevationGain = Nothing
     , race = Nothing
     , effort = Nothing
     , emoji = Nothing
@@ -147,6 +148,7 @@ activityDataDecoder =
         |> optional "pace" (Decode.map Just Decode.int) Nothing
         |> optional "distance" (Decode.map Just Decode.float) Nothing
         |> optional "distanceUnits" (Decode.map Just distanceUnits.decoder) Nothing
+        |> optional "elevationGain" (Decode.map Just Decode.float) Nothing
         |> optional "race" (Decode.map Just raceDistance.decoder) Nothing
         |> optional "effort" (Decode.map Just effort.decoder) Nothing
         |> optional "emoji" (Decode.map Just Decode.string) Nothing
@@ -178,6 +180,7 @@ encoder activity =
             , ( "pace", maybeEncode data.pace Encode.int )
             , ( "distance", maybeEncode data.distance Encode.float )
             , ( "distanceUnits", maybeEncode data.distanceUnits distanceUnits.encode )
+            , ( "elevationGain", maybeEncode data.elevationGain Encode.float )
             , ( "race", maybeEncode data.race raceDistance.encode )
             , ( "effort", maybeEncode data.effort effort.encode )
             , ( "emoji", maybeEncode data.emoji Encode.string )

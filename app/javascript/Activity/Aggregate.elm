@@ -16,3 +16,10 @@ distance filters activities =
     List.concatMap (Activity.Data.list filters) activities
         |> List.map (\data -> data.distance |> Maybe.withDefault 0)
         |> List.sum
+
+
+elevationGain : List Filter -> List Activity -> Float
+elevationGain filters activities =
+    List.concatMap (Activity.Data.list filters) activities
+        |> List.map (\data -> data.elevationGain |> Maybe.withDefault 0)
+        |> List.sum

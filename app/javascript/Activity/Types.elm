@@ -25,6 +25,7 @@ type alias ActivityData =
     , pace : Maybe Int
     , distance : Maybe Float
     , distanceUnits : Maybe DistanceUnits
+    , elevationGain : Maybe Float
     , race : Maybe RaceDistance
     , effort : Maybe Effort
     , emoji : Maybe String

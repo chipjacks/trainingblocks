@@ -2,6 +2,7 @@ module Activity.View exposing (activityDescription, lapDescription, listItem)
 
 import Activity.Types exposing (ActivityData, LapData(..))
 import Duration
+import Distance
 import Html exposing (Html, a, div, text)
 import Html.Attributes exposing (class, style)
 import Html.Events
@@ -38,10 +39,29 @@ activityDescription _ data =
 
                 Nothing ->
                     ""
+        elevationGainStr gainM =
+            case gainM of
+                Just gain ->
+                    " with " ++ (metersToFeet gain |> Basics.round |> String.fromInt) ++ "ft of climbing"
+
+                Nothing ->
+                    ""
+
+        metersToFeet meters =
+            meters * 3.28084
+
+        isMostlyHills distance gain =
+            (gain / distance) > threshold150FeetPerMile
+
+        threshold150FeetPerMile =
+            150 / 5280
     in
     String.join " "
         [ Maybe.map Duration.toStringWithUnits data.duration |> Maybe.withDefault ""
-        , trainingPaceStr data.pace
+        , if Maybe.map2 isMostlyHills data.distance data.elevationGain == Just True then
+            elevationGainStr data.elevationGain
+          else
+            trainingPaceStr data.pace
         ]
 
 

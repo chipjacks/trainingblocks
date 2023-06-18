@@ -119,6 +119,7 @@ class Activity < ApplicationRecord
         pace: to_seconds_per_mile(lap[:average_speed]),
         distance: lap[:distance],
         duration: lap[:moving_time],
+        elevationGain: lap[:total_elevation_gain],
         completed: true,
       }
     end

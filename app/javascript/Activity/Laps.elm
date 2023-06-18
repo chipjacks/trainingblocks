@@ -26,6 +26,7 @@ sum laps =
             , pace = Nothing
             , distance = Nothing
             , distanceUnits = Nothing
+            , elevationGain = Just (elevationGain laps)
             , race = Nothing
             , effort = Nothing
             , emoji = Nothing
@@ -35,6 +36,12 @@ sum laps =
 duration : List ActivityData -> Int
 duration list =
     List.filterMap .duration list
+        |> List.sum
+
+
+elevationGain : List ActivityData -> Float
+elevationGain list =
+    List.filterMap .elevationGain list
         |> List.sum
 
 

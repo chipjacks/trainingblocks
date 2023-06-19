@@ -8,29 +8,29 @@ import Html.Attributes exposing (class, style)
 import Html.Events
 import Json.Decode as Decode
 import MonoIcons
-import Msg exposing (Msg(..))
+import Msg exposing (Msg(..), ActivityConfigs)
 import Pace exposing (StandardPace)
 import Pace.List exposing (PaceList)
 import UI.Layout exposing (column, compactColumn, row)
 import UI.Util exposing (attributeIf, borderStyle, stopPropagationOnClick, styleIf, viewMaybe, viewIf)
 
 
-lapDescription : Maybe (PaceList StandardPace) -> LapData -> String
-lapDescription pacesM lap =
+lapDescription : ActivityConfigs -> LapData -> String
+lapDescription configs lap =
     case lap of
         Individual data ->
-            activityDescription pacesM data
+            activityDescription configs data
 
         Repeats count list ->
             String.join " "
                 [ String.fromInt count
                 , "x"
-                , String.join ", " (List.map (activityDescription pacesM) list)
+                , String.join ", " (List.map (activityDescription configs) list)
                 ]
 
 
-activityDescription : Maybe (PaceList StandardPace) -> ActivityData -> String
-activityDescription _ data =
+activityDescription : ActivityConfigs -> ActivityData -> String
+activityDescription configs data =
     let
         trainingPaceStr paceM =
             case paceM of
@@ -57,7 +57,11 @@ activityDescription _ data =
             125 / 5280
     in
     String.join " "
-        [ Maybe.map Duration.toStringWithUnits data.duration |> Maybe.withDefault ""
+        [ if configs.showTime then
+            Maybe.map Duration.toStringWithUnits data.duration |> Maybe.withDefault ""
+          else
+            Maybe.map (Distance.toStringWithUnits data.distanceUnits) data.distance |> Maybe.withDefault ""
+
         , if Maybe.map2 isMostlyHills data.distance data.elevationGain == Just True then
             elevationGainStr data.elevationGain
           else

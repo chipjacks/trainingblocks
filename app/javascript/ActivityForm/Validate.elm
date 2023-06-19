@@ -70,7 +70,7 @@ calculateDuration units validated =
     let
         durationM =
             Maybe.map2
-                (Duration.calculate)
+                (Distance.calculateDuration)
                 (Result.toMaybe validated.distance |> Maybe.map (Distance.toMeters units))
                 (Result.toMaybe validated.pace)
     in

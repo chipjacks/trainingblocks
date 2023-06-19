@@ -29,6 +29,7 @@ import Pace.List exposing (PaceList)
 import Ports
 import Random
 import Report
+import Settings exposing (Settings)
 import Store
 import Task
 import Time
@@ -57,7 +58,7 @@ main =
 
 
 type Model
-    = Loading { todayM : Maybe Date, storeM : Maybe Store.Model, emojisM : Maybe EmojiDict, levelM : Maybe Int, pacesM : Maybe (PaceList String) }
+    = Loading { todayM : Maybe Date, storeM : Maybe Store.Model, emojisM : Maybe EmojiDict, settingsM : Maybe Settings }
     | Loaded State
     | MissingSettings
     | Error String
@@ -69,7 +70,7 @@ type State
 
 init : App.Env -> ( Model, Effect )
 init _ =
-    ( Loading { todayM = Nothing, storeM = Nothing, emojisM = Nothing, levelM = Nothing, pacesM = Nothing }
+    ( Loading { todayM = Nothing, storeM = Nothing, emojisM = Nothing, settingsM = Nothing }
     , Effect.Batch
         [ Effect.DateToday Jump
         , Effect.GetActivities
@@ -106,7 +107,7 @@ update env msg model =
                 GotSettings settingsR ->
                     case settingsR of
                         Ok (Just settings) ->
-                            Loading { state | pacesM = Just settings.paces, levelM = Just settings.level }
+                            Loading { state | settingsM = Just settings }
                                 |> updateLoading
 
                         Ok Nothing ->
@@ -581,25 +582,24 @@ update env msg model =
 updateLoading : Model -> ( Model, Effect )
 updateLoading model =
     case model of
-        Loading { todayM, storeM, emojisM, levelM, pacesM } ->
-            Maybe.map5
-                (\today store emojis level customPaces ->
+        Loading { todayM, storeM, emojisM, settingsM } ->
+            Maybe.map4
+                (\today store emojis settings ->
                     let
                         ( calendarModel, calendarEffect ) =
                             Calendar.init Msg.Month today today
 
                         paces =
-                            Pace.standardPaces ( MPRLevel.Neutral, level )
+                            Pace.standardPaces ( MPRLevel.Neutral, settings.level )
                     in
-                    ( Loaded (State calendarModel store None (ActivityConfigs paces customPaces emojis))
+                    ( Loaded (State calendarModel store None (ActivityConfigs paces settings.paces emojis settings.showTime))
                     , calendarEffect
                     )
                 )
                 todayM
                 storeM
                 emojisM
-                levelM
-                pacesM
+                settingsM
                 |> Maybe.withDefault ( model, Effect.None )
 
         _ ->

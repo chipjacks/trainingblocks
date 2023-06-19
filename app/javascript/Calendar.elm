@@ -529,7 +529,7 @@ viewActivity activeIds isActiveDate configs activity =
     in
     Activity.View.listItem
         { titleM = Just activity.description
-        , subtitle = Activity.View.activityDescription Nothing (Activity.Data.list [ Activity.Data.visible ] activity |> Activity.Laps.sum)
+        , subtitle = Activity.View.activityDescription configs (Activity.Data.list [ Activity.Data.visible ] activity |> Activity.Laps.sum)
         , importM = activity.importId
         , isActive = isActive
         , handlePointerDown = selectActivityDecoder activity

@@ -1,15 +1,7 @@
-module Duration exposing (formatSeconds, fromString, parser, stripTimeStr, timeStrToHrsMinsSecs, timeStrToSeconds, timeToSeconds, toHrsMinsSecs, toString, toStringWithUnits, calculate, toHrsMinsSecsStr)
+module Duration exposing (formatSeconds, fromString, parser, stripTimeStr, timeStrToHrsMinsSecs, timeStrToSeconds, timeToSeconds, toHrsMinsSecs, toString, toStringWithUnits, toHrsMinsSecsStr)
 
 import Activity.Types exposing (DistanceUnits(..))
-import Distance
 import Parser exposing ((|.), (|=), Parser)
-
-
-calculate : Float -> Int -> Int
-calculate distanceMeters pace =
-    (Distance.fromMeters Miles distanceMeters) * (toFloat pace)
-        |> round
-
 
 toString : Int -> String
 toString seconds =

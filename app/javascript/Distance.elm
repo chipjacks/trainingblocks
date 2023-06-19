@@ -1,5 +1,6 @@
-module Distance exposing (calculate, fromMeters, round1, toMeters, toRaceDistance)
+module Distance exposing (calculate, calculateDuration, fromMeters, round1, toMeters, toRaceDistance, toStringWithUnits)
 
+import Activity
 import Activity.Types exposing (DistanceUnits(..), RaceDistance(..))
 
 
@@ -10,6 +11,23 @@ calculate units duration pace =
         |> toMeters Miles
         |> fromMeters units
         |> round1
+
+
+calculateDuration : Float -> Int -> Int
+calculateDuration distanceMeters pace =
+    (fromMeters Miles distanceMeters) * (toFloat pace)
+        |> round
+
+
+toStringWithUnits : Maybe DistanceUnits -> Float -> String
+toStringWithUnits unitsM dist =
+    let
+        units = Maybe.withDefault Miles unitsM
+    in
+    String.join ""
+        [ fromMeters units dist |> (*) 10 |> round |> toFloat |> (\d -> d / 10) |> String.fromFloat
+        , Activity.distanceUnits.toString units
+        ]
 
 
 toMeters : DistanceUnits -> Float -> Float

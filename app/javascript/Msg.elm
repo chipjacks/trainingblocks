@@ -31,6 +31,7 @@ type alias ActivityConfigs =
     { paces : PaceList StandardPace
     , customPaces : PaceList String
     , emojis : EmojiDict
+    , showTime : Bool
     }
 
 

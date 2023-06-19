@@ -10,6 +10,7 @@ import Activity.View
 import ActivityShape
 import Browser.Dom as Dom
 import Date exposing (Date)
+import Duration
 import Effect exposing (Effect)
 import Html exposing (Html, a, button, div, text)
 import Html.Attributes exposing (attribute, class, id, style)
@@ -462,8 +463,7 @@ titleWeek activities =
                     , style "border-radius" "0.7rem"
                     , style "white-space" "nowrap"
                     ]
-                    [ text <|
-                        List.foldr (++) "" [ String.fromInt (hours seconds), "h ", String.fromInt (minutes seconds), "m" ]
+                    [ text (Duration.toStringWithUnits seconds)
                     ]
                 ]
     in

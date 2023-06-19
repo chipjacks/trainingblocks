@@ -10,7 +10,7 @@ import Duration
 import Duration.View
 import Html exposing (Html, text)
 import Html.Attributes exposing (class, style)
-import Html.Events
+import Html.Events exposing (onClick)
 import Html.Keyed
 import Http
 import Json.Decode as Decode
@@ -32,7 +32,7 @@ import UI.Navbar as Navbar
 import UI.Select
 import UI.Skeleton as Skeleton
 import UI.Toast
-import UI.Util exposing (attributeMaybe, borderStyle, onPointerMove, styleIf, viewIf, viewMaybe)
+import UI.Util exposing (attributeIf, attributeMaybe, borderStyle, onPointerMove, styleIf, viewIf, viewMaybe)
 import Validate exposing (Field)
 
 
@@ -50,7 +50,7 @@ main =
 
 init : App.Env -> ( Model, Cmd Msg )
 init env =
-    ( Model (initPaces []) Nothing Nothing (initRaceDuration Nothing) (Err "") Loading (Err "")
+    ( Model (initPaces []) Nothing Nothing (initRaceDuration Nothing) (Err "") Nothing Loading (Err "")
     , Task.attempt GotSettings Api.getSettings
     )
 
@@ -85,6 +85,7 @@ type alias Model =
     , raceDistance : Maybe RaceDistance
     , raceDuration : Validate.Field ( String, String, String ) Int
     , level : Result String Int
+    , showTime : Maybe Bool
     , status : FormStatus
     , result : Result String Settings
     }
@@ -120,6 +121,7 @@ type Msg
     | PointerUp
     | SelectedRaceDistance String
     | EditedDuration ( String, String, String )
+    | CheckedShowTime
     | NoOp
 
 
@@ -144,6 +146,7 @@ update env msg model =
                         , trainingPaces = initPaces settings.paces
                         , raceDistance = Just settings.raceDistance
                         , raceDuration = initRaceDuration (Just settings.raceDuration)
+                        , showTime = Just settings.showTime
                       }
                         |> updateLevel
                         |> updateResult
@@ -261,6 +264,12 @@ update env msg model =
             , Cmd.none
             )
 
+        CheckedShowTime ->
+            ( { model | showTime = model.showTime |> Maybe.map not }
+                |> updateResult
+            , Cmd.none
+            )
+
         NoOp ->
             ( model, Cmd.none )
 
@@ -313,6 +322,7 @@ updateResult model =
                     , raceDistance = distance
                     , raceDuration = duration
                     , level = level
+                    , showTime = model.showTime |> Maybe.withDefault False
                     }
                 )
                 (model.raceDistance |> Result.fromMaybe "" |> withMissingRaceError)
@@ -350,7 +360,7 @@ view model =
 
 
 viewBody : Model -> Html Msg
-viewBody { trainingPaces, dragging, status, raceDistance, raceDuration, level, result } =
+viewBody { trainingPaces, dragging, status, raceDistance, raceDuration, level, showTime, result } =
     column [ style "margin" "15px", style "margin-top" "40px", style "margin-bottom" "40px" ]
         [ viewStatusMessage status result
         , row [ style "flex-wrap" "wrap" ]
@@ -387,13 +397,35 @@ viewBody { trainingPaces, dragging, status, raceDistance, raceDuration, level, r
                 ]
             , column [ class "column--spacer" ] []
             , compactColumn [ class "column--mobile" ]
-                [ row [ style "margin-top" "10px", style "margin-bottom" "30px" ]
+                [ row [ style "margin-top" "10px" ]
                     [ column [ styleIf (status == Posted) "opacity" "0.5", style "margin-left" "-10px" ]
                         [ viewTrainingPaces dragging (Selection.selectedIndex trainingPaces) (Selection.toList trainingPaces)
                         , viewIf (status /= Loading) viewAddButton
                         , viewMaybe dragging (\d -> viewDraggedPace d trainingPaces)
                         ]
                     ]
+                ]
+            ]
+        , Html.hr [ class "hr--spacer" ] []
+        , row [ style "flex-wrap" "wrap" ]
+            [ compactColumn [ class "column--mobile" ]
+                [ row [ style "align-items" "flex-end" ]
+                    [ Html.h3 [] [ Html.text "Show Time" ]
+                    ]
+                , Html.text "Display time instead of distance in subtitles and weekly totals."
+                ]
+            , column [ class "column--spacer" ] []
+            , compactColumn [ class "column--mobile" ]
+                [ Html.input
+                    [ onClick CheckedShowTime
+                    , Html.Attributes.attribute "type" "checkbox"
+                    , style "width" "1.5rem"
+                    , style "height" "1.5rem"
+                    , style "margin-bottom" "30px"
+                    , style "margin-top" "10px"
+                    , attributeIf (showTime == Just True) (Html.Attributes.attribute "checked" "")
+                    ]
+                    []
                 ]
             ]
         ]

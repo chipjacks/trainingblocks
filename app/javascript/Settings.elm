@@ -13,6 +13,7 @@ type alias Settings =
     , raceDistance : RaceDistance
     , raceDuration : Int
     , level : Int
+    , showTime : Bool
     }
 
 
@@ -27,6 +28,7 @@ decoder =
         |> required "race_distance" raceDistance.decoder
         |> required "race_duration" Decode.int
         |> required "level" Decode.int
+        |> required "show_time" Decode.bool
 
 
 encoder : Settings -> Encode.Value
@@ -43,4 +45,5 @@ encoder settings =
         , ( "race_distance", raceDistance.encode settings.raceDistance )
         , ( "race_duration", Encode.int settings.raceDuration )
         , ( "level", Encode.int settings.level )
+        , ( "show_time", Encode.bool settings.showTime )
         ]

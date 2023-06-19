@@ -22,11 +22,17 @@ class SettingsController < ApplicationController
 
   def setting_params
     params.permit(
-      [{ paces: %i[name pace] }, :race_distance, :race_duration, :level]
+      [
+        { paces: %i[name pace] },
+        :race_distance,
+        :race_duration,
+        :level,
+        :show_time,
+      ],
     )
   end
 
   def required_fields
-    %w[paces race_distance race_duration level]
+    %w[paces race_distance race_duration level show_time]
   end
 end

@@ -10,6 +10,7 @@ import Activity.View
 import ActivityShape
 import Browser.Dom as Dom
 import Date exposing (Date)
+import Distance
 import Duration
 import Effect exposing (Effect)
 import Html exposing (Html, a, button, div, text)
@@ -355,7 +356,7 @@ viewWeek activities today target start isMoving activeId configs =
                 |> List.map (\d -> viewWeekDay ( d, filterActivities d d activities ) (d == today) (Just d == target) isMoving activeId configs)
     in
     row [ style "padding" "0 0.5rem", styleIf isNewMonth "margin-top" "1rem" ] <|
-        titleWeek activities
+        titleWeek configs activities
             :: dayViews
 
 
@@ -421,8 +422,8 @@ viewWeekDay ( date, activities ) isToday isTarget isMoving activeId configs =
                 activities
 
 
-titleWeek : List Activity -> Html msg
-titleWeek activities =
+titleWeek : ActivityConfigs -> List Activity -> Html msg
+titleWeek configs activities =
     let
         run =
             Activity.Aggregate.duration [ Activity.Data.run, Activity.Data.visible ] activities
@@ -435,6 +436,9 @@ titleWeek activities =
 
         minutes duration =
             remainderBy 60 (duration // 60)
+
+        runDistance =
+            Activity.Aggregate.distance [ Activity.Data.run, Activity.Data.visible ] activities
 
         durationPillBox seconds tag =
             row
@@ -463,7 +467,10 @@ titleWeek activities =
                     , style "border-radius" "0.7rem"
                     , style "white-space" "nowrap"
                     ]
-                    [ text (Duration.toStringWithUnits seconds)
+                    [ if not configs.showTime && tag == "Run" then
+                        text (Distance.toStringWithUnits Nothing runDistance)
+                      else
+                        text (Duration.toStringWithUnits seconds)
                     ]
                 ]
     in

@@ -12,5 +12,9 @@ FactoryBot.define do
     trait :laps do
       data { load_fixture('strava_activity_with_laps.json') }
     end
+
+    trait :swim_with_laps do
+      data { load_fixture('strava_swim_with_laps.json') }
+    end
   end
 end

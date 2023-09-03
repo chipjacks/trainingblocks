@@ -39,9 +39,9 @@ class Activity < ApplicationRecord
     data = {}
 
     if activity[:laps]
-      data[:laps] = parse_strava_laps(activity[:laps])
+      data[:laps] = parse_strava_laps(activity[:laps], activity[:type])
     else
-      data[:laps] = parse_strava_laps([activity])
+      data[:laps] = parse_strava_laps([activity], activity[:type])
     end
 
     activity_hash = {
@@ -103,12 +103,14 @@ class Activity < ApplicationRecord
     nil
   end
 
-  def self.parse_strava_laps(laps)
+  def self.parse_strava_laps(laps, type)
     laps.map do |lap|
       type =
         if lap[:type] === RUN
           RUN
-        elsif !lap[:type]
+        elsif !lap[:type] && type === RUN
+          RUN
+        elsif !lap[:type] && !type
           RUN
         else
           OTHER

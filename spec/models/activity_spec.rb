@@ -64,6 +64,11 @@ RSpec.describe Activity, type: :model do
         activity.data['laps'].map { |l| l['type'] = Activity::OTHER }
       expect(activity.run?).to eq(false)
     end
+
+    it 'returns false if top-level activity type is not run' do
+      activity = Activity.from_strava_activity(build(:import, :swim_with_laps))
+      expect(activity.run?).to eq(false)
+    end
   end
 
   describe '#match_or_create' do

@@ -240,7 +240,7 @@ view model activities activeId activeRataDie isMoving configs =
                             (\d ->
                                 ( Date.toIsoString d
                                 , Html.Lazy.lazy7 viewWeek
-                                    (filterActivities d (Date.add Date.Weeks 1 d) activities)
+                                    (filterActivities d (Date.add Date.Days 6 d) activities)
                                     today
                                     target
                                     d

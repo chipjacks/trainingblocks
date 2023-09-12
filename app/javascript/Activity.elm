@@ -1,7 +1,6 @@
 module Activity exposing (activityType, decoder, distanceUnits, effort, encoder, initActivityData, mprLevel, newId, raceDistance)
 
 import Activity.Data
-import Activity.Laps
 import Activity.Types exposing (Activity, ActivityData, ActivityType(..), Completion(..), DistanceUnits(..), Effort(..), LapData(..), RaceDistance(..))
 import Date exposing (Date)
 import Enum exposing (Enum)

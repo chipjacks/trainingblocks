@@ -1,6 +1,7 @@
 module Activity.Laps exposing (sum, updateField)
 
 import Activity.Types exposing (Activity, ActivityData, ActivityType(..), Completion(..), LapData(..))
+import Pace
 
 
 updateField : (ActivityData -> ActivityData) -> LapData -> LapData
@@ -23,8 +24,8 @@ sum laps =
             { activityType = Run
             , duration = Just (duration laps)
             , completed = completed laps
-            , pace = Nothing
-            , distance = Nothing
+            , pace = Just (pace laps)
+            , distance = Just (distance laps)
             , distanceUnits = Nothing
             , elevationGain = Just (elevationGain laps)
             , race = Nothing
@@ -36,6 +37,17 @@ sum laps =
 duration : List ActivityData -> Int
 duration list =
     List.filterMap .duration list
+        |> List.sum
+
+
+pace : List ActivityData -> Int
+pace list =
+    Pace.calculate (duration list) (distance list)
+
+
+distance : List ActivityData -> Float
+distance list =
+    List.filterMap .distance list
         |> List.sum
 
 

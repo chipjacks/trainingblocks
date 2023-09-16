@@ -103,7 +103,7 @@ class Activity < ApplicationRecord
   def update_strava_description
     if planned_duration && import
       strava_description =
-        "#{human_duration(planned_duration)}planned on RhinoLog.app"
+        "#{human_duration(planned_duration)} planned on RhinoLog.app"
       UpdateStravaDescriptionJob.perform_later(
         user,
         import.id,
@@ -116,9 +116,8 @@ class Activity < ApplicationRecord
     ActiveSupport::Duration
       .build(planned_duration)
       .parts
-      .map do |key, value|
-        key == :seconds ? [] : [value.to_i, key.to_s.first].join
-      end
+      .map { |key, value| key == :seconds ? [] : [value.to_i, key.to_s] }
+      .flatten
       .join(' ')
   end
 

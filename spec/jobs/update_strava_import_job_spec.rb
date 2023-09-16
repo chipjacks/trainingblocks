@@ -37,7 +37,7 @@ RSpec.describe UpdateStravaImportJob, type: :job do
       stub =
         stub_activities_put(
           import,
-          { description: '52m planned on RhinoLog.app' },
+          { description: '52 minutes planned on RhinoLog.app' },
         )
       perform_enqueued_jobs
       expect(a_request(:put, STRAVA_ACTIVITIES_API_PATH)).to have_been_requested

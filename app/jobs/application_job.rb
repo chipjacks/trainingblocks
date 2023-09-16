@@ -3,7 +3,6 @@ class ApplicationJob < ActiveJob::Base
 
   retry_on StravaClient::ApiError, wait: :exponentially_longer do |job, error|
     logger.error "Strava API exception: #{error.response_body}"
-    binding.pry
     Rollbar.error(
       error,
       error.response_body,

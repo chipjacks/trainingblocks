@@ -13,6 +13,9 @@ class UpdateStravaDescriptionJob < ApplicationJob
     strava_client.update_activity_by_id(strava_activity_id, opts)
   rescue StravaClient::ApiError => e
     logger.error "Strava API exception: #{e.message} #{e.response_body}"
-    raise e
+    unless e.response_body =~ /"field":"activity:write_permission"/ &&
+             e.response_body =~ /"code":"missing"/
+      raise e
+    end
   end
 end

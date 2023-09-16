@@ -128,4 +128,11 @@ RSpec.describe Activity, type: :model do
       expect(activity.data['laps'].length > 0).to be_truthy
     end
   end
+
+  describe '#human_duration' do
+    it 'returns properly formatted and pluralized string' do
+      activity = Activity.from_strava_activity(build(:import))
+      expect(activity.human_duration(63 * 60 + 24)).to eq('1 hour 3 minutes')
+    end
+  end
 end

@@ -114,9 +114,15 @@ class Activity < ApplicationRecord
 
   def human_duration(seconds)
     ActiveSupport::Duration
-      .build(planned_duration)
+      .build(seconds)
       .parts
-      .map { |key, value| key == :seconds ? [] : [value.to_i, key.to_s] }
+      .map do |key, value|
+        if key == :seconds
+          []
+        else
+          [value.to_i, key.to_s[0..-2].pluralize(value.to_i)]
+        end
+      end
       .flatten
       .join(' ')
   end

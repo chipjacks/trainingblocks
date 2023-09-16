@@ -6,6 +6,8 @@ class Activity < ApplicationRecord
   RUN = 'Run'
   OTHER = 'Other'
 
+  DURATION_MATCH_THRESHOLD = 0.2
+
   def match_or_create
     match =
       Activity
@@ -16,16 +18,19 @@ class Activity < ApplicationRecord
     if match && match.id == self.id
       match.description = self.description
       match.save!
+      match
 
       # no activity created yet, or the one that was created has a different import already
     elsif !match || (match && match.import)
       self.save!
+      self
 
       # matching activity found without an import associated already
     elsif !match.import
       match.import = self.import
       match.data['laps'] = self.data['laps']
       match.save!
+      match
     else
       nil
     end
@@ -83,16 +88,38 @@ class Activity < ApplicationRecord
       self.run? && planned_activity.run? ||
         (!self.run? && !planned_activity.run?)
 
-    ten_minutes = 10 * 60
+    # planned duration must be threshold% more or less than completed duration
     same_duration =
       if self.completed_duration && planned_activity.planned_duration
         (self.completed_duration - planned_activity.planned_duration).abs <
-          ten_minutes
+          [10, DURATION_MATCH_THRESHOLD * planned_activity.planned_duration].max
       else
         false
       end
 
     same_date && same_type && same_duration
+  end
+
+  def update_strava_description
+    if planned_duration && import
+      strava_description =
+        "#{human_duration(planned_duration)}planned on RhinoLog.app"
+      UpdateStravaDescriptionJob.perform_later(
+        user,
+        import.id,
+        strava_description,
+      )
+    end
+  end
+
+  def human_duration(seconds)
+    ActiveSupport::Duration
+      .build(planned_duration)
+      .parts
+      .map do |key, value|
+        key == :seconds ? [] : [value.to_i, key.to_s.first].join
+      end
+      .join(' ')
   end
 
   private

@@ -94,3 +94,5 @@ RSpec.configure do |config|
   Kernel.srand config.seed
 =end
 end
+
+STRAVA_ACTIVITIES_API_PATH = %r{strava.com/api/v3/activities/.+}

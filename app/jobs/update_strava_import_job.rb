@@ -1,7 +1,7 @@
 class UpdateStravaImportJob < ApplicationJob
   queue_as :default
 
-  def perform(user, strava_activity_id)
+  def perform(user, strava_activity_id, is_create = false)
     StravaClient.configure do |config|
       config.access_token = user.get_strava_access_token
     end
@@ -19,7 +19,9 @@ class UpdateStravaImportJob < ApplicationJob
 
     activity = Activity.from_strava_activity(import)
     res = activity.match_or_create
-    res.update_strava_description
+    if is_create
+      res.update_strava_description
+    end
   rescue StravaClient::ApiError => e
     logger.error "Strava API exception: #{e.message} #{e.response_body}"
     raise e

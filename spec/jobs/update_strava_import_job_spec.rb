@@ -33,7 +33,7 @@ RSpec.describe UpdateStravaImportJob, type: :job do
       activity.import = nil
       activity.save!
       stub_activities_get(import)
-      UpdateStravaImportJob.perform_now(user, import.id)
+      UpdateStravaImportJob.perform_now(user, import.id, true)
       stub =
         stub_activities_put(
           import,

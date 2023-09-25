@@ -13,7 +13,11 @@ class ImportsController < ApplicationController
         import.destroy!
       else
         # "create" or "update"
-        UpdateStravaImportJob.perform_later(user, params[:object_id])
+        UpdateStravaImportJob.perform_later(
+          user,
+          params[:object_id],
+          params[:aspect_type] == 'create',
+        )
       end
     else
       # TODO: handle api deauthorization

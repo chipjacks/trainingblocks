@@ -19,9 +19,7 @@ class UpdateStravaImportJob < ApplicationJob
 
     activity = Activity.from_strava_activity(import)
     res = activity.match_or_create
-    if is_create
-      res.update_strava_description
-    end
+    res.update_strava_description(import.data['description']) if is_create
   rescue StravaClient::ApiError => e
     logger.error "Strava API exception: #{e.message} #{e.response_body}"
     raise e

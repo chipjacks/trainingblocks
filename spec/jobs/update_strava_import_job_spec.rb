@@ -26,6 +26,7 @@ RSpec.describe UpdateStravaImportJob, type: :job do
 
     it 'updates strava description with planned duration' do
       import = build(:import, :laps, user: user)
+      import.data['description'] = 'Great run on a nice day!'
       activity = Activity.from_strava_activity(import)
       activity.data['planned'] = activity.data['laps']
       activity.data['laps'] = []
@@ -37,7 +38,10 @@ RSpec.describe UpdateStravaImportJob, type: :job do
       stub =
         stub_activities_put(
           import,
-          { description: '52 minutes planned on RhinoLog.app' },
+          {
+            description:
+              "Great run on a nice day!\n\n52 minutes planned on RhinoLog.app",
+          },
         )
       perform_enqueued_jobs
       expect(a_request(:put, STRAVA_ACTIVITIES_API_PATH)).to have_been_requested

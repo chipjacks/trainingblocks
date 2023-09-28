@@ -40,7 +40,7 @@ RSpec.describe UpdateStravaImportJob, type: :job do
           import,
           {
             description:
-              "Great run on a nice day!\n\n52 minutes planned on RhinoLog.app",
+              "Great run on a nice day!\n\n52 minutes planned on https://RhinoLog.app",
           },
         )
       perform_enqueued_jobs

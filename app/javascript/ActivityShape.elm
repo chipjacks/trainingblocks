@@ -140,6 +140,7 @@ viewBlock { width, height } color completed emojiM offset =
         , style "margin-top" <| String.fromInt offset ++ "px"
         , style "margin-left" <| String.fromInt offset ++ "px"
         , styleIf (offset /= 0) "position" "absolute"
+        , style "border" ("1px solid " ++ colorString color)
         , class "block"
         , case completed of
             Completed ->
@@ -147,12 +148,7 @@ viewBlock { width, height } color completed emojiM offset =
 
             Planned ->
                 style "background-color" "white"
-        , case completed of
-            Completed ->
-                style "border" "1px solid white"
-
-            Planned ->
-                style "border" ("1px solid " ++ colorString color)
+        , styleIf (completed == Completed && offset /= 0) "border-color" "white"
         ]
         [ viewIf (offset == 0)
             (viewMaybe emojiM

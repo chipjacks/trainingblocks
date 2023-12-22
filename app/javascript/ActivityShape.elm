@@ -7,7 +7,8 @@ import Html exposing (Html, div)
 import Html.Attributes exposing (class, style)
 import Msg exposing (ActivityConfigs)
 import Pace exposing (StandardPace)
-import UI.Util exposing (viewMaybe)
+import UI.Layout exposing (compactColumn)
+import UI.Util exposing (styleIf, viewIf, viewMaybe)
 
 
 type Shape
@@ -72,21 +73,37 @@ view { paces, emojis } data =
 viewShape : Shape -> Html msg
 viewShape shape =
     case shape of
-        Block { width, height } color completed emojiM ->
-            div
-                [ style "width" <| String.fromFloat (width * 0.3) ++ "rem"
-                , style "height" <| String.fromFloat height ++ "rem"
-                , style "border" ("1px solid " ++ colorString color)
-                , style "border-radius" "2px"
-                , class "block"
-                , case completed of
-                    Completed ->
-                        style "background-color" (colorString color)
+        Block size color completed emojiM ->
+            let
+                maxBlockHeight =
+                    20
+            in
+            if size.height > maxBlockHeight then
+                let
+                    offsets =
+                        List.range 0 (round size.height // maxBlockHeight)
 
-                    Planned ->
-                        style "background-color" "white"
-                ]
-                [ viewMaybe emojiM Emoji.view ]
+                    offsetWidth =
+                        3
+                in
+                compactColumn
+                    [ style "position" "relative"
+                    , style "height" <| String.fromFloat (maxBlockHeight + ((List.length offsets |> toFloat) * 0.1)) ++ "rem"
+                    , style "width" <| String.fromFloat (size.width * 0.3 + ((List.length offsets |> toFloat) * 0.2)) ++ "rem"
+                    ]
+                    (offsets
+                        |> List.map
+                            (\i ->
+                                if i == List.length offsets - 1 then
+                                    viewBlock { size | height = remainderBy (maxBlockHeight * 600) (round (size.height * 600)) |> toFloat |> (\h -> h / 600) } color completed emojiM (i * offsetWidth)
+
+                                else
+                                    viewBlock { size | height = maxBlockHeight } color completed emojiM (i * offsetWidth)
+                            )
+                    )
+
+            else
+                viewBlock size color completed emojiM 0
 
         Circle color completed emojiM ->
             let
@@ -112,6 +129,39 @@ viewShape shape =
 
         Emoji emojiM ->
             Emoji.view (Maybe.withDefault Emoji.default emojiM)
+
+
+viewBlock : { width : Float, height : Float } -> Color -> Completion -> Maybe EmojiData -> Int -> Html msg
+viewBlock { width, height } color completed emojiM offset =
+    div
+        [ style "width" <| String.fromFloat (width * 0.3) ++ "rem"
+        , style "height" <| String.fromFloat height ++ "rem"
+        , style "border-radius" "2px"
+        , style "margin-top" <| String.fromInt offset ++ "px"
+        , style "margin-left" <| String.fromInt offset ++ "px"
+        , styleIf (offset /= 0) "position" "absolute"
+        , class "block"
+        , case completed of
+            Completed ->
+                style "background-color" (colorString color)
+
+            Planned ->
+                style "background-color" "white"
+        , case completed of
+            Completed ->
+                style "border" "1px solid white"
+
+            Planned ->
+                style "border" ("1px solid " ++ colorString color)
+        ]
+        [ viewIf (offset == 0)
+            (viewMaybe emojiM
+                (\e ->
+                    div [ style "position" "absolute", style "z-index" "3", style "margin-left" "0.2rem", style "margin-top" "3px" ]
+                        [ Emoji.view e ]
+                )
+            )
+        ]
 
 
 colorString : Color -> String

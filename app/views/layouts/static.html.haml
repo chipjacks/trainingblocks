@@ -1,0 +1,9 @@
+= stylesheet_link_tag 'static', media: 'all'
+
+= content_for :body do
+  = render "shared/navbar"
+  .row{style: "margin-top: var(--navbar-height);"}
+    .column.container.container--static
+      = yield
+
+= render template: "layouts/application"

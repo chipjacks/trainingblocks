@@ -1,0 +1,12 @@
+
+.row__button--drag {
+  cursor: grab;
+  background-color: rgba(0, 0, 0, 0);
+}
+.row__button--drag:hover {
+  background-color: inherit;
+}
+.row__button--drag:active {
+  cursor: grabbing;
+}
+

@@ -1,0 +1,51 @@
+// Place all the styles related to the home controller here.
+// They will automatically be included in application.css.
+// You can use Sass (SCSS) here: http://sass-lang.com/
+
+.feature-list {
+  font-size: 1.2rem;
+}
+
+.feature-list li {
+  margin: 15px 0;
+}
+
+.feature-list i {
+  margin-right: 8px;
+}
+
+.header {
+  font-weight: bold;
+  color: var(--black-900);
+}
+
+ul {
+  margin: 0;
+}
+
+.feature-image {
+  margin: 40px 0;
+}
+
+.feature-image img {
+  max-width: 100%;
+}
+
+.description {
+  color: var(--black-500);
+}
+
+.footer a {
+  color: var(--black-500);
+  font-size: 0.9rem;
+}
+
+@media screen and (max-width: 450px) {
+  .footer .row {
+    flex-direction: column;
+  }
+
+  .footer a {
+    margin-top: 5px;
+  }
+}

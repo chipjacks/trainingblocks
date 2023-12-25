@@ -1,0 +1,8 @@
+- content_for :head do
+  = javascript_include_tag 'calendar', 'data-turbolinks-track': 'reload'
+  = stylesheet_link_tag 'calendar', media: 'all'
+  = elm_flags
+
+  %script{src: "https://code.jquery.com/pep/0.4.3/pep.min.js"}
+
+#elm-main

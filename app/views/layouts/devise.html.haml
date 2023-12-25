@@ -1,0 +1,9 @@
+= content_for :body do
+  = render "shared/navbar"
+  .row.expand
+    .sidebar
+    .container
+      .column{ style: "margin-left: 10px; margin-right: 10px;" }
+        = yield
+
+= render template: "layouts/application"

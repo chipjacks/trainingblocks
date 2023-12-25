@@ -1,0 +1,22 @@
+{
+  "name": "training_blocks",
+  "private": true,
+  "scripts": {
+    "dev": "./bin/dev",
+    "test": "elm-test app/javascript/Tests",
+    "build": "webpack --config ./config/webpack/webpack.config.js"
+  },
+  "dependencies": {
+    "csrf-xhr": "^1.0.0",
+    "elm": "^0.19.1-3",
+    "elm-webpack-loader": "^7.0.1",
+    "webpack": "^5.75.0",
+    "webpack-cli": "^5.0.1"
+  },
+  "devDependencies": {
+    "@prettier/plugin-ruby": "^1.6.1",
+    "elm-hot-webpack-loader": "^1.1.7",
+    "elm-test": "^0.19.1-revision6",
+    "prettier": "^2.3.2"
+  }
+}

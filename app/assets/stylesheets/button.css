@@ -1,0 +1,112 @@
+.button {
+  position: relative;
+  height: min-content;
+  background-color: var(--grey-100);
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  text-decoration: none;
+  color: black;
+}
+.button:hover {
+  background-color: var(--grey-300);
+  z-index: 1;
+}
+.button:focus {
+  border-color: var(--blue-500);
+  outline: none;
+  z-index: 1;
+}
+
+/* SIZING */
+
+.button--tiny {
+  padding: 0.1rem 0.4rem;
+}
+.button--small {
+  padding: 0.3rem 0.6rem;
+}
+.button--medium {
+  padding: 0.3rem 0.8rem;
+}
+.button--tall {
+  padding: 0.5rem 1rem;
+}
+.button--wide {
+  padding: 0.3rem 2rem;
+}
+
+/* COLOR */
+
+.button--basic {
+  background-color: #fff;
+}
+.button--primary {
+  background-color: var(--blue-500);
+  color: #fff;
+}
+.button--primary:hover {
+  background-color: var(--blue-700);
+}
+.button--orange {
+  background-color: var(--orange-500);
+  color: #fff;
+}
+.button--orange:hover {
+  background-color: var(--orange-700);
+}
+
+/* GROUP */
+
+.button-group > .button {
+  border-radius: 0;
+  margin: 0;
+}
+.button-group > .button:first-child {
+  border-top-left-radius: 0.25rem;
+  border-bottom-left-radius: 0.25rem;
+}
+.button-group > .button:last-child {
+  border-top-right-radius: 0.25rem;
+  border-bottom-right-radius: 0.25rem;
+}
+
+/* TOOLTIP */
+
+.button__tooltip {
+  display: none;
+  position: absolute;
+  top: -2rem;
+  z-index: 20;
+  transform: translateX(-35%);
+  background-color: rgba(0, 0, 0, 0.5);
+  width: fit-content;
+  white-space: nowrap;
+  color: white;
+  border-radius: 5px;
+  padding: 5px;
+  opacity: 0;
+}
+
+.button__tooltip--right {
+  top: 50%;
+  left: 100%;
+  transform: translate(5px, -50%);
+}
+.button__tooltip--bottom {
+  top: 100%;
+  transform: translate(-20%, 5px);
+}
+.button__tooltip--left {
+  top: 50%;
+  right: 100%;
+  transform: translate(-5px, -50%);
+}
+
+.button:hover > .button__tooltip {
+  display: block;
+  animation: appear 0.5s ease 0.5s;
+  animation-fill-mode: forwards;
+}

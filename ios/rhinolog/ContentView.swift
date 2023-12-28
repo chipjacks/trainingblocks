@@ -14,7 +14,7 @@ struct ContentView:  View {
 
 	var body: some View {
 		VStack(alignment: .leading, spacing: 16) {
-			if let todayActivity = activities?.first(where: { $0.date == currentDate() }) {
+			if let todayActivity = activities?.first {
 				// Today Section
 				VStack(alignment: .leading, spacing: 16) {
 					Text("Today")
@@ -27,10 +27,10 @@ struct ContentView:  View {
 					Text("Description: \(todayActivity.description)")
 						.font(.subheadline)
 					
-					Text("Distance: \(todayActivity.data.laps.first?.distance ?? 0) miles")
+					Text("Distance: \(todayActivity.data.laps?.first?.distance ?? 0) miles")
 						.font(.subheadline)
 					
-					Text("Pace: \(todayActivity.data.laps.first?.pace ?? 0) min/mile")
+					Text("Pace: \(todayActivity.data.laps?.first?.pace ?? 0) min/mile")
 						.font(.subheadline)
 					
 					Spacer()

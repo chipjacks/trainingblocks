@@ -22,15 +22,15 @@ struct Activity: Codable {
 	let data: ActivityData
 	
 	struct ActivityData: Codable {
-		let laps: [Lap]
+		let laps: [Lap]?
 		
 		struct Lap: Codable {
 			let type: String
-			let pace: Int
-			let distance: Double
-			let duration: Int
-			let elevationGain: Double
-			let completed: Bool
+			let pace: Int?
+			let distance: Double?
+			let duration: Int?
+			let elevationGain: Double?
+			let completed: Bool?
 		}
 	}
 }

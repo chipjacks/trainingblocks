@@ -2,12 +2,14 @@ class User < ApplicationRecord
   has_many :activities, dependent: :destroy
   has_many :imports, dependent: :destroy
   has_one :setting, dependent: :destroy
+  attr_accessor :jwt_token
 
   after_save :initial_strava_import, if: :saved_change_to_uid?
 
   # Include default devise modules. Others available are:
   # :lockable, :timeoutable
   devise :database_authenticatable,
+         :jwt_authenticatable,
          :registerable,
          :confirmable,
          :recoverable,
@@ -15,7 +17,12 @@ class User < ApplicationRecord
          :trackable,
          :validatable,
          :omniauthable,
-         omniauth_providers: %i[strava]
+         omniauth_providers: %i[strava],
+         jwt_revocation_strategy: Devise::JWT::RevocationStrategies::Null # TODO
+
+  def on_jwt_dispatch(token, payload)
+    self.jwt_token = token
+  end
 
   def last_activity_update
     last_update =

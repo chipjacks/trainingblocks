@@ -20,18 +20,23 @@ struct SignInView: View {
 				ContentView()
 			} else {
 				Button("Authenticate") {
-					guard let authURL = URL(string: "http://localhost:3000/users/sign_in") else { return }
+					guard let authURL = URL(string: "http://localhost:3000/users/sign_in?v=ios0.1") else { return }
 
 					let authenticationSession = ASWebAuthenticationSession(
 						url: authURL,
 						callbackURLScheme: "rhinolog"
 					) { callbackURL, error in
-						
-						// Handle the callback URL or error here
+						guard error == nil, let callbackURL = callbackURL else { return }
+
+						//   rhinolog://auth?token=1234
+						let queryItems = URLComponents(string: callbackURL.absoluteString)?.queryItems
+						let token = queryItems?.filter({ $0.name == "token" }).first?.value
+						UserDefaults.standard.set(token, forKey: "rhinologUserToken") // TODO use keychain?
+						isSignedIn = true
+
 					}
 					
 					let authenticationPresenter = AuthenticationPresenter()
-
 					authenticationSession.presentationContextProvider = authenticationPresenter
 					authenticationSession.start()
 				}

@@ -17,6 +17,15 @@ class ApiClient {
 		}
 		var request = URLRequest(url: url)
 
+		// Set Authorization Header
+		if let savedToken = UserDefaults.standard.string(forKey: "rhinologUserToken") {
+			request.setValue("Bearer \(savedToken)", forHTTPHeaderField: "Authorization")
+		} else {
+			// Handle the case where the token is not available
+			completion(.failure(ActivityLoadingError.missingToken))
+			return
+		}
+
 		URLSession.shared.dataTask(with: request) { data, response, error in
 			guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
 				completion(.failure(ActivityLoadingError.non200Response(response as? HTTPURLResponse)))
@@ -42,6 +51,7 @@ class ApiClient {
 		case non200Response(HTTPURLResponse?)
 		case invalidData
 		case invalidUrl
+		case missingToken
 	}
 
 }

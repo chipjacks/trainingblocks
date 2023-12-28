@@ -10,6 +10,8 @@
     .field.row
       = f.check_box :remember_me, style: "margin-right: 0.5rem;"
       = f.label :remember_me
+  - if @ios_auth
+    = f.hidden_field :ios_auth, value: 1
   .actions
     = f.submit "Log in", class: "ui button"
 %br/

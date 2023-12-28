@@ -4,7 +4,11 @@ class ApplicationController < ActionController::Base
   private
 
   def after_sign_in_path_for(resource)
-    'rhinolog://token=bananas'
+    if resource.jwt_token && request.params.dig(:user, :ios_auth)
+      'rhinolog://auth?token=' + resource.jwt_token
+    else
+      calendar_path
+    end
   end
 
   def after_sign_out_path_for(resource_or_scope)

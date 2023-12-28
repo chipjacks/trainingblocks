@@ -55,7 +55,7 @@ struct ContentView:  View {
 			}
 		}
 		.onAppear {
-			loadActivities { result in
+			ApiClient.shared.requestActivities { result in
 				switch result {
 				case .success(let loadedActivities):
 					activities = loadedActivities

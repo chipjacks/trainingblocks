@@ -9,11 +9,19 @@ import Foundation
 @testable import rhinolog
 
 struct ActivityFixtures {
-	func TempoThursday() throws -> Activity {
-		let fileURL = Bundle(for: rhinologTests.self).url(forResource: "tempoThursday", withExtension: "json")
-		let data = try Data(contentsOf: fileURL!)
-		let decoder = JSONDecoder()
-		let decodedData = try decoder.decode(Activity.self, from: data)
-		return decodedData
-	}
+    func TempoThursday() throws -> Activity {
+        return try loadFixture("tempoThursday")
+    }
+
+    func CruiseMiles() throws -> Activity {
+        return try loadFixture("cruiseMiles")
+    }
+
+    private func loadFixture(_ name: String) throws -> Activity {
+        let fileURL = Bundle(for: rhinologTests.self).url(forResource: name, withExtension: "json")
+        let data = try Data(contentsOf: fileURL!)
+        let decoder = JSONDecoder()
+        let decodedData = try decoder.decode(Activity.self, from: data)
+        return decodedData
+    }
 }

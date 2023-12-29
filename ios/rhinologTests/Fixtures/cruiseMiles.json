@@ -1,0 +1,63 @@
+{
+	"data": {
+	  "laps": [],
+	  "planned": [
+		{
+		  "completed": false,
+		  "distance": 4345.228800000001,
+		  "distanceUnits": "mi",
+		  "duration": 1200,
+		  "effort": "Easy",
+		  "elevationGain": null,
+		  "emoji": null,
+		  "pace": 450,
+		  "race": null,
+		  "type": "Run"
+		},
+		{
+		  "laps": [
+			{
+			  "completed": false,
+			  "distance": 1609.344,
+			  "distanceUnits": "mi",
+			  "duration": 330,
+			  "effort": "Hard",
+			  "elevationGain": null,
+			  "emoji": null,
+			  "pace": 330,
+			  "race": null,
+			  "type": "Run"
+			},
+			{
+			  "completed": false,
+			  "distance": 482.8032,
+			  "distanceUnits": "mi",
+			  "duration": 120,
+			  "effort": "Easy",
+			  "elevationGain": null,
+			  "emoji": null,
+			  "pace": 475,
+			  "race": null,
+			  "type": "Run"
+			}
+		  ],
+		  "repeats": 4
+		},
+		{
+		  "completed": false,
+		  "distance": 4345.228800000001,
+		  "distanceUnits": "mi",
+		  "duration": 1200,
+		  "effort": "Easy",
+		  "elevationGain": null,
+		  "emoji": null,
+		  "pace": 450,
+		  "race": null,
+		  "type": "Run"
+		}
+	  ]
+	},
+	"date": "2023-12-28",
+	"description": "cruise miles",
+	"id": "8747954808"
+  }

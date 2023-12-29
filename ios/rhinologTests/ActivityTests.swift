@@ -56,8 +56,8 @@ class ActivityTests: XCTestCase {
         XCTAssertEqual(activity.date, "2022-04-14")
         XCTAssertEqual(activity.description, "Lunch Run")
         XCTAssertEqual(activity.data.laps?.count, 1)
-        XCTAssertEqual(activity.data.laps?[0].type, "Run")
-        XCTAssertEqual(activity.data.laps?[0].distance, 9022.2)
+        XCTAssertEqual(activity.data.laps?[0].lap()?.type, "Run")
+        XCTAssertEqual(activity.data.laps?[0].lap()?.distance, 9022.2)
     }
 
     func testConvertActivityWithPlannedLaps() throws {
@@ -65,5 +65,15 @@ class ActivityTests: XCTestCase {
         let customWorkout = activity._toCustomWorkout()
         XCTAssertEqual(customWorkout.displayName, activity.description)
         XCTAssertEqual(customWorkout.blocks.count, activity.data.planned!.count)
+    }
+
+    func testConvertActivityWithPlannedRepeats() throws {
+        let activity = try ActivityFixtures().CruiseMiles()
+        let customWorkout = activity._toCustomWorkout()
+        XCTAssertEqual(customWorkout.displayName, activity.description)
+        XCTAssertEqual(customWorkout.blocks.count, activity.data.planned!.count)
+        XCTAssertEqual(customWorkout.blocks[1].iterations, activity.data.planned?[1].repeats()?.repeats)
+        XCTAssertEqual(customWorkout.blocks[1].steps[0].purpose, .work)
+        XCTAssertEqual(customWorkout.blocks[1].steps[1].purpose, .recovery)
     }
 }

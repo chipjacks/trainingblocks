@@ -25,23 +25,6 @@ struct ContentView: View {
                     Text(todayActivity.description)
                         .font(.headline)
 
-                    if let distanceInMeters = todayActivity.data.laps?.first?.distance {
-                        // Convert distance from meters to miles
-                        let distanceInMiles = Measurement(value: distanceInMeters, unit: UnitLength.meters).converted(to: .miles).value
-
-                        Text("Distance: \(String(format: "%.2f", distanceInMiles)) miles")
-                            .font(.subheadline)
-                    }
-
-                    if let paceInSeconds = todayActivity.data.laps?.first?.pace {
-                        // Convert pace from seconds to MM:SS format
-                        let paceInMinutes = Int(paceInSeconds) / 60
-                        let paceInSecondsRemainder = Int(paceInSeconds) % 60
-
-                        Text("Pace: \(String(format: "%d:%02d", paceInMinutes, paceInSecondsRemainder)) min/mile")
-                            .font(.subheadline)
-                    }
-
                     Spacer()
 
                     Button(action: {

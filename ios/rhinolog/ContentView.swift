@@ -35,7 +35,7 @@ struct ContentView: View {
                             .background(Color.blue)
                             .foregroundColor(.white)
                             .cornerRadius(10)
-                    }.workoutPreview(todayActivity.toWorkoutPlan(), isPresented: $showPreview)
+					}.workoutPreview(todayActivity.toWorkoutPlan()!, isPresented: $showPreview)
                 }
             } else if let error = loadingError {
                 Text("Error: \(error.localizedDescription)")

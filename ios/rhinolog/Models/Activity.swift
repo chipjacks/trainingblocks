@@ -93,33 +93,38 @@ struct Activity: Codable {
         }
     }
 
-    func toWorkoutPlan() -> WorkoutPlan {
-        let workoutPlan = WorkoutPlan(.custom(toCustomWorkout()), id: uuid()!)
+    func toWorkoutPlan() -> WorkoutPlan? {
+        guard let workout = toCustomWorkout() else {
+            return nil
+        }
+        let workoutPlan = WorkoutPlan(.custom(workout), id: uuid()!)
         return workoutPlan
     }
 
-    private func toCustomWorkout() -> CustomWorkout {
+    private func toCustomWorkout() -> CustomWorkout? {
         let workoutActivityType = HKWorkoutActivityType.running
         let workoutLocationType = HKWorkoutSessionLocationType.unknown
         let workoutDisplayName = description
         var workoutSteps: [IntervalBlock] = []
+        guard let laps = data.planned else {
+            return nil
+        }
 
-        if let laps = data.planned {
-            for lapOrRepeat in laps {
-                switch lapOrRepeat {
-                case let .lap(lap):
-                    let interval = lapToIntervalStep(lap: lap)
-                    let block = IntervalBlock(steps: [interval], iterations: 1)
-                    workoutSteps.append(block)
-                case let .repeats(repeats):
-                    let intervals = repeats.laps.map { lapToIntervalStep(lap: $0) }
-                    let block = IntervalBlock(steps: intervals, iterations: repeats.repeats)
-                    workoutSteps.append(block)
-                }
+        let (warmup, mainLaps, cooldown) = extractWarmupAndCooldown(laps: laps) ?? (nil, laps, nil)
+        for lapOrRepeat in mainLaps {
+            switch lapOrRepeat {
+            case let .lap(lap):
+                let interval = lapToIntervalStep(lap: lap)
+                let block = IntervalBlock(steps: [interval], iterations: 1)
+                workoutSteps.append(block)
+            case let .repeats(repeats):
+                let intervals = repeats.laps.map { lapToIntervalStep(lap: $0) }
+                let block = IntervalBlock(steps: intervals, iterations: repeats.repeats)
+                workoutSteps.append(block)
             }
         }
 
-        let customWorkout = CustomWorkout(activity: workoutActivityType, location: workoutLocationType, displayName: workoutDisplayName, warmup: nil, blocks: workoutSteps, cooldown: nil)
+        let customWorkout = CustomWorkout(activity: workoutActivityType, location: workoutLocationType, displayName: workoutDisplayName, warmup: warmup, blocks: workoutSteps, cooldown: cooldown)
         return customWorkout
     }
 
@@ -140,6 +145,21 @@ struct Activity: Codable {
         return interval
     }
 
+    private func extractWarmupAndCooldown(laps: [ActivityData.LapOrRepeat]) -> (WorkoutStep, [ActivityData.LapOrRepeat], WorkoutStep)? {
+        guard laps.count >= 3, let firstLap = laps.first?.lap(), let lastLap = laps.last?.lap() else {
+            return nil
+        }
+
+        guard firstLap.effort == .easy, lastLap.effort == .easy else {
+            return nil
+        }
+
+        let warmup = lapToIntervalStep(lap: firstLap)
+        let cooldown = lapToIntervalStep(lap: lastLap)
+
+        return (warmup.step, laps.dropFirst().dropLast(), cooldown.step)
+    }
+
     func uuid() -> UUID? {
         guard id.count == 10 else { return nil }
         let uuidStr = "00000000-0000-0000-0000-00\(id)"
@@ -149,7 +169,7 @@ struct Activity: Codable {
 
 #if DEBUG
     extension Activity {
-        func _toCustomWorkout() -> CustomWorkout {
+        func _toCustomWorkout() -> CustomWorkout? {
             return toCustomWorkout()
         }
     }

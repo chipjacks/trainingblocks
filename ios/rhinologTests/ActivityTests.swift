@@ -62,18 +62,26 @@ class ActivityTests: XCTestCase {
 
     func testConvertActivityWithPlannedLaps() throws {
         let activity = try ActivityFixtures().TempoThursday()
-        let customWorkout = activity._toCustomWorkout()
+		guard let customWorkout = activity._toCustomWorkout() else {
+			XCTFail("missing workout")
+			return
+		}
         XCTAssertEqual(customWorkout.displayName, activity.description)
         XCTAssertEqual(customWorkout.blocks.count, activity.data.planned!.count)
     }
 
     func testConvertActivityWithPlannedRepeats() throws {
         let activity = try ActivityFixtures().CruiseMiles()
-        let customWorkout = activity._toCustomWorkout()
+		guard let customWorkout = activity._toCustomWorkout() else {
+			XCTFail("missing workout")
+			return
+		}
         XCTAssertEqual(customWorkout.displayName, activity.description)
-        XCTAssertEqual(customWorkout.blocks.count, activity.data.planned!.count)
-        XCTAssertEqual(customWorkout.blocks[1].iterations, activity.data.planned?[1].repeats()?.repeats)
-        XCTAssertEqual(customWorkout.blocks[1].steps[0].purpose, .work)
-        XCTAssertEqual(customWorkout.blocks[1].steps[1].purpose, .recovery)
+        XCTAssertEqual(customWorkout.blocks.count, activity.data.planned!.count - 2)
+		XCTAssertEqual(customWorkout.warmup?.goal, .time(Double((activity.data.planned?[0].lap()?.duration)!), .seconds))
+		XCTAssertEqual(customWorkout.cooldown?.goal, .time(Double((activity.data.planned?.last!.lap()?.duration)!), .seconds))
+        XCTAssertEqual(customWorkout.blocks[0].iterations, activity.data.planned?[1].repeats()?.repeats)
+        XCTAssertEqual(customWorkout.blocks[0].steps[0].purpose, .work)
+        XCTAssertEqual(customWorkout.blocks[0].steps[1].purpose, .recovery)
     }
 }

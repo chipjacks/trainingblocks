@@ -43,7 +43,6 @@ class ActivityTests: XCTestCase {
 
 		let jsonData = json.data(using: .utf8)!
 
-		// When
 		let decoder = JSONDecoder()
 		let container = try decoder.decode(ActivitiesContainer.self, from: jsonData)
 		XCTAssertEqual(container.activities.count, 1)
@@ -55,8 +54,8 @@ class ActivityTests: XCTestCase {
 		XCTAssertEqual(activity.id, "6986041384")
 		XCTAssertEqual(activity.date, "2022-04-14")
 		XCTAssertEqual(activity.description, "Lunch Run")
-		XCTAssertEqual(activity.data.laps.count, 1)
-		XCTAssertEqual(activity.data.laps[0].type, "Run")
-		XCTAssertEqual(activity.data.laps[0].distance, 9022.2)
+		XCTAssertEqual(activity.data.laps?.count, 1)
+		XCTAssertEqual(activity.data.laps?[0].type, "Run")
+		XCTAssertEqual(activity.data.laps?[0].distance, 9022.2)
 	}
 }

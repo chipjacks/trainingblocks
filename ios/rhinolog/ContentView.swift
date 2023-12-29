@@ -6,11 +6,12 @@
 //
 
 import SwiftUI
+import WorkoutKit
 
 struct ContentView:  View {
 	@State private var activities: [Activity]?
 	@State private var loadingError: Error?
-
+	@State var showPreview: Bool = false
 
 	var body: some View {
 		VStack(alignment: .leading, spacing: 16) {
@@ -44,14 +45,14 @@ struct ContentView:  View {
 					Spacer()
 					
 					Button(action: {
-						// Move to Tomorrow logic goes here
+						showPreview.toggle()
 					}) {
-						Text("Move to Tomorrow")
+						Text("Preview Workout")
 							.padding()
 							.background(Color.blue)
 							.foregroundColor(.white)
 							.cornerRadius(10)
-					}
+					}.workoutPreview(WorkoutPlan(.custom(convertActivityToCustomWorkout(activity: todayActivity))), isPresented: $showPreview)
 				}
 			} else if let error = loadingError {
 				Text("Error: \(error.localizedDescription)")

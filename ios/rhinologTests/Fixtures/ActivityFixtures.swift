@@ -9,6 +9,18 @@ import Foundation
 @testable import rhinolog
 
 struct ActivityFixtures {
+    func EasyHour() throws -> Activity {
+        return try loadFixture("easyHour")
+    }
+
+    func EightMile() throws -> Activity {
+        return try loadFixture("eightMile")
+    }
+
+    func EightMileHour() throws -> Activity {
+        return try loadFixture("eightMileHour")
+    }
+
     func TempoThursday() throws -> Activity {
         return try loadFixture("tempoThursday")
     }

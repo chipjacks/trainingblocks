@@ -1,0 +1,22 @@
+{
+"data": {
+  "laps": [],
+  "planned": [
+	{
+	  "completed": false,
+	  "distance": null,
+	  "distanceUnits": "mi",
+	  "duration": 3600,
+	  "effort": "Easy",
+	  "elevationGain": null,
+	  "emoji": null,
+	  "pace": null,
+	  "race": null,
+	  "type": "Run"
+	}
+  ]
+},
+"date": "2023-12-28",
+"description": "easy hour",
+"id": "6864502155"
+}

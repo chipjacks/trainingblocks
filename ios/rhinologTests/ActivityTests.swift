@@ -60,26 +60,54 @@ class ActivityTests: XCTestCase {
         XCTAssertEqual(activity.data.laps?[0].lap()?.distance, 9022.2)
     }
 
-    func testConvertActivityWithPlannedLaps() throws {
+    func testConvertActivityTimeGoal() throws {
+        let activity = try ActivityFixtures().EasyHour()
+        guard let workout = activity._toSingleGoalWorkout() else {
+            XCTFail("missing workout")
+            return
+        }
+        XCTAssertEqual(workout.goal, .time(60 * 60, .seconds))
+    }
+
+    func testConvertActivityDistanceGoal() throws {
+        let activity = try ActivityFixtures().EightMile()
+        guard let workout = activity._toSingleGoalWorkout() else {
+            XCTFail("missing workout")
+            return
+        }
+        XCTAssertEqual(workout.goal, .distance(8, .miles))
+    }
+
+    func testConvertActivityWithPace() throws {
+        let activity = try ActivityFixtures().EightMileHour()
+        guard let pacerWorkout = activity._toPacerWorkout() else {
+            XCTFail("missing workout")
+            return
+        }
+        XCTAssertEqual(pacerWorkout.distance.value, activity.data.planned?.first?.lap()?.distance)
+        XCTAssertEqual(pacerWorkout.time.value, Double((activity.data.planned?.first?.lap()?.duration)!))
+    }
+
+    func testConvertActivityWithLaps() throws {
         let activity = try ActivityFixtures().TempoThursday()
-		guard let customWorkout = activity._toCustomWorkout() else {
-			XCTFail("missing workout")
-			return
-		}
+        guard let customWorkout = activity._toCustomWorkout() else {
+            XCTFail("missing workout")
+            return
+        }
         XCTAssertEqual(customWorkout.displayName, activity.description)
         XCTAssertEqual(customWorkout.blocks.count, activity.data.planned!.count)
     }
 
-    func testConvertActivityWithPlannedRepeats() throws {
+    func testConvertActivityWithRepeats() throws {
         let activity = try ActivityFixtures().CruiseMiles()
-		guard let customWorkout = activity._toCustomWorkout() else {
-			XCTFail("missing workout")
-			return
-		}
+        guard let customWorkout = activity._toCustomWorkout() else {
+            XCTFail("missing workout")
+            return
+        }
         XCTAssertEqual(customWorkout.displayName, activity.description)
         XCTAssertEqual(customWorkout.blocks.count, activity.data.planned!.count - 2)
-		XCTAssertEqual(customWorkout.warmup?.goal, .time(Double((activity.data.planned?[0].lap()?.duration)!), .seconds))
-		XCTAssertEqual(customWorkout.cooldown?.goal, .time(Double((activity.data.planned?.last!.lap()?.duration)!), .seconds))
+        XCTAssertEqual(customWorkout.warmup?.goal, .time(Double((activity.data.planned?[0].lap()?.duration)!), .seconds))
+        XCTAssertEqual(customWorkout.cooldown?.goal, .time(Double((activity.data.planned?.last!.lap()?.duration)!), .seconds))
         XCTAssertEqual(customWorkout.blocks[0].iterations, activity.data.planned?[1].repeats()?.repeats)
         XCTAssertEqual(customWorkout.blocks[0].steps[0].purpose, .work)
         XCTAssertEqual(customWorkout.blocks[0].steps[1].purpose, .recovery)

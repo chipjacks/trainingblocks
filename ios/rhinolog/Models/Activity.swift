@@ -75,10 +75,18 @@ struct Activity: Codable {
             let type: String?
             let pace: Int?
             let distance: Double?
+            let distanceUnits: DistanceUnits?
             let duration: Int?
             let effort: Effort?
             let elevationGain: Double?
             let completed: Bool?
+
+            enum DistanceUnits: String, Codable {
+                case meters = "m"
+                case miles = "mi"
+                case yards = "yd"
+                case kilometers = "km"
+            }
 
             enum Effort: String, Codable {
                 case easy = "Easy"
@@ -94,11 +102,45 @@ struct Activity: Codable {
     }
 
     func toWorkoutPlan() -> WorkoutPlan? {
-        guard let workout = toCustomWorkout() else {
+        if let workout = toPacerWorkout() {
+            return WorkoutPlan(.pacer(workout), id: uuid()!)
+        } else if let workout = toSingleGoalWorkout() {
+            return WorkoutPlan(.goal(workout), id: uuid()!)
+        } else if let workout = toCustomWorkout() {
+            return WorkoutPlan(.custom(workout), id: uuid()!)
+        } else {
             return nil
         }
-        let workoutPlan = WorkoutPlan(.custom(workout), id: uuid()!)
-        return workoutPlan
+    }
+
+    private func toSingleGoalWorkout() -> SingleGoalWorkout? {
+        guard let laps = data.planned, laps.count == 1, let lap = laps.first?.lap() else {
+            return nil
+        }
+
+        if lap.duration != nil && lap.distance != nil {
+            return nil
+        }
+
+        var goal: WorkoutGoal
+        if let duration = lap.duration {
+            goal = .time(Double(duration), .seconds)
+        } else if let distance = lap.distance, let distanceUnits = lap.distanceUnits {
+            let converted = convertDistance(distance: distance, toUnits: distanceUnits)
+            goal = .distance(converted.value, converted.unit)
+        } else {
+            return nil
+        }
+
+        return SingleGoalWorkout(activity: HKWorkoutActivityType.running, goal: goal)
+    }
+
+    private func toPacerWorkout() -> PacerWorkout? {
+        guard let laps = data.planned, laps.count == 1, let lap = laps.first?.lap(), let distance = lap.distance, let duration = lap.duration else {
+            return nil
+        }
+
+        return PacerWorkout(activity: HKWorkoutActivityType.running, distance: Measurement(value: Double(distance), unit: UnitLength.meters), time: Measurement(value: Double(duration), unit: UnitDuration.seconds))
     }
 
     private func toCustomWorkout() -> CustomWorkout? {
@@ -160,6 +202,23 @@ struct Activity: Codable {
         return (warmup.step, laps.dropFirst().dropLast(), cooldown.step)
     }
 
+    private func convertDistance(distance: Double, toUnits: ActivityData.Lap.DistanceUnits) -> Measurement<UnitLength> {
+        let measurement = Measurement(value: distance, unit: UnitLength.meters)
+        let convertedDistance: Measurement<UnitLength> = {
+            switch toUnits {
+            case .meters:
+                return measurement.converted(to: .meters)
+            case .miles:
+                return measurement.converted(to: .miles)
+            case .yards:
+                return measurement.converted(to: .yards)
+            case .kilometers:
+                return measurement.converted(to: .kilometers)
+            }
+        }()
+        return convertedDistance
+    }
+
     func uuid() -> UUID? {
         guard id.count == 10 else { return nil }
         let uuidStr = "00000000-0000-0000-0000-00\(id)"
@@ -171,6 +230,14 @@ struct Activity: Codable {
     extension Activity {
         func _toCustomWorkout() -> CustomWorkout? {
             return toCustomWorkout()
+        }
+
+        func _toPacerWorkout() -> PacerWorkout? {
+            return toPacerWorkout()
+        }
+
+        func _toSingleGoalWorkout() -> SingleGoalWorkout? {
+            return toSingleGoalWorkout()
         }
     }
 #endif

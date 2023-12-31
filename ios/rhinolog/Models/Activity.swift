@@ -101,6 +101,12 @@ struct Activity: Codable {
         }
     }
 
+    func getDate() -> Date {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd"
+        return dateFormatter.date(from: date)!
+    }
+
     func toWorkoutPlan() -> WorkoutPlan? {
         if let workout = toPacerWorkout() {
             return WorkoutPlan(.pacer(workout), id: uuid()!)

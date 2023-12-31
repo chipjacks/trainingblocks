@@ -66,7 +66,7 @@ class ActivityTests: XCTestCase {
             XCTFail("missing workout")
             return
         }
-        XCTAssertEqual(workout.goal, .time(60 * 60, .seconds))
+        XCTAssertEqual(workout.goal, WorkoutGoal.time(60 * 60, .seconds))
     }
 
     func testConvertActivityDistanceGoal() throws {
@@ -75,7 +75,7 @@ class ActivityTests: XCTestCase {
             XCTFail("missing workout")
             return
         }
-        XCTAssertEqual(workout.goal, .distance(8, .miles))
+        XCTAssertEqual(workout.goal, WorkoutGoal.distance(8, .miles))
     }
 
     func testConvertActivityWithPace() throws {
@@ -106,10 +106,10 @@ class ActivityTests: XCTestCase {
         }
         XCTAssertEqual(customWorkout.displayName, activity.description)
         XCTAssertEqual(customWorkout.blocks.count, activity.data.planned!.count - 2)
-        XCTAssertEqual(customWorkout.warmup?.goal, .time(Double((activity.data.planned?[0].lap()?.duration)!), .seconds))
-        XCTAssertEqual(customWorkout.cooldown?.goal, .time(Double((activity.data.planned?.last!.lap()?.duration)!), .seconds))
+        XCTAssertEqual(customWorkout.warmup?.goal, WorkoutGoal.time(Double((activity.data.planned?[0].lap()?.duration)!), .seconds))
+        XCTAssertEqual(customWorkout.cooldown?.goal, WorkoutGoal.time(Double((activity.data.planned?.last!.lap()?.duration)!), .seconds))
         XCTAssertEqual(customWorkout.blocks[0].iterations, activity.data.planned?[1].repeats()?.repeats)
-        XCTAssertEqual(customWorkout.blocks[0].steps[0].purpose, .work)
-        XCTAssertEqual(customWorkout.blocks[0].steps[1].purpose, .recovery)
+        XCTAssertEqual(customWorkout.blocks[0].steps[0].purpose, IntervalStep.Purpose.work)
+        XCTAssertEqual(customWorkout.blocks[0].steps[1].purpose, IntervalStep.Purpose.recovery)
     }
 }

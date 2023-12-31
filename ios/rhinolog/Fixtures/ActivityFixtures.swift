@@ -6,7 +6,6 @@
 //
 
 import Foundation
-@testable import rhinolog
 
 struct ActivityFixtures {
     func EasyHour() throws -> Activity {
@@ -30,7 +29,7 @@ struct ActivityFixtures {
     }
 
     private func loadFixture(_ name: String) throws -> Activity {
-        let fileURL = Bundle(for: rhinologTests.self).url(forResource: name, withExtension: "json")
+        let fileURL = Bundle.main.url(forResource: name, withExtension: "json")
         let data = try Data(contentsOf: fileURL!)
         let decoder = JSONDecoder()
         let decodedData = try decoder.decode(Activity.self, from: data)

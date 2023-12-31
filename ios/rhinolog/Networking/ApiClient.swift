@@ -10,8 +10,10 @@ import Foundation
 class ApiClient {
     static let shared = ApiClient()
 
+    static let HOST = "https://rhinolog.app"
+
     func requestActivities(completion: @escaping (Result<[Activity], Error>) -> Void) {
-        guard let url = URL(string: "http://localhost:3000/activities") else {
+        guard let url = URL(string: ApiClient.HOST + "/activities") else {
             completion(.failure(ActivityLoadingError.invalidUrl))
             return
         }

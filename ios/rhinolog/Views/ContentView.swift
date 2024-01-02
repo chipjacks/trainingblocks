@@ -12,6 +12,7 @@ struct ContentView: View {
     @State var activities: [Activity]?
     @State private var loadingError: Error?
     @State var showPreview: Bool = false
+    @State var showPreviewFor: UUID? = nil
     @State var authorizationState: WorkoutScheduler.AuthorizationState = .notDetermined
     @State var scheduledWorkouts: [ScheduledWorkoutPlan] = []
 
@@ -20,37 +21,13 @@ struct ContentView: View {
             if let loadedActivities = activities {
                 List {
                     Section("Today") {
-                        if let todayActivity = loadedActivities.first(where: { $0.date == currentDate() }) {
-                            Text(todayActivity.description)
-                                .font(.headline)
-                            HStack {
-                                Button(action: {
-                                    showPreview.toggle()
-                                }) {
-                                    Text("Preview")
-                                        .padding()
-                                        .background(Color.blue)
-                                        .foregroundColor(.white)
-                                        .cornerRadius(10)
-                                }.workoutPreview(todayActivity.toWorkoutPlan()!, isPresented: $showPreview)
-
-                                Button(action: {
-                                    Task {
-                                        await schedule(workout: todayActivity.toWorkoutPlan()!, date: todayActivity.getDate())
-                                    }
-                                }) {
-                                    Text("Schedule")
-                                        .padding()
-                                        .background(Color.blue)
-                                        .foregroundColor(.white)
-                                        .cornerRadius(10)
-                                }
-                            }
+                        ForEach(loadedActivities.filter({ $0.date == currentDate() }), id: \.self) { activity in
+                            activityView(activity: activity)
                         }
                     }
+                    .padding()
+                    .padding(.top)
                 }
-                .padding()
-                .padding(.top)
             } else if let error = loadingError {
                 Text("Error: \(error.localizedDescription)")
                     .foregroundColor(.red)
@@ -65,6 +42,43 @@ struct ContentView: View {
             await update()
         }.refreshable {
             await update()
+        }
+    }
+
+    @ViewBuilder
+    private func activityView(activity: Activity) -> some View {
+        Text(activity.description)
+            .font(.headline)
+        if let workoutPlan = activity.toWorkoutPlan() {
+            HStack {
+                Button(action: {
+                    if showPreviewFor != nil {
+                        showPreviewFor = nil
+                        showPreview = false
+                    } else {
+                        showPreviewFor = activity.uuid()
+                        showPreview = true
+                    }
+                }) {
+                    Text("Preview")
+                        .padding()
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                }.workoutPreview(workoutPlan, isPresented: $showPreview)
+
+                Button(action: {
+                    Task {
+                        await schedule(workout: workoutPlan, date: activity.getDate())
+                    }
+                }) {
+                    Text("Schedule")
+                        .padding()
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                }
+            }
         }
     }
 

@@ -17,11 +17,19 @@ struct ActivitiesContainer: Decodable {
     }
 }
 
-struct Activity: Codable {
+struct Activity: Codable, Hashable {
     let id: String
     let date: String
     let description: String
     let data: ActivityData
+
+    static func == (lhs: Activity, rhs: Activity) -> Bool {
+        return lhs.id == rhs.id && lhs.id == rhs.id
+    }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(uuid())
+    }
 
     struct ActivityData: Codable {
         let laps: [LapOrRepeat]?

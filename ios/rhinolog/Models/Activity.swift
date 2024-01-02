@@ -72,7 +72,7 @@ struct Activity: Codable {
         }
 
         struct Lap: Codable {
-            let type: String?
+            let type: ActivityType
             let pace: Int?
             let distance: Double?
             let distanceUnits: DistanceUnits?
@@ -80,6 +80,11 @@ struct Activity: Codable {
             let effort: Effort?
             let elevationGain: Double?
             let completed: Bool?
+
+            enum ActivityType: String, Codable {
+                case run = "Run"
+                case other = "Other"
+            }
 
             enum DistanceUnits: String, Codable {
                 case meters = "m"
@@ -120,7 +125,7 @@ struct Activity: Codable {
     }
 
     private func toSingleGoalWorkout() -> SingleGoalWorkout? {
-        guard let laps = data.planned, laps.count == 1, let lap = laps.first?.lap() else {
+        guard let laps = data.planned, laps.count == 1, let lap = laps.first?.lap(), lap.type == .run else {
             return nil
         }
 
@@ -142,7 +147,7 @@ struct Activity: Codable {
     }
 
     private func toPacerWorkout() -> PacerWorkout? {
-        guard let laps = data.planned, laps.count == 1, let lap = laps.first?.lap(), let distance = lap.distance, let duration = lap.duration else {
+        guard let laps = data.planned, laps.count == 1, let lap = laps.first?.lap(), lap.type == .run, let distance = lap.distance, let duration = lap.duration else {
             return nil
         }
 
@@ -162,10 +167,16 @@ struct Activity: Codable {
         for lapOrRepeat in mainLaps {
             switch lapOrRepeat {
             case let .lap(lap):
+                guard lap.type == .run else {
+                    return nil
+                }
                 let interval = lapToIntervalStep(lap: lap)
                 let block = IntervalBlock(steps: [interval], iterations: 1)
                 workoutSteps.append(block)
             case let .repeats(repeats):
+                guard repeats.laps.allSatisfy({ $0.type == .run }) else {
+                    return nil
+                }
                 let intervals = repeats.laps.map { lapToIntervalStep(lap: $0) }
                 let block = IntervalBlock(steps: intervals, iterations: repeats.repeats)
                 workoutSteps.append(block)
@@ -226,8 +237,16 @@ struct Activity: Codable {
     }
 
     func uuid() -> UUID? {
-        guard id.count == 10 else { return nil }
-        let uuidStr = "00000000-0000-0000-0000-00\(id)"
+        var uuidStr: String
+        if id.count == 10 {
+            uuidStr = "00000000-0000-0000-0000-00\(id)"
+        } else if id.count == 11 {
+            uuidStr = "00000000-0000-0000-0000-0\(id)"
+        } else if id.count == 12 {
+            uuidStr = "00000000-0000-0000-0000-\(id)"
+        } else {
+            return nil
+        }
         return UUID(uuidString: uuidStr)
     }
 }

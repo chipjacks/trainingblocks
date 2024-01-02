@@ -56,7 +56,7 @@ class ActivityTests: XCTestCase {
         XCTAssertEqual(activity.date, "2022-04-14")
         XCTAssertEqual(activity.description, "Lunch Run")
         XCTAssertEqual(activity.data.laps?.count, 1)
-        XCTAssertEqual(activity.data.laps?[0].lap()?.type, "Run")
+        XCTAssertEqual(activity.data.laps?[0].lap()?.type, .run)
         XCTAssertEqual(activity.data.laps?[0].lap()?.distance, 9022.2)
     }
 

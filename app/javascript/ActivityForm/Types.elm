@@ -21,6 +21,7 @@ type alias ActivityForm =
     , pace : String
     , distance : String
     , distanceUnits : DistanceUnits
+    , elevationGain : Maybe Float
     , race : Maybe RaceDistance
     , effort : Maybe Effort
     , emoji : String

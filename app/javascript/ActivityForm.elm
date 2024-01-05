@@ -116,6 +116,7 @@ initFromSelection activity editingLap completion laps repeatM =
         Maybe.map Pace.paceToString data.pace |> Maybe.withDefault ""
     , distance = distance
     , distanceUnits = distanceUnits
+    , elevationGain = data.elevationGain
     , race = data.race
     , effort = data.effort
     , emoji = Maybe.withDefault "" data.emoji
@@ -801,7 +802,12 @@ toActivityData model =
 
         else
             Nothing
-    , elevationGain = Nothing
+    , elevationGain =
+        if model.activityType == Activity.Types.Run then
+            model.elevationGain
+
+        else
+            Nothing
     , race =
         if model.activityType == Activity.Types.Run then
             model.race

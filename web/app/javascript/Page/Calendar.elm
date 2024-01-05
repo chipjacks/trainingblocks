@@ -704,15 +704,20 @@ initActivity today dateM =
 
 initSession : Activity -> List Activity -> Effect
 initSession head activities =
+    let
+        activityWithImport = List.filter (\a -> a.importId /= Nothing) activities |> List.head
+        description = List.filter (\a -> a.description /= "") activities |> List.map (\a -> a.description) |> String.join " "
+    in
     Activity.newId
         |> Random.map
             (\id ->
-                Activity id
+                Activity
+                    id
                     head.date
-                    ""
+                    description
                     (List.concatMap .laps activities)
                     (List.concatMap .planned activities)
-                    Nothing
+                    (Maybe.andThen .importId activityWithImport)
             )
         |> Effect.GenerateActivity (Group activities)
 

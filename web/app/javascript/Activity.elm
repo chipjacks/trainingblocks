@@ -208,6 +208,7 @@ encoder activity =
         , ( "date", Encode.string (Date.toIsoString activity.date) )
         , ( "description", Encode.string activity.description )
         , ( "data", dataEncoder activity.laps activity.planned )
+        , ( "import_id", maybeEncode activity.importId Encode.string )
         ]
 
 

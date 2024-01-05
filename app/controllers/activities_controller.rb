@@ -14,7 +14,14 @@ class ActivitiesController < ApplicationController
 
     ActiveRecord::Base.transaction do
       params[:activityUpdates].each do |change|
-        activity_params = change['activity'].permit(:id, :description, :date, data: {})
+        activity_params =
+          change['activity'].permit(
+            :id,
+            :description,
+            :date,
+            :import_id,
+            data: {},
+          )
 
         case change['msg']
         when 'create'
@@ -28,7 +35,6 @@ class ActivitiesController < ApplicationController
         else
           raise ActiveRecord::StatementInvalid.new("Invalid change #{change}")
         end
-
       end
 
       (params[:orderUpdates] || []).each do |change|
@@ -40,7 +46,6 @@ class ActivitiesController < ApplicationController
         activity.save!
       end
     end
-
   rescue ActiveRecord::StatementInvalid => exception
     Rails.logger.error exception.message
     render status: :bad_request, json: { ok: false }
@@ -53,7 +58,7 @@ class ActivitiesController < ApplicationController
 
   private
 
-    def revision
-      current_user.last_activity_update
-    end
+  def revision
+    current_user.last_activity_update
+  end
 end

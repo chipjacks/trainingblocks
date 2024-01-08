@@ -50,7 +50,7 @@ main =
 
 init : App.Env -> ( Model, Cmd Msg )
 init env =
-    ( Model (initPaces []) Nothing Nothing (initRaceDuration Nothing) (Err "") Nothing Loading (Err "")
+    ( Model (initPaces []) Nothing Nothing (initRaceDuration Nothing) (Err "") Nothing Nothing Loading (Err "")
     , Task.attempt GotSettings Api.getSettings
     )
 
@@ -86,6 +86,7 @@ type alias Model =
     , raceDuration : Validate.Field ( String, String, String ) Int
     , level : Result String Int
     , showTime : Maybe Bool
+    , stravaPost : Maybe Bool
     , status : FormStatus
     , result : Result String Settings
     }
@@ -122,6 +123,7 @@ type Msg
     | SelectedRaceDistance String
     | EditedDuration ( String, String, String )
     | CheckedShowTime
+    | CheckedStravaPost
     | NoOp
 
 
@@ -147,6 +149,7 @@ update env msg model =
                         , raceDistance = Just settings.raceDistance
                         , raceDuration = initRaceDuration (Just settings.raceDuration)
                         , showTime = Just settings.showTime
+                        , stravaPost = settings.stravaPost
                       }
                         |> updateLevel
                         |> updateResult
@@ -270,6 +273,12 @@ update env msg model =
             , Cmd.none
             )
 
+        CheckedStravaPost ->
+            ( { model | stravaPost = model.stravaPost |> Maybe.map not }
+                |> updateResult
+            , Cmd.none
+            )
+
         NoOp ->
             ( model, Cmd.none )
 
@@ -323,6 +332,7 @@ updateResult model =
                     , raceDuration = duration
                     , level = level
                     , showTime = model.showTime |> Maybe.withDefault False
+                    , stravaPost = model.stravaPost
                     }
                 )
                 (model.raceDistance |> Result.fromMaybe "" |> withMissingRaceError)
@@ -360,7 +370,7 @@ view model =
 
 
 viewBody : Model -> Html Msg
-viewBody { trainingPaces, dragging, status, raceDistance, raceDuration, level, showTime, result } =
+viewBody { trainingPaces, dragging, status, raceDistance, raceDuration, level, showTime, stravaPost, result } =
     column [ style "margin" "15px", style "margin-top" "40px", style "margin-bottom" "40px" ]
         [ viewStatusMessage status result
         , row [ style "flex-wrap" "wrap" ]
@@ -428,6 +438,30 @@ viewBody { trainingPaces, dragging, status, raceDistance, raceDuration, level, s
                     []
                 ]
             ]
+        , viewMaybe stravaPost (\p -> Html.hr [ class "hr--spacer" ] [])
+        , viewMaybe stravaPost (\p -> 
+            row [ style "flex-wrap" "wrap" ]
+                [ compactColumn [ class "column--mobile" ]
+                    [ row [ style "align-items" "flex-end" ]
+                        [ Html.h3 [] [ Html.text "Post to Strava" ]
+                        ]
+                    , Html.text "Append planned time to matched activity descriptions on Strava"
+                    ]
+                , column [ class "column--spacer" ] []
+                , compactColumn [ class "column--mobile" ]
+                    [ Html.input
+                        [ onClick CheckedStravaPost
+                        , Html.Attributes.attribute "type" "checkbox"
+                        , style "width" "1.5rem"
+                        , style "height" "1.5rem"
+                        , style "margin-bottom" "30px"
+                        , style "margin-top" "10px"
+                        , attributeIf (p == True) (Html.Attributes.attribute "checked" "")
+                        ]
+                        []
+                    ]
+                ]
+            )
         ]
 
 

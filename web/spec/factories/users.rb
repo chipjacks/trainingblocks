@@ -5,6 +5,10 @@ FactoryBot.define do
     confirmed_at { Date.today }
   end
 
+  trait :settings do
+    after(:create) { |user| create(:setting, user: user) }
+  end
+
   trait :strava do
     after(:build) do |user|
       user.class.skip_callback(

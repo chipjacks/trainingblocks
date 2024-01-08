@@ -2,7 +2,7 @@ require 'rails_helper'
 
 RSpec.describe UpdateStravaImportJob, type: :job do
   include ActiveJob::TestHelper
-  let(:user) { create(:user) }
+  let(:user) { create(:user, :settings) }
 
   before :each do
     stub_request(:post, 'https://www.strava.com/oauth/token').to_return(
@@ -45,6 +45,27 @@ RSpec.describe UpdateStravaImportJob, type: :job do
         )
       perform_enqueued_jobs
       expect(a_request(:put, STRAVA_ACTIVITIES_API_PATH)).to have_been_requested
+    end
+
+    it 'doesnt update strava description if setting is false' do
+      user.setting.strava_post = false
+      user.save!
+      import = build(:import, :laps, user: user)
+      import.data['description'] = 'Great run on a nice day!'
+      activity = Activity.from_strava_activity(import)
+      activity.data['planned'] = activity.data['laps']
+      activity.data['laps'] = []
+      activity.id = '12345'
+      activity.import = nil
+      activity.save!
+      stub_activities_get(import)
+      UpdateStravaImportJob.perform_now(user, import.id, true)
+      stub =
+        stub_activities_put(import, { description: 'Great run on a nice day!' })
+      perform_enqueued_jobs
+      expect(
+        a_request(:put, STRAVA_ACTIVITIES_API_PATH),
+      ).not_to have_been_requested
     end
   end
 end

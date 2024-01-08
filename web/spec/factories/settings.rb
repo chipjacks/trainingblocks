@@ -1,6 +1,8 @@
 FactoryBot.define do
   factory :setting do
-    user
+    trait :user do
+      user
+    end
     paces do
       [
         { 'pace' => 455, 'name' => 'Very Easy' },
@@ -12,8 +14,9 @@ FactoryBot.define do
         { 'pace' => 338, 'name' => 'Lactate Threshold' },
         { 'pace' => 322, 'name' => 'Groove' },
         { 'pace' => 307, 'name' => 'VO2 Max' },
-        { 'pace' => 292, 'name' => 'Fast' }
+        { 'pace' => 292, 'name' => 'Fast' },
       ]
     end
+    strava_post { true }
   end
 end

@@ -104,11 +104,13 @@ class Activity < ApplicationRecord
     if planned_duration > 0 && import
       append_description =
         "#{human_duration(planned_duration)} planned on https://RhinoLog.app"
-      UpdateStravaDescriptionJob.perform_later(
-        user,
-        import.id,
-        "#{existing_description}\n\n#{append_description}",
-      )
+      new_description =
+        if existing_description.blank?
+          append_description
+        else
+          "#{existing_description}\n\n#{append_description}"
+        end
+      UpdateStravaDescriptionJob.perform_later(user, import.id, new_description)
     end
   end
 

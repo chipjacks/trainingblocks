@@ -4,11 +4,14 @@ class SettingsController < ApplicationController
   def show
     current_user.create_setting if !current_user.setting
 
+    json = current_user.setting.as_json(only: required_fields)
+    if current_user.provider == 'strava'
+      json[:strava_post] = current_user.setting.strava_post
+    end
+
     respond_to do |format|
       format.html
-      format.json do
-        render json: current_user.setting.as_json(only: required_fields)
-      end
+      format.json { render json: json }
     end
   end
 
@@ -28,6 +31,7 @@ class SettingsController < ApplicationController
         :race_duration,
         :level,
         :show_time,
+        :strava_post,
       ],
     )
   end

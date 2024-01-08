@@ -31,7 +31,7 @@ simulateEffects effect =
 
         Effect.GetSettings ->
             SimulatedEffect.Task.attempt Msg.GotSettings
-                (SimulatedEffect.Task.succeed (Just { paces = [], raceDistance = Activity.Types.FiveK, raceDuration = 60 * 17, level = 44, showTime = True }))
+                (SimulatedEffect.Task.succeed (Just { paces = [], raceDistance = Activity.Types.FiveK, raceDuration = 60 * 17, level = 44, showTime = True, stravaPost = Nothing }))
 
         Effect.FetchEmojis ->
             SimulatedEffect.Task.attempt Msg.FetchedEmojis

@@ -19,7 +19,7 @@ class UpdateStravaImportJob < ApplicationJob
 
     activity = Activity.from_strava_activity(import)
     res = activity.match_or_create
-    if is_create && user.setting.strava_post
+    if is_create && user.setting && user.setting.strava_post
       res.update_strava_description(import.data['description'])
     end
   rescue StravaClient::ApiError => e

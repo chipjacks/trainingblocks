@@ -206,7 +206,7 @@ struct Activity: Codable, Hashable {
         }
         if let paceSecondsPerMile = lap.pace {
             let milesPerHour = 1 / Double(paceSecondsPerMile) * 60 * 60
-            step.alert = .speed(Double(milesPerHour - 0.1) ... Double(milesPerHour + 0.1), unit: .milesPerHour, metric: .current)
+            step.alert = .speed(Double(milesPerHour - 0.3) ... Double(milesPerHour + 0.3), unit: .milesPerHour, metric: .current)
         }
         let interval = IntervalStep(lap.effort == .easy ? .recovery : .work, step: step)
         return interval

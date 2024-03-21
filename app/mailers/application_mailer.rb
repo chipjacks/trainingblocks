@@ -1,4 +1,4 @@
 class ApplicationMailer < ActionMailer::Base
   layout 'mailer'
-  default from: 'no-reply@rhinolog.app'
+  default from: 'runoteam@gmail.com'
 end

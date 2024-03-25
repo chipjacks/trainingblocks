@@ -1,6 +1,6 @@
 const VERSION = "0.1.4";
 
-const cacheName = `rhinolog v${VERSION}`;
+const cacheName = `runo v${VERSION}`;
 
 self.addEventListener("install", function (e) {
   e.waitUntil(

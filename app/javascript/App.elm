@@ -71,7 +71,7 @@ document { title, init, update, perform, view, subscriptions } =
                     |> Tuple.mapSecond perform
         , view =
             \( env, model ) ->
-                { title = title ++ " | Rhino Log", body = [ viewFlash env.flash, view model ] }
+                { title = title ++ " | Runo", body = [ viewFlash env.flash, view model ] }
         , subscriptions =
             \( env, model ) ->
                 subscriptions model

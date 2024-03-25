@@ -4,7 +4,7 @@ Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
 
   config.middleware.use Rack::HostRedirect,
-                        { 'rhinolog.herokuapp.com' => 'rhinolog.app' }
+                        { 'rhinolog.herokuapp.com' => 'runo.app' }
 
   # Code is not reloaded between requests.
   config.cache_classes = true
@@ -68,7 +68,7 @@ Rails.application.configure do
   # Set this to true and configure the email server for immediate delivery to raise delivery errors.
   # config.action_mailer.raise_delivery_errors = false
 
-  config.action_mailer.default_url_options = { host: 'rhinolog.app' }
+  config.action_mailer.default_url_options = { host: 'runo.app' }
 
   config.action_mailer.delivery_method = :mailgun
   config.action_mailer.mailgun_settings = {

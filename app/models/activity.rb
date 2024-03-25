@@ -103,7 +103,7 @@ class Activity < ApplicationRecord
   def update_strava_description(existing_description)
     if planned_duration > 0 && import
       append_description =
-        "#{human_duration(planned_duration)} planned on https://RhinoLog.app"
+        "#{human_duration(planned_duration)} planned on https://runo.app"
       UpdateStravaDescriptionJob.perform_later(
         user,
         import.id,

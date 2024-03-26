@@ -1,12 +1,12 @@
 //
 //  ActivityTests.swift
-//  rhinologTests
+//  runoTests
 //
 //  Created by Chip Jackson on 12/26/23.
 //
 
 import HealthKit
-@testable import rhinolog
+@testable import runo
 import WorkoutKit
 import XCTest
 

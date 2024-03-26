@@ -1,6 +1,6 @@
 //
 //  SignInView.swift
-//  rhinolog
+//  runo
 //
 //  Created by Chip Jackson on 12/26/23.
 //
@@ -23,14 +23,14 @@ struct SignInView: View {
 
                     let authenticationSession = ASWebAuthenticationSession(
                         url: authURL,
-                        callbackURLScheme: "rhinolog"
+                        callbackURLScheme: "runo"
                     ) { callbackURL, error in
                         guard error == nil, let callbackURL = callbackURL else { return }
 
-                        //   rhinolog://auth?token=1234
+                        //   runo://auth?token=1234
                         let queryItems = URLComponents(string: callbackURL.absoluteString)?.queryItems
                         let token = queryItems?.filter({ $0.name == "token" }).first?.value
-                        UserDefaults.standard.set(token, forKey: "rhinologUserToken") // TODO: use keychain?
+                        UserDefaults.standard.set(token, forKey: "runoUserToken") // TODO: use keychain?
                         isSignedIn = true
                     }
 

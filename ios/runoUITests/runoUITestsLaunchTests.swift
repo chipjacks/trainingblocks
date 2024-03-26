@@ -1,13 +1,13 @@
 //
-//  rhinologUITestsLaunchTests.swift
-//  rhinologUITests
+//  runoUITestsLaunchTests.swift
+//  runoUITests
 //
 //  Created by Chip Jackson on 12/25/23.
 //
 
 import XCTest
 
-final class rhinologUITestsLaunchTests: XCTestCase {
+final class runoUITestsLaunchTests: XCTestCase {
 
     override class var runsForEachTargetApplicationUIConfiguration: Bool {
         true

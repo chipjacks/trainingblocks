@@ -1,6 +1,6 @@
 //
 //  ActivityFixtures.swift
-//  rhinologTests
+//  runoTests
 //
 //  Created by Chip Jackson on 12/29/23.
 //

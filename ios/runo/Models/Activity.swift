@@ -1,6 +1,6 @@
 //
 //  Activity.swift
-//  rhinolog
+//  runo
 //
 //  Created by Chip Jackson on 12/26/23.
 //

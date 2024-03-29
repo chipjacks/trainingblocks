@@ -5,7 +5,7 @@ class ApplicationController < ActionController::Base
 
   def after_sign_in_path_for(resource)
     if resource.jwt_token && request.params.dig(:user, :ios_auth)
-      'rhinolog://auth?token=' + resource.jwt_token
+      'runo://auth?token=' + resource.jwt_token
     else
       calendar_path
     end

@@ -1,8 +1,20 @@
-%p
-  Hello #{@email}!
-- if @resource.try(:unconfirmed_email?)
-  %p
-    We're contacting you to notify you that your email is being changed to #{@resource.unconfirmed_email}.
-- else
-  %p
-    We're contacting you to notify you that your email has been changed to #{@resource.email}.
+%table{border: "0", cellpadding: "0", cellspacing: "0", role: "presentation", style: "vertical-align:top;", width: "100%"}
+  %tbody
+    %tr
+      %td{align: "left", style: "font-size:0px;padding:10px;padding-top:0px"}
+        %div{style: "font-family:Arial, sans-serif;font-size:13px;letter-spacing:normal;line-height:1;text-align:left;color:#000000;"}
+          %p
+            %span{style: "font-family:Open Sans, Helvetica, Arial, sans-serif;"}
+              Hello #{@email}!
+          %p
+            %span{style: "font-family:Open Sans, Helvetica, Arial, sans-serif"}
+            - if @resource.try(:unconfirmed_email?)
+                We're contacting you to notify you that your email is being changed to #{@resource.unconfirmed_email}.
+            - else
+                We're contacting you to notify you that your email has been changed to #{@resource.email}.
+    %tr
+      %td{align: "left", "padding-top:0px" => "", style: "font-size:0px;padding:10px"}
+        %div{style: "font-family:Arial, sans-serif;font-size:13px;letter-spacing:normal;line-height:1;text-align:left;color:#000000;"}
+          %p
+            %span{style: "font-family:Open Sans, Helvetica, Arial, sans-serif;"}
+              \- The Runo Team

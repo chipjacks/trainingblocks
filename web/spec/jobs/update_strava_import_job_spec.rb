@@ -24,6 +24,17 @@ RSpec.describe UpdateStravaImportJob, type: :job do
       )
     end
 
+    it 'updates existing imports that have already been matched' do
+      import = create(:import, user: user)
+      activity = Activity.from_strava_activity(import)
+      activity.id = "foo"
+      activity.save!
+      stub_activities_get(import)
+      expect {
+        UpdateStravaImportJob.perform_now(user, import.id)
+      }.not_to change { Activity.all.length }
+    end
+
     it 'updates strava description with planned duration' do
       import = build(:import, :laps, user: user)
       import.data['description'] = 'Great run on a nice day!'

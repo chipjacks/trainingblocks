@@ -45,8 +45,8 @@ RSpec.describe Activity, type: :model do
       @import = create(:import, :laps)
       result = Activity.from_strava_activity(@import)
       expect(result.completed_duration).to be_within(10).of(
-        @import.data['moving_time'],
-      )
+            @import.data['moving_time']
+          )
     end
   end
 

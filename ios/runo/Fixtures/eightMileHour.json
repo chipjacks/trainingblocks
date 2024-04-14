@@ -1,0 +1,22 @@
+{
+"data": {
+  "laps": [],
+  "planned": [
+	{
+	  "completed": false,
+	  "distance": 12874.752,
+	  "distanceUnits": "mi",
+	  "duration": 3600,
+	  "effort": "Easy",
+	  "elevationGain": null,
+	  "emoji": null,
+	  "pace": 450,
+	  "race": null,
+	  "type": "Run"
+	}
+  ]
+},
+"date": "2023-12-28",
+"description": "eight mile hour",
+"id": "6864502155"
+}

@@ -15,7 +15,8 @@ describe 'User registration', type: :feature do
     fill_in 'user[password_confirmation]', with: 'password'
     click_button 'Sign up'
 
-    expect(page).to have_content('A message with a confirmation link')
+    expect(page).to have_content('Welcome!')
+    expect(page).to have_content('Please check your email for confirmation instructions.')
   end
 
   scenario "User doesn't enter an email" do
@@ -40,7 +41,8 @@ describe 'User registration', type: :feature do
     fill_in 'user[password_confirmation]', with: 'password'
 
     click_button 'Sign up'
-    expect(page).to have_content('A message with a confirmation link')
+    expect(page).to have_content('Welcome!')
+    expect(page).to have_content('Please check your email for confirmation instructions.')
     expect(User.first.auth_token).to be_truthy
   end
 
@@ -61,7 +63,8 @@ describe 'User registration', type: :feature do
     fill_in 'user[password_confirmation]', with: 'password'
 
     click_button 'Sign up'
-    expect(page).to have_content('A message with a confirmation link')
+    expect(page).to have_content('Welcome!')
+    expect(page).to have_content('Please check your email for confirmation instructions.')
     expect(user.reload.unconfirmed_email).to eq('test@example.com')
   end
 

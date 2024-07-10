@@ -77,6 +77,7 @@ view body { position, stackHeight, attrs } =
                 Bottom ->
                     style "justify-content" "flex-end"
             , style "margin" "10px"
+            , style "max-width" "95%"
             ]
             [ row
                 [ class "toast__content"

@@ -26,9 +26,10 @@
   border-radius: 5px;
   align-items: center;
   border: solid 1px var(--grey-500);
+  max-width: 95%;
 }
 
 .toast--fade {
-  animation: fade 0.5s linear 5s;
+  animation: fade 1s linear 7s;
   animation-fill-mode: forwards;
 }

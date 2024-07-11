@@ -302,8 +302,7 @@ viewActivityShape activity isActive isMonthView configs =
         , style "touch-action" "none"
         , style "position" "relative"
         ]
-    <|
-        viewIf (isActive && isMonthView)
+        [ viewIf (isActive && isMonthView)
             (div
                 [ style "position" "absolute"
                 , style "top" "0"
@@ -311,11 +310,12 @@ viewActivityShape activity isActive isMonthView configs =
                 , style "width" "50px"
                 , style "z-index" "3"
                 ]
-                [ viewPopoverActions ]
-            )
-            :: (Activity.Data.list [ Activity.Data.visible ] activity
-                    |> List.map (\a -> ActivityShape.view configs a)
-               )
+                [ viewPopoverActions ])
+        , compactColumn [ ] (Activity.Data.list [ Activity.Data.planned ] activity
+                    |> List.map (\a -> ActivityShape.view configs a))
+        , compactColumn [ style "position" "absolute", style "top" "3px", style "left" "3px" ] (Activity.Data.list [ Activity.Data.visible ] activity
+                    |> List.map (\a -> ActivityShape.view configs a))
+        ]
 
 
 

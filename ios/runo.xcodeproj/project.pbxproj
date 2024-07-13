@@ -47,6 +47,7 @@
 		1773583B2BB27CEC0078E903 /* runo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = runo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1773584B2BB27CEE0078E903 /* runoTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = runoTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		177358552BB27CEE0078E903 /* runoUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = runoUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		17934C3F2C43278C00B425F8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		179B491B2BB2813900E16F99 /* ApiClient.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ApiClient.swift; sourceTree = "<group>"; };
 		179B491C2BB2813900E16F99 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		179B491E2BB2813900E16F99 /* Activity.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Activity.swift; sourceTree = "<group>"; };
@@ -114,6 +115,7 @@
 		179B49192BB2813900E16F99 /* runo */ = {
 			isa = PBXGroup;
 			children = (
+				17934C3F2C43278C00B425F8 /* Info.plist */,
 				179B491A2BB2813900E16F99 /* Networking */,
 				179B491C2BB2813900E16F99 /* Assets.xcassets */,
 				179B491D2BB2813900E16F99 /* Models */,
@@ -492,12 +494,14 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"runo/Preview Content\"";
 				DEVELOPMENT_TEAM = A829M26MGR;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = runo/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -521,12 +525,14 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"runo/Preview Content\"";
 				DEVELOPMENT_TEAM = A829M26MGR;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = runo/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

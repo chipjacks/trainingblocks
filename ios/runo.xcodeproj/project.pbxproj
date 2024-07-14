@@ -24,6 +24,9 @@
 		179B493D2BB2813900E16F99 /* cruiseMiles.json in Resources */ = {isa = PBXBuildFile; fileRef = 179B49282BB2813900E16F99 /* cruiseMiles.json */; };
 		179B493E2BB2813900E16F99 /* SignInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 179B492A2BB2813900E16F99 /* SignInView.swift */; };
 		179B493F2BB2813900E16F99 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 179B492B2BB2813900E16F99 /* ContentView.swift */; };
+		720872801F616EC77CFCDFE3 /* Pods_runo_runoUITests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CF639CF712CA3F26284035AA /* Pods_runo_runoUITests.framework */; };
+		883C43D14597B21DA06217B5 /* Pods_runo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8FDDBC2BE60C6250AFE6FB9C /* Pods_runo.framework */; };
+		B2DB4A5F846185B8E3E3274C /* Pods_runoTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FB88C8784B691E68138AF6CE /* Pods_runoTests.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -44,6 +47,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		16FA32267484D129316DBFA3 /* Pods-runo.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-runo.debug.xcconfig"; path = "Target Support Files/Pods-runo/Pods-runo.debug.xcconfig"; sourceTree = "<group>"; };
 		1773583B2BB27CEC0078E903 /* runo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = runo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1773584B2BB27CEE0078E903 /* runoTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = runoTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		177358552BB27CEE0078E903 /* runoUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = runoUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -65,6 +69,14 @@
 		179B492F2BB2813900E16F99 /* runoTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = runoTests.swift; sourceTree = "<group>"; };
 		179B49312BB2813900E16F99 /* runoUITests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = runoUITests.swift; sourceTree = "<group>"; };
 		179B49322BB2813900E16F99 /* runoUITestsLaunchTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = runoUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		6D1F448D0F8DCE81AD318BC4 /* Pods-runo.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-runo.release.xcconfig"; path = "Target Support Files/Pods-runo/Pods-runo.release.xcconfig"; sourceTree = "<group>"; };
+		7D3A42DC85909DBB49C7317F /* Pods-runo-runoUITests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-runo-runoUITests.release.xcconfig"; path = "Target Support Files/Pods-runo-runoUITests/Pods-runo-runoUITests.release.xcconfig"; sourceTree = "<group>"; };
+		8FDDBC2BE60C6250AFE6FB9C /* Pods_runo.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_runo.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		AB6D58BEE88CADB6893F83CB /* Pods-runoTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-runoTests.debug.xcconfig"; path = "Target Support Files/Pods-runoTests/Pods-runoTests.debug.xcconfig"; sourceTree = "<group>"; };
+		CF639CF712CA3F26284035AA /* Pods_runo_runoUITests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_runo_runoUITests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		DA09EA8214DC1B32F3B83F7C /* Pods-runo-runoUITests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-runo-runoUITests.debug.xcconfig"; path = "Target Support Files/Pods-runo-runoUITests/Pods-runo-runoUITests.debug.xcconfig"; sourceTree = "<group>"; };
+		FA53D3DE921799F056D549C8 /* Pods-runoTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-runoTests.release.xcconfig"; path = "Target Support Files/Pods-runoTests/Pods-runoTests.release.xcconfig"; sourceTree = "<group>"; };
+		FB88C8784B691E68138AF6CE /* Pods_runoTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_runoTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -72,6 +84,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				883C43D14597B21DA06217B5 /* Pods_runo.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -79,6 +92,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B2DB4A5F846185B8E3E3274C /* Pods_runoTests.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -86,6 +100,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				720872801F616EC77CFCDFE3 /* Pods_runo_runoUITests.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -99,6 +114,8 @@
 				179B492D2BB2813900E16F99 /* runoTests */,
 				179B49302BB2813900E16F99 /* runoUITests */,
 				1773583C2BB27CEC0078E903 /* Products */,
+				E793278B4D1888F1B391CC34 /* Pods */,
+				8421E354CCF4CA51709C04F1 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -191,6 +208,29 @@
 			path = runoUITests;
 			sourceTree = "<group>";
 		};
+		8421E354CCF4CA51709C04F1 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				8FDDBC2BE60C6250AFE6FB9C /* Pods_runo.framework */,
+				CF639CF712CA3F26284035AA /* Pods_runo_runoUITests.framework */,
+				FB88C8784B691E68138AF6CE /* Pods_runoTests.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		E793278B4D1888F1B391CC34 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				16FA32267484D129316DBFA3 /* Pods-runo.debug.xcconfig */,
+				6D1F448D0F8DCE81AD318BC4 /* Pods-runo.release.xcconfig */,
+				DA09EA8214DC1B32F3B83F7C /* Pods-runo-runoUITests.debug.xcconfig */,
+				7D3A42DC85909DBB49C7317F /* Pods-runo-runoUITests.release.xcconfig */,
+				AB6D58BEE88CADB6893F83CB /* Pods-runoTests.debug.xcconfig */,
+				FA53D3DE921799F056D549C8 /* Pods-runoTests.release.xcconfig */,
+			);
+			path = Pods;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -198,9 +238,11 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 1773585F2BB27CEE0078E903 /* Build configuration list for PBXNativeTarget "runo" */;
 			buildPhases = (
+				0CC91975ECBC3608C2E5BABE /* [CP] Check Pods Manifest.lock */,
 				177358372BB27CEC0078E903 /* Sources */,
 				177358382BB27CEC0078E903 /* Frameworks */,
 				177358392BB27CEC0078E903 /* Resources */,
+				6E2DE4AF02CEE10B0B1D0C75 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -215,6 +257,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 177358622BB27CEE0078E903 /* Build configuration list for PBXNativeTarget "runoTests" */;
 			buildPhases = (
+				6B9225F1A965A64E447D5E66 /* [CP] Check Pods Manifest.lock */,
 				177358472BB27CEE0078E903 /* Sources */,
 				177358482BB27CEE0078E903 /* Frameworks */,
 				177358492BB27CEE0078E903 /* Resources */,
@@ -233,9 +276,11 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 177358652BB27CEE0078E903 /* Build configuration list for PBXNativeTarget "runoUITests" */;
 			buildPhases = (
+				5721E74FE86F98D154520107 /* [CP] Check Pods Manifest.lock */,
 				177358512BB27CEE0078E903 /* Sources */,
 				177358522BB27CEE0078E903 /* Frameworks */,
 				177358532BB27CEE0078E903 /* Resources */,
+				4EEDFC4B81A99679B541BC2B /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -321,6 +366,109 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		0CC91975ECBC3608C2E5BABE /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-runo-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		4EEDFC4B81A99679B541BC2B /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-runo-runoUITests/Pods-runo-runoUITests-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-runo-runoUITests/Pods-runo-runoUITests-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-runo-runoUITests/Pods-runo-runoUITests-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		5721E74FE86F98D154520107 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-runo-runoUITests-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		6B9225F1A965A64E447D5E66 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-runoTests-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		6E2DE4AF02CEE10B0B1D0C75 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-runo/Pods-runo-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-runo/Pods-runo-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-runo/Pods-runo-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		177358372BB27CEC0078E903 /* Sources */ = {
@@ -491,6 +639,7 @@
 		};
 		177358602BB27CEE0078E903 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 16FA32267484D129316DBFA3 /* Pods-runo.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -522,6 +671,7 @@
 		};
 		177358612BB27CEE0078E903 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 6D1F448D0F8DCE81AD318BC4 /* Pods-runo.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -553,6 +703,7 @@
 		};
 		177358632BB27CEE0078E903 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = AB6D58BEE88CADB6893F83CB /* Pods-runoTests.debug.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -573,6 +724,7 @@
 		};
 		177358642BB27CEE0078E903 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = FA53D3DE921799F056D549C8 /* Pods-runoTests.release.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -593,8 +745,8 @@
 		};
 		177358662BB27CEE0078E903 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = DA09EA8214DC1B32F3B83F7C /* Pods-runo-runoUITests.debug.xcconfig */;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
@@ -614,8 +766,8 @@
 		};
 		177358672BB27CEE0078E903 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 7D3A42DC85909DBB49C7317F /* Pods-runo-runoUITests.release.xcconfig */;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;

@@ -9,9 +9,18 @@ import AuthenticationServices
 import Combine
 import SwiftUI
 import WebKit
+import KeychainAccess
 
 struct SignInView: View {
     @State private var isSignedIn = false
+
+    init() {
+        if Keychain(service: "chipjacks.runo")["runoUserToken"] != nil {
+            _isSignedIn = State(initialValue: true)
+        } else {
+            _isSignedIn = State(initialValue: false)
+        }
+    }
 
     var body: some View {
         NavigationView {
@@ -19,7 +28,7 @@ struct SignInView: View {
                 ContentView()
             } else {
                 Button("Authenticate") {
-					guard let authURL = URL(string: ApiClient.HOST + "/users/sign_in?v=ios0.1") else { return }
+                    guard let authURL = URL(string: ApiClient.HOST + "/users/sign_in?v=ios0.1") else { return }
 
                     let authenticationSession = ASWebAuthenticationSession(
                         url: authURL,
@@ -30,8 +39,12 @@ struct SignInView: View {
                         //   runo://auth?token=1234
                         let queryItems = URLComponents(string: callbackURL.absoluteString)?.queryItems
                         let token = queryItems?.filter({ $0.name == "token" }).first?.value
-                        UserDefaults.standard.set(token, forKey: "runoUserToken") // TODO: use keychain?
-                        isSignedIn = true
+                        if let token = token {
+                            // Store token in Keychain
+                            let keychain = Keychain(service: "chipjacks.runo")
+                            keychain["runoUserToken"] = token
+                            isSignedIn = true
+                        }
                     }
 
                     let authenticationPresenter = AuthenticationPresenter()

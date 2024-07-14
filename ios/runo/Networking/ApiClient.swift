@@ -6,11 +6,14 @@
 //
 
 import Foundation
+import KeychainAccess
 
 class ApiClient {
     static let shared = ApiClient()
 
     static let HOST = "https://runo.app"
+
+    private let keychain = Keychain(service: "chipjacks.runo")
 
     func requestActivities(completion: @escaping (Result<[Activity], Error>) -> Void) {
         guard let url = URL(string: ApiClient.HOST + "/activities") else {
@@ -20,7 +23,7 @@ class ApiClient {
         var request = URLRequest(url: url)
 
         // Set Authorization Header
-        if let savedToken = UserDefaults.standard.string(forKey: "runoUserToken") {
+        if let savedToken = keychain["runoUserToken"] {
             request.setValue("Bearer \(savedToken)", forHTTPHeaderField: "Authorization")
         } else {
             // Handle the case where the token is not available

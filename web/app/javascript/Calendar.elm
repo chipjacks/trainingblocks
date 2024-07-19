@@ -301,6 +301,9 @@ viewActivityShape activity isActive isMonthView configs =
         , attributeIf isActive (class "dynamic-shape")
         , style "touch-action" "none"
         , style "position" "relative"
+        , style "display" "grid"
+        , style "grid-template-columns" "1fr 1fr"
+        , style "grid-template-rows" "1fr 1fr"
         ]
         [ viewIf (isActive && isMonthView)
             (div
@@ -311,9 +314,9 @@ viewActivityShape activity isActive isMonthView configs =
                 , style "z-index" "3"
                 ]
                 [ viewPopoverActions ])
-        , compactColumn [ ] (Activity.Data.list [ Activity.Data.planned ] activity
+        , compactColumn [ style "grid-column" "1 / 3", style "grid-row" "1 / 3" ] (Activity.Data.list [ Activity.Data.planned ] activity
                     |> List.map (\a -> ActivityShape.view configs a))
-        , compactColumn [ style "position" "absolute", style "top" "3px", style "left" "3px" ] (Activity.Data.list [ Activity.Data.visible ] activity
+        , compactColumn [ style "grid-column" "1 / 3", style "grid-row" "1 / 3", style "margin-top" "3px", style "margin-left" "3px" ] (Activity.Data.list [ Activity.Data.completed ] activity
                     |> List.map (\a -> ActivityShape.view configs a))
         ]
 

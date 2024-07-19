@@ -313,11 +313,26 @@ viewActivityShape activity isActive isMonthView configs =
                 , style "width" "50px"
                 , style "z-index" "3"
                 ]
-                [ viewPopoverActions ])
-        , compactColumn [ style "grid-column" "1 / 3", style "grid-row" "1 / 3" ] (Activity.Data.list [ Activity.Data.planned ] activity
-                    |> List.map (\a -> ActivityShape.view configs a))
-        , compactColumn [ style "grid-column" "1 / 3", style "grid-row" "1 / 3", style "margin-top" "3px", style "margin-left" "3px" ] (Activity.Data.list [ Activity.Data.completed ] activity
-                    |> List.map (\a -> ActivityShape.view configs a))
+                [ viewPopoverActions ]
+            )
+        , compactColumn
+            [ style "grid-column" "1 / 3"
+            , style "grid-row" "1 / 3"
+            , styleIf (Activity.Data.list [ Activity.Data.completed ] activity |> List.isEmpty |> not) "opacity" "0.5"
+            ]
+            (Activity.Data.list [ Activity.Data.planned ] activity
+                |> List.map (\a -> ActivityShape.view configs a)
+            )
+        , compactColumn
+            [ style "grid-column" "1 / 3"
+            , style "grid-row" "1 / 3"
+            , style "margin-top" "3px"
+            , style "margin-left" "3px"
+            , style "z-index" "1"
+            ]
+            (Activity.Data.list [ Activity.Data.completed ] activity
+                |> List.map (\a -> ActivityShape.view configs a)
+            )
         ]
 
 
@@ -472,6 +487,7 @@ titleWeek configs activities =
                     ]
                     [ if not configs.showTime && tag == "Run" then
                         text (Distance.toStringWithUnits Nothing runDistance)
+
                       else
                         text (Duration.toStringWithUnits seconds)
                     ]

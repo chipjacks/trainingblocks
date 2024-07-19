@@ -295,8 +295,7 @@ view model activities activeId activeRataDie isMoving configs =
 viewActivityShape : Activity -> Bool -> Bool -> ActivityConfigs -> Html Msg
 viewActivityShape activity isActive isMonthView configs =
     div
-        [ style "width" "min-content"
-        , attributeIf isActive (Html.Events.stopPropagationOn "pointerdown" (Decode.succeed ( MoveActivity activity, True )))
+        [ attributeIf isActive (Html.Events.stopPropagationOn "pointerdown" (Decode.succeed ( MoveActivity activity, True )))
         , styleIf isActive "cursor" "grab"
         , attributeIf isActive (class "dynamic-shape")
         , style "touch-action" "none"

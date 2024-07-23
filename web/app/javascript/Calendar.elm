@@ -294,6 +294,10 @@ view model activities activeId activeRataDie isMoving configs =
 
 viewActivityShape : Activity -> Bool -> Bool -> ActivityConfigs -> Html Msg
 viewActivityShape activity isActive isMonthView configs =
+    let
+        hasCompletedLayer =
+            Activity.Data.list [ Activity.Data.completed ] activity |> List.isEmpty |> not
+    in
     div
         [ attributeIf isActive (Html.Events.stopPropagationOn "pointerdown" (Decode.succeed ( MoveActivity activity, True )))
         , styleIf isActive "cursor" "grab"
@@ -317,10 +321,17 @@ viewActivityShape activity isActive isMonthView configs =
         , compactColumn
             [ style "grid-column" "1 / 3"
             , style "grid-row" "1 / 3"
-            , styleIf (Activity.Data.list [ Activity.Data.completed ] activity |> List.isEmpty |> not) "opacity" "0.5"
+            , styleIf hasCompletedLayer "opacity" "0.3"
             ]
-            (Activity.Data.list [ Activity.Data.planned ] activity
+            ((Activity.Data.list [ Activity.Data.planned ] activity
                 |> List.map (\a -> ActivityShape.view configs a)
+             )
+                ++ (if not hasCompletedLayer && isMonthView then
+                        viewShapeLabels activity Activity.Data.planned configs
+
+                    else
+                        []
+                   )
             )
         , compactColumn
             [ style "grid-column" "1 / 3"
@@ -329,10 +340,52 @@ viewActivityShape activity isActive isMonthView configs =
             , style "margin-left" "3px"
             , style "z-index" "1"
             ]
-            (Activity.Data.list [ Activity.Data.completed ] activity
-                |> List.map (\a -> ActivityShape.view configs a)
+            ((Activity.Data.list [ Activity.Data.completed ] activity |> List.map (\a -> ActivityShape.view configs a))
+                ++ (if isMonthView then
+                        viewShapeLabels activity Activity.Data.completed configs
+
+                    else
+                        []
+                   )
             )
         ]
+
+
+viewShapeLabels : Activity -> Activity.Data.Filter -> ActivityConfigs -> List (Html Msg)
+viewShapeLabels activity completionFilter configs =
+    let
+        all =
+            Activity.Data.list [ completionFilter ] activity
+
+        run =
+            Activity.Data.list [ completionFilter, Activity.Data.run ] activity
+
+        other =
+            Activity.Data.list [ completionFilter, Activity.Data.other ] activity
+    in
+    [ viewIf (run |> List.isEmpty |> not)
+        (row
+            [ style "z-index" "2"
+            , style "color" "var(--black-100)"
+            , style "font-size" "0.6em"
+            ]
+            [ Activity.Aggregate.distance [ completionFilter, Activity.Data.run ] [ activity ]
+                |> Distance.toStringWithUnits Nothing
+                |> text
+            ]
+        )
+    , viewIf (other |> List.isEmpty |> not)
+        (row
+            [ style "z-index" "2"
+            , style "color" "var(--black-100)"
+            , style "font-size" "0.6em"
+            ]
+            [ Activity.Aggregate.duration [ completionFilter, Activity.Data.other ] [ activity ]
+                |> Duration.toStringWithUnits
+                |> text
+            ]
+        )
+    ]
 
 
 
